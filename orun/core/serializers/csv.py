@@ -9,7 +9,7 @@ from orun.core.serializers.python import Deserializer as PythonDeserializer
 
 def Deserializer(stream_or_string, **options):
     """
-    Deserialize a stream or string of JSON data.
+    Deserialize a stream or string of CSV data.
     """
     rows = csv.reader(stream_or_string)
     cols = rows[0]

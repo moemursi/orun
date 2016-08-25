@@ -28,6 +28,8 @@ BUILTIN_SERIALIZERS = {
     "python": "orun.core.serializers.python",
     "json": "orun.core.serializers.json",
     "yaml": "orun.core.serializers.pyyaml",
+    "txt": "orun.core.serializers.txt",
+    "csv": "orun.core.serializers.csv",
 }
 
 _serializers = {}

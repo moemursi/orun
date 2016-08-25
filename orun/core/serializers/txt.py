@@ -8,7 +8,7 @@ from orun.core.serializers.python import Deserializer as PythonDeserializer
 
 def Deserializer(stream_or_string, **options):
     """
-    Deserialize a stream or string of JSON data.
+    Deserialize a stream or string of TXT data.
     """
     rows = stream_or_string.readlines()
     cols = [col.strip() for col in rows[0].strip().split('\t')]
