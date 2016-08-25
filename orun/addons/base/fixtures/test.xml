@@ -1,0 +1,11 @@
+<data>
+    <object id="object-1" model="sys.action">
+        <field name="name">Object 1</field>
+    </object>
+    <object id="object-2" model="sys.action">
+        <field name="name">Object 2</field>
+    </object>
+    <object id="object-3" model="sys.action">
+        <field name="name">Object 3</field>
+    </object>
+</data>

@@ -1,0 +1,4 @@
+
+
+class MigrationRunner(object):
+    pass
