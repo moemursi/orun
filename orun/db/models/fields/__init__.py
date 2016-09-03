@@ -43,7 +43,7 @@ __all__ = [
     'FloatField', 'IPAddressField', 'IntegerField',
     'NOT_PROVIDED', 'PositiveIntegerField', 'PositiveSmallIntegerField', 'SlugField',
     'SmallIntegerField', 'TextField', 'TimeField', 'URLField', 'UUIDField',
-    'HtmlField',
+    'HtmlField', 'CurrencyField',
 ]
 
 
@@ -1403,8 +1403,8 @@ class DecimalField(Field):
     }
     description = _("Decimal number")
 
-    def __init__(self, verbose_name=None, name=None, max_digits=None,
-                 decimal_places=None, **kwargs):
+    def __init__(self, verbose_name=None, name=None, max_digits=19,
+                 decimal_places=4, **kwargs):
         self.max_digits, self.decimal_places = max_digits, decimal_places
         super(DecimalField, self).__init__(verbose_name, name, **kwargs)
 
@@ -1542,6 +1542,13 @@ class DecimalField(Field):
         }
         defaults.update(kwargs)
         return super(DecimalField, self).formfield(**defaults)
+
+
+class CurrencyField(DecimalField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('max_digits', 21)
+        kwargs.setdefault('decimal_places', 6)
+        super(CurrencyField, self).__init__(*args, **kwargs)
 
 
 class DurationField(Field):

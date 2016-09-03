@@ -11,6 +11,18 @@ class Calendar(models.Model):
         name = 'resource.calendar'
 
 
+class CalendarLeave(models.Model):
+    company = models.ForeignKey('res.company', null=False)
+    calendar = models.ForeignKey(Calendar)
+    name = models.CharField(null=False)
+    date_from = models.DateField()
+    date_to = models.DateField()
+    resource = models.ForeignKey('resource.resource')
+
+    class Meta:
+        name = 'resource.calendar.leave'
+
+
 class CalendarAttendance(models.Model):
     DAY_OF_WEEK = (
         ('0', _('Sunday')),

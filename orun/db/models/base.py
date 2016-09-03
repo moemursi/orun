@@ -480,10 +480,6 @@ class Model(metaclass=ModelBase):
         return [row.to_dict(fields) for row in rows]
 
     @classmethod
-    def get_model(cls):
-        return app[cls._meta.name]
-
-    @classmethod
     def names_get(cls, rows):
         return [row.name_get() for row in rows]
 

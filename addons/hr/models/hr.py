@@ -21,7 +21,8 @@ class Job(mail.Thread):
     name = models.CharField(null=False)
     company = models.ForeignKey('res.company')
     description = models.TextField()
-    hired_employees = models.IntegerField(verbose_name=_('Hired Employees'))
+    expected_employees = models.PositiveIntegerField(verbose_name=_('Expected Employees'))
+    hired_employees = models.PositiveIntegerField(verbose_name=_('Hired Employees'))
     requirements = models.TextField()
     department = models.ForeignKey('hr.department')
     active = models.BooleanField(default=True)
@@ -29,12 +30,15 @@ class Job(mail.Thread):
 
     class Meta:
         name = 'hr.job'
+        verbose_name = _('Job Position')
+        verbose_name_plural = _('Job Positions')
 
 
 class Department(models.Model):
     name = models.CharField(null=False)
     company = models.ForeignKey('res.company')
     parent = models.ForeignKey('self')
+    manager = models.ForeignKey('hr.employee')
     notes = models.TextField()
     color = models.IntegerField()
 

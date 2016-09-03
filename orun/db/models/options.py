@@ -4,6 +4,7 @@ from bisect import bisect
 from collections import OrderedDict, defaultdict
 from itertools import chain
 
+from orun import app
 from orun.apps import apps
 from orun.conf import settings
 from orun.core.exceptions import FieldDoesNotExist
@@ -187,6 +188,9 @@ class Options(object):
     @property
     def model_name(self):
         return self.object_name.lower()
+
+    def get_model(self):
+        return app[self.name]
 
     def contribute_to_class(self, cls, name):
         from orun.db import connection
