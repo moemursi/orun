@@ -32,9 +32,6 @@ msgstr "Doutor"
 msgid "Mrs."
 msgstr "Sra."
 
-msgid "Miss"
-msgstr "Srta."
-
 msgid "Sr."
 msgstr "Sr."
 

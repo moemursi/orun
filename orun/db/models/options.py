@@ -38,7 +38,7 @@ DEFAULT_NAMES = (
     'auto_created', 'index_together', 'apps', 'default_permissions',
     'select_on_save', 'default_related_name', 'required_db_features',
     'required_db_vendor', 'base_manager_name', 'default_manager_name',
-    'manager_inheritance_from_future', 'indexes', 'name',
+    'manager_inheritance_from_future', 'indexes', 'name', 'db_schema',
 )
 
 DEFAULT_DISPLAY_FIELD = 'name'
@@ -95,6 +95,7 @@ class Options(object):
     apps = None
     extension = None
     has_auto_field = None
+    db_schema = None
 
     def __init__(self, parents, original_model=None, app_label=None):
         self._get_fields_cache = {}
@@ -251,7 +252,9 @@ class Options(object):
         # If the db_table wasn't provided, use the db_schema + model_name or schema + model_name.
         if not self.db_table:
             table_name = truncate_name(self.name.replace('.', '_'), MAX_NAME_LENGTH)
-            if opts.addon and opts.addon.db_schema:
+            if self.db_schema:
+                opts.db_table = '"%s"."%s"' % (opts.db_schema, truncate_name(table_name, MAX_NAME_LENGTH))
+            elif opts.addon and opts.addon.db_schema:
                 if table_name.startswith(opts.addon.db_schema + '_'):
                     table_name = table_name.split(opts.addon.db_schema + '_')[1]
                 opts.db_table = '"%s"."%s"' % (opts.addon.db_schema, truncate_name(table_name, MAX_NAME_LENGTH))

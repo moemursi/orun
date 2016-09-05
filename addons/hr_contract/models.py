@@ -13,12 +13,14 @@ class Employee(hr.Employee):
 
     class Meta:
         name = 'hr.employee'
+        db_schema = 'hr'
 
 
 class ContractType(models.Model):
     name = models.CharField(null=False)
 
     class Meta:
+        db_schema = 'hr'
         name = 'hr.contract.type'
         verbose_name = _('Contract Type')
         verbose_name_plural = _('Contract Types')
@@ -49,4 +51,5 @@ class Contract(mail.Thread):
     active = models.BooleanField(default=True)
 
     class Meta:
+        db_schema = 'hr'
         name = 'hr.contract'

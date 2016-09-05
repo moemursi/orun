@@ -129,6 +129,11 @@ class Field(RegisterLookupMixin):
         }
     description = property(_description)
 
+    def __new__(cls, *args, **kwargs):
+        field = super(Field, cls).__new__(cls)
+        field._original_attrs = kwargs
+        return field
+
     def __init__(self, verbose_name=None, name=None, primary_key=False,
                  max_length=None, unique=False, blank=None, null=True,
                  db_index=False, rel=None, default=NOT_PROVIDED, editable=True,

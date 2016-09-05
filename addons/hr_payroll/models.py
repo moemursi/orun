@@ -11,6 +11,7 @@ class Structure(models.Model):
 
     class Meta:
         name = 'hr.payroll.structure'
+        db_schema = 'hr'
 
 
 class Category(models.Model):
@@ -22,6 +23,7 @@ class Category(models.Model):
 
     class Meta:
         name = 'hr.salary.rule.category'
+        db_schema = 'hr'
 
 
 class Rule(models.Model):
@@ -46,6 +48,7 @@ class Rule(models.Model):
 
     class Meta:
         name = 'hr.salary.rule'
+        db_schema = 'hr'
 
 
 class PayrollType(models.Model):
@@ -55,6 +58,7 @@ class PayrollType(models.Model):
 
     class Meta:
         name = 'hr.payroll.type'
+        db_schema = 'hr'
 
 
 class PayrollTypeRule(models.Model):
@@ -63,6 +67,7 @@ class PayrollTypeRule(models.Model):
 
     class Meta:
         name = 'hr.payroll.type.rule'
+        db_schema = 'hr'
 
 
 class Payroll(models.Model):
@@ -75,6 +80,7 @@ class Payroll(models.Model):
 
     class Meta:
         name = 'hr.payroll'
+        db_schema = 'hr'
 
 
 class Payslip(models.Model):
@@ -97,6 +103,7 @@ class Payslip(models.Model):
 
     class Meta:
         name = 'hr.payslip'
+        db_schema = 'hr'
         verbose_name = _('Payslip')
 
 
@@ -109,4 +116,22 @@ class PayslipLine(models.Model):
 
     class Meta:
         name = 'hr.payslip.line'
+        db_schema = 'hr'
         verbose_name = _('Payslip Line')
+
+
+class Total(models.Model):
+    name = models.CharField(null=False)
+
+    class Meta:
+        name = 'hr.salary.total'
+        db_schema = 'hr'
+
+
+class RuleTotal(models.Model):
+    rule = models.ForeignKey(Rule, null=False)
+    total = models.ForeignKey(Total, null=False)
+
+    class Meta:
+        name = 'hr.salary.rule.total'
+        db_schema = 'hr'

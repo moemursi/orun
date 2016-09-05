@@ -125,6 +125,8 @@ class Registry(object):
         self.models_ready = False
         self._lock = Lock()
         self._configs = configs
+        base_dir = os.path.join(os.path.dirname(__file__))
+        self.addon_path = [os.path.join(base_dir, 'addons'), os.path.join(base_dir, '..', 'addons')]  # basic addons paths
 
     def get_model(self, app_label, model_name=None):
         if '.' in model_name:
@@ -205,8 +207,7 @@ class Registry(object):
 
     def find_addons(self):
         self.addons_loaded = True
-        base_dir = os.path.join(os.path.dirname(__file__))
-        paths = [os.path.join(base_dir, 'addons'), os.path.join(base_dir, '..', 'addons')]  # basic addons paths
+        paths = self.addon_path
         with self._lock:
             for path in paths:
                 sys.path.append(path)
@@ -332,6 +333,8 @@ class Application(Flask):
         settings.setdefault('USE_TZ', False)
         settings.setdefault('DATABASE_ROUTERS', [])
         settings.setdefault('MIGRATION_MODULES', {})
+        settings.setdefault('MEDIA_ROOT', None)
+        settings.setdefault('STATIC_ROOT', None)
         settings.setdefault('MAX_NAME_LENGTH', 30)
         settings.setdefault('TIME_ZONE', None)
         settings.setdefault('SERIALIZATION_MODULES', {})
