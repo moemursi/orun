@@ -1,6 +1,7 @@
 import copy
 import re
 from urllib.parse import quote, urlencode, urljoin, urlsplit
+import flask
 
 from orun.conf import settings
 from orun.utils.encoding import force_bytes
@@ -231,4 +232,3 @@ class QueryDict(MultiValueDict):
             output.extend(encode(k, force_bytes(v, self.encoding))
                           for v in list_)
         return '&'.join(output)
-

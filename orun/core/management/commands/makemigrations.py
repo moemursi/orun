@@ -4,6 +4,8 @@ from itertools import takewhile
 import click
 
 from orun.apps import apps
+from orun.core.management.commands import CommandError
+from orun.core.management import commands
 from orun.db import connections
 from orun.db.migrations import Migration
 from orun.db.migrations.autodetector import MigrationAutodetector
@@ -17,41 +19,63 @@ from orun.db.migrations.state import ProjectState
 from orun.db.migrations.writer import MigrationWriter
 
 
-@click.command('makemigrations')
-def command():
-    pass
+@commands.command('makemigrations')
+@commands.argument(
+    'app_labels', nargs=-1, required=False,
+    #help='App label of an addon to synchronize the state.',
+)
+@commands.option(
+    '--noinput', default=True,
+    help='Tells Orun to NOT prompt the user for input of any kind.',
+)
+@commands.option(
+    '--merge', default=False,
+    help='Enable fixing of migration conflicts.',
+)
+@commands.option(
+    '--empty', default=False,
+    help='Create an empty migration.',
+)
+@commands.option(
+    '--dry-run', default=False,
+    help="Just show what migrations would be made; don't actually write them.",
+)
+@commands.option(
+    '-n', '--name',
+    help='Use this name for migration file(s).'
+)
+def command(app_labels, **options):
+    cmd = Command()
+    cmd.handle(*app_labels, **options)
 
 
 class Command(object):
     def handle(self, *app_labels, **options):
-        self.verbosity = options['verbosity']
-        self.interactive = options['interactive']
-        self.dry_run = options['dry_run']
-        self.merge = options['merge']
-        self.empty = options['empty']
-        self.migration_name = options['name']
-        check_changes = options['check_changes']
+
+        self.verbosity = options.get('verbosity')
+        self.interactive = options.get('interactive')
+        self.dry_run = options.get('dry_run', False)
+        self.merge = options.get('merge', False)
+        self.empty = options.get('empty', False)
+        self.migration_name = options.get('name')
+        self.exit_code = options.get('exit_code', False)
 
         # Make sure the app they asked for exists
         app_labels = set(app_labels)
         bad_app_labels = set()
         for app_label in app_labels:
             try:
-                apps.get_app_config(app_label)
+                apps.get_addon(app_label)
             except LookupError:
                 bad_app_labels.add(app_label)
         if bad_app_labels:
             for app_label in bad_app_labels:
-                sys.stderr.write("App '%s' could not be found. Is it in INSTALLED_APPS?" % app_label)
+                commands.echo("App '%s' could not be found. Is it in INSTALLED_APPS?" % app_label, err=True)
             sys.exit(2)
 
         # Load the current graph state. Pass in None for the connection so
         # the loader doesn't try to resolve replaced migrations from DB.
         loader = MigrationLoader(None, ignore_no_migrations=True)
-
-        # Raise an error if any migrations are applied before their dependencies.
-        for db in connections:
-            loader.check_consistent_history(connections[db])
 
         # Before anything else, see if there's conflicting apps and drop out
         # hard if there are any and they don't want to merge
@@ -69,7 +93,7 @@ class Command(object):
                 "%s in %s" % (", ".join(names), app)
                 for app, names in conflicts.items()
             )
-            raise click.UsageError(
+            raise CommandError(
                 "Conflicting migrations detected; multiple leaf nodes in the "
                 "migration graph: (%s).\nTo fix them run "
                 "'python manage.py makemigrations --merge'" % name_str
@@ -77,7 +101,7 @@ class Command(object):
 
         # If they want to merge and there's nothing to merge, then politely exit
         if self.merge and not conflicts:
-            sys.stdout.write("No conflicts detected to merge.")
+            commands.echo("No conflicts detected to merge.")
             return
 
         # If they want to merge and there is something to merge, then
@@ -99,7 +123,7 @@ class Command(object):
         # If they want to make an empty migration, make one for each app
         if self.empty:
             if not app_labels:
-                raise click.UsageError("You must supply at least one app label when using --empty.")
+                raise CommandError("You must supply at least one app label when using --empty.")
             # Make a fake changes() result we can pass to arrange_for_graph
             changes = {
                 app: [Migration("custom", app)]
@@ -125,18 +149,18 @@ class Command(object):
             # No changes? Tell them.
             if self.verbosity >= 1:
                 if len(app_labels) == 1:
-                    sys.stdout.write("No changes detected in app '%s'" % app_labels.pop())
+                    commands.echo("No changes detected in app '%s'" % app_labels.pop())
                 elif len(app_labels) > 1:
-                    sys.stdout.write("No changes detected in apps '%s'" % ("', '".join(app_labels)))
+                    commands.echo("No changes detected in apps '%s'" % ("', '".join(app_labels)))
                 else:
-                    sys.stdout.write("No changes detected")
+                    commands.echo("No changes detected")
 
             if self.exit_code:
                 sys.exit(1)
-        else:
-            self.write_migration_files(changes)
-            if check_changes:
-                sys.exit(1)
+            else:
+                return
+
+        self.write_migration_files(changes)
 
     def write_migration_files(self, changes):
         """
@@ -145,19 +169,14 @@ class Command(object):
         directory_created = {}
         for app_label, app_migrations in changes.items():
             if self.verbosity >= 1:
-                sys.stdout.write(self.style.MIGRATE_HEADING("Migrations for '%s':" % app_label) + "\n")
+                commands.echo(commands.style.MIGRATE_HEADING("Migrations for '%s':" % app_label) + "\n")
             for migration in app_migrations:
                 # Describe the migration
                 writer = MigrationWriter(migration)
                 if self.verbosity >= 1:
-                    # Display a relative path if it's below the current working
-                    # directory, or an absolute path otherwise.
-                    migration_string = os.path.relpath(writer.path)
-                    if migration_string.startswith('..'):
-                        migration_string = writer.path
-                        sys.stdout.write("  %s:\n" % (self.style.MIGRATE_LABEL(migration_string),))
+                    commands.echo("  %s:\n" % (commands.style.MIGRATE_LABEL(writer.filename),))
                     for operation in migration.operations:
-                        sys.stdout.write("    - %s\n" % operation.describe())
+                        commands.echo("    - %s\n" % operation.describe())
                 if not self.dry_run:
                     # Write the migrations file to the disk.
                     migrations_directory = os.path.dirname(writer.path)
@@ -176,10 +195,10 @@ class Command(object):
                     # Alternatively, makemigrations --dry-run --verbosity 3
                     # will output the migrations to stdout rather than saving
                     # the file to the disk.
-                    sys.stdout.write(self.style.MIGRATE_HEADING(
+                    commands.echo(self.style.MIGRATE_HEADING(
                         "Full migrations file '%s':" % writer.filename) + "\n"
                     )
-                    sys.stdout.write("%s\n" % writer.as_string())
+                    commands.echo("%s\n" % writer.as_string())
 
     def handle_merge(self, loader, conflicts):
         """
@@ -202,10 +221,7 @@ class Command(object):
                     if mig[0] == migration.app_label
                 ]
                 merge_migrations.append(migration)
-
-            def all_items_equal(seq):
-                return all(item == seq[0] for item in seq[1:])
-
+            all_items_equal = lambda seq: all(item == seq[0] for item in seq[1:])
             merge_migrations_generations = zip(*[m.ancestry for m in merge_migrations])
             common_ancestor_count = sum(1 for common_ancestor_generation
                                         in takewhile(all_items_equal, merge_migrations_generations))
@@ -221,11 +237,11 @@ class Command(object):
             # (can_optimize_through) to automatically see if they're
             # mergeable. For now, we always just prompt the user.
             if self.verbosity > 0:
-                sys.stdout.write(self.style.MIGRATE_HEADING("Merging %s" % app_label))
+                commands.echo(self.style.MIGRATE_HEADING("Merging %s" % app_label))
                 for migration in merge_migrations:
-                    sys.stdout.write(self.style.MIGRATE_LABEL("  Branch %s" % migration.name))
+                    commands.echo(self.style.MIGRATE_LABEL("  Branch %s" % migration.name))
                     for operation in migration.merged_operations:
-                        sys.stdout.write("    - %s\n" % operation.describe())
+                        commands.echo("    - %s\n" % operation.describe())
             if questioner.ask_merge(app_label):
                 # If they still want to merge it, then write out an empty
                 # file depending on the migrations needing merging.
@@ -240,11 +256,7 @@ class Command(object):
                 subclass = type("Migration", (Migration, ), {
                     "dependencies": [(app_label, migration.name) for migration in merge_migrations],
                 })
-                migration_name = "%04i_%s" % (
-                    biggest_number + 1,
-                    self.migration_name or ("merge_%s" % get_migration_name_timestamp())
-                )
-                new_migration = subclass(migration_name, app_label)
+                new_migration = subclass("%04i_merge" % (biggest_number + 1), app_label)
                 writer = MigrationWriter(new_migration)
 
                 if not self.dry_run:
@@ -252,12 +264,12 @@ class Command(object):
                     with open(writer.path, "wb") as fh:
                         fh.write(writer.as_string())
                     if self.verbosity > 0:
-                        sys.stdout.write("\nCreated new merge migration %s" % writer.path)
+                        commands.echo("\nCreated new merge migration %s" % writer.path)
                 elif self.verbosity == 3:
                     # Alternatively, makemigrations --merge --dry-run --verbosity 3
                     # will output the merge migrations to stdout rather than saving
                     # the file to the disk.
-                    sys.stdout.write(self.style.MIGRATE_HEADING(
+                    commands.echo(self.style.MIGRATE_HEADING(
                         "Full merge migrations file '%s':" % writer.filename) + "\n"
                     )
-                    sys.stdout.write("%s\n" % writer.as_string())
+                    commands.echo("%s\n" % writer.as_string())

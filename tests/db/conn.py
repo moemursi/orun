@@ -196,7 +196,7 @@ class ModelsTestCase(unittest.TestCase):
         c.execute("SELECT 'str' as str")
         self.assertEqual(c.fetchone()[0], 'str')
 
-    def test_link_inheritance(self):
+    def link_inheritance(self):
         from orun.db import models, connection
 
         class Model1(models.Model):

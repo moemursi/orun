@@ -1,24 +1,24 @@
 import os
-import click
+from orun.core.management import commands
 
 
-@click.command('run', short_help='Runs a development server.')
-@click.option('--host', '-h', default='127.0.0.1',
+@commands.command('run', short_help='Runs a development server.')
+@commands.option('--host', '-h', default='127.0.0.1',
               help='The interface to bind to.')
-@click.option('--port', '-p', default=5000,
+@commands.option('--port', '-p', default=5000,
               help='The port to bind to.')
-@click.option('--reload/--no-reload', default=None,
+@commands.option('--reload/--no-reload', default=None,
               help='Enable or disable the reloader.  By default the reloader '
               'is active if debug is enabled.')
-@click.option('--debugger/--no-debugger', default=None,
+@commands.option('--debugger/--no-debugger', default=None,
               help='Enable or disable the debugger.  By default the debugger '
               'is active if debug is enabled.')
-@click.option('--eager-loading/--lazy-loader', default=None,
+@commands.option('--eager-loading/--lazy-loader', default=None,
               help='Enable or disable eager loading.  By default eager '
               'loading is enabled if the reloader is disabled.')
-@click.option('--with-threads/--without-threads', default=False,
+@commands.option('--with-threads/--without-threads', default=False,
               help='Enable or disable multithreading.')
-def command(host, port, reload, debugger, eager_loading, with_threads):
+def command(host, port, reload, debugger, eager_loading, with_threads, **kwargs):
     """Runs a local development server for the Flask application.
 
     This local server is recommended for development purposes only but it

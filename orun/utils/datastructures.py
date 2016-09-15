@@ -1,5 +1,6 @@
 import copy
 from collections import OrderedDict
+from werkzeug.datastructures import MultiDict
 
 
 class OrderedSet(object):
@@ -207,7 +208,7 @@ class MultiValueDict(dict):
                         self.setlistdefault(key).append(value)
                 except TypeError:
                     raise ValueError("MultiValueDict.update() takes either a MultiValueDict or dictionary")
-        for key, value in six.iteritems(kwargs):
+        for key, value in kwargs.items():
             self.setlistdefault(key).append(value)
 
     def dict(self):

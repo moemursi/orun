@@ -33,6 +33,7 @@ from orun.core.management.sql import (
 )
 @commands.option(
     '--database',
+    default=DEFAULT_DB_ALIAS,
     help='Nominates a database to synchronize. Defaults to the "default" database.',
 )
 @commands.option(
@@ -50,6 +51,10 @@ from orun.core.management.sql import (
     help='Creates tables for apps without migrations.',
 )
 def command(app_label, migration_name, noinput, database, fake, fake_initial, run_syncdb, **options):
+    migrate(app_label, migration_name, noinput, database, fake, fake_initial, run_syncdb, **options)
+
+
+def migrate(app_label, migration_name, noinput, database, fake, fake_initial, run_syncdb, **options):
     migrate = Migrate(app_label, migration_name, noinput, database, fake, fake_initial, run_syncdb, **options)
     migrate.handle()
 
@@ -59,7 +64,7 @@ class Migrate(object):
         self.app_label = app_label
         self.migration_name = migration_name
         self.interactive = not noinput
-        self.database = database or DEFAULT_DB_ALIAS
+        self.database = database
         self.fake = fake
         self.fake_initial = fake_initial
         self.run_syncdb = run_syncdb

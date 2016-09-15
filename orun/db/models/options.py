@@ -97,11 +97,12 @@ class Options(object):
     has_auto_field = None
     db_schema = None
 
-    def __init__(self, parents, original_model=None, app_label=None):
+    def __init__(self, parents, original_model=None, app_label=None, strict_local_fields=None):
         self._get_fields_cache = {}
         self.bases = parents
         self.original_model = original_model
         self.local_fields = []
+        self.strict_local_fields = strict_local_fields
         self.local_many_to_many = []
         self.private_fields = []
         self.manager_inheritance_from_future = False
@@ -143,7 +144,7 @@ class Options(object):
         if self.extension is None and (
             (self.original_model and self.original_model._meta.bases) or (self.original_model is None and parents)
         ):
-            self.extension = self.name == super(self.__class__.__bases__[0], self).name
+            self.extension = self.name == self.bases[0]._meta.name
         if not self.extension:
             self.__class__.db_table = None
 
@@ -194,7 +195,6 @@ class Options(object):
         return app[self.name]
 
     def contribute_to_class(self, cls, name):
-        from orun.db import connection
         from orun.db.backends.utils import truncate_name
 
         cls._meta = self
@@ -236,7 +236,9 @@ class Options(object):
         for base in reversed(self.bases):
             for f in base._meta.local_fields:
                 if self.extension or self.extension is None or base is self.original_model:
-                    if f not in self.local_fields:
+                    if f.name not in self.strict_local_fields:
+                        self.local_fields.append(f)
+                    elif f not in self.local_fields:
                         self.local_fields.append(f)
                 if not self.pk and base._meta.pk and (self.extension or (base is self.original_model)):
                     self.setup_pk(base._meta.pk)
@@ -250,6 +252,9 @@ class Options(object):
                 pass
 
         # If the db_table wasn't provided, use the db_schema + model_name or schema + model_name.
+        if self.original_model:
+            opts.db_table = self.original_model._meta.db_table
+            self.pk = self.original_model._meta.pk
         if not self.db_table:
             table_name = truncate_name(self.name.replace('.', '_'), MAX_NAME_LENGTH)
             if self.db_schema:
@@ -839,7 +844,8 @@ class Options(object):
                         include_hidden=include_hidden, seen_models=seen_models):
                     if getattr(obj, 'parent_link', False) and obj.model != self.concrete_model:
                         continue
-                    fields.append(obj)
+                    if obj not in fields:
+                        fields.append(obj)
         if reverse and not self.proxy:
             # Tree is computed once and cached until the app cache is expired.
             # It is composed of a list of fields pointing to the current model
@@ -852,9 +858,9 @@ class Options(object):
                     fields.append(field.remote_field)
 
         if forward:
-            fields.extend(
-                field for field in chain(self.local_fields, self.local_many_to_many)
-            )
+            for field in chain(self.local_fields, self.local_many_to_many):
+                if field not in fields:
+                    fields.append(field)
             # Private fields are recopied to each child model, and they get a
             # different model as field.model in each child. Hence we have to
             # add the private fields separately from the topmost call. If we

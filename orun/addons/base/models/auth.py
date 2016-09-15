@@ -27,7 +27,7 @@ class Group(models.Model):
 
 class User(Partner):
     date_joined = models.DateTimeField(_('Date Joined'))
-    login_name = models.CharField(255, _('Login Name'))
+    username = models.CharField(255, _('Login Name'))
     password = models.CharField(255, _('password'))
     signature = models.HtmlField(_('signature'))
     is_active = models.BooleanField(default=True)

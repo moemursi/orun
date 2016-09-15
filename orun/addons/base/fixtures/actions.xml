@@ -1,0 +1,6 @@
+<data translate="true">
+  <object id="view-action" model="ui.view">
+    <field name="name">sys.action</field>
+    <field name="model" ref="sys.action"/>
+  </object>
+</data>

@@ -1,0 +1,30 @@
+<data translate="true">
+  <object id="module-category-hidden" model="sys.module.category">
+    <field name="name">Technical Settings</field>
+    <field name="visible">False</field>
+  </object>
+  <object id="module-category-sales" model="sys.module.category">
+    <field name="name">Sales</field>
+  </object>
+  <object id="module-category-projects" model="sys.module.category">
+    <field name="name">Projects</field>
+  </object>
+  <object id="module-category-accounting" model="sys.module.category">
+    <field name="name">Accounting &amp; Finance</field>
+  </object>
+  <object id="module-category-purchases" model="sys.module.category">
+    <field name="name">Purchases</field>
+  </object>
+  <object id="module-category-hr" model="sys.module.category">
+    <field name="name">Human Resources</field>
+  </object>
+  <object id="module-category-purchases" model="sys.module.category">
+    <field name="name">Manufacturing</field>
+  </object>
+  <object id="module-category-administration" model="sys.module.category">
+    <field name="name">Administration</field>
+  </object>
+  <object id="module-category-localization" model="sys.module.category">
+    <field name="name">Localization</field>
+  </object>
+</data>

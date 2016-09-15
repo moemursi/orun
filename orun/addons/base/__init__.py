@@ -8,6 +8,7 @@ class AppConfig(orun.AppConfig):
     version = '0.1'
     auto_install = True
     default_language = 'en-us'
+    fixtures = ['modules.xml', 'actions.xml', 'menu.xml', 'partner.xml']
 
     def ready(self):
         post_migrate.connect(register_models)

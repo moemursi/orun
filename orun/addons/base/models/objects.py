@@ -45,3 +45,16 @@ class Property(models.Model):
 
     class Meta:
         name = 'sys.property'
+
+
+class Association(models.Model):
+    source_content = models.ForeignKey('sys.model')
+    source_id = models.BigIntegerField()
+    source_object = GenericForeignKey('source_content', 'source_id')
+    target_content = models.ForeignKey('sys.model')
+    target_id = models.BigIntegerField()
+    target_object = GenericForeignKey('target_content', 'target_id')
+    comment = models.TextField()
+
+    class Meta:
+        name = 'sys.association'

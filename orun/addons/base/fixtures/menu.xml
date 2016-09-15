@@ -1,0 +1,17 @@
+<data translate="true">
+  <menuitem id="sys-menu" name="System">
+    <menuitem id="sys-menu-auth" name="Authentication">
+      <menuitem id="sys-menu-auth-user" name="Users"/>
+      <menuitem id="sys-menu-auth-group" name="Groups"/>
+    </menuitem>
+    <menuitem id="sys-menu-ui" name="User Interface">
+      <menuitem id="sys-menu-ui-action" name="Actions"/>
+      <menuitem id="sys-menu-ui-menu" name="Menu"/>
+      <menuitem id="sys-menu-ui-view" name="Views"/>
+    </menuitem>
+    <menuitem id="sys-menu-db" name="Database Dictionary">
+      <menuitem id="sys-menu-db-models" name="Models"/>
+      <menuitem id="sys-menu-db-fields" name="Fields"/>
+    </menuitem>
+  </menuitem>
+</data>

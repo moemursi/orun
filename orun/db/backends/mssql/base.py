@@ -148,7 +148,6 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
     def get_new_connection(self, conn_params):
         conn_str = """DRIVER={%(driver)s};SERVER=%(host)s;DATABASE=%(database)s;UID=%(user)s;PWD=%(password)s""" % conn_params
-        print('sql server connection string', conn_str)
         conn = Database.connect(conn_str)
         return conn
 

@@ -1,6 +1,10 @@
+from functools import wraps
 from flask_classy import FlaskView, route
 
 from orun.apps import apps
+
+
+REDIRECT_FIELD_NAME = None
 
 
 class ViewType(type):

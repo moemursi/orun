@@ -1,0 +1,34 @@
+from .registry import registry
+
+
+def get_dependencies(addon):
+    r = []
+    if isinstance(addon, str):
+        addon = registry.addons[addon]
+    deps = addon.dependencies
+    if deps:
+        for dep in addon.dependencies:
+            r += get_dependencies(dep)
+        return r + list(addon.dependencies)
+    return []
+
+
+def adjust_dependencies(addons):
+    # adjust module dependency priority
+    for entry in addons:
+        deps = get_dependencies(entry)
+        if deps:
+            addons.remove(entry)
+            i = 0
+            for dep in deps:
+                if not dep in addons:
+                    addons.append(dep)
+                    i = len(addons) - 1
+                    continue
+                i = max(i, addons.index(dep))
+            if i == 0:
+                addons.append(entry)
+            else:
+                addons.insert(i + 1, entry)
+    return addons
+

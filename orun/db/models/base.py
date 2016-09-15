@@ -2,7 +2,6 @@ import copy
 import inspect
 import warnings
 from itertools import chain
-import flask
 
 from orun import apps, app, api
 from orun.conf import settings
@@ -18,10 +17,10 @@ from orun.db import (
 from orun.db.models import signals
 from orun.db.models.constants import LOOKUP_SEP
 from orun.db.models.deletion import CASCADE, Collector
-from orun.db.models.fields import AutoField
+from orun.db.models.fields import AutoField, Field
 from orun.db.models.fields.related import (
     ForeignObjectRel, ManyToOneRel, OneToOneField, lazy_related_operation,
-    resolve_relation,
+    resolve_relation, ManyToManyField,
 )
 from orun.db.models.manager import Manager
 from orun.db.models.options import Options
@@ -108,7 +107,11 @@ class ModelBase(type):
         if Model in parents:
             del parents[parents.index(Model)]
 
-        new_class.add_to_class('_meta', create_meta(meta_parents)(parents, original_model=original_model))
+        new_class.add_to_class('_meta', create_meta(meta_parents)(
+            parents,
+            original_model=original_model,
+            strict_local_fields={k: v for k, v in attrs.items() if isinstance(v, Field)}
+        ))
         if abstract:
             new_class._meta.abstract = True
 
@@ -116,11 +119,17 @@ class ModelBase(type):
             new_class._meta.original_model = original_model
 
         # Add all attributes to the class.
+        base = parents[0] if parents and hasattr(parents[0], '_meta') else None
         for obj_name, obj in attrs.items():
             if not obj_name.startswith('_') and isinstance(obj, classmethod) \
                     and hasattr(new_class, obj_name) and getattr(getattr(new_class, obj_name), 'exposed', None) \
                     and getattr(obj, 'exposed', None) is None:
                 obj.__func__.exposed = True
+            if base and obj_name in base._meta.strict_local_fields:
+                old_obj = obj
+                obj = copy.deepcopy(base._meta.strict_local_fields[obj_name])
+                for k, v in old_obj._original_attrs.items():
+                    setattr(obj, k, v)
             new_class.add_to_class(obj_name, obj)
 
         if app is None:
@@ -841,7 +850,10 @@ class Model(metaclass=ModelBase):
         for a single table.
         """
         meta = cls._meta
-        non_pks = [f for f in meta.local_concrete_fields if not f.primary_key]
+        if meta.original_model and not meta.original_model._meta.extension and meta.parents:
+            non_pks = [f for f in meta.original_model._meta.strict_local_fields.values() if not isinstance(f, ManyToManyField)] + [meta.pk]
+        else:
+            non_pks = [f for f in meta.local_concrete_fields if not f.primary_key]
 
         if update_fields:
             non_pks = [f for f in non_pks
@@ -876,7 +888,10 @@ class Model(metaclass=ModelBase):
                 order_value = cls._base_manager.using(using).filter(**filter_args).count()
                 self._order = order_value
 
-            fields = meta.local_concrete_fields
+            if meta.original_model and not meta.original_model._meta.extension and meta.parents:
+                fields = non_pks
+            else:
+                fields = meta.local_concrete_fields
             if not pk_set:
                 fields = [f for f in fields if not isinstance(f, AutoField)]
 
