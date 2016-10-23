@@ -119,7 +119,7 @@ class Application(Flask):
             self.cli.add_command(cmd)
 
         # Load addons
-        mods = ['web', 'test', 'product', 'sopando', 'mobmundi']
+        mods = ['web', 'product', 'sopando', 'mobmundi']
         mods = adjust_dependencies(mods)
         self.installed_modules = []
         with self.app_context():
