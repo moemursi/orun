@@ -97,10 +97,10 @@ class Application(Flask):
             settings.setdefault('DATABASES', {
                 'default': {
                     'ENGINE': 'orun.db.backends.postgresql',
-                    'HOST': '',
                     'USER': 'postgres',
-                    'PASSWORD': '1',
+                    'HOST': '10.11.41.16',
                     'PORT': '5433',
+                    'PASSWORD': '1',
                     'NAME': 'mobmundi',
                 }
             })
