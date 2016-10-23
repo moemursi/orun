@@ -33,7 +33,6 @@ class Registry(object):
         self.addon_path = [os.path.join(base_dir, '..', 'addons'), os.path.join(base_dir, '..', '..', 'addons')]  # basic addons paths
         if ADDONS_ENVIRONMENT_VARIABLE in os.environ:
             self.addon_path.extend(os.environ[ADDONS_ENVIRONMENT_VARIABLE].split(';'))
-        print('addons paths', self.addon_path)
 
     def get_model(self, app_label, model_name=None):
         if '.' in model_name:
@@ -118,7 +117,6 @@ class Registry(object):
         with self._lock:
             for path in paths:
                 sys.path.append(path)
-                print('path', path)
                 for _, name, is_pkg in pkgutil.iter_modules([path]):
                     if is_pkg and not name.startswith('_'):
                         try:
@@ -127,11 +125,9 @@ class Registry(object):
                             addon.path = os.path.dirname(mod.__file__)
                             self.modules[name] = mod
                             self.addons[name] = addon
-                            print('addon', name)
                         except ImportError:
                             raise
                         except AttributeError as exc:
-                            print(name, exc)
                             pass
 
     def get_addon(self, name):
