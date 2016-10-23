@@ -8,6 +8,9 @@
     <orderEntry type="jdk" jdkName="Python 3.4.4 (C:\Python\34\python.exe)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="myerp" />
+    <orderEntry type="module" module-name="katrid" />
+    <orderEntry type="module" module-name="sopando" />
+    <orderEntry type="module" module-name="mobmundi" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />

@@ -30,8 +30,9 @@ class Application(Flask):
         settings.setdefault('DEFAULT_INDEX_TABLESPACE', None)
         settings.setdefault('DEBUG', True)
         settings.setdefault('LOCALE_PATHS', [])
-        settings.setdefault('LANGUAGE_CODE', 'en-us')
-        settings.setdefault('USE_I18N', False)
+        settings.setdefault('LANGUAGE_CODE', 'pt-br')
+        settings.setdefault('USE_I18N', True)
+        settings.setdefault('USE_L10N', True)
         settings.setdefault('USE_TZ', False)
         settings.setdefault('DATABASE_ROUTERS', [])
         settings.setdefault('MIGRATION_MODULES', {})
@@ -41,6 +42,13 @@ class Application(Flask):
         settings.setdefault('TIME_ZONE', None)
         settings.setdefault('SERIALIZATION_MODULES', {})
         settings.setdefault('DEFAULT_CHARSET', 'utf-8')
+
+        settings.setdefault('FORMAT_MODULE_PATH', None)
+        settings.setdefault('TIME_INPUT_FORMATS', [
+            '%H:%M:%S',     # '14:30:59'
+            '%H:%M:%S.%f',  # '14:30:59.000200'
+            '%H:%M',        # '14:30'
+        ])
 
         settings.setdefault('SUPERUSER_ID', 1)
         settings.setdefault('SUPERUSER', 'admin')
@@ -61,16 +69,25 @@ class Application(Flask):
             }
         })
         #logging.config.dictConfig(log)
+        # settings.setdefault('DATABASES', {
+        #     'default': {
+        #         'ENGINE': 'orun.db.backends.mssql',
+        #         'HOST': '.',
+        #         'USER': 'sa',
+        #         'PASSWORD': '1',
+        #         'NAME': 'test2',
+        #         'OPTIONS': {
+        #             'driver': 'SQL Server'
+        #         }
+        #     }
+        # })
         settings.setdefault('DATABASES', {
             'default': {
-                'ENGINE': 'orun.db.backends.mssql',
-                'HOST': '.',
-                'USER': 'sa',
+                'ENGINE': 'orun.db.backends.postgresql',
+                'HOST': 'localhost',
+                'USER': 'postgres',
                 'PASSWORD': '1',
                 'NAME': 'test2',
-                'OPTIONS': {
-                    'driver': 'SQL Server'
-                }
             }
         })
         self.config.update(settings)
@@ -88,7 +105,7 @@ class Application(Flask):
             self.cli.add_command(cmd)
 
         # Load addons
-        mods = ['web', 'test', 'product']
+        mods = ['web', 'test', 'product', 'sopando', 'mobmundi']
         mods = adjust_dependencies(mods)
         self.installed_modules = []
         with self.app_context():

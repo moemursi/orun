@@ -2,6 +2,8 @@
 Global Orun exception and warning classes.
 """
 
+from orun.utils.encoding import force_text
+
 
 class FieldDoesNotExist(Exception):
     """The requested model field does not exist"""

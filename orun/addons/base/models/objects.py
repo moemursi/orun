@@ -17,6 +17,10 @@ class Object(models.Model):
         display_field = 'name'
         name = 'sys.object'
 
+    @classmethod
+    def get_object(self, name):
+        return self._default_manager.get(name=name)
+
 
 class Property(models.Model):
     name = models.CharField(128, _('name'), null=False)
@@ -45,6 +49,29 @@ class Property(models.Model):
 
     class Meta:
         name = 'sys.property'
+
+
+class Attachment(models.Model):
+    name = models.CharField(verbose_name=_('Attachment Name'), null=False)
+    file_name = models.CharField(256, verbose_name=_('File Name'), null=False)
+    description = models.TextField()
+    model = models.ForeignKey('sys.model', readonly=True)
+    field = models.CharField()
+    object_id = models.BigIntegerField(readonly=True)
+    company = models.ForeignKey('res.company')
+    att_type = models.CharField(16, choices=(
+        ('url', 'URL'),
+        ('file', _('File')),
+    ))
+    stored_file_name = models.CharField(512, verbose_name=_('Stored File Name'))
+    url = models.CharField(1024)
+    length = models.BigIntegerField()
+    checksum = models.CharField(40)
+    mimetype = models.CharField(readonly=True)
+    is_public = models.BooleanField(verbose_name=_('Is public document'))
+
+    class Meta:
+        name = 'sys.attachment'
 
 
 class Association(models.Model):

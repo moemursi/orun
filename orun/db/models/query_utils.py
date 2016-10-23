@@ -244,6 +244,7 @@ def check_rel_lookup_compatibility(model, target_opts, field):
     """
     def check(opts):
         return (
+            (model._meta.original_model and model._meta.original_model == opts.concrete_model) or
             model._meta.concrete_model == opts.concrete_model or
             opts.concrete_model in model._meta.get_parent_list() or
             model in opts.get_parent_list()

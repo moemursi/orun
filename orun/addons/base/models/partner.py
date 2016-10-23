@@ -28,7 +28,7 @@ class Partner(models.Model):
     email = models.EmailField()
     website = models.URLField()
     comments = models.TextField()
-    barcode = models.CharField(_('barcode'))
+    barcode = models.CharField(verbose_name=_('barcode'))
     is_customer = models.BooleanField(default=False)
     is_supplier = models.BooleanField(default=False)
     is_employee = models.BooleanField(default=False)

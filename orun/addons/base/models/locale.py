@@ -8,6 +8,7 @@ class Country(models.Model):
     address_format = models.TextField(_('Address Format'))
     phone_code = models.PositiveSmallIntegerField()
     image_flag = models.CharField(256)
+    currency = models.ForeignKey('res.currency')
 
     class Meta:
         name = 'res.country'

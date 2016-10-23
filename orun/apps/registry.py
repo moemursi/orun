@@ -10,6 +10,7 @@ import flask.app
 
 import orun
 from orun.core.exceptions import AppRegistryNotReady
+from orun.conf import ADDONS_ENVIRONMENT_VARIABLE
 
 
 class Registry(object):
@@ -30,6 +31,8 @@ class Registry(object):
         self._configs = configs
         base_dir = os.path.join(os.path.dirname(__file__))
         self.addon_path = [os.path.join(base_dir, '..', 'addons'), os.path.join(base_dir, '..', '..', 'addons')]  # basic addons paths
+        if ADDONS_ENVIRONMENT_VARIABLE in os.environ:
+            self.addon_path.append(os.environ[ADDONS_ENVIRONMENT_VARIABLE])
 
     def get_model(self, app_label, model_name=None):
         if '.' in model_name:

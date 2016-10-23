@@ -248,6 +248,8 @@ class BaseDatabaseSchemaEditor(object):
         column_sqls = []
         params = []
         for field in model._meta.local_fields:
+            if not field.store:
+                continue
             # SQL
             definition, extra_params = self.column_sql(model, field)
             if definition is None:

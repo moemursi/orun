@@ -10,12 +10,12 @@ from orun.conf import settings
 from orun.core.exceptions import FieldDoesNotExist
 from orun.db import connections
 from orun.db.models import Manager
-from orun.db.models.fields import BigAutoField
+from orun.db.models.fields import BigAutoField, CharField
 from orun.db.models.fields.proxy import OrderWrt
 from orun.utils.datastructures import ImmutableList, OrderedSet
 from orun.utils.encoding import (force_text, smart_text)
 from orun.utils.functional import cached_property
-from orun.utils.text import camel_case_to_spaces
+from orun.utils.text import camel_case_to_spaces, capfirst
 from orun.utils.translation import override, string_concat
 
 NOT_PROVIDED = object()
@@ -308,9 +308,16 @@ class Options(object):
             elif not self.abstract:
                 auto = BigAutoField(verbose_name='ID', primary_key=True, auto_created=True)
                 model.add_to_class('id', auto)
+                disp_name = CharField(function='__str__', auto_created=True, verbose_name=capfirst(self.verbose_name))
+                model.add_to_class('display_name', disp_name)
 
         if not self.__class__.display_field and DEFAULT_DISPLAY_FIELD in self.field_names:
             self.__class__.display_field = DEFAULT_DISPLAY_FIELD
+        if not self.__class__.ordering:
+            if self.__class__.display_field:
+                self.__class__.ordering = (self.__class__.display_field,)
+            else:
+                self.__class__.ordering = ('pk',)
 
     def add_manager(self, manager):
         self.local_managers.append(manager)

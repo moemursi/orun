@@ -21,7 +21,7 @@ msgid "Miss"
 msgstr "Senhorita"
 
 msgid "Sir"
-msgstr "Senhor"
+msgstr "Sir"
 
 msgid "Mister"
 msgstr "Senhor"
@@ -37,3 +37,15 @@ msgstr "Sr."
 
 msgid "Mr."
 msgstr "Sr."
+
+msgid "Category"
+msgstr "Categoria"
+
+msgid "Categories"
+msgstr "Categorias"
+
+msgid "Administration"
+msgstr "Administração"
+
+msgid "Forms"
+msgstr "Formulários"

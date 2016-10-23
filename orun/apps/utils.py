@@ -15,7 +15,8 @@ def get_dependencies(addon):
 
 def adjust_dependencies(addons):
     # adjust module dependency priority
-    for entry in addons:
+    lst = list(addons)
+    for entry in lst:
         deps = get_dependencies(entry)
         if deps:
             addons.remove(entry)

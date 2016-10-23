@@ -4,6 +4,7 @@ import warnings
 from itertools import chain
 
 from orun import apps, app, api
+from orun import render_template
 from orun.conf import settings
 from orun.core import checks
 from orun.core.exceptions import (
@@ -468,6 +469,11 @@ class Model(metaclass=ModelBase):
                     pass
             if kwargs:
                 raise TypeError("'%s' is an invalid keyword argument for this function" % list(kwargs)[0])
+
+        #init calculated fields
+        for field in self._meta.local_fields:
+            if not field.store and field.calculated:
+                setattr(self, field.name, field)
         super(Model, self).__init__()
         signals.post_init.send(sender=self.__class__, instance=self)
 
@@ -479,43 +485,86 @@ class Model(metaclass=ModelBase):
 
     @classmethod
     def to_list(cls, rows, fields=None):
-        # check access rights
-        if fields is None:
-            fields = []
-            for v in rows.query.get_loaded_field_names().values():
-                fields.extend(list(v))
-            if 'pk' not in fields and 'id' not in fields:
-                fields.insert(0, 'pk')
         return [row.to_dict(fields) for row in rows]
 
     @classmethod
-    def names_get(cls, rows):
-        return [row.name_get() for row in rows]
+    def get_names(cls, rows):
+        return [row.get_name() for row in rows]
 
     @api.method
-    def new_get(cls, values={}):
-        obj = cls(**values)
+    def get_new(cls, values=None):
+        if isinstance(values, dict):
+            obj = cls(**values)
+        else:
+            obj = cls()
         return obj
 
-    def name_get(self):
+    def get_name(self):
         return self.pk, str(self)
 
     @api.method
-    def name_create(cls, name):
+    def get(cls, id):
+        return cls.__search__(where={'pk': id})
+
+    @api.method
+    def get_view_info(cls, view_id=None, view_type=None):
+        WindowAction = app['sys.action.window']
+        found = False
+        view = None
+        for act in WindowAction.objects.filter(model__name=cls._meta.name):
+            found = True
+            if act.view:
+                view = act.view
+                break
+        if found:
+            if view:
+                return view.to_dict()
+            View = app['ui.view']
+            view_content = View.generate_view(cls, view_type=view_type)
+            return {
+                'content': view_content,
+                'fields': cls.get_fields_info(),
+            }
+
+    @classmethod
+    def get_fields_info(cls, fields=None):
+        opts = cls._meta
+        r = {}
+        for field in opts.fields:
+            r[field.name] = field.get_field_info()
+        return r
+
+    @api.method
+    def write(cls, data):
+        if not isinstance(data, list):
+            data = [data]
+        for obj in data:
+            if 'id' in obj:
+                instance = cls._search(where={'pk': obj['id']})
+                instance._update(obj['values'])
+            else:
+                instance = cls._create(obj['values'])
+
+    @api.method
+    def create_name(cls, name):
         if cls._meta.display_field:
-            return cls.__create__({cls._meta.display_field: name}).name_get()
+            return cls._create({cls._meta.display_field: name}).name_get()
 
     @api.method
-    def name_search(cls, name, filter='icontains'):
-        return [obj.name_get() for obj in cls.__search__({'%s__%s' % (cls._meta.display_field, filter): name}).only('pk', cls._meta.display_field)]
-
-    @api.method
-    def search(cls, where={}, fields=None, offset=None, limit=None):
+    def search(cls, where=None, fields=None, offset=None, limit=None):
         if isinstance(fields, str):
             fields = [fields]
         if fields and 'pk' not in fields and 'id' not in fields:
             fields.insert(0, 'pk')
-        return cls.__search__(where, fields=fields, offset=offset, limit=limit)
+        return cls._search(where, fields=fields, offset=offset, limit=limit)
+
+    @api.method
+    def search_name(cls, name, filter='icontains'):
+        if name:
+            r = cls._search({'%s__%s' % (cls._meta.display_field, filter): name}).only('pk', cls._meta.display_field)
+        else:
+            r = cls._search()
+        return cls.get_names(r)
 
     @classmethod
     def from_db(cls, db, field_names, values):
@@ -536,8 +585,12 @@ class Model(metaclass=ModelBase):
                 row.save()
 
     @classmethod
-    def __search__(cls, where={}, fields=None, offset=None, limit=None):
-        res = cls._default_manager.filter(**where)
+    def _search(cls, where=None, fields=None, offset=None, limit=None):
+        res = cls._default_manager
+        if where:
+            res = res.filter(**where)
+        else:
+            res = res.all()
         if fields:
             res = res.only(*fields)
         if offset is not None and limit is not None:
@@ -545,8 +598,15 @@ class Model(metaclass=ModelBase):
         return res
 
     @classmethod
-    def __create__(cls, values):
-        return cls._default_manager.create(**values)
+    def _create(cls, values):
+        obj = cls(**values)
+        obj.full_clean()
+        obj.save()
+        return obj
+
+    def _update(self, values):
+        self.full_clean()
+        self.save()
 
     def __copy__(self):
         model = self.__class__
@@ -554,12 +614,13 @@ class Model(metaclass=ModelBase):
         return self.__class__(**obj)
 
     @classmethod
-    def __count__(cls, rows):
-        return None
+    def count(cls, rows):
+        return rows.count()
 
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, str(self))
 
+    @api.depends(lambda self: (self._meta.display_field,) if self._meta.display_field else ())
     def __str__(self):
         if self._meta.display_field:
             return getattr(self, self._meta.display_field)
@@ -696,6 +757,8 @@ class Model(metaclass=ModelBase):
         and not use this method.
         """
         val = getattr(self, field_name)
+        if isinstance(val, Field) and val.calculated:
+            val = val.__get__(self, None)
         if isinstance(val, Model):
             return [val.pk, str(val)]
         return val
@@ -850,8 +913,13 @@ class Model(metaclass=ModelBase):
         for a single table.
         """
         meta = cls._meta
+        use_non_pks = False
         if meta.original_model and not meta.original_model._meta.extension and meta.parents:
+            use_non_pks = True
             non_pks = [f for f in meta.original_model._meta.strict_local_fields.values() if not isinstance(f, ManyToManyField)] + [meta.pk]
+        elif cls and hasattr(cls.__base__, '_meta') and getattr(cls.__base__._meta, 'extension', None):
+            use_non_pks = True
+            non_pks = [meta.get_field(f) for f in cls.__base__._meta.field_names]
         else:
             non_pks = [f for f in meta.local_concrete_fields if not f.primary_key]
 
@@ -888,7 +956,7 @@ class Model(metaclass=ModelBase):
                 order_value = cls._base_manager.using(using).filter(**filter_args).count()
                 self._order = order_value
 
-            if meta.original_model and not meta.original_model._meta.extension and meta.parents:
+            if use_non_pks:
                 fields = non_pks
             else:
                 fields = meta.local_concrete_fields

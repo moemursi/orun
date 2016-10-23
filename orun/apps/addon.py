@@ -23,16 +23,18 @@ class AppConfig(flask.Blueprint):
 
     def __init__(self, schema=None, app_module=None, *args, **kwargs):
         kwargs.setdefault('template_folder', 'templates')
+        kwargs.setdefault('static_folder', 'static')
+        mod_name = app_module or self.__class__.__module__.split('.')[-1]
+        if self.schema is None:
+            self.schema = schema or mod_name
+        kwargs.setdefault('url_prefix', '/static/%s' % self.schema)
+        self.name = self.schema
         self.is_ready = False
         self.module = app_module
-        mod_name = app_module or self.__class__.__module__.split('.')[-1]
         if not args:
             args = [self.name, mod_name]
 
         super(AppConfig, self).__init__(*args, **kwargs)
-
-        if self.schema is None:
-            self.schema = schema or mod_name
 
         if self.import_name == 'base':
             self.dependencies = []

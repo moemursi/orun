@@ -30,7 +30,7 @@ def drop(db):
         del conn
         if db_name != ':memory:':
             os.remove(db_name)
-    elif db_engine.startswith('postgres'):
+    elif db_engine == 'orun.db.backends.postgresql':
         conn.autocommit = True
         try:
             conn.cursor().execute('''DROP DATABASE %s''' % db_name)

@@ -132,10 +132,10 @@ class ModelManager(models.Manager):
 
 
 class Model(models.Model):
-    name = models.CharField(128, null=False)
+    name = models.CharField(null=False)
     parent = models.ForeignKey('self')
     app_label = models.CharField(64, null=False)
-    object_name = models.CharField(128, null=False)
+    object_name = models.CharField(null=False)
     object_type = models.CharField(16, null=False, default='user', choices=(
         ('user', 'User Model'),
         ('base', 'Base Model'),
@@ -180,7 +180,7 @@ class Model(models.Model):
 
 
 class Field(models.Model):
-    name = models.CharField(128, null=False)
+    name = models.CharField(null=False)
     full_name = models.CharField(256)
     model = models.ForeignKey(Model)
     copy = models.BooleanField(default=False)

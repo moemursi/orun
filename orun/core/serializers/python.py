@@ -200,12 +200,13 @@ def Deserializer(object_list, **options):
         obj = base.build_instance(Model, data, db)
         obj.save()
         sys_object = app['sys.object']
-        ref = sys_object.objects.create(
-            name=d['id'],
-            object_id=obj.pk,
-            model=d['model'],
-            app_label=options['app_label'],
-        )
+        if 'id' in d:
+            ref = sys_object.objects.create(
+                name=d['id'],
+                object_id=obj.pk,
+                model=d['model'],
+                app_label=options['app_label'],
+            )
         yield obj
         #yield base.DeserializedObject(obj, m2m_data)
 

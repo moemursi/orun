@@ -3,6 +3,7 @@ from orun.db.migrations.operations.base import Operation
 from orun.db.migrations.state import ModelState
 from orun.db.models.options import normalize_together
 from orun.utils.functional import cached_property
+from base.registry import register_model
 
 
 class CreateSchema(Operation):
@@ -75,6 +76,10 @@ class CreateModel(Operation):
         model = to_state.apps.get_model(app_label, self.name.lower())
         if self.allow_migrate_model(schema_editor.connection.alias, model):
             schema_editor.create_model(model)
+
+            # Register model
+            if model._meta.name != 'migrations.migration':
+                register_model(model)
 
     def database_backwards(self, app_label, schema_editor, from_state, to_state):
         model = from_state.apps.get_model(app_label, self.name.lower())

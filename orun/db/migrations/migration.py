@@ -45,6 +45,7 @@ class Migration(object):
     initial = None
 
     fixtures = []
+    demo = None
 
     def __init__(self, name, app_label):
         self.name = name

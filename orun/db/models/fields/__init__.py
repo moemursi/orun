@@ -83,7 +83,6 @@ def _empty(of_cls):
     new.__class__ = of_cls
     return new
 
-
 @total_ordering
 class Field(RegisterLookupMixin):
     """Base class for all field types"""
@@ -136,11 +135,12 @@ class Field(RegisterLookupMixin):
 
     def __init__(self, verbose_name=None, name=None, primary_key=False,
                  max_length=None, unique=False, blank=None, null=True,
-                 db_index=False, rel=None, default=NOT_PROVIDED, editable=True,
+                 db_index=False, rel=None, default=NOT_PROVIDED, editable=None,
                  serialize=True, unique_for_date=None, unique_for_month=None,
                  unique_for_year=None, choices=None, help_text='', db_column=None,
-                 db_tablespace=None, auto_created=False, validators=[],
-                 error_messages=None, compute=None, related=None, store=None, localize=False, copy=True):
+                 db_tablespace=None, auto_created=False, validators=[], readonly=False,
+                 error_messages=None, compute=None, function=None, related=None, store=None,
+                 localize=False, copy=True):
         self.name = name
         self.verbose_name = verbose_name  # May be set by set_attributes_from_name
         self._verbose_name = verbose_name  # Store original for deconstruction
@@ -151,7 +151,7 @@ class Field(RegisterLookupMixin):
         self.remote_field = rel
         self.is_relation = self.remote_field is not None
         self.default = default
-        self.editable = editable
+        self.readonly = readonly
         self.serialize = serialize
         self.unique_for_date = unique_for_date
         self.unique_for_month = unique_for_month
@@ -184,8 +184,16 @@ class Field(RegisterLookupMixin):
 
         self.localize = localize
         self.compute = compute
+        self.function = function
         self.related_field = related
-        self.store = (store is None and self.compute is None and self.related_field is None) or store
+        self.calculated = bool(store or function or related)
+        self.store = bool((store is None and not self.calculated) or store)
+
+        if editable is None:
+            self.editable = self.store
+        else:
+            self.editable = editable
+
         if self.primary_key or self.auto_created:
             self.copy = False
         else:
@@ -452,6 +460,21 @@ class Field(RegisterLookupMixin):
             [],
             keywords,
         )
+
+    def get_field_info(self):
+        info = {
+            'help_text': self.help_text,
+            'required': not self.blank,
+            'readonly': self.readonly,
+            'editable': self.editable,
+            'type': self.get_internal_type(),
+            'store': self.store,
+            'caption': self.verbose_name,
+            'max_length': self.max_length,
+        }
+        if self.choices:
+            info['choices'] = self.choices
+        return info
 
     def clone(self):
         """
@@ -879,17 +902,23 @@ class Field(RegisterLookupMixin):
 
     def __get__(self, instance, owner):
         if instance:
-            if self.compute and self not in instance._state.cache:
-                if isinstance(self.compute, str):
-                    if self.name not in instance._state.compute_cache:
-                        self._compute_eval(instance, self.compute)
-                    instance._state.compute_cache[self.compute] = True
-                else:
-                    instance._state.cache[self] = self.compute(instance)
-            elif self.related_field:
+            if not self.store and self.calculated:
                 if self not in instance._state.cache:
-                    instance._state.cache[self] = self._get_related_value(instance)
-            return instance._state.cache[self]
+                    if self.compute:
+                        if isinstance(self.compute, str):
+                            if self.name not in instance._state.compute_cache:
+                                self._compute_eval(instance, self.compute)
+                            instance._state.compute_cache[self.compute] = True
+                        else:
+
+                            instance._state.cache[self] = self.compute(instance)
+                    elif self.function:
+                        if isinstance(self.function, str):
+                            instance._state.cache[self] = getattr(instance, self.function)()
+                    elif self.related_field:
+                        if self not in instance._state.cache:
+                            instance._state.cache[self] = self._get_related_value(instance)
+                return instance._state.cache[self]
         else:
             return self
 
@@ -906,6 +935,7 @@ class AutoField(Field):
         kwargs['blank'] = True
         kwargs.setdefault('null', False)
         kwargs.setdefault('blank', False)
+        kwargs.setdefault('editable', False)
         super(AutoField, self).__init__(*args, **kwargs)
 
     def check(self, **kwargs):
@@ -934,6 +964,7 @@ class AutoField(Field):
         return "AutoField"
 
     def to_python(self, value):
+        from orun.db import models
         if value is None:
             return value
         try:
@@ -1165,9 +1196,6 @@ class DateField(DateTimeCheckMixin, Field):
             kwargs['auto_now'] = True
         if self.auto_now_add:
             kwargs['auto_now_add'] = True
-        if self.auto_now or self.auto_now_add:
-            del kwargs['editable']
-            del kwargs['blank']
         return name, path, args, kwargs
 
     def get_internal_type(self):

@@ -3,6 +3,19 @@ from orun import app
 from orun.apps import apps
 
 
+def register_model(model, using=DEFAULT_DB_ALIAS):
+    Model = app['sys.model']
+    try:
+        Model.objects.get(name=model._meta.name)
+    except:
+        Model.objects.create(
+            name=model._meta.name,
+            app_label=model._meta.app_label,
+            object_name=model._meta.model_name,
+            object_type='base',
+        )
+
+
 def register_models(app_config, verbosity=2, interactive=True, using=DEFAULT_DB_ALIAS, **kwargs):
     """
     Creates content types for models in the given app, removing any model
@@ -44,6 +57,7 @@ def register_models(app_config, verbosity=2, interactive=True, using=DEFAULT_DB_
             name=model._meta.name,
             app_label=app_label,
             object_name=model_name,
+            object_type='base',
         )
         for (model_name, model) in app_models.items()
         if model_name not in content_types

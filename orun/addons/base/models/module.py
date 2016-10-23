@@ -8,7 +8,7 @@ class ModuleCategory(models.Model):
     visible = models.BooleanField(default=True)
 
     class Meta:
-        db_table = 'sys.module.category'
+        name = 'sys.module.category'
         verbose_name = _('Module Category')
         verbose_name_plural = _('Module Categories')
 

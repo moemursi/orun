@@ -8,7 +8,10 @@ from .partner import Partner
 class Permission(models.Model):
     name = models.CharField(null=False)
     model = models.ForeignKey('sys.model', on_delete=models.CASCADE, null=False)
-    codename = models.CharField(32, _('codename'), null=False)
+    can_read = models.BooleanField(default=True)
+    can_change = models.BooleanField(default=True)
+    can_create = models.BooleanField(default=True)
+    can_delete = models.BooleanField(default=True)
 
     class Meta:
         name = 'auth.permission'
@@ -17,6 +20,7 @@ class Permission(models.Model):
 
 class Group(models.Model):
     name = models.CharField(128, _('name'), unique=True)
+    active = models.BooleanField(default=True)
     permissions = models.ManyToManyField(Permission, verbose_name=_('permissions'))
 
     class Meta:
@@ -55,3 +59,18 @@ class User(Partner):
         Sends an email to this User.
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+
+class Rule(models.Model):
+    name = models.CharField()
+    active = models.BooleanField(default=True)
+    model = models.ForeignKey('sys.model')
+    groups = models.ManyToManyField('auth.group')
+    domain = models.TextField()
+    can_read = models.BooleanField(default=True)
+    can_change = models.BooleanField(default=True)
+    can_create = models.BooleanField(default=True)
+    can_delete = models.BooleanField(default=True)
+
+    class Meta:
+        name = 'auth.rule'

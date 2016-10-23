@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import collections
 import datetime
 import decimal
@@ -9,6 +7,7 @@ import os
 import re
 import types
 from importlib import import_module
+import json
 
 from orun import get_version
 from orun.apps import apps
@@ -218,6 +217,11 @@ class MigrationWriter(object):
 
         if self.migration.initial:
             items['initial_str'] = "\n    initial = True\n"
+            app_config = apps.get_addon(self.migration.app_label)
+            if app_config.fixtures:
+                items['initial_str'] += "    fixtures = %s\n" % json.dumps(app_config.fixtures)
+            if app_config.demo:
+                items['initial_str'] += "    demo = %s\n" % json.dumps(app_config.demo)
 
         return (MIGRATION_TEMPLATE % items).encode("utf8")
 

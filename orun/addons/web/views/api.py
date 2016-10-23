@@ -1,15 +1,15 @@
-import json
 from flask import request
 from orun import app
 from orun.db import models
 from orun.db.models.query import QuerySet
+from orun.utils.json import jsonify
 from orun.views import BaseView, route
 
 
-class Rpc(BaseView):
+class RPC(BaseView):
     route_base = '/api/'
 
-    @route('/rpc/call/<service>/<method>/')
+    @route('/rpc/<service>/<method>/', methods=['GET', 'POST', 'DELETE', 'PUT'])
     def call(self, service, method):
         if not method.startswith('_'):
             kwargs = {}
@@ -21,31 +21,30 @@ class Rpc(BaseView):
             service = app[service]
             meth = getattr(service, method)
             if getattr(meth, 'exposed', None):
-                r = meth(**kwargs)
+                qs = kwargs
+                if request.method == 'POST':
+                    kwargs = request.json
+                    r = meth(**kwargs)
+                else:
+                    r = meth(**kwargs)
                 if isinstance(r, QuerySet):
-                    r = r.to_list()
-                if isinstance(r, models.Model):
+                    data = {}
+                    if 'count' in qs:
+                        data['count'] = service.count(r)
+                    data['data'] = r.to_list()
+                    r = data
+                elif isinstance(r, models.Model):
                     r = r.to_dict()
-                if isinstance(r, (list, dict)):
-                    r = json.dumps(r)
-                return r
+                return jsonify({'result': r})
 
+    @route('/field/choices/<service>/<field>/', methods=['GET'])
+    def choices(self, service, field):
+        service = app[service]
+        field = service._meta.get_field(field)
+        service = app[field.related_model._meta.name]
+        r = service.search_name(name=request.args.get('q'))
+        return jsonify({'result': r})
 
-class Data(BaseView):
-    route_base = '/data/'
-
-    @route('/data/<model>/')
-    def list(self, model):
-        pass
-
-    @route('/data/<model>/<id>/')
-    def get(self, model, id):
-        pass
-
-    @route('/data/<model>/<id>/')
-    def post(self, model, id):
-        pass
-
-    @route('/data/<model>/<id>/')
-    def delete(self, model, id):
-        pass
+    @route('/app/settings/', methods=['GET'])
+    def app_settings(self):
+        return jsonify({'result': {}})

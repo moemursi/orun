@@ -984,6 +984,11 @@ class ForeignKey(ForeignObject):
     def get_col(self, alias, output_field=None):
         return super(ForeignKey, self).get_col(alias, output_field or self.target_field)
 
+    def get_field_info(self):
+        f = super(ForeignKey, self).get_field_info()
+        f['model'] = self.related_model._meta.name
+        return f
+
 
 class OneToOneField(ForeignKey):
     """

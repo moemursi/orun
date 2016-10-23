@@ -1,6 +1,8 @@
 import os
 from jinja2 import Environment, FunctionLoader
-from orun import app
+
+import base64
+from orun import app, api, render_template
 from orun.template import Template
 from orun.apps import registry
 from orun.db import models
@@ -78,6 +80,15 @@ class View(models.Model):
 
     def render(self, template_name, context={}, parent=None):
         return views_env.get_template(template_name).render(**context)
+
+    @classmethod
+    def generate_view(self, model, view_type='form'):
+        opts = model._meta
+        return render_template([
+            'views/%s/%s.html' % (opts.name, view_type),
+            'views/%s/%s.html' % (opts.app_label, view_type),
+            'views/%s.html' % view_type,
+        ], opts=opts)
 
 
 class CustomView(models.Model):

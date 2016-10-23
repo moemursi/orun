@@ -7,3 +7,5 @@ from .auth import *
 from .ui import *
 from .partner import *
 from .module import *
+from .menu import *
+from .sequence import *

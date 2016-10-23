@@ -363,9 +363,6 @@ class QuerySet(object):
         If the QuerySet is already fully cached this simply returns the length
         of the cached results set to avoid multiple SELECT COUNT(*) calls.
         """
-        count = self.model.__count__(self)
-        if count is not None:
-            return count
         if self._result_cache is not None:
             return len(self._result_cache)
 
@@ -1193,9 +1190,17 @@ class QuerySet(object):
     is_compatible_query_object_type.queryset_only = True
 
     def to_list(self, fields=None):
+        if fields is None:
+            v = self.query.get_loaded_field_names().values()
+            if v:
+                fields = []
+                for f in v:
+                    fields.extend(list(v))
+                if 'pk' not in fields and 'id' not in fields:
+                    fields.insert(0, 'pk')
         return self.model.to_list(self, fields)
 
-    def names_get(self):
+    def get_names(self):
         return self.model.names_get(self)
 
 

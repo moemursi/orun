@@ -1,4 +1,4 @@
-from orun import api
+from orun import api, app
 from orun.db import models
 from orun.utils.translation import gettext_lazy as _
 
@@ -20,16 +20,21 @@ class Action(models.Model):
             self.action_type = self.__class__._meta.name
         super(Action, self).save(*args, **kwargs)
 
+    def get_action(self):
+        return app[self.action_type].objects.get(pk=self.pk)
+
+    def execute(self):
+        raise NotImplemented()
+
 
 class WindowAction(Action):
     view = models.ForeignKey('ui.view')
     domain = models.TextField()
     context = models.TextField()
-    model = models.ForeignKey(Model, null=False)
+    model = models.ForeignKey('sys.model', null=False)
     object_id = models.BigIntegerField()
     content_object = GenericForeignKey()
     view_mode = models.CharField(128, default='list,form')
-    view_type = models.CharField(16, default='form')
     target = models.CharField(16, choices=(
         ('current', 'Current Window'),
         ('new', 'New Window'),

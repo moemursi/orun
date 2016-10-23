@@ -18,7 +18,14 @@ def read_object(obj, **attrs):
 
     for child in values:
         if child.tag == 'field':
-            obj['fields'][child.attrib['name']] = child.text
+            if 'ref' in child.attrib:
+                sys_obj = app['sys.object']
+                obj['fields'][child.attrib['name']] = sys_obj.get_object(child.attrib['ref']).object_id
+            elif 'model' in child.attrib:
+                sys_model = app['sys.model']
+                obj['fields'][child.attrib['name']] = sys_model.objects.only('pk').get(name=child.attrib['model']).pk
+            else:
+                obj['fields'][child.attrib['name']] = child.text
 
     obj = list(PythonDeserializer([obj], **attrs))
     return obj
@@ -26,33 +33,43 @@ def read_object(obj, **attrs):
 
 def read_menu(obj, parent=None, **attrs):
     lst = []
+    action_id = obj.attrib.get('action')
+    if action_id:
+        sys_obj = app['sys.object']
+        action_id = sys_obj.get_object(action_id).object_id
     menu = {
         'model': 'ui.menu',
         'id': obj.attrib.get('id'),
-        'values': {
-            'parent': obj.attrib.get('parent'),
-            'action': obj.attrib.get('action'),
+        'fields': {
+            'parent_id': obj.attrib.get('parent', parent),
+            'action_id': action_id,
+            'name': obj.attrib.get('name'),
         }
     }
     lst.append(menu)
+    menu['children'] = []
     menu = read_object(menu, **attrs)
     for child in obj:
-        r = read_menu(child, parent=menu, **attrs)
+        r = read_menu(child, parent=menu[0].pk, **attrs)
         lst.extend(r)
     return lst
 
 
 def read_action(obj, **attrs):
-    tp = obj.attrib['type']
-    if tp == 'window':
-        act = 'sys.action.window'
-    else:
-        act = 'sys.action'
+    act = obj.attrib['type']
+    fields = {
+        'name': obj.attrib['name'],
+    }
+    sys_model = app['sys.model']
+    if 'model' in obj.attrib:
+        fields['model'] = sys_model.objects.only('pk').get(name=obj.attrib['model']).pk
     action = {
         'model': act,
         'id': obj.attrib['id'],
+        'children': [],
+        'fields': fields,
     }
-    return read_object(action)
+    return read_object(action, **attrs)
 
 
 def read_template(obj, **attrs):

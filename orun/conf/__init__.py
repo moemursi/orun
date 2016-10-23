@@ -1,6 +1,9 @@
 from flask import current_app
 
 
+ADDONS_ENVIRONMENT_VARIABLE = 'ORUN_ADDONS_PATH'
+
+
 class Settings(object):
     def __getattr__(self, item):
         if not item.startswith('_'):

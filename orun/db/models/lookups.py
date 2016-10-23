@@ -58,7 +58,7 @@ class Lookup(object):
         return self.rhs
 
     def get_db_prep_lookup(self, value, connection):
-        return ('%s', [value])
+        return (connection.ops.parameter_mark, [value])
 
     def process_lhs(self, compiler, connection, lhs=None):
         lhs = lhs or self.lhs

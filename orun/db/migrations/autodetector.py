@@ -564,6 +564,8 @@ class MigrationAutodetector(object):
             # Generate operations for each related field
             for name, field in sorted(related_fields.items()):
                 # Account for FKs to swappable models
+                if isinstance(field.remote_field.model, str):
+                    print(field.remote_field.model)
                 dep_app_label = field.remote_field.model._meta.app_label
                 dep_object_name = field.remote_field.model._meta.model_name
                 dependencies = [(dep_app_label, dep_object_name, None, True)]
