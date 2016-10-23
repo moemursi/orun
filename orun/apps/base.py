@@ -81,15 +81,29 @@ class Application(Flask):
         #         }
         #     }
         # })
-        settings.setdefault('DATABASES', {
-            'default': {
-                'ENGINE': 'orun.db.backends.postgresql',
-                'HOST': 'localhost',
-                'USER': 'postgres',
-                'PASSWORD': '1',
-                'NAME': 'test2',
-            }
-        })
+        LOCAL = os.path.isfile('.local')
+
+        if LOCAL:
+            settings.setdefault('DATABASES', {
+                'default': {
+                    'ENGINE': 'orun.db.backends.postgresql',
+                    'HOST': 'localhost',
+                    'USER': 'postgres',
+                    'PASSWORD': '1',
+                    'NAME': 'test2',
+                }
+            })
+        else:
+            settings.setdefault('DATABASES', {
+                'default': {
+                    'ENGINE': 'orun.db.backends.postgresql',
+                    'HOST': '',
+                    'USER': 'postgres',
+                    'PASSWORD': '1',
+                    'PORT': '5433',
+                    'NAME': 'mobmundi',
+                }
+            })
         self.config.update(settings)
 
         # Load connections
