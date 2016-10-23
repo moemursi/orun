@@ -117,6 +117,7 @@ class Registry(object):
         with self._lock:
             for path in paths:
                 sys.path.append(path)
+                print(path)
                 for _, name, is_pkg in pkgutil.iter_modules([path]):
                     if is_pkg and not name.startswith('_'):
                         try:
@@ -125,9 +126,11 @@ class Registry(object):
                             addon.path = os.path.dirname(mod.__file__)
                             self.modules[name] = mod
                             self.addons[name] = addon
+                            print('addon', name)
                         except ImportError:
                             raise
-                        except AttributeError:
+                        except AttributeError as exc:
+                            print(name, exc)
                             pass
 
     def get_addon(self, name):
