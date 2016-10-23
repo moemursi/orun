@@ -98,7 +98,7 @@ class Application(Flask):
                 'default': {
                     'ENGINE': 'orun.db.backends.postgresql',
                     'USER': 'postgres',
-                    'HOST': '10.11.41.16',
+                    'HOST': '',
                     'PORT': '5433',
                     'PASSWORD': '1',
                     'NAME': 'mobmundi',
