@@ -1,4 +1,4 @@
-<data translate="true">
+<data>
   <object id="us" model="res.country">
     <field name="name" translate="true">United States</field>
     <field name="code">us</field>

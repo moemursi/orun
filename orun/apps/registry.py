@@ -127,7 +127,7 @@ class Registry(object):
                             self.addons[name] = addon
                         except ImportError:
                             raise
-                        except AttributeError as exc:
+                        except AttributeError:
                             pass
 
     def get_addon(self, name):

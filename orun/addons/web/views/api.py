@@ -48,3 +48,7 @@ class RPC(BaseView):
     @route('/app/settings/', methods=['GET'])
     def app_settings(self):
         return jsonify({'result': {}})
+
+
+class Auth(BaseView):
+    route_base = '/api/auth/'

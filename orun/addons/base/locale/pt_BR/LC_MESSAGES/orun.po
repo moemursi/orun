@@ -38,6 +38,9 @@ msgstr "Sr."
 msgid "Mr."
 msgstr "Sr."
 
+msgid "System"
+msgstr "Sistema"
+
 msgid "Category"
 msgstr "Categoria"
 
@@ -49,3 +52,45 @@ msgstr "Administração"
 
 msgid "Forms"
 msgstr "Formulários"
+
+msgid "Domain"
+msgstr "Domínio"
+
+msgid "Description"
+msgstr "Descrição"
+
+msgid "Title"
+msgstr "Título"
+
+msgid "Settings"
+msgstr "Configurações"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Active"
+msgstr "Ativo"
+
+msgid "Country"
+msgstr "País"
+
+msgid "Action Type"
+msgstr "Tipo de Ação"
+
+msgid "View"
+msgstr "Visão"
+
+msgid "Context"
+msgstr "Contexto"
+
+msgid "Model"
+msgstr "Modelo"
+
+msgid "View Mode"
+msgstr "Modo de Visão"
+
+msgid "Limit"
+msgstr "Limite"
+
+msgid "Auto Search"
+msgstr "Auto Pesquisar"

@@ -1,30 +1,30 @@
-<data translate="true">
+<data>
   <object id="module-category-hidden" model="sys.module.category">
-    <field name="name">Technical Settings</field>
+    <field name="name"  translate="true">Technical Settings</field>
     <field name="visible">False</field>
   </object>
   <object id="module-category-sales" model="sys.module.category">
-    <field name="name">Sales</field>
+    <field name="name" translate="true">Sales</field>
   </object>
   <object id="module-category-projects" model="sys.module.category">
-    <field name="name">Projects</field>
+    <field name="name" translate="true">Projects</field>
   </object>
   <object id="module-category-accounting" model="sys.module.category">
-    <field name="name">Accounting &amp; Finance</field>
+    <field name="name" translate="true">Accounting & Finance</field>
   </object>
   <object id="module-category-purchases" model="sys.module.category">
-    <field name="name">Purchases</field>
+    <field name="name" translate="true">Purchases</field>
   </object>
   <object id="module-category-hr" model="sys.module.category">
-    <field name="name">Human Resources</field>
+    <field name="name" translate="true">Human Resources</field>
   </object>
   <object id="module-category-purchases" model="sys.module.category">
-    <field name="name">Manufacturing</field>
+    <field name="name" translate="true">Manufacturing</field>
   </object>
   <object id="module-category-administration" model="sys.module.category">
-    <field name="name">Administration</field>
+    <field name="name" translate="true">Administration</field>
   </object>
   <object id="module-category-localization" model="sys.module.category">
-    <field name="name">Localization</field>
+    <field name="name" translate="true">Localization</field>
   </object>
 </data>

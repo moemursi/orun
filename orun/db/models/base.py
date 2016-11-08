@@ -504,7 +504,7 @@ class Model(metaclass=ModelBase):
 
     @api.method
     def get(cls, id):
-        return cls.__search__(where={'pk': id})
+        return cls._search(where={'pk': id})
 
     @api.method
     def get_view_info(cls, view_id=None, view_type=None):

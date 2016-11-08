@@ -58,8 +58,8 @@ class AppConfig(flask.Blueprint):
                 # Register views
                 try:
                     import_module('%s.views' % self.schema)
-                except ImportError as exc:
-                    print(exc)
+                except ImportError:
+                    pass
 
                 # Register addon commands
                 for mod_name in registry.find_commands(os.path.join(self.path, 'management')):

@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: django\n"
+"Project-Id-Version: orun\n"
 "Report-Msgid-Bugs-To: \n"
 "language/pt_BR/)\n"
 "MIME-Version: 1.0\n"

@@ -1,6 +1,7 @@
 from lxml import html as etree
 
-from orun import app
+from orun.utils.translation import gettext as _
+from orun import app, env
 from orun.core.serializers.python import (
     Deserializer as PythonDeserializer, Serializer as PythonSerializer,
 )
@@ -25,7 +26,10 @@ def read_object(obj, **attrs):
                 sys_model = app['sys.model']
                 obj['fields'][child.attrib['name']] = sys_model.objects.only('pk').get(name=child.attrib['model']).pk
             else:
-                obj['fields'][child.attrib['name']] = child.text
+                s = child.text
+                if 'translate' in child.attrib:
+                    s = _(s)
+                obj['fields'][child.attrib['name']] = s
 
     obj = list(PythonDeserializer([obj], **attrs))
     return obj
@@ -37,13 +41,16 @@ def read_menu(obj, parent=None, **attrs):
     if action_id:
         sys_obj = app['sys.object']
         action_id = sys_obj.get_object(action_id).object_id
+    s = obj.attrib.get('name')
+    if obj.attrib.get('translate'):
+        s = _(s)
     menu = {
         'model': 'ui.menu',
         'id': obj.attrib.get('id'),
         'fields': {
             'parent_id': obj.attrib.get('parent', parent),
             'action_id': action_id,
-            'name': obj.attrib.get('name'),
+            'name': s,
         }
     }
     lst.append(menu)
@@ -57,8 +64,11 @@ def read_menu(obj, parent=None, **attrs):
 
 def read_action(obj, **attrs):
     act = obj.attrib['type']
+    s = obj.attrib['name']
+    if obj.attrib.get('name'):
+        s = _(s)
     fields = {
-        'name': obj.attrib['name'],
+        'name': s,
     }
     sys_model = app['sys.model']
     if 'model' in obj.attrib:
@@ -105,8 +115,9 @@ def Deserializer(stream_or_string, app_label=None, **options):
         stream_or_string = stream_or_string.decode('utf-8')
     data = etree.fromstring(stream_or_string)
     lst = []
+    trans = data.attrib.get('translate')
     for el in data:
-        obj = TAGS[el.tag](el, app_label=app_label)
+        obj = TAGS[el.tag](el, app_label=app_label, translate=trans)
         if isinstance(obj, list):
             lst.extend(obj)
         elif obj:

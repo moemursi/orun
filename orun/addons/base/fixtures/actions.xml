@@ -1,8 +1,11 @@
-<data translate="true">
-  <action id="action-view-sys-action" type="sys.action.window" name="Actions" model="sys.action">
+<data>
+  <action id="action-view-sys-action" type="sys.action.window" name="Actions" model="sys.action" translate="true">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="action-view-ui-menu" type="sys.action.window" name="Menu" model="ui.menu">
+  <action id="action-view-sys-action-window" type="sys.action.window" name="Window Actions" model="sys.action.window" translate="true">
+    <field name="view_mode">list,form</field>
+  </action>
+  <action id="action-view-ui-menu" type="sys.action.window" name="Menu" model="ui.menu" translate="true">
     <field name="view_mode">list,form</field>
   </action>
 </data>
