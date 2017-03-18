@@ -1,4 +1,4 @@
-from orun.db import router
+#from orun.db import router
 
 
 class Operation(object):
@@ -107,7 +107,8 @@ class Operation(object):
         if not model._meta.can_migrate(connection_alias):
             return False
 
-        return router.allow_migrate_model(connection_alias, model)
+        return True
+        #return router.allow_migrate_model(connection_alias, model)
 
     def __repr__(self):
         return "<%s %s%s>" % (

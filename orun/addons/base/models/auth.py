@@ -1,27 +1,13 @@
-from orun.core.mail import send_mail
+#from orun.core.mail import send_mail
 from orun.db import models
 from orun.utils.translation import gettext_lazy as _
 
 from .partner import Partner
 
 
-class Permission(models.Model):
-    name = models.CharField(null=False)
-    model = models.ForeignKey('sys.model', on_delete=models.CASCADE, null=False)
-    can_read = models.BooleanField(default=True)
-    can_change = models.BooleanField(default=True)
-    can_create = models.BooleanField(default=True)
-    can_delete = models.BooleanField(default=True)
-
-    class Meta:
-        name = 'auth.permission'
-        unique_together = (('model', 'codename'),)
-
-
 class Group(models.Model):
-    name = models.CharField(128, _('name'), unique=True)
-    active = models.BooleanField(default=True)
-    permissions = models.ManyToManyField(Permission, verbose_name=_('permissions'))
+    name = models.CharField(128, _('nome'), unique=True)
+    active = models.BooleanField(default=True, verbose_name=_('Active'), help_text=_('Group is active'))
 
     class Meta:
         name = 'auth.group'
@@ -29,10 +15,25 @@ class Group(models.Model):
         verbose_name_plural = _('groups')
 
 
+class ModelAccess(models.Model):
+    name = models.CharField(null=False)
+    active = models.BooleanField(default=True)
+    model = models.ForeignKey('sys.model', on_delete=models.CASCADE, null=False)
+    group = models.ForeignKey('auth.group', on_delete=models.CASCADE, null=False)
+    perm_read = models.BooleanField(default=True)
+    perm_change = models.BooleanField()
+    perm_create = models.BooleanField()
+    perm_delete = models.BooleanField()
+    perm_full = models.BooleanField()
+
+    class Meta:
+        name = 'auth.model.access'
+
+
 class User(Partner):
     date_joined = models.DateTimeField(_('Date Joined'))
     username = models.CharField(255, _('Login Name'))
-    password = models.CharField(255, _('password'))
+    password = models.CharField(128, _('password'))
     signature = models.HtmlField(_('signature'))
     is_active = models.BooleanField(default=True)
     action = models.ForeignKey('sys.action')

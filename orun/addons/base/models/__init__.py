@@ -6,6 +6,7 @@ from .action import *
 from .auth import *
 from .ui import *
 from .partner import *
+from .bank import *
 from .module import *
 from .menu import *
 from .sequence import *

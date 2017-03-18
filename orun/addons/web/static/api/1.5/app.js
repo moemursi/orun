@@ -11,14 +11,18 @@
 
   ngApp.factory('actions', function() {
     return {
-      get: function(id) {
-        return $.get('/web/action/' + id + '/');
+      get: function(service, id) {
+        if (id) {
+          return $.get("/web/action/" + service + "/" + id + "/");
+        } else {
+          return $.get("/web/action/" + service + "/");
+        }
       }
     };
   });
 
   ngApp.config(function($routeProvider) {
-    $routeProvider.when('/action/:actionId', {
+    $routeProvider.when('/action/:actionId/', {
       controller: 'ActionController',
       reloadOnSearch: false,
       resolve: {
@@ -28,105 +32,67 @@
           }
         ]
       },
-      template: '<div id="katrid-action-view">Loading...</div>'
+      template: "<div id=\"katrid-action-view\">" + (Katrid.i18n.gettext('Loading...')) + "</div>"
+    }).when('/action/:service/:actionId/', {
+      controller: 'ActionController',
+      reloadOnSearch: false,
+      resolve: {
+        action: [
+          'actions', '$route', function(actions, $route) {
+            return actions.get($route.current.params.service, $route.current.params.actionId);
+          }
+        ]
+      },
+      template: "<div id=\"katrid-action-view\">" + (Katrid.i18n.gettext('Loading...')) + "</div>"
     });
+  });
+
+  ngApp.controller('BasicController', function($scope, $compile, $location) {
+    $scope.compile = $compile;
+    return $scope.Katrid = Katrid;
   });
 
   ngApp.controller('ActionController', function($scope, $compile, action, $location) {
-    var fnMain;
+    var init;
+    $scope.Katrid = Katrid;
     $scope.data = null;
+    $scope.location = $location;
     $scope.record = null;
     $scope.recordIndex = null;
+    $scope.recordId = null;
     $scope.records = null;
     $scope.viewType = null;
     $scope.recordCount = 0;
+    $scope.dataSource = new Katrid.Data.DataSource($scope);
+    $scope.compile = $compile;
     $scope.$on('$routeUpdate', function() {
       return $scope.action.routeUpdate($location.$$search);
     });
+    $scope.$set = function(field, value) {
+      var control;
+      control = $scope.form[field];
+      control.$setViewValue(value);
+      control.$render();
+    };
     $scope.setContent = function(content) {
-      $scope.content = content;
-      return angular.element('#katrid-action-view').html($compile(content)($scope));
+      var el;
+      $scope.content = $(content);
+      el = angular.element('#katrid-action-view').html($compile(content)($scope));
+      $scope.formElement = el.find('form').first();
+      return $scope.form = $scope.formElement.controller('form');
     };
-    $scope.next = function() {
-      return $scope.moveBy(1);
-    };
-    $scope.prior = function() {
-      return $scope.moveBy(-1);
-    };
-    $scope.moveBy = function(index) {
-      var newIndex;
-      newIndex = $scope.recordIndex + index - 1;
-      if (newIndex > -1 && newIndex < $scope.records.length) {
-        $scope.recordIndex = newIndex + 1;
-        return $location.search('id', $scope.records[newIndex].id);
-      }
-    };
-    $scope.get = function(id) {
-      return $scope.model.get(id).success(function(res) {
-        return $scope.$apply(function() {
-          $scope.record = res.result.data[0];
-          return console.log($scope.record);
-        });
-      });
-    };
-    $scope.setRecordIndex = function(index) {
-      return $scope.recordIndex = index + 1;
-    };
-    $scope.goto = function(index) {
-      return $scope.moveBy(index - $scope.recordIndex);
-    };
-    $scope.hasKey = function(id) {
-      var j, len, rec, ref, results;
-      ref = $scope.records;
-      results = [];
-      for (j = 0, len = ref.length; j < len; j++) {
-        rec = ref[j];
-        if (rec.id === id) {
-          results.push(true);
-        } else {
-          results.push(void 0);
-        }
-      }
-      return results;
-    };
-    $scope.getIndex = function(obj) {
-      var i, j, len, rec, ref, results;
-      i = 0;
-      ref = $scope.records;
-      results = [];
-      for (j = 0, len = ref.length; j < len; j++) {
-        rec = ref[j];
-        if (rec.id === obj) {
-          i;
-        }
-        results.push(i++);
-      }
-      return results;
-    };
-    $scope.search = function(params) {
-      return this.model.search(params, {
-        count: 1
-      }).success(function(res) {
-        return $scope.$apply(function() {
-          if (res.result.count != null) {
-            $scope.recordCount = res.result.count;
-          }
-          return $scope.records = res.result.data;
-        });
-      });
-    };
-    fnMain = function(action) {
+    init = function(action) {
       var act;
       if (action) {
         $scope.model = new Katrid.Services.Model(action.model[1]);
-        $scope.action = act = new Katrid.Actions[action.action_type](action, $scope, $location);
+        $scope.action = act = new Katrid.Actions[action.action_type](action, $scope);
         return act.routeUpdate($location.$$search);
       }
     };
-    return fnMain(action);
+    return init(action);
   });
 
-  Katrid.ngApp = ngApp;
+  this.Katrid.ngApp = ngApp;
 
 }).call(this);
 

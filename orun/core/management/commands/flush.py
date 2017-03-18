@@ -6,7 +6,7 @@ from orun.utils import reraise
 from orun.apps import apps
 from orun.core.management.color import no_style
 from orun.core.management.sql import emit_post_migrate_signal, sql_flush
-from orun.db import DEFAULT_DB_ALIAS, connections, transaction
+from orun.db import DEFAULT_DB_ALIAS, connections #, transaction
 
 
 @click.command('flush')

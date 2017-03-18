@@ -10,10 +10,10 @@ def make_model_tuple(model):
         if isinstance(model, tuple):
             model_tuple = model
         elif isinstance(model, str):
-            return model
+            app_label, model_name = model.split(".", 1)
+            model_tuple = app_label, model_name.lower()
         else:
-            return model._meta.name
-            model_tuple = (model._meta.app_label, model.__name__.lower())
+            model_tuple = model._meta.schema, model._meta.model_name
         assert len(model_tuple) == 2
         return model_tuple
     except (ValueError, AssertionError):

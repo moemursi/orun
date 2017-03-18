@@ -7,10 +7,10 @@
   Action = (function() {
     Action.prototype.actionType = null;
 
-    function Action(info1, scope1, location1) {
+    function Action(info1, scope1) {
       this.info = info1;
       this.scope = scope1;
-      this.location = location1;
+      this.location = this.scope.location;
     }
 
     Action.prototype.apply = function() {};
@@ -26,39 +26,59 @@
 
     WindowAction.actionType = 'sys.action.window';
 
-    function WindowAction(info, scope, location) {
-      WindowAction.__super__.constructor.call(this, info, scope, location);
+    function WindowAction(info, scope) {
+      WindowAction.__super__.constructor.call(this, info, scope);
       this.viewMode = info.view_mode;
       this.viewModes = this.viewMode.split(',');
       this.viewType = null;
-      this.cachedViews = {};
     }
-
-    WindowAction.prototype.cancelChanges = function() {
-      return this.setViewType('list');
-    };
-
-    WindowAction.prototype.saveChanges = function() {
-      return this.setViewType('list');
-    };
 
     WindowAction.prototype.createNew = function() {
       this.setViewType('form');
-      this.scope.record = {};
-      return this.scope.record.display_name = '(New)';
+      return this.scope.dataSource.newRecord();
+    };
+
+    WindowAction.prototype.deleteSelection = function() {
+      var i;
+      if (confirm(Katrid.i18n.gettext('Confirm delete record?'))) {
+        this.scope.model.destroy(this.scope.record.id);
+        i = this.scope.records.indexOf(this.scope.record);
+        if (i) {
+          this.scope.dataSource.search({});
+        }
+        return this.setViewType('list');
+      }
     };
 
     WindowAction.prototype.routeUpdate = function(search) {
+      var filter;
       if (search.view_type != null) {
+        if (this.scope.records == null) {
+          this.scope.records = [];
+        }
         if (this.viewType !== search.view_type) {
+          this.scope.dataSource.pageIndex = null;
+          this.scope.record = null;
           this.viewType = search.view_type;
           this.execute();
-          if (this.scope.records == null) {
-            this.scope.search({});
-          }
+        }
+        if (search.view_type === 'list' && !search.page) {
+          this.location.search('page', 1);
+          return;
+        }
+        filter = {};
+        if (search.q != null) {
+          filter.q = search.q;
+        }
+        if (search.view_type === 'list' && search.page !== this.scope.dataSource.pageIndex) {
+          this.scope.dataSource.pageIndex = parseInt(search.page);
+          this.scope.dataSource.search(filter, search.page);
+        } else if (search.view_type === 'list' && (search.q != null)) {
+          this.scope.dataSource.search(filter, search.page);
         }
         if (search.id && (((this.scope.record != null) && this.scope.record.id !== search.id) || (this.scope.record == null))) {
-          return this.scope.get(search.id);
+          this.scope.record = null;
+          return this.scope.dataSource.get(search.id);
         }
       } else {
         return this.setViewType(this.viewModes[0]);
@@ -76,31 +96,85 @@
     };
 
     WindowAction.prototype.execute = function() {
-      var me, r, scope, view;
-      scope = this.scope;
-      me = this;
-      view = null;
-      if (view) {
-        scope.view = view;
-        return me.apply();
+      var r;
+      if (this.views != null) {
+        this.scope.view = this.views[this.viewType];
+        return this.apply();
       } else {
-        r = this.scope.model.getViewInfo({
-          view_type: this.viewType
-        });
-        r.success(function(res) {
-          view = res.result;
-          me.cachedViews[me.viewType] = view;
-          return me.scope.$apply(function() {
-            me.scope.view = view;
-            return me.apply();
-          });
-        });
+        r = this.scope.model.loadViews();
+        r.done((function(_this) {
+          return function(res) {
+            var views;
+            views = res.result;
+            _this.views = views;
+            return _this.scope.$apply(function() {
+              _this.scope.views = views;
+              _this.scope.view = views[_this.viewType];
+              return _this.apply();
+            });
+          };
+        })(this));
         return r;
       }
     };
 
     WindowAction.prototype.render = function(scope, html, viewType) {
-      return scope.setContent(Katrid.UI.Utils.Templates['render_' + viewType](scope, html));
+      return scope.setContent(Katrid.UI.Utils.Templates['preRender_' + viewType](scope, html));
+    };
+
+    WindowAction.prototype.searchText = function(q) {
+      return this.location.search('q', q);
+    };
+
+    WindowAction.prototype._prepareParams = function(params) {
+      var j, len, p, r;
+      r = {};
+      for (j = 0, len = params.length; j < len; j++) {
+        p = params[j];
+        if (p.field && p.field.type === 'ForeignKey') {
+          r[p.field.name] = p.id;
+        } else {
+          r[p.id.name + '__icontains'] = p.text;
+        }
+      }
+      return r;
+    };
+
+    WindowAction.prototype.setSearchParams = function(params) {
+      var data;
+      data = this._prepareParams(params);
+      return this.scope.dataSource.search(data);
+    };
+
+    WindowAction.prototype.doViewAction = function(viewAction, target, confirmation) {
+      if (!confirmation || (confirmation && confirm(confirmation))) {
+        return this.scope.model.doViewAction({
+          action_name: viewAction,
+          target: target
+        }).done(function(res) {
+          var j, k, len, len1, msg, ref, ref1, results, results1;
+          console.log(res);
+          if (res.status === 'open') {
+            return window.open(res.open);
+          } else if (res.status === 'fail') {
+            ref = res.messages;
+            results = [];
+            for (j = 0, len = ref.length; j < len; j++) {
+              msg = ref[j];
+              results.push(Katrid.Dialogs.Alerts.error(msg));
+            }
+            return results;
+          } else if (res.status === 'ok' && res.result.messages) {
+            ref1 = res.result.messages;
+            results1 = [];
+            for (k = 0, len1 = ref1.length; k < len1; k++) {
+              msg = ref1[k];
+              results1.push(Katrid.Dialogs.Alerts.success(msg));
+            }
+            return results1;
+          }
+        });
+      }
     };
 
     return WindowAction;

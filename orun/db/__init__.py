@@ -1,20 +1,8 @@
 from orun import app
 from orun.core import signals
-from orun.db.utils import (
-    DEFAULT_DB_ALIAS, ORUN_VERSION_PICKLE_KEY, ConnectionHandler,
-    ConnectionRouter, DatabaseError, DataError, Error, IntegrityError,
-    InterfaceError, InternalError, NotSupportedError, OperationalError,
-    ProgrammingError,
-)
+from .utils import (ConnectionHandler, DEFAULT_DB_ALIAS, DatabaseError, DataError, Error, IntegrityError,
+    InterfaceError, InternalError, NotSupportedError, OperationalError, ProgrammingError,)
 
-__all__ = [
-    'backend', 'connection', 'connections', 'router', 'DatabaseError',
-    'IntegrityError', 'InternalError', 'ProgrammingError', 'DataError',
-    'NotSupportedError', 'Error', 'InterfaceError', 'OperationalError',
-    'DEFAULT_DB_ALIAS', 'ORUN_VERSION_PICKLE_KEY'
-]
-
-#connections = ConnectionHandler()
 
 class Connections:
     def __getitem__(self, item):
@@ -25,7 +13,7 @@ class Connections:
 
 connections = Connections()
 
-router = ConnectionRouter()
+#router = ConnectionRouter()
 
 
 # `connection`, `DatabaseError` and `IntegrityError` are convenient aliases
@@ -60,10 +48,35 @@ class DefaultConnectionProxy(object):
 connection = DefaultConnectionProxy()
 
 
+class DefaultSessionProxy(object):
+    """
+    Proxy for accessing the default DatabaseWrapper object's attributes. If you
+    need to access the DatabaseWrapper object itself, use
+    connections[DEFAULT_DB_ALIAS] instead.
+    """
+    def __getattr__(self, item):
+        return getattr(connections[DEFAULT_DB_ALIAS].session, item)
+
+    def __setattr__(self, name, value):
+        return setattr(connections[DEFAULT_DB_ALIAS].session, name, value)
+
+    def __delattr__(self, name):
+        return delattr(connections[DEFAULT_DB_ALIAS].session, name)
+
+    def __eq__(self, other):
+        return connections[DEFAULT_DB_ALIAS].session == other
+
+    def __ne__(self, other):
+        return connections[DEFAULT_DB_ALIAS].session != other
+
+session = DefaultSessionProxy()
+
+
 # Register an event to reset saved queries when a Orun request is started.
 def reset_queries(*args, **kwargs):
     for conn in connections.all():
-        conn.queries_log.clear()
+        pass
+#        conn.queries_log.clear()
 signals.request_started.connect(reset_queries)
 
 
@@ -71,6 +84,8 @@ signals.request_started.connect(reset_queries)
 # their lifetime.
 def close_old_connections(*args, **kwargs):
     for conn in connections.all():
-        conn.close_if_unusable_or_obsolete()
+        if conn.session.dirty:
+            print('session dirty')
+            conn.dispose()
 signals.request_started.connect(close_old_connections)
 signals.request_finished.connect(close_old_connections)

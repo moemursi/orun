@@ -1,4 +1,7 @@
-from orun.apps import Registry as Apps
+from sqlalchemy import Table, Column, Integer, String, DateTime, MetaData, PrimaryKeyConstraint
+import sqlalchemy as sa
+
+from orun.apps.registry import Registry as Apps
 from orun.db import models
 from orun.db.utils import DatabaseError
 from orun.utils.timezone import now
@@ -19,25 +22,36 @@ class MigrationRecorder(object):
     a row in the table always means a migration is applied.
     """
 
-    class Migration(models.Model):
-        app = models.CharField(max_length=255)
-        name = models.CharField(max_length=255)
-        applied = models.DateTimeField(default=now)
+    migration_metadata = MetaData()
 
-        class Meta:
-            apps = Apps()
-            app_label = "migrations"
-            db_table = "orun_migrations"
+    Migration = Table(
+        'sys_migration', migration_metadata,
+        Column('id', Integer, primary_key=True),
+        Column('app', String(255), nullable=False),
+        Column('name', String(255), nullable=False),
+        Column('applied', DateTime, default=now),
+        PrimaryKeyConstraint('id', name='pk_sys_migration')
+    )
 
-        def __str__(self):
-            return "Migration %s for %s" % (self.name, self.app)
-
+    # class Migration(models.Model):
+    #     app = models.CharField(max_length=255)
+    #     name = models.CharField(max_length=255)
+    #     applied = models.DateTimeField(default=now)
+    #
+    #     class Meta:
+    #         apps = Apps()
+    #         name = 'sys.migrations'
+    #         app_label = "migrations"
+    #
+    #     def __str__(self):
+    #         return "Migration %s for %s" % (self.name, self.app)
+    #
     def __init__(self, connection):
         self.connection = connection
 
     @property
     def migration_qs(self):
-        return self.Migration.objects.using(self.connection.alias)
+        return self.connection.execute(self.Migration.select()).fetchall()
 
     def ensure_schema(self):
         """
@@ -45,12 +59,14 @@ class MigrationRecorder(object):
         """
         # If the table's there, that's fine - we've never changed its schema
         # in the codebase.
-        if self.Migration._meta.db_table in self.connection.introspection.table_names(self.connection.cursor()):
+        insp = sa.inspect(self.connection)
+        if self.Migration.name in insp.get_table_names():
             return
+        #if self.Migration._meta.db_table in self.connection.introspection.table_names(self.connection.cursor()):
+        #    return
         # Make the table
         try:
-            with self.connection.schema_editor() as editor:
-                editor.create_model(self.Migration)
+            self.Migration.create(self.connection)
         except DatabaseError as exc:
             raise MigrationSchemaMissing("Unable to create the orun_migrations table (%s)" % exc)
 
@@ -59,14 +75,14 @@ class MigrationRecorder(object):
         Returns a set of (app, name) of applied migrations.
         """
         self.ensure_schema()
-        return set(tuple(x) for x in self.migration_qs.values_list("app", "name"))
+        return set((x['app'], x['name']) for x in self.migration_qs)
 
     def record_applied(self, app, name):
         """
         Records that a migration was applied.
         """
         self.ensure_schema()
-        self.migration_qs.create(app=app, name=name)
+        self.connection.execute(self.Migration.insert().values(app=app, name=name))
 
     def record_unapplied(self, app, name):
         """

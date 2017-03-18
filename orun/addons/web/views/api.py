@@ -1,7 +1,7 @@
 from flask import request
 from orun import app
-from orun.db import models
-from orun.db.models.query import QuerySet
+from orun.db import models, transaction
+from orun.db.models.query import Query
 from orun.utils.json import jsonify
 from orun.views import BaseView, route
 
@@ -10,11 +10,17 @@ class RPC(BaseView):
     route_base = '/api/'
 
     @route('/rpc/<service>/<method>/', methods=['GET', 'POST', 'DELETE', 'PUT'])
+    @transaction.atomic
     def call(self, service, method):
         if not method.startswith('_'):
             kwargs = {}
+            args = ()
             for k in request.args.lists():
-                if len(k[1]) == 1:
+                if k[0].startswith('_'):
+                    continue
+                if k[0] == 'args':
+                    args = k[1]
+                elif len(k[1]) == 1:
                     kwargs[k[0]] = k[1][0]
                 else:
                     kwargs[k[0]] = k[1]
@@ -23,19 +29,31 @@ class RPC(BaseView):
             if getattr(meth, 'exposed', None):
                 qs = kwargs
                 if request.method == 'POST':
-                    kwargs = request.json
-                    r = meth(**kwargs)
+                    if request.data:
+                        kwargs = request.json.get('kwargs', {})
+                        args = request.json.get('args', [])
+                    else:
+                        kwargs = {}
+                        args = []
+                    r = meth(*args, **kwargs)
                 else:
-                    r = meth(**kwargs)
-                if isinstance(r, QuerySet):
-                    data = {}
-                    if 'count' in qs:
-                        data['count'] = service.count(r)
-                    data['data'] = r.to_list()
-                    r = data
+                    print(args, kwargs)
+                    r = meth(*args, **kwargs)
+                if isinstance(r, Query):
+                    r = {
+                        'data': r,
+                        'count': getattr(r, '_count__cache', None),
+                    }
                 elif isinstance(r, models.Model):
-                    r = r.to_dict()
-                return jsonify({'result': r})
+                    r = {
+                        'data': [r]
+                    }
+                res = {
+                    'status': 'ok',
+                    'ok': True,
+                    'result': r,
+                }
+                return jsonify(res)
 
     @route('/field/choices/<service>/<field>/', methods=['GET'])
     def choices(self, service, field):

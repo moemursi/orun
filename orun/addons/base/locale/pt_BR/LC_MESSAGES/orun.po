@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: django\n"
+"Project-Id-Version: orun\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-07-24 11:06+0100\n"
 "PO-Revision-Date: 2016-08-01 19:20+0000\n"
@@ -47,9 +47,6 @@ msgstr "Categoria"
 msgid "Categories"
 msgstr "Categorias"
 
-msgid "Administration"
-msgstr "Administração"
-
 msgid "Forms"
 msgstr "Formulários"
 
@@ -67,9 +64,6 @@ msgstr "Configurações"
 
 msgid "Name"
 msgstr "Nome"
-
-msgid "Active"
-msgstr "Ativo"
 
 msgid "Country"
 msgstr "País"
@@ -94,3 +88,57 @@ msgstr "Limite"
 
 msgid "Auto Search"
 msgstr "Auto Pesquisar"
+
+msgid "Models"
+msgstr "Modelos"
+
+msgid "Fields"
+msgstr "Campos"
+
+msgid "Views"
+msgstr "Visões"
+
+msgid "Users"
+msgstr "Usuários"
+
+msgid "Groups"
+msgstr "Grupos"
+
+msgid "Active"
+msgstr "Ativo"
+
+msgid "Usage"
+msgstr "Uso"
+
+msgid "Object Type"
+msgstr "Tipo do Objeto"
+
+msgid "Object Name"
+msgstr "Nome do Objeto"
+
+msgid "Find resources here..."
+msgstr "Encontrar recursos aqui..."
+
+msgid "Technical Settings"
+msgstr "Configurações Técnicas"
+
+msgid "Sales"
+msgstr "Vendas"
+
+msgid "Projects"
+msgstr "Projetos"
+
+msgid "Accounting & Finance"
+msgstr "Contabilidade e Finanças"
+
+msgid "Manufacturing"
+msgstr "Fabricação"
+
+msgid "Human Resources"
+msgstr "Recursos Humanos"
+
+msgid "Administration"
+msgstr "Administração"
+
+msgid "Localization"
+msgstr "Localização"

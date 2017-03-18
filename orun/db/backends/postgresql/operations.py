@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from psycopg2.extras import Inet
 
 from orun.conf import settings

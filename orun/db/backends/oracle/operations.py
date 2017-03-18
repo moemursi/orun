@@ -15,8 +15,6 @@ from .utils import InsertIdVar, Oracle_datetime, convert_unicode
 
 
 class DatabaseOperations(BaseDatabaseOperations):
-    compiler_module = "orun.db.backends.oracle.compiler"
-
     # Oracle uses NUMBER(11) and NUMBER(19) for integer fields.
     integer_field_ranges = {
         'SmallIntegerField': (-99999999999, 99999999999),

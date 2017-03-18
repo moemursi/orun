@@ -17,10 +17,6 @@ class BaseDatabaseOperations(object):
     a backend performs ordering or calculates the ID of a recently-inserted
     row.
     """
-    compiler_module = "orun.db.models.sql.compiler"
-
-    parameter_mark = '%s'
-
     # Integer field safe ranges by `internal_type` as documented
     # in docs/ref/models/fields.txt.
     integer_field_ranges = {
@@ -548,13 +544,6 @@ class BaseDatabaseOperations(object):
             value = str(decimal.Decimal(value) / decimal.Decimal(1000000))
             value = parse_duration(value)
         return value
-
-    def check_aggregate_support(self, aggregate_func):
-        warnings.warn(
-            "check_aggregate_support has been deprecated. Use "
-            "check_expression_support instead.",
-            RemovedInOrun20Warning, stacklevel=2)
-        return self.check_expression_support(aggregate_func)
 
     def check_expression_support(self, expression):
         """

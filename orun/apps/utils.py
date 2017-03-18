@@ -4,12 +4,12 @@ from .registry import registry
 def get_dependencies(addon):
     r = []
     if isinstance(addon, str):
-        addon = registry.addons[addon]
-    deps = addon.dependencies
+        addon = registry.app_configs[addon]
+    deps = addon.depends
     if deps:
-        for dep in addon.dependencies:
+        for dep in addon.depends:
             r += get_dependencies(dep)
-        return r + list(addon.dependencies)
+        return r + list(addon.depends)
     return []
 
 

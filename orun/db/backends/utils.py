@@ -1,114 +1,13 @@
-from __future__ import unicode_literals
-
 import datetime
 import decimal
 import hashlib
 import logging
-from time import time
 
 from orun.conf import settings
 from orun.utils.encoding import force_bytes
 from orun.utils.timezone import utc
 
 logger = logging.getLogger('orun.db.backends')
-
-
-class CursorWrapper(object):
-    def __init__(self, cursor, db):
-        self.cursor = cursor
-        self.db = db
-
-    WRAP_ERROR_ATTRS = frozenset(['fetchone', 'fetchmany', 'fetchall', 'nextset'])
-
-    def __getattr__(self, attr):
-        cursor_attr = getattr(self.cursor, attr)
-        if attr in CursorWrapper.WRAP_ERROR_ATTRS:
-            return self.db.wrap_database_errors(cursor_attr)
-        else:
-            return cursor_attr
-
-    def __iter__(self):
-        with self.db.wrap_database_errors:
-            for item in self.cursor:
-                yield item
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        # Ticket #17671 - Close instead of passing thru to avoid backend
-        # specific behavior. Catch errors liberally because errors in cleanup
-        # code aren't useful.
-        try:
-            self.close()
-        except self.db.Database.Error:
-            pass
-
-    # The following methods cannot be implemented in __getattr__, because the
-    # code must run when the method is invoked, not just when it is accessed.
-
-    def callproc(self, procname, params=None):
-        self.db.validate_no_broken_transaction()
-        with self.db.wrap_database_errors:
-            if params is None:
-                return self.cursor.callproc(procname)
-            else:
-                return self.cursor.callproc(procname, params)
-
-    def execute(self, sql, params=None):
-        self.db.validate_no_broken_transaction()
-        with self.db.wrap_database_errors:
-            if params is None:
-                return self.cursor.execute(sql)
-            else:
-                return self.cursor.execute(sql, params)
-
-    def executemany(self, sql, param_list):
-        self.db.validate_no_broken_transaction()
-        with self.db.wrap_database_errors:
-            return self.cursor.executemany(sql, param_list)
-
-
-class CursorDebugWrapper(CursorWrapper):
-
-    # XXX callproc isn't instrumented at this time.
-
-    def execute(self, sql, params=None):
-        start = time()
-        try:
-            return super(CursorDebugWrapper, self).execute(sql, params)
-        finally:
-            stop = time()
-            duration = stop - start
-            sql = self.db.ops.last_executed_query(self.cursor, sql, params)
-            self.db.queries_log.append({
-                'sql': sql,
-                'time': "%.3f" % duration,
-            })
-            logger.debug(
-                '(%.3f) %s; args=%s', duration, sql, params,
-                extra={'duration': duration, 'sql': sql, 'params': params}
-            )
-
-    def executemany(self, sql, param_list):
-        start = time()
-        try:
-            return super(CursorDebugWrapper, self).executemany(sql, param_list)
-        finally:
-            stop = time()
-            duration = stop - start
-            try:
-                times = len(param_list)
-            except TypeError:           # param_list could be an iterator
-                times = '?'
-            self.db.queries_log.append({
-                'sql': '%s times: %s' % (times, sql),
-                'time': "%.3f" % duration,
-            })
-            logger.debug(
-                '(%.3f) %s; args=%s', duration, sql, param_list,
-                extra={'duration': duration, 'sql': sql, 'params': param_list}
-            )
 
 
 ###############################################

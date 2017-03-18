@@ -31,7 +31,7 @@ class MigrationQuestioner(object):
         # Apps from the new app template will have these; the python
         # file check will ensure we skip South ones.
         try:
-            app_config = apps.get_addon(app_label)
+            app_config = apps.get_app_config(app_label)
         except LookupError:         # It's a fake app.
             return self.defaults.get("ask_initial", False)
         migrations_import_path = MigrationLoader.migrations_module(app_config.schema)

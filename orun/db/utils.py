@@ -1,16 +1,14 @@
-import os
-import pkgutil
-from importlib import import_module
 from threading import local
+from importlib import import_module
+import sqlalchemy as sa
+from sqlalchemy.orm import sessionmaker
 
-from orun.utils import reraise
-from orun.conf import settings
 from orun.core.exceptions import ImproperlyConfigured
+from orun.conf import settings
 from orun.utils.functional import cached_property
-from orun.utils.module_loading import import_string
+
 
 DEFAULT_DB_ALIAS = 'default'
-ORUN_VERSION_PICKLE_KEY = '_orun_version'
 
 
 class Error(Exception):
@@ -49,91 +47,32 @@ class NotSupportedError(DatabaseError):
     pass
 
 
-class DatabaseErrorWrapper(object):
-    """
-    Context manager and decorator that re-throws backend-specific database
-    exceptions using Orun's common wrappers.
-    """
-
-    def __init__(self, wrapper):
-        """
-        wrapper is a database wrapper.
-
-        It must have a Database attribute defining PEP-249 exceptions.
-        """
-        self.wrapper = wrapper
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        if exc_type is None:
-            return
-        for dj_exc_type in (
-                DataError,
-                OperationalError,
-                IntegrityError,
-                InternalError,
-                ProgrammingError,
-                NotSupportedError,
-                DatabaseError,
-                InterfaceError,
-                Error,
-        ):
-            db_exc_type = getattr(self.wrapper.Database, dj_exc_type.__name__)
-            if issubclass(exc_type, db_exc_type):
-                dj_exc_value = dj_exc_type(*exc_value.args)
-                dj_exc_value.__cause__ = exc_value
-                if not hasattr(exc_value, '__traceback__'):
-                    exc_value.__traceback__ = traceback
-                # Only set the 'errors_occurred' flag for errors that may make
-                # the connection unusable.
-                if dj_exc_type not in (DataError, IntegrityError):
-                    self.wrapper.errors_occurred = True
-                reraise(dj_exc_type, dj_exc_value, traceback)
-
-    def __call__(self, func):
-        # Note that we are intentionally not using @wraps here for performance
-        # reasons. Refs #21109.
-        def inner(*args, **kwargs):
-            with self:
-                return func(*args, **kwargs)
-        return inner
-
-
-def load_backend(backend_name):
-    """
-    Return a database backend's "base" module given a fully qualified database
-    backend name, or raise an error if it doesn't exist.
-    """
-    try:
-        return import_module('%s.base' % backend_name)
-    except ImportError as e_user:
-        # The database backend wasn't found. Display a helpful error message
-        # listing all possible (built-in) database backends.
-        backend_dir = os.path.join(os.path.dirname(__file__), 'backends')
-        try:
-            builtin_backends = [
-                name for _, name, ispkg in pkgutil.iter_modules([backend_dir])
-                if ispkg and name not in {'base', 'dummy', 'postgresql_psycopg2'}
-            ]
-        except EnvironmentError:
-            builtin_backends = []
-        if backend_name not in ['orun.db.backends.%s' % b for b in
-                                builtin_backends]:
-            backend_reprs = map(repr, sorted(builtin_backends))
-            error_msg = ("%r isn't an available database backend.\n"
-                         "Try using 'orun.db.backends.XXX', where XXX "
-                         "is one of:\n    %s\nError was: %s" %
-                         (backend_name, ", ".join(backend_reprs), e_user))
-            raise ImproperlyConfigured(error_msg)
-        else:
-            # If there's some other error, this must be an error in Orun
-            raise
-
-
 class ConnectionDoesNotExist(Exception):
     pass
+
+
+class ConnectionInfo(object):
+    def __init__(self, engine):
+        self.engine = engine
+        self.in_atomic_block = False
+        self.savepoints = []
+        self.commit_on_exit = True
+        self.needs_rollback = False
+        self.closed_in_transaction = False
+
+    @property
+    def backend(self):
+        backend = 'orun.db.backends' + self.engine.name
+        return import_module(backend)
+
+    def schema_editor(self):
+        backend = import_module('orun.db.backends.%s.schema' % self.engine.name)
+        return backend.DatabaseSchemaEditor(self.engine)
+
+    @cached_property
+    def ops(self):
+        backend = import_module('orun.db.backends.%s.operations' % self.engine.name)
+        return backend.DatabaseOperations(self.engine)
 
 
 class ConnectionHandler(object):
@@ -152,11 +91,12 @@ class ConnectionHandler(object):
         if self._databases == {}:
             self._databases = {
                 DEFAULT_DB_ALIAS: {
-                    'ENGINE': 'orun.db.backends.dummy',
+                    'ENGINE': 'sqlite:///:memory:',
                 },
             }
+
         if self._databases[DEFAULT_DB_ALIAS] == {}:
-            self._databases[DEFAULT_DB_ALIAS]['ENGINE'] = 'orun.db.backends.dummy'
+            self._databases[DEFAULT_DB_ALIAS]['ENGINE'] = 'sqlite:///:memory:'
 
         if DEFAULT_DB_ALIAS not in self._databases:
             raise ImproperlyConfigured("You must define a '%s' database" % DEFAULT_DB_ALIAS)
@@ -174,14 +114,12 @@ class ConnectionHandler(object):
 
         conn.setdefault('ATOMIC_REQUESTS', False)
         conn.setdefault('AUTOCOMMIT', True)
-        conn.setdefault('ENGINE', 'orun.db.backends.dummy')
-        if conn['ENGINE'] == 'orun.db.backends.' or not conn['ENGINE']:
-            conn['ENGINE'] = 'orun.db.backends.dummy'
+        conn.setdefault('ENGINE', 'sqlite:///:memory:')
+        if not conn['ENGINE']:
+            conn['ENGINE'] = 'sqlite:///:memory:'
         conn.setdefault('CONN_MAX_AGE', 0)
         conn.setdefault('OPTIONS', {})
         conn.setdefault('TIME_ZONE', None)
-        for setting in ['NAME', 'USER', 'PASSWORD', 'HOST', 'PORT']:
-            conn.setdefault(setting, '')
 
     def prepare_test_settings(self, alias):
         """
@@ -197,14 +135,17 @@ class ConnectionHandler(object):
             test_settings.setdefault(key, None)
 
     def __getitem__(self, alias):
+        from orun.db.models.query import Session
         if hasattr(self._connections, alias):
             return getattr(self._connections, alias)
 
         self.ensure_defaults(alias)
         self.prepare_test_settings(alias)
         db = self.databases[alias]
-        backend = load_backend(db['ENGINE'])
-        conn = backend.DatabaseWrapper(db, alias)
+        conn = sa.create_engine(db['ENGINE'], echo=True)
+        conn.session = Session(bind=conn)
+        conn.conn_info = ConnectionInfo(conn)
+        conn.alias = alias
         setattr(self._connections, alias, conn)
         return conn
 
@@ -227,88 +168,3 @@ class ConnectionHandler(object):
             except AttributeError:
                 continue
             connection.close()
-
-
-class ConnectionRouter(object):
-    def __init__(self, routers=None):
-        """
-        If routers is not specified, will default to settings.DATABASE_ROUTERS.
-        """
-        self._routers = routers
-
-    @cached_property
-    def routers(self):
-        if self._routers is None:
-            self._routers = settings.DATABASE_ROUTERS
-        routers = []
-        for r in self._routers:
-            if isinstance(r, str):
-                router = import_string(r)()
-            else:
-                router = r
-            routers.append(router)
-        return routers
-
-    def _router_func(action):
-        def _route_db(self, model, **hints):
-            chosen_db = None
-            for router in self.routers:
-                try:
-                    method = getattr(router, action)
-                except AttributeError:
-                    # If the router doesn't have a method, skip to the next one.
-                    pass
-                else:
-                    chosen_db = method(model, **hints)
-                    if chosen_db:
-                        return chosen_db
-            instance = hints.get('instance')
-            if instance is not None and instance._state.db:
-                return instance._state.db
-            return DEFAULT_DB_ALIAS
-        return _route_db
-
-    db_for_read = _router_func('db_for_read')
-    db_for_write = _router_func('db_for_write')
-
-    def allow_relation(self, obj1, obj2, **hints):
-        for router in self.routers:
-            try:
-                method = router.allow_relation
-            except AttributeError:
-                # If the router doesn't have a method, skip to the next one.
-                pass
-            else:
-                allow = method(obj1, obj2, **hints)
-                if allow is not None:
-                    return allow
-        return obj1._state.db == obj2._state.db
-
-    def allow_migrate(self, db, app_label, **hints):
-        for router in self.routers:
-            try:
-                method = router.allow_migrate
-            except AttributeError:
-                # If the router doesn't have a method, skip to the next one.
-                continue
-
-            allow = method(db, app_label, **hints)
-
-            if allow is not None:
-                return allow
-        return True
-
-    def allow_migrate_model(self, db, model):
-        return self.allow_migrate(
-            db,
-            model._meta.app_label,
-            model_name=model._meta.model_name,
-            model=model,
-        )
-
-    def get_migratable_models(self, app_config, db, include_auto_created=False):
-        """
-        Return app models allowed to be synchronized on provided db.
-        """
-        models = app_config.get_models(include_auto_created=include_auto_created)
-        return [model for model in models if self.allow_migrate_model(db, model)]

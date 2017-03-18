@@ -2,14 +2,12 @@ import copy
 from collections import OrderedDict
 from contextlib import contextmanager
 
+from orun import app
 from orun.apps import AppConfig
 from orun.apps import Registry as Apps, apps as global_apps
 from orun.conf import settings
 from orun.db import models
-from orun.db.models.fields.proxy import OrderWrt
-from orun.db.models.fields.related import RECURSIVE_RELATIONSHIP_CONSTANT
 from orun.db.models.options import DEFAULT_NAMES, normalize_together
-from orun.db.models.utils import make_model_tuple
 from orun.utils.encoding import force_text, smart_text
 from orun.utils.functional import cached_property
 from orun.utils.module_loading import import_string
@@ -39,7 +37,7 @@ def get_related_models_recursive(model):
     """
     def _related_models(m):
         return [
-            f.related_model for f in m._meta.get_fields(include_parents=True, include_hidden=True)
+            f.related_model for f in m._meta.fields
             if f.is_relation and f.related_model is not None and not isinstance(f.related_model, str)
         ] + [
             subclass for subclass in m.__subclasses__()
@@ -102,8 +100,6 @@ class ProjectState(object):
             direct_related_models = set()
             for name, field in model_state.fields:
                 if field.is_relation:
-                    if field.remote_field.model == RECURSIVE_RELATIONSHIP_CONSTANT:
-                        continue
                     #rel_app_label, rel_model_name = _get_app_label_and_model_name(field.related_model, app_label)
                     rel_app_label, rel_model_name = app_label, field.related_model
                     direct_related_models.add((rel_app_label, rel_model_name.lower()))
@@ -193,11 +189,11 @@ class AppConfigStub(AppConfig):
     path = ''
 
     def __init__(self, label):
-        self.label = label
+        self.schema = label
         # App-label and app-name are not the same thing, so technically passing
         # in the label here is wrong. In practice, migrations don't care about
         # the app name, but we need something unique, and the label works fine.
-        super(AppConfigStub, self).__init__(label, None)
+        super(AppConfigStub, self).__init__(label, None, registry=None)
 
     def import_models(self, all_models):
         self.models = all_models
@@ -216,12 +212,12 @@ class StateApps(Apps):
         # mess things up with partial states (due to lack of dependencies)
         self.real_models = []
         for app_label in real_apps:
-            app = global_apps.get_addon(app_label)
+            app = global_apps.get_app_config(app_label)
             for model in app.get_models():
                 self.real_models.append(ModelState.from_model(model, exclude_rels=True))
         # Populate the app registry with a stub for each application.
         app_labels = {model_state.app_label for model_state in models.values()}
-        app_configs = [AppConfigStub(label) for label in sorted(real_apps + list(app_labels))]
+        app_configs = {label: AppConfigStub(label) for label in sorted(real_apps + list(app_labels))}
         super(StateApps, self).__init__(app_configs)
 
         self.render_multiple(list(models.values()) + self.real_models)
@@ -274,7 +270,6 @@ class StateApps(Apps):
             yield
         finally:
             self.ready = ready
-            self.clear_cache()
 
     def render_multiple(self, model_states):
         # We keep trying to render the models in a loop, ignoring invalid
@@ -309,7 +304,7 @@ class StateApps(Apps):
         clone = StateApps([], {})
         clone.all_models = copy.deepcopy(self.all_models)
         clone.module_models = copy.deepcopy(self.module_models)
-        clone.addons = copy.deepcopy(self.addons)
+        clone.app_configs = copy.deepcopy(self.app_configs)
         # No need to actually clone them, they'll never change
         clone.real_models = self.real_models
         return clone
@@ -317,12 +312,12 @@ class StateApps(Apps):
     def register_model(self, app_label, model):
         self.all_models[model._meta.name] = model
         self.module_models[app_label][model.__name__.lower()] = model
-        if app_label not in self.addons:
-            self.addons[app_label] = AppConfigStub(app_label)
-            self.addons[app_label].models = OrderedDict()
-        self.addons[app_label].models[model._meta.name] = model
-        self.do_pending_operations(model)
-        self.clear_cache()
+        if app_label not in self.app_configs:
+            self.app_configs[app_label] = AppConfigStub(app_label)
+            self.app_configs[app_label].models = OrderedDict()
+        self.app_configs[app_label].models[model._meta.name] = model
+        #self.do_pending_operations(model)
+        #self.clear_cache()
 
     def unregister_model(self, app_label, model_name):
         try:
@@ -366,11 +361,11 @@ class ModelState(object):
                     'ModelState.fields cannot refer to a model class - "%s.to" does. '
                     'Use a string reference instead.' % name
                 )
-            if field.many_to_many and hasattr(field.remote_field.through, '_meta'):
-                raise ValueError(
-                    'ModelState.fields cannot refer to a model class - "%s.through" does. '
-                    'Use a string reference instead.' % name
-                )
+            # if field.many_to_many and hasattr(field.remote_field.through, '_meta'):
+            #     raise ValueError(
+            #         'ModelState.fields cannot refer to a model class - "%s.through" does. '
+            #         'Use a string reference instead.' % name
+            #     )
 
     @cached_property
     def name_lower(self):
@@ -384,9 +379,9 @@ class ModelState(object):
         # Deconstruct the fields
         fields = []
         for field in model._meta.local_fields:
-            if getattr(field, "remote_field", None) and exclude_rels:
-                continue
-            if isinstance(field, OrderWrt) or not field.store:
+            if (getattr(field, "remote_field", None) and exclude_rels) or \
+                    field.inherited or \
+                    (not isinstance(field, models.ManyToManyField) and not field.db_column):
                 continue
             name = force_text(field.name, strings_only=True)
             if not model._meta.extension or (model._meta.extension and field.model == model):
@@ -398,32 +393,19 @@ class ModelState(object):
                         model._meta.label,
                         e,
                     ))
-        if not exclude_rels:
-            for field in model._meta.local_many_to_many:
-                name = force_text(field.name, strings_only=True)
-                try:
-                    fields.append((name, field.clone()))
-                except TypeError as e:
-                    raise TypeError("Couldn't reconstruct m2m field %s on %s: %s" % (
-                        name,
-                        model._meta.object_name,
-                        e,
-                    ))
         # Extract the options
         options = {}
         for name in DEFAULT_NAMES:
             # Ignore some special options
-            if name in ["apps", "app_label"]:
-                continue
-            elif name in model._meta.original_attrs:
+            if name in model._meta.meta_attrs:
                 if name == "unique_together":
-                    ut = model._meta.original_attrs["unique_together"]
+                    ut = model._meta.meta_attrs["unique_together"]
                     options[name] = set(normalize_together(ut))
                 elif name == "index_together":
-                    it = model._meta.original_attrs["index_together"]
+                    it = model._meta.meta_attrs["index_together"]
                     options[name] = set(normalize_together(it))
                 else:
-                    options[name] = model._meta.original_attrs[name]
+                    options[name] = model._meta.meta_attrs[name]
         # Force-convert all options to text_type (#23226)
         options = cls.force_text_recursive(options)
         # If we're ignoring relationships, remove all field-listing model
@@ -434,6 +416,8 @@ class ModelState(object):
                     del options[key]
         options['name'] = model._meta.name
         options['db_table'] = model._meta.db_table
+        if model._meta.db_schema:
+            options['db_schema'] = model._meta.db_schema
         if model._meta.extension:
             options['extension'] = model._meta.extension
 
@@ -466,24 +450,6 @@ class ModelState(object):
         if not any((isinstance(base, str) or issubclass(base, models.Model)) for base in bases):
             bases = (models.Model,)
 
-        # Constructs all managers on the model
-        managers_mapping = {}
-
-        def reconstruct_manager(mgr):
-            as_manager, manager_path, qs_path, args, kwargs = mgr.deconstruct()
-            if as_manager:
-                qs_class = import_string(qs_path)
-                instance = qs_class.as_manager()
-            else:
-                manager_class = import_string(manager_path)
-                instance = manager_class(*args, **kwargs)
-            # We rely on the ordering of the creation_counter of the original
-            # instance
-            name = force_text(mgr.name)
-            managers_mapping[name] = (mgr.creation_counter, instance)
-
-        managers = []
-
         # Construct the new ModelState
         return cls(
             model._meta.app_label,
@@ -491,7 +457,6 @@ class ModelState(object):
             fields,
             options,
             bases,
-            managers,
         )
 
     @classmethod
@@ -545,7 +510,7 @@ class ModelState(object):
         # Then, work out our bases
         try:
             bases = tuple(
-                (apps.get_model(base) if isinstance(base, str) else base)
+                (apps.get_model(*base.split('.', 1)) if isinstance(base, str) else base)
                 for base in self.bases
             )
         except LookupError:
@@ -556,14 +521,15 @@ class ModelState(object):
         body['__module__'] = "__fake__"
 
         # Restore managers
-        body.update(self.construct_managers())
+        #body.update(self.construct_managers())
 
         # Then, make a Model object (apps.register_model is called in __new__)
-        return type(
+        model = type(
             str(self.name),
             bases,
             body,
         )
+        model._meta.app = app
 
     def get_field_by_name(self, name):
         for fname, field in self.fields:

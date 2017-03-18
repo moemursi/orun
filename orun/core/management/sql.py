@@ -20,7 +20,7 @@ def sql_flush(style, connection, only_orun=False, reset_sequences=True, allow_ca
 
 def emit_pre_migrate_signal(verbosity, interactive, db, **kwargs):
     # Emit the pre_migrate signal for every application.
-    for app_config in apps.get_addons():
+    for app_config in apps.get_app_configs():
         if app_config.models_module is None:
             continue
         if verbosity >= 2:
@@ -36,7 +36,7 @@ def emit_pre_migrate_signal(verbosity, interactive, db, **kwargs):
 
 def emit_post_migrate_signal(verbosity, interactive, db, **kwargs):
     # Emit the post_migrate signal for every application.
-    for app_config in apps.get_addons():
+    for app_config in apps.get_app_configs():
         if app_config.models_module is None:
             continue
         if verbosity >= 2:

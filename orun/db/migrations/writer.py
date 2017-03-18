@@ -7,7 +7,6 @@ import os
 import re
 import types
 from importlib import import_module
-import json
 
 from orun import get_version
 from orun.apps import apps
@@ -217,11 +216,6 @@ class MigrationWriter(object):
 
         if self.migration.initial:
             items['initial_str'] = "\n    initial = True\n"
-            app_config = apps.get_addon(self.migration.app_label)
-            if app_config.fixtures:
-                items['initial_str'] += "    fixtures = %s\n" % json.dumps(app_config.fixtures)
-            if app_config.demo:
-                items['initial_str'] += "    demo = %s\n" % json.dumps(app_config.demo)
 
         return (MIGRATION_TEMPLATE % items).encode("utf8")
 
@@ -262,7 +256,7 @@ class MigrationWriter(object):
                 pass
 
         # Alright, see if it's a direct submodule of the app
-        app_config = apps.get_addon(self.migration.app_label)
+        app_config = apps.get_app_config(self.migration.app_label)
         maybe_app_name, _, migrations_package_basename = migrations_package_name.rpartition(".")
         if app_config.name == maybe_app_name:
             return os.path.join(app_config.path, migrations_package_basename)
@@ -441,13 +435,6 @@ class MigrationWriter(object):
                     return value.__name__, set()
                 else:
                     return "%s.%s" % (module, value.__name__), {"import %s" % module}
-        elif isinstance(value, models.manager.BaseManager):
-            as_manager, manager_path, qs_path, args, kwargs = value.deconstruct()
-            if as_manager:
-                name, imports = cls._serialize_path(qs_path)
-                return "%s.as_manager()" % name, imports
-            else:
-                return cls.serialize_deconstructed(manager_path, args, kwargs)
         elif isinstance(value, Operation):
             string, imports = OperationWriter(value, indentation=0).serialize()
             # Nested operation, trailing comma is handled in upper OperationWriter._write()

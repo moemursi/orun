@@ -1,19 +1,20 @@
-<data>
-  <menuitem id="sys-menu" name="System" translate="true">
-    <menuitem id="sys-menu-auth" name="Authentication" translate="true">
-      <menuitem id="sys-menu-auth-user" name="Users" translate="true"/>
-      <menuitem id="sys-menu-auth-group" name="Groups" translate="true"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<data translate="true">
+  <menuitem id="sys.menu" name="System">
+    <menuitem id="sys.menu.auth" name="Authentication">
+      <menuitem id="sys.menu.auth.user" name="Users" action="sys.action.view.auth.user"/>
+      <menuitem id="sys.menu.auth.group" name="Groups" action="sys.action.view.auth.group"/>
     </menuitem>
-    <menuitem id="sys-menu-ui" name="User Interface" translate="true">
-      <menuitem id="sys-menu-ui-action" name="Actions" action="action-view-sys-action" translate="true">
-        <menuitem id="sys-menu-ui-action-window" name="Window Actions" action="action-view-sys-action-window" translate="true"/>
+    <menuitem id="sys.menu.ui" name="User Interface">
+      <menuitem id="sys.menu.ui.action" name="Actions" action="sys.action.view.action">
+        <menuitem id="sys.menu.ui.action.window" name="Window Actions" action="sys.action.view.action.window"/>
       </menuitem>
-      <menuitem id="sys-menu-ui-menu" name="Menu" action="action-view-ui-menu" translate="true"/>
-      <menuitem id="sys-menu-ui-view" name="Views" translate="true"/>
+      <menuitem id="sys.menu.ui.menu" name="Menu" action="sys.action.view.ui.menu"/>
+      <menuitem id="sys.menu.ui.view" name="Views" action="sys.action.view.ui.view"/>
     </menuitem>
-    <menuitem id="sys-menu-db" name="Database Dictionary" translate="true">
-      <menuitem id="sys-menu-db-models" name="Models" translate="true"/>
-      <menuitem id="sys-menu-db-fields" name="Fields" translate="true"/>
+    <menuitem id="sys.menu.db" name="Database Dictionary">
+      <menuitem id="sys.menu.db.models" name="Models" action="sys.action.view.model"/>
+      <menuitem id="sys.menu.db.fields" name="Fields" action="sys.action.view.field"/>
     </menuitem>
   </menuitem>
 </data>

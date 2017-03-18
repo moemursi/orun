@@ -14,3 +14,39 @@ msgstr "Inglês"
 
 msgid "Create"
 msgstr "Criar"
+
+msgid "Action"
+msgstr "Ação"
+
+msgid "Delete"
+msgstr "Excluir"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Save"
+msgstr "Salvar"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Confirm delete record?"
+msgstr "Confirma a exclusão do registro?"
+
+msgid "yes"
+msgstr "sim"
+
+msgid "no"
+msgstr "não"
+
+msgid "Create <i>\"{0}\"</i>..."
+msgstr "Criar <i>\"{0}\"</i>..."
+
+msgid "Record changes successfully saved"
+msgstr "As alterações do registro foram salvas com êxito"
+
+msgid "Error saving record changes"
+msgstr "Erro gravando as alterações do registro"
+
+msgid "Loading..."
+msgstr "Carregando..."

@@ -7,7 +7,7 @@ from .model import Model
 
 class Object(models.Model):
     name = models.CharField(128, _('Object Name'), null=False)
-    model = models.CharField(128, null=False)
+    model = models.ForeignKey('sys.model', null=False)
     object_id = models.BigIntegerField()
     content_object = GenericForeignKey()
     app_label = models.CharField(64, null=False)
@@ -18,8 +18,12 @@ class Object(models.Model):
         name = 'sys.object'
 
     @classmethod
-    def get_object(self, name):
-        return self._default_manager.get(name=name)
+    def get_object(cls, name):
+        return cls.objects.filter(cls.name == name).one()
+
+    @classmethod
+    def get_by_natural_key(cls, name):
+        return cls.get_object(name)
 
 
 class Property(models.Model):

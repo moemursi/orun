@@ -1,9 +1,9 @@
+from orun import app
 from orun.db import models
 from orun.db.migrations.operations.base import Operation
 from orun.db.migrations.state import ModelState
 from orun.db.models.options import normalize_together
 from orun.utils.functional import cached_property
-from base.registry import register_model
 
 
 class CreateSchema(Operation):
@@ -32,7 +32,7 @@ class CreateModel(Operation):
     Create a model's table.
     """
 
-    serialization_expand_args = ['fields', 'options', 'managers']
+    serialization_expand_args = ['fields', 'options']
 
     def __init__(self, name, fields, options=None, bases=None, managers=None):
         self.name = name
@@ -54,8 +54,6 @@ class CreateModel(Operation):
             kwargs['options'] = self.options
         if self.bases and self.bases != (models.Model,):
             kwargs['bases'] = self.bases
-        if self.managers and self.managers != [('objects', models.Manager())]:
-            kwargs['managers'] = self.managers
         return (
             self.__class__.__name__,
             [],
@@ -77,10 +75,6 @@ class CreateModel(Operation):
         if self.allow_migrate_model(schema_editor.connection.alias, model):
             schema_editor.create_model(model)
 
-            # Register model
-            if model._meta.name != 'migrations.migration':
-                register_model(model)
-
     def database_backwards(self, app_label, schema_editor, from_state, to_state):
         model = from_state.apps.get_model(app_label, self.name.lower())
         if self.allow_migrate_model(schema_editor.connection.alias, model):
@@ -97,7 +91,7 @@ class CreateModel(Operation):
                 strings_to_check.append(base.split(".")[-1])
         # Check we have no FKs/M2Ms with it
         for fname, field in self.fields:
-            if field.remote_field:
+            if False and field.remote_field:  # TODO check in future
                 if isinstance(field.remote_field.model, str):
                     strings_to_check.append(field.remote_field.model.split(".")[-1])
         # Now go over all the strings and compare them
@@ -264,6 +258,12 @@ class RenameModel(Operation):
                     old_m2m_model._meta.get_field(old_model._meta.model_name),
                     new_m2m_model._meta.get_field(new_model._meta.model_name),
                 )
+
+            ContentType = app['sys.model']
+            model = ContentType.objects.get(old_model._meta.name)
+            model.name = new_model._meta.name
+            model.object_name = new_model._meta.object_name
+            model.save()
 
     def database_backwards(self, app_label, schema_editor, from_state, to_state):
         self.new_name_lower, self.old_name_lower = self.old_name_lower, self.new_name_lower
@@ -542,9 +542,9 @@ class AlterModelOptions(Operation):
         "ordering",
         "permissions",
         "default_permissions",
-        "select_on_save",
-        "verbose_name",
-        "verbose_name_plural",
+        #"select_on_save",
+        #"verbose_name",
+        #"verbose_name_plural",
     ]
 
     def __init__(self, name, options):
@@ -586,43 +586,3 @@ class AlterModelOptions(Operation):
 
     def describe(self):
         return "Change Meta options on %s" % (self.name, )
-
-
-class AlterModelManagers(Operation):
-    """
-    Alters the model's managers
-    """
-
-    serialization_expand_args = ['managers']
-
-    def __init__(self, name, managers):
-        self.name = name
-        self.managers = managers
-
-    @cached_property
-    def name_lower(self):
-        return self.name.lower()
-
-    def deconstruct(self):
-        return (
-            self.__class__.__name__,
-            [self.name, self.managers],
-            {}
-        )
-
-    def state_forwards(self, app_label, state):
-        model_state = state.models[app_label, self.name_lower]
-        model_state.managers = list(self.managers)
-        state.reload_model(app_label, self.name_lower)
-
-    def database_forwards(self, app_label, schema_editor, from_state, to_state):
-        pass
-
-    def database_backwards(self, app_label, schema_editor, from_state, to_state):
-        pass
-
-    def references_model(self, name, app_label=None):
-        return name.lower() == self.name_lower
-
-    def describe(self):
-        return "Change managers on %s" % (self.name, )

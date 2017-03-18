@@ -2,6 +2,7 @@ import time
 from collections import OrderedDict
 from importlib import import_module
 
+from orun import app as main_app
 from orun.apps import apps
 from orun.conf import settings
 from orun.core.management import commands
@@ -11,7 +12,7 @@ from orun.db.migrations.executor import MigrationExecutor
 from orun.db.migrations.state import ModelState, ProjectState
 from orun.db.migrations.exceptions import AmbiguityError
 from orun.db.migrations.autodetector import MigrationAutodetector
-from orun.db import router
+#from orun.db import router
 from orun.core.management.sql import (
     emit_post_migrate_signal, emit_pre_migrate_signal,
 )
@@ -76,7 +77,7 @@ class Migrate(object):
         connection = connections[db]
 
         # Hook for backends needing any database preparation
-        connection.prepare_database()
+        #connection.prepare_database()
         # Work out which apps have migrations and which do not
         executor = MigrationExecutor(connection, self.migration_progress_callback)
 
@@ -155,7 +156,7 @@ class Migrate(object):
                         % (targets[0][1], targets[0][0])
                     )
 
-        emit_pre_migrate_signal(self.verbosity, self.interactive, connection.alias)
+        emit_pre_migrate_signal(self.verbosity, self.interactive, db)
 
         # Run the syncdb phase.
         if run_syncdb:
@@ -194,6 +195,27 @@ class Migrate(object):
         # Send the post_migrate signal, so individual apps can do whatever they need
         # to do at this point.
         emit_post_migrate_signal(self.verbosity, self.interactive, connection.alias)
+
+        # Register models
+        ContentType = main_app['sys.model']
+        for model in apps.get_models():
+            content_types = {
+                ct.name: ct
+                for ct in ContentType.objects.all()
+            }
+            to_remove = [
+                ct
+                for (model_name, ct) in content_types.items()
+                if model_name not in main_app.models
+            ]
+
+            cts = [
+                {'name': model_name, 'object_name': model._meta.object_name, 'object_type': 'system'}
+                for (model_name, model) in main_app.models.items()
+                if model_name not in content_types
+            ]
+            if cts:
+                ContentType.insert.values(cts)
 
     def migration_progress_callback(self, action, migration=None, fake=False):
         if self.verbosity >= 1:
@@ -237,8 +259,11 @@ class Migrate(object):
 
             # Build the manifest of apps and models that are to be synchronized
             all_models = [
-                (app_config.label,
-                    router.get_migratable_models(app_config, connection.alias, include_auto_created=False))
+                (
+                    app_config.label,
+                    True,
+                    #router.get_migratable_models(app_config, connection.alias, include_auto_created=False)
+                 )
                 for app_config in apps.get_app_configs()
                 if app_config.models_module is not None and app_config.label in app_labels
             ]
@@ -257,7 +282,7 @@ class Migrate(object):
 
             # Create the tables for each model
             if self.verbosity >= 1:
-                commands.echo("  Creating tables...\n")
+                commands.echo("  Creating tables...")
             with transaction.atomic(using=connection.alias, savepoint=connection.features.can_rollback_ddl):
                 deferred_sql = []
                 for app_name, model_list in manifest.items():
@@ -266,18 +291,18 @@ class Migrate(object):
                             continue
                         if self.verbosity >= 3:
                             commands.echo(
-                                "    Processing %s.%s model\n" % (app_name, model._meta.object_name)
+                                "    Processing %s.%s model" % (app_name, model._meta.object_name)
                             )
                         with connection.schema_editor() as editor:
                             if self.verbosity >= 1:
-                                commands.echo("    Creating table %s\n" % model._meta.db_table)
+                                commands.echo("    Creating table %s" % model._meta.db_table)
                             editor.create_model(model)
                             deferred_sql.extend(editor.deferred_sql)
                             editor.deferred_sql = []
                         created_models.add(model)
 
                 if self.verbosity >= 1:
-                    commands.echo("    Running deferred SQL...\n")
+                    commands.echo("    Running deferred SQL...")
                 for statement in deferred_sql:
                     cursor.execute(statement)
         finally:

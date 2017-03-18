@@ -1,4 +1,5 @@
-<data translate="true">
+<?xml version="1.0" encoding="UTF-8"?>
+<data>
   <object id="USD" model="res.currency">
     <field name="name">USD</field>
     <field name="symbol">$</field>

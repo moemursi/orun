@@ -2,15 +2,17 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/backup/orun/addons" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/backup/addons" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/orun/addons" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/addons" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/backup" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.4.4 (C:\Python\34\python.exe)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.6.0 (C:\Python\36\python.exe)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="myerp" />
     <orderEntry type="module" module-name="katrid" />
-    <orderEntry type="module" module-name="sopando" />
-    <orderEntry type="module" module-name="mobmundi" />
+    <orderEntry type="module" module-name="orun-demo" />
+    <orderEntry type="module" module-name="myerp" />
+    <orderEntry type="module" module-name="pybr" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />

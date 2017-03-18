@@ -1,3 +1,4 @@
+import sqlalchemy as sa
 import psycopg2
 
 from orun.db.backends.base.schema import BaseDatabaseSchemaEditor
@@ -19,7 +20,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
 
     def _model_indexes_sql(self, model):
         output = super(DatabaseSchemaEditor, self)._model_indexes_sql(model)
-        if not model._meta.managed or model._meta.proxy or model._meta.swapped:
+        if not model._meta.managed:
             return output
 
         for field in model._meta.local_fields:
@@ -33,21 +34,12 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         Return the statement to create an index with varchar operator pattern
         when the column type is 'varchar' or 'text', otherwise return None.
         """
-        db_type = field.db_type(connection=self.connection)
+        db_type = field.db_type()
         if db_type is not None and (field.db_index or field.unique):
-            # Fields with database column types of `varchar` and `text` need
-            # a second index that specifies their operator class, which is
-            # needed when performing correct LIKE queries outside the
-            # C locale. See #12234.
-            #
-            # The same doesn't apply to array fields such as varchar[size]
-            # and text[size], so skip them.
-            if '[' in db_type:
-                return None
-            if db_type.startswith('varchar'):
-                return self._create_index_sql(model, [field], suffix='_like', sql=self.sql_create_varchar_index)
-            elif db_type.startswith('text'):
+            if isinstance(db_type, sa.Text):
                 return self._create_index_sql(model, [field], suffix='_like', sql=self.sql_create_text_index)
+            elif isinstance(db_type, sa.String):
+                return self._create_index_sql(model, [field], suffix='_like', sql=self.sql_create_varchar_index)
         return None
 
     def _alter_column_type_sql(self, table, old_field, new_field, new_type):

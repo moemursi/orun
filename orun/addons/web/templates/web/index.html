@@ -7,7 +7,7 @@
   <nav id="header" class="navbar navbar-default">
     <div class="navbar-header">
       <a class="navbar-brand" href="#" role="button">
-        Company Name
+        Nome da Empresa
       </a>
     </div>
     <div class="header-link hide-left-menu">
@@ -20,22 +20,15 @@
       <ul class="nav navbar-nav hidden-xs">
         <li class="navbar-search">
           <label class="append-icon">
-            <input id="navbar-search" type="text" class="navbar-search-control" placeholder="Find resources here...">
+            <input id="navbar-search" type="text" class="navbar-search-control" placeholder="{{ _('Find resources here...') }}">
             <i class="icon fa fa-search"></i>
           </label>
         </li>
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+          <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
              aria-expanded="false">Shortcuts <span class="caret"></span>
           </a>
           <ul class="dropdown-menu" aria-haspopup="true" aria-expanded="true">
-            <li><a href="ng-pos.html" target="_blank">POS (Point of Sales)</a></li>
-            <li><a href="#">Another action</a></li>
-            <li><a href="#">Something else here</a></li>
-            <li role="separator" class="divider"></li>
-            <li class="dropdown-header">Nav header</li>
-            <li><a href="#">Separated link</a></li>
-            <li><a href="#">One more separated link</a></li>
           </ul>
         </li>
         <li><a href="javascript:void(0);" data-action="voiceCommand" title="Execute command voice"><i
@@ -46,30 +39,11 @@
           <a href="javascript:void(0);" data-action="messages" title="View notifications" class="dropdown-toggle"
              data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i class="fa fa-bell"></i>
+            <!--
             <span class="label label-warning label-menu-corner">32</span>
+            -->
           </a>
           <ul class="dropdown-menu dropdown-notifications-menu animated flipInY">
-            <div class="title">
-              You have 32 new notifications.
-            </div>
-            <hr>
-            <li>
-              <a href="#"><i class="fa fa-fw fa-tasks"></i> Pending task notification</a>
-            </li>
-            <li>
-              <a href="#"><i class="fa fa-fw fa-envelope-o"></i> New order</a>
-            </li>
-            <li>
-              <a href="#"><i class="fa fa-fw fa-envelope-o"></i> New purchase</a>
-            </li>
-            <li>
-              <a href="#"><i class="fa fa-fw fa-envelope-o"></i> New order</a>
-            </li>
-
-            <hr>
-            <a href="#" class="btn btn-default btn-block">
-              View More
-            </a>
           </ul>
 
         </li>
@@ -78,7 +52,7 @@
             <i class="fa fa-arrows-alt"></i>
           </a>
         </li>
-        <li><a href="#" title="Logout"><i class="fa fa-lg fa-sign-out"></i></a></li>
+        <li><a href="/web/logout/" title="Logout"><i class="fa fa-lg fa-sign-out"></i></a></li>
       </ul>
     </div><!--/.nav-collapse -->
   </nav>
@@ -92,23 +66,20 @@
         <img id="avatar" src="/static/web/static/assets/img/user-avatar.jpg" alt="avatar" class="img-circle">
       </a>
       <div class="user-info">
-        <small>MY SALES</small><br>
-        <span class="user-value">$37,000</span><span> week</span><br>
-        <span class="user-value">$7,000</span><span> today</span>
+        <small>{CONFIG DASHBOARD}</small><br>
+        <span class="user-value">0</span><span> {{ _('Messages') }}</span><br>
+        <span class="user-value">0</span><span> Pendências</span>
       </div>
       <a class="user-profile-menu dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <span>CURRENT USER</span>
+        <span>ANONYMOUS</span>
         <span class="user-dropdown"><i class="fa fa-fw fa-angle-down"></i></span>
       </a>
       <ul class="dropdown-menu">
-        <li><a href="#"><i class="fa fa-fw fa-calendar"></i> Calendar</a></li>
-        <li><a href="#"><i class="fa fa-fw fa-user"></i> My Profile</a></li>
-        <li><a href="#"><i class="fa fa-fw fa-gear"></i> System Settings</a></li>
-        <li><a href="#"><i class="fa fa-fw fa-sign-out"></i> Sign out</a></li>
+        <li><a href="/web/logout/"><i class="fa fa-fw fa-sign-out"></i> Sign out</a></li>
       </ul>
     </div>
     <div class="module-menu">
-      <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ current_menu.name }} <i class="pe pe-7s-right-arrow pull-right"></i></a>
+      <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ current_menu.name }} <i class="pe pe-7s-right-arrow pull-right"></i></a>
       <ul class="dropdown-menu">
         {% for menu in root_menu %}
         <li>
@@ -121,7 +92,7 @@
     <!-- menu -->
     <nav class="sidebar-nav">
       <ul id="left-side-menu" class="nav" aria-expanded="false">
-        {% for menu in current_menu.menu_set.all() %}
+        {% for menu in current_menu.children.all() %}
           {{ menu_utils.menu_item(menu) }}
         {% endfor %}
       </ul>
@@ -133,257 +104,24 @@
 
   <!-- End Left Menu -->
 
-  <div id="main-content" role="main">
+  <div id="main-content" role="main" style="min-height: 1000px;">
 
     <div ng-view>
-      <div class="row">
 
-        <!-- dashboard widgets -->
-        <div class="col-lg-12">
-          <div class="panel panel-default">
-            <div class="panel-body">
-              <div class="col-lg-2">
-                <h4 class="font-300">Recent Activities</h4>
-                <ul class="media-list">
-                  <li class="timeline-item">
-                    <div class="timeline-icon pull-left">
-                      <img src="/assets/img/faces/a-48.jpg">
-                    </div>
-                    <div class="timeline-content">New message from customer<br>
-                      <small class="font-xs"><a href="#">Inbox</a> - 03:56 pm</small>
-                    </div>
-                  </li>
-                  <li class="timeline-item">
-                    <div class="timeline-icon pull-left">
-                      <i class="fa fa-envelope"></i>
-                    </div>
-                    <div class="timeline-content">Lorem ipsum dolor sit amet, consectetur.<br>
-                      <small class="font-xs"><a href="#">Inbox</a> - 01:25 pm</small>
-                    </div>
-                  </li>
-                  <li class="timeline-item">
-                    <div class="timeline-icon pull-left">
-                      <img src="/assets/img/faces/b-48.jpg">
-                    </div>
-                    <div class="timeline-content">Lorem ipsum dolor sit amet.<br>
-                      <small class="font-xs"><a href="#">Inbox</a> - 01:22 pm</small>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-              <div class="col-lg-6" id="realtime-chart" style="height: 180px;"></div>
-              <div class="col-lg-4">
-                <div class="row">
-                  <h5><strong>Last 24 hours</strong></h5>
-                  <span class="col-lg-4"><i class="fa fa-fw fa-shopping-cart"></i> Sales:</span>
-                  <div class="col-lg-8">
-                    <div class="col-lg-6">
-                      <label class="label label-primary">1,000</label>
-                    </div>
-                    <div class="col-lg-6">
-                      <label class="text-danger"> (<i class="fa fa-arrow-down"></i>100)</label>
-                    </div>
-                  </div>
-                </div>
-                <div class="row">
-                  <span class="col-lg-4"><i class="fa fa-fw fa-dollar"></i> Amount:</span>
-                  <div class="col-lg-8">
-                    <div class="col-lg-6">
-                      <label class="label label-primary">$15,790.10</label>
-                    </div>
-                    <div class="col-lg-6">
-                      <label class="text-danger"> (<i class="fa fa-arrow-up"></i>702.02)</label>
-                    </div>
-                  </div>
-                </div>
-                <div class="row">
-                  <hr class="dashboard-hr">
-                </div>
-                <div class="row">
-                  <h5><strong>Last 30 days</strong></h5>
-                  <span class="col-lg-4"><i class="fa fa-fw fa-shopping-cart"></i> Sales:</span>
-                  <div class="col-lg-8">
-                    <div class="col-lg-6">
-                      <label class="label label-primary">27,000</label>
-                    </div>
-                    <div class="col-lg-6">
-                      <label class="text-danger"> (<i class="fa fa-arrow-down"></i>2,780)</label>
-                    </div>
-                  </div>
-                </div>
-                <div class="row">
-                  <span class="col-lg-4"><i class="fa fa-fw fa-dollar"></i> Amount:</span>
-                  <div class="col-lg-8">
-                    <div class="col-lg-6">
-                      <label class="label label-primary">$415,790.10</label>
-                    </div>
-                    <div class="col-lg-6">
-                      <label class="text-danger"> (<i class="fa fa-arrow-up"></i>80,189.00)</label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              Expenses by category
-            </div>
-            <div class="panel-body">
-              <div id="pie-chart" style="height: 300px;"></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="panel panel-default">
-            <div class="panel-heading"><i class="fa fa-fw fa-bar-chart"></i> Income x Expenditure</div>
-            <div class="panel-body">
-              <div id="stack-chart" style="height: 300px"></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-2">
-          <div class="panel panel-default dashboard-panel">
-            <div class="panel-heading">Stock status</div>
-            <div class="panel-body">
-              <a href="#" class="label label-danger">Product 1 (low stock)</a>
-              <div class="progress progress-xs margin-top-8">
-                <div class="progress-bar progress-bar-danger" style="width: 10%" aria-valuenow="10" aria-valuemax="100"
-                     aria-valuemin="0">
-                </div>
-              </div>
-              <a href="#">Product 2</a>
-              <div class="progress progress-xs">
-                <div class="progress-bar progress-bar-danger" style="width: 20%" aria-valuenow="10" aria-valuemax="100"
-                     aria-valuemin="0">
-                </div>
-              </div>
-              <a href="#" class="label label-warning">Product 3 (warning)</a>
-              <div class="progress progress-xs margin-top-8">
-                <div class="progress-bar progress-bar-warning" style="width: 18%" aria-valuenow="18" aria-valuemax="100"
-                     aria-valuemin="0">
-                </div>
-              </div>
-              <a href="#">Product 4</a>
-              <div class="progress progress-xs">
-                <div class="progress-bar progress-bar-info" style="width: 40%" aria-valuenow="40" aria-valuemax="100"
-                     aria-valuemin="0">
-                </div>
-              </div>
-              <a href="#">Product 5</a>
-              <div class="progress progress-xs">
-                <div class="progress-bar progress-bar-success" style="width: 83%" aria-valuenow="83" aria-valuemax="100"
-                     aria-valuemin="0">
-                </div>
-              </div>
-              <a href="#">Product 6</a>
-              <div class="progress progress-xs">
-                <div class="progress-bar progress-bar-success" style="width: 88%" aria-valuenow="88" aria-valuemax="100"
-                     aria-valuemin="0">
-                </div>
-              </div>
-              <div>
-                <button class="btn btn-default btn-block">More products <i class="fa fa-fw fa-arrow-right"></i></button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              My ToDo Tasks
-            </div>
-            <div class="panel-body dashboard-panel">
-              <ul class="list-unstyled">
-
-                <!-- to do item -->
-                <li class="todo-item">
-                  <span class="handle">
-                    <label class="checkbox"><input type="checkbox"><i></i></label>
-                  </span>
-                  <p class="todo-task-description">
-                    <strong class="text-muted">Task #103</strong> - Check products stock status [<a href="#">Details</a>]
-                    <span class="text-muted">Task description.</span>
-                    <span class="text-muted">Today</span>
-                  </p>
-                </li>
-                <!-- end to do item -->
-
-                <li class="todo-item">
-                  <span class="handle">
-                    <label class="checkbox"><input type="checkbox"><i></i></label>
-                  </span>
-                  <p class="todo-task-description">
-                    <strong class="text-muted">Task #106</strong> - Write and send new client quotations [<a href="#">Details</a>]
-                    <span class="text-muted">Build a new fresh company website.</span>
-                    <span class="text-muted">Today</span>
-                  </p>
-                </li>
-
-                <li class="todo-item">
-                  <span class="handle">
-                    <label class="checkbox"><input type="checkbox"><i></i></label>
-                  </span>
-                  <p class="todo-task-description">
-                    <strong class="text-muted">Task #104</strong> - Build a new company website [<a href="#">Details</a>]
-                    <span class="text-muted">Build a new fresh company website.</span>
-                    <span class="text-muted">Today</span>
-                  </p>
-                </li>
-
-                <li class="todo-item">
-                  <span class="handle">
-                    <label class="checkbox"><input type="checkbox"><i></i></label>
-                  </span>
-                  <p class="todo-task-description">
-                    <strong class="text-muted">Task #107</strong> - Check orders report and call clients on phone [<a
-                      href="#">Details</a>]
-                    <span class="text-muted">Build a new fresh company website.</span>
-                    <span class="text-muted">Today</span>
-                  </p>
-                </li>
-              </ul>
-              <hr>
-              <button class="btn btn-default pull-right">Go to Tasks</button>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              Expenses by month
-            </div>
-            <div class="panel-body">
-              <div id="expenses-chart" style="height: 287px"></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              Revenue by month
-            </div>
-            <div class="panel-body">
-              <div id="income-chart" style="height: 287px"></div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
   </div> <!-- /container -->
   <footer id="footer" class="page-footer">
     <div class="pull-right">
-      Log History
+      Log Histórico
     </div>
     &copy; Katrid 2015-2016
   </footer>
 
-  <div id="demo-settings" title="Theme settings">
+<!--  <div id="demo-settings" title="Theme settings">
     <span class="demo"><i class="fa fa-lg fa-gear"></i></span>
   </div>
+-->
 
   </div>
 

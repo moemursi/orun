@@ -4,7 +4,7 @@ from orun.utils.translation import gettext_lazy as _
 
 class PartnerCategory(models.Model):
     name = models.CharField(128, _('name'))
-    color = models.PositiveIntegerField()
+    color = models.IntegerField()
 
     class Meta:
         name = 'res.partner.category'
@@ -22,7 +22,7 @@ class Partner(models.Model):
     name = models.CharField(128, _('name'))
     title = models.ForeignKey(PartnerTitle)
     active = models.BooleanField(default=True)
-    color = models.PositiveIntegerField()
+    color = models.IntegerField()
     user = models.ForeignKey('auth.user')
     language = models.ForeignKey('res.language')
     email = models.EmailField()

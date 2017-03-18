@@ -1,9 +1,6 @@
-"""
-Module for abstract serializer/unserializer base classes.
-"""
 from io import StringIO
 
-from orun.db import models
+from orun.db import DEFAULT_DB_ALIAS
 
 
 class SerializerDoesNotExist(KeyError):
@@ -157,72 +154,13 @@ class Deserializer(object):
     """
     Abstract base deserializer class.
     """
+    def __init__(self, stream_or_string, app, app_config=None, **kwargs):
+        self.app = app
+        self.app_config = app_config
+        self.stream_or_string = stream_or_string
+        self.options = kwargs
 
-    def __init__(self, stream_or_string, **options):
-        """
-        Init this serializer given a stream or a string
-        """
-        self.options = options
-        if isinstance(stream_or_string, str):
-            self.stream = StringIO(stream_or_string)
-        else:
-            self.stream = stream_or_string
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        """Iteration iterface -- return the next item in the stream"""
-        raise NotImplementedError('subclasses of Deserializer must provide a __next__() method')
-
-
-class DeserializedObject(object):
-    """
-    A deserialized model.
-
-    Basically a container for holding the pre-saved deserialized data along
-    with the many-to-many data saved with the object.
-
-    Call ``save()`` to save the object (with the many-to-many data) to the
-    database; call ``save(save_m2m=False)`` to save just the object fields
-    (and not touch the many-to-many stuff.)
-    """
-
-    def __init__(self, obj, m2m_data=None):
-        self.object = obj
-        self.m2m_data = m2m_data
-
-    def __repr__(self):
-        return "<DeserializedObject: %s(pk=%s)>" % (
-            self.object._meta.schema, self.object.pk)
-
-    def save(self, save_m2m=True, using=None, **kwargs):
-        # Call save on the Model baseclass directly. This bypasses any
-        # model-defined save. The save is also forced to be raw.
-        # raw=True is passed to any pre/post_save signals.
-        models.Model.save_base(self.object, using=using, raw=True, **kwargs)
-        if self.m2m_data and save_m2m:
-            for accessor_name, object_list in self.m2m_data.items():
-                getattr(self.object, accessor_name).set(object_list)
-
-        # prevent a second (possibly accidental) call to save() from saving
-        # the m2m data twice.
-        self.m2m_data = None
-
-
-def build_instance(Model, data, db):
-    """
-    Build a model instance.
-
-    If the model instance doesn't have a primary key and the model supports
-    natural keys, try to retrieve it from the database.
-    """
-    obj = Model(**data)
-    if (obj.pk is None and hasattr(Model, 'natural_key') and
-            hasattr(Model._default_manager, 'get_by_natural_key')):
-        natural_key = obj.natural_key()
-        try:
-            obj.pk = Model._default_manager.db_manager(db).get_by_natural_key(*natural_key).pk
-        except Model.DoesNotExist:
-            pass
-    return obj
+    def build_instance(self, model, values, using=DEFAULT_DB_ALIAS):
+        obj = model(**values)
+        obj.save()
+        return obj

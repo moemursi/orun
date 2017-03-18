@@ -1,6 +1,7 @@
+from importlib import import_module
+
 from orun.apps import apps as global_apps
 from orun.db import migrations
-
 from .exceptions import InvalidMigrationPlan
 from .loader import MigrationLoader
 from .recorder import MigrationRecorder
@@ -95,15 +96,6 @@ class MigrationExecutor(object):
 
         self.check_replacements()
 
-    def load_fixtures(self, migration, fake=False, fake_initial=False):
-        from .operations.fixtures import LoadData
-        if not fake:
-            # Alright, do it normally
-            with self.connection.schema_editor() as schema_editor:
-                LoadData(migration.fixtures).database_forwards(migration.app_label, schema_editor, None, None)
-                if migration.demo:
-                    LoadData(migration.demo).database_forwards(migration.app_label, schema_editor, None, None)
-
     def _migrate_all_forwards(self, plan, full_plan, fake, fake_initial):
         """
         Take a list of 2-tuples of the form (migration instance, False) and
@@ -129,11 +121,6 @@ class MigrationExecutor(object):
                 migrations_to_run.remove(migration)
             else:
                 migration.mutate_state(state, preserve=False)
-
-        # Load fixtures
-        for m, _ in plan:
-            if m.fixtures:
-                self.load_fixtures(m)
 
     def _migrate_all_backwards(self, plan, full_plan, fake):
         """
@@ -206,7 +193,7 @@ class MigrationExecutor(object):
                     fake = True
             if not fake:
                 # Alright, do it normally
-                with self.connection.schema_editor() as schema_editor:
+                with self.connection.conn_info.schema_editor() as schema_editor:
                     state = migration.apply(state, schema_editor)
         # For replacement migrations, record individual statuses
         if migration.replaces:

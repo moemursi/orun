@@ -1,7 +1,3 @@
-from __future__ import unicode_literals
-
-from orun.db import router
-
 from .base import Operation
 
 
@@ -98,14 +94,14 @@ class RunSQL(Operation):
             state_operation.state_forwards(app_label, state)
 
     def database_forwards(self, app_label, schema_editor, from_state, to_state):
-        if router.allow_migrate(schema_editor.connection.alias, app_label, **self.hints):
-            self._run_sql(schema_editor, self.sql)
+        #if router.allow_migrate(schema_editor.connection.alias, app_label, **self.hints):
+        self._run_sql(schema_editor, self.sql)
 
     def database_backwards(self, app_label, schema_editor, from_state, to_state):
         if self.reverse_sql is None:
             raise NotImplementedError("You cannot reverse this operation")
-        if router.allow_migrate(schema_editor.connection.alias, app_label, **self.hints):
-            self._run_sql(schema_editor, self.reverse_sql)
+        #if router.allow_migrate(schema_editor.connection.alias, app_label, **self.hints):
+        self._run_sql(schema_editor, self.reverse_sql)
 
     def describe(self):
         return "Raw SQL operation"
@@ -175,18 +171,18 @@ class RunPython(Operation):
         pass
 
     def database_forwards(self, app_label, schema_editor, from_state, to_state):
-        if router.allow_migrate(schema_editor.connection.alias, app_label, **self.hints):
+        #if router.allow_migrate(schema_editor.connection.alias, app_label, **self.hints):
             # We now execute the Python code in a context that contains a 'models'
             # object, representing the versioned models as an app registry.
             # We could try to override the global cache, but then people will still
             # use direct imports, so we go with a documentation approach instead.
-            self.code(from_state.apps, schema_editor)
+        self.code(from_state.apps, schema_editor)
 
     def database_backwards(self, app_label, schema_editor, from_state, to_state):
         if self.reverse_code is None:
             raise NotImplementedError("You cannot reverse this operation")
-        if router.allow_migrate(schema_editor.connection.alias, app_label, **self.hints):
-            self.reverse_code(from_state.apps, schema_editor)
+        #if router.allow_migrate(schema_editor.connection.alias, app_label, **self.hints):
+        self.reverse_code(from_state.apps, schema_editor)
 
     def describe(self):
         return "Raw Python operation"

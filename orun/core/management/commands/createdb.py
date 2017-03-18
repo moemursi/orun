@@ -1,6 +1,8 @@
+from sqlalchemy.engine.url import URL, make_url
+from sqlalchemy import create_engine
+
 from orun.core.management import commands
 from orun.db import connections, DEFAULT_DB_ALIAS
-from orun.db.utils import load_backend
 
 
 @commands.command('createdb')
@@ -14,54 +16,51 @@ def command(database, **options):
 
 
 def _create_connection(db):
-    connection = connections[db]
-    db_settings = connection.settings_dict
-    db_engine = db_settings['ENGINE']
-    backend = load_backend(db_engine)
+    if isinstance(db, str):
+        url = make_url(connections.databases[db]['ENGINE'])
+    elif isinstance(db, dict):
+        url = make_url(db['ENGINE'])
+    else:
+        url = db
 
-    if db_engine == 'orun.db.backends.sqlite3':
-        import sqlite3
+    db_engine = url.drivername.split('+')[0]
+    database = url.database
 
-        return sqlite3.connect(db_settings['NAME'])
-    elif 'postgres' in db_engine:
-        return backend.psycopg2.connect(
-            "host='%s'  dbname='postgres' user='%s' password='%s'" %
-            (db_settings['HOST'], db_settings['USER'], db_settings['PASSWORD'])
-        )
-    elif db_engine == 'orun.db.backends.mssql':
-        conn_params = connection.get_connection_params()
-        conn_params['database'] = 'master'
-        return backend.Database.connect(
-            """DRIVER={%(driver)s};SERVER=%(host)s;DATABASE=%(database)s;UID=%(user)s;PWD=%(password)s""" % conn_params
-        )
+    if db_engine == 'sqlite':
+        return
+    elif db_engine == 'postgresql':
+        database = 'postgres'
+    elif db_engine == 'mssql':
+        database = 'master'
     elif db_engine == 'orun.db.backends.oracle':
-        import cx_Oracle
+        database = 'SYSTEM'
 
-        conn = cx_Oracle.connect('SYSTEM', db_settings['PASSWORD'], 'localhost/master')
-        return conn
+    url = URL(url.drivername, url.username, url.password, url.host, url.port, database, url.query)
+    return create_engine(url).connect()
 
 
 def create(db):
     commands.echo('Creating database "%s"' % db)
-    connection = connections[db]
-    db_settings = connection.settings_dict
-    db_engine = db_settings['ENGINE']
-    db_name = db_settings['NAME']
-    db_engine = db_engine.split('.')[-1]
+    url = make_url(connections.databases[db]['ENGINE'])
 
-    conn = _create_connection(db)
+    if url.drivername == 'sqlite':
+        return
 
-    if db_engine == 'sqlite3':
-        pass
-    elif 'postgres' in db_engine:
-        conn.autocommit = True
-        conn.cursor().execute('''CREATE DATABASE %s ENCODING='UTF-8' ''' % db_name)
+    conn = _create_connection(url)
+
+    db_settings = conn.engine.url
+    db_engine = conn.engine.name
+    db_name = url.database
+
+    if 'postgres' in db_engine:
+        conn.connection.set_isolation_level(0)
+        conn.execute('''CREATE DATABASE %s ENCODING='UTF-8' ''' % db_name)
     elif db_engine == 'mssql':
         conn.autocommit = True
-        conn.cursor().execute('''CREATE DATABASE %s''' % db_name)
+        conn.execute('''CREATE DATABASE %s''' % db_name)
         conn.autocommit = False
     elif db_engine == 'oracle':
-        conn.cursor().execute('create user %s identified by %s' % (db_settings['USER'], db_settings['PASSWORD']))
-        conn.cursor().execute('grant all privilege to %s' % db_settings['USER'])
+        conn.execute('create user %s identified by %s' % (db_settings['USER'], db_settings['PASSWORD']))
+        conn.execute('grant all privilege to %s' % db_settings['USER'])
 
     commands.echo('Database "%s" has been created succesfully' % db)

@@ -1,4 +1,5 @@
 import os
+from sqlalchemy.engine.url import make_url
 
 from orun.core.management import commands
 from orun.db import connections
@@ -17,36 +18,36 @@ def command(database, **options):
 
 
 def drop(db):
-    connection = connections[db]
-    connection.close()
-    db_settings = connection.settings_dict
-    db_engine = db_settings['ENGINE']
-    db_name = db_settings['NAME']
+    db_settings = connections.databases[db]
+    url = make_url(db_settings['ENGINE'])
+    db_engine = url.drivername.split('+')[0]
+    db_name = url.database
 
-    conn = _create_connection(db)
+    if db_engine == 'sqlite' and db_name == ':memory:':
+        return
+
+    conn = _create_connection(url)
     commands.echo('Dropping db "%s"' % db_name)
 
-    if db_engine == 'orun.db.backends.sqlite3':
+    if db_engine == 'sqlite':
         del conn
-        if db_name != ':memory:':
-            os.remove(db_name)
-    elif db_engine == 'orun.db.backends.postgresql':
-        conn.autocommit = True
+        os.remove(db_name)
+    elif db_engine == 'postgresql':
+        conn.connection.set_isolation_level(0)
         try:
-            conn.cursor().execute('''DROP DATABASE %s''' % db_name)
+            conn.execute('''DROP DATABASE %s''' % db_name)
         except Exception as e:
             commands.echo(e, err=True)
         conn.autocommit = False
-    elif db_engine == 'orun.db.backends.mssql':
-        conn.autocommit = True
+    elif db_engine == 'mssql':
         try:
-            conn.cursor().execute('''DROP DATABASE %s''' % db_name)
+            conn.execute('''DROP DATABASE %s''' % db_name)
         except Exception as e:
             commands.echo(e, err=True)
         conn.autocommit = False
-    elif db_engine == 'orun.db.backends.oracle':
+    elif db_engine == 'oracle':
         try:
-            conn.cursor().execute('DROP USER %s CASCADE' % db_settings['USER'])
+            conn.execute('DROP USER %s CASCADE' % db_settings['USER'])
         except Exception as e:
             commands.echo(e, err=True)
 

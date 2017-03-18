@@ -1,11 +1,27 @@
+<?xml version="1.1" encoding="UTF-8"?>
 <data>
-  <action id="action-view-sys-action" type="sys.action.window" name="Actions" model="sys.action" translate="true">
+  <action id="sys.action.view.action" type="sys.action.window" name="Actions" model="sys.action">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="action-view-sys-action-window" type="sys.action.window" name="Window Actions" model="sys.action.window" translate="true">
+  <action id="sys.action.view.action.window" type="sys.action.window" name="Window Actions" model="sys.action.window">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="action-view-ui-menu" type="sys.action.window" name="Menu" model="ui.menu" translate="true">
+  <action id="sys.action.view.model" type="sys.action.window" name="Models" model="sys.model">
+    <field name="view_mode">list,form</field>
+  </action>
+  <action id="sys.action.view.field" type="sys.action.window" name="Fields" model="sys.model.field">
+    <field name="view_mode">list,form</field>
+  </action>
+  <action id="sys.action.view.ui.menu" type="sys.action.window" name="Menu" model="ui.menu">
+    <field name="view_mode">list,form</field>
+  </action>
+  <action id="sys.action.view.ui.view" type="sys.action.window" name="Views" model="ui.view">
+    <field name="view_mode">list,form</field>
+  </action>
+  <action id="sys.action.view.auth.user" type="sys.action.window" name="Users" model="auth.user">
+    <field name="view_mode">list,form</field>
+  </action>
+  <action id="sys.action.view.auth.group" type="sys.action.window" name="Groups" model="auth.group">
     <field name="view_mode">list,form</field>
   </action>
 </data>

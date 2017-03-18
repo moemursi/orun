@@ -1,12 +1,10 @@
 import os
 import sys
 from itertools import takewhile
-import click
 
 from orun.apps import apps
 from orun.core.management.commands import CommandError
 from orun.core.management import commands
-from orun.db import connections
 from orun.db.migrations import Migration
 from orun.db.migrations.autodetector import MigrationAutodetector
 from orun.db.migrations.loader import MigrationLoader
@@ -65,7 +63,7 @@ class Command(object):
         bad_app_labels = set()
         for app_label in app_labels:
             try:
-                apps.get_addon(app_label)
+                apps.get_app_config(app_label)
             except LookupError:
                 bad_app_labels.add(app_label)
         if bad_app_labels:
@@ -169,14 +167,14 @@ class Command(object):
         directory_created = {}
         for app_label, app_migrations in changes.items():
             if self.verbosity >= 1:
-                commands.echo(commands.style.MIGRATE_HEADING("Migrations for '%s':" % app_label) + "\n")
+                commands.echo(commands.style.MIGRATE_HEADING("Migrations for '%s':" % app_label))
             for migration in app_migrations:
                 # Describe the migration
                 writer = MigrationWriter(migration)
                 if self.verbosity >= 1:
-                    commands.echo("  %s:\n" % (commands.style.MIGRATE_LABEL(writer.filename),))
+                    commands.echo("  %s:" % (commands.style.MIGRATE_LABEL(writer.filename),))
                     for operation in migration.operations:
-                        commands.echo("    - %s\n" % operation.describe())
+                        commands.echo("    - %s" % operation.describe())
                 if not self.dry_run:
                     # Write the migrations file to the disk.
                     migrations_directory = os.path.dirname(writer.path)

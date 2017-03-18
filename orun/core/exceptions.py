@@ -2,7 +2,9 @@
 Global Orun exception and warning classes.
 """
 
-from orun.utils.encoding import force_text
+from sqlalchemy.orm.exc import NoResultFound
+
+#from orun.utils.encoding import force_text
 
 
 class FieldDoesNotExist(Exception):
@@ -19,9 +21,7 @@ class AppRegistryNotReady(Exception):
     pass
 
 
-class ObjectDoesNotExist(Exception):
-    """The requested object does not exist"""
-    silent_variable_failure = True
+ObjectDoesNotExist = NoResultFound
 
 
 class MultipleObjectsReturned(Exception):
@@ -170,7 +170,7 @@ class ValidationError(Exception):
                 message = error.message
                 if error.params:
                     message %= error.params
-                yield force_text(message)
+                #yield force_text(message)
 
     def __str__(self):
         if hasattr(self, 'error_dict'):

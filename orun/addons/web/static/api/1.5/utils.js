@@ -14,6 +14,17 @@
     };
   }
 
+  Katrid.$hashId = 0;
+
+  _.mixin({
+    hash: function(obj) {
+      if (!obj.$hashId) {
+        obj.$hashId = ++Katrid.$hashId;
+      }
+      return obj.$hashId;
+    }
+  });
+
 }).call(this);
 
 //# sourceMappingURL=utils.js.map

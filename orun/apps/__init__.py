@@ -1,6 +1,3 @@
-from .registry import apps, Registry
-from .base import *
-from .addon import AppConfig
-
-
-__all__ = ['AppConfig', 'Application']
+from .base import Application
+from .registry import (apps, Registry)
+from .config import AppConfig

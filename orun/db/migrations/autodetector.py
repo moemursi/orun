@@ -94,7 +94,7 @@ class MigrationAutodetector(object):
         fields_def = []
         for name, field in sorted(fields):
             deconstruction = self.deep_deconstruct(field)
-            if field.remote_field and field.remote_field.model:
+            if field.is_relation and field.to and field.related_model:
                 del deconstruction[2]['to']
             fields_def.append(deconstruction)
         return fields_def
@@ -136,10 +136,7 @@ class MigrationAutodetector(object):
             if not model._meta.managed:
                 self.old_unmanaged_keys.append((al, mn))
             elif al not in self.from_state.real_apps:
-                if model._meta.proxy:
-                    self.old_proxy_keys.append((al, mn))
-                else:
-                    self.old_model_keys.append((al, mn))
+                self.old_model_keys.append((al, mn))
 
         for al, mn in sorted(self.to_state.models.keys()):
             model = self.new_apps.get_model(al, mn)
@@ -149,10 +146,7 @@ class MigrationAutodetector(object):
                 al not in self.from_state.real_apps or
                 (convert_apps and al in convert_apps)
             ):
-                if model._meta.proxy:
-                    self.new_proxy_keys.append((al, mn))
-                else:
-                    self.new_model_keys.append((al, mn))
+                self.new_model_keys.append((al, mn))
 
         # Renames have to come first
         self.generate_renamed_models()
@@ -299,8 +293,8 @@ class MigrationAutodetector(object):
                         instance = subclass("auto_%i" % (len(self.migrations.get(app_label, [])) + 1), app_label)
                         instance.dependencies = list(dependencies)
                         instance.initial = app_label not in self.existing_apps
-                        if instance.initial and app_label in apps.addons:
-                            addon = apps.get_addon(app_label)
+                        if instance.initial and app_label in apps.app_configs:
+                            addon = apps.get_app_config(app_label)
                             if addon.db_schema:
                                 chopped.insert(0, operations.CreateSchema(addon.db_schema))
                         instance.operations = chopped
@@ -422,26 +416,6 @@ class MigrationAutodetector(object):
         else:
             self.generated_operations.setdefault(app_label, []).append(operation)
 
-    def swappable_first_key(self, item):
-        """
-        Sorting key function that places potential swappable models first in
-        lists of created models (only real way to solve #22783)
-        """
-        try:
-            model = self.new_apps.get_model(item[0], item[1])
-            base_names = [base.__name__ for base in model.__bases__]
-            string_version = "%s.%s" % (item[0], item[1])
-            if (
-                model._meta.swappable or
-                "AbstractUser" in base_names or
-                "AbstractBaseUser" in base_names or
-                settings.AUTH_USER_MODEL.lower() == string_version.lower()
-            ):
-                return ("___" + item[0], "___" + item[1])
-        except LookupError:
-            pass
-        return item
-
     def generate_renamed_models(self):
         """
         Finds any renamed models, and generates the operations for them,
@@ -493,8 +467,8 @@ class MigrationAutodetector(object):
         added_models = set(self.new_model_keys) - old_keys
         added_unmanaged_models = set(self.new_unmanaged_keys) - old_keys
         all_added_models = chain(
-            sorted(added_models, key=self.swappable_first_key, reverse=True),
-            sorted(added_unmanaged_models, key=self.swappable_first_key, reverse=True)
+            sorted(added_models, reverse=True),
+            sorted(added_unmanaged_models, reverse=True)
         )
         for app_label, model_name in all_added_models:
             model_state = self.to_state.models[app_label, model_name]
@@ -503,7 +477,7 @@ class MigrationAutodetector(object):
             related_fields = {}
             primary_key_rel = None
             for field in model_opts.local_fields:
-                if field.remote_field:
+                if field.remote_field and False:  # TODO check in future
                     if field.remote_field.model:
                         if field.primary_key:
                             primary_key_rel = field.remote_field.model
@@ -514,11 +488,6 @@ class MigrationAutodetector(object):
                     if (getattr(field.remote_field, "through", None)
                             and not field.remote_field.through._meta.auto_created):
                         related_fields[field.name] = field
-            for field in model_opts.local_many_to_many:
-                if field.remote_field.model:
-                    related_fields[field.name] = field
-                if getattr(field.remote_field, "through", None) and not field.remote_field.through._meta.auto_created:
-                    related_fields[field.name] = field
             # Are there unique/index_together to defer?
             unique_together = model_state.options.pop('unique_together', None)
             index_together = model_state.options.pop('index_together', None)
@@ -564,8 +533,6 @@ class MigrationAutodetector(object):
             # Generate operations for each related field
             for name, field in sorted(related_fields.items()):
                 # Account for FKs to swappable models
-                if isinstance(field.remote_field.model, str):
-                    print(field.remote_field.model)
                 dep_app_label = field.remote_field.model._meta.app_label
                 dep_object_name = field.remote_field.model._meta.model_name
                 dependencies = [(dep_app_label, dep_object_name, None, True)]

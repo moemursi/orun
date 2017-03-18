@@ -4,7 +4,6 @@ from datetime import timedelta
 from flask import request, redirect, make_response
 
 from orun import env, app
-from orun.http import QueryDict
 from orun.utils.decorators import available_attrs
 from orun.conf import settings
 from orun.auth import REDIRECT_FIELD_NAME

@@ -9,8 +9,6 @@ from orun.utils.encoding import force_text
 
 
 class DatabaseOperations(BaseDatabaseOperations):
-    compiler_module = "orun.db.backends.mysql.compiler"
-
     # MySQL stores positive fields as UNSIGNED ints.
     integer_field_ranges = dict(
         BaseDatabaseOperations.integer_field_ranges,

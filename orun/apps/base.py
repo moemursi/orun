@@ -1,19 +1,13 @@
 import os
-import sys
-from threading import Lock
-import pkgutil
-from collections import defaultdict, OrderedDict
-from importlib import import_module
-from functools import partial, lru_cache
-import logging
-import logging.config
+import inspect
 import flask
-import flask.app
 from flask import Flask
+import sqlalchemy as sa
+from sqlalchemy.schema import CreateSchema
 
-from orun.core.exceptions import AppRegistryNotReady
 from orun.utils.translation import activate
-from orun.utils.log import DEFAULT_LOGGING
+from orun.conf import global_settings
+from orun.db import (connection, DEFAULT_DB_ALIAS)
 from orun.utils.functional import cached_property
 from .registry import registry
 from .utils import adjust_dependencies
@@ -21,94 +15,18 @@ from .utils import adjust_dependencies
 
 class Application(Flask):
     def __init__(self, *args, **kwargs):
-        import orun.auth.request
-        settings = kwargs.pop('settings', {})
+        settings = {}
+        settings.update(global_settings.settings)
+        settings.update(kwargs.pop('settings', {}))
         super(Application, self).__init__(*args, **kwargs)
-        self.module_name = self.__class__.__module__.split('.')[-1]
         self.models = {}
-        settings.setdefault('INSTALLED_APPS', [])
-        settings.setdefault('DEFAULT_INDEX_TABLESPACE', None)
-        settings.setdefault('DEBUG', True)
-        settings.setdefault('LOCALE_PATHS', [])
-        settings.setdefault('LANGUAGE_CODE', 'pt-br')
-        settings.setdefault('USE_I18N', True)
-        settings.setdefault('USE_L10N', True)
-        settings.setdefault('USE_TZ', False)
-        settings.setdefault('DATABASE_ROUTERS', [])
-        settings.setdefault('MIGRATION_MODULES', {})
-        settings.setdefault('MEDIA_ROOT', None)
-        settings.setdefault('STATIC_ROOT', None)
-        settings.setdefault('MAX_NAME_LENGTH', 30)
-        settings.setdefault('TIME_ZONE', None)
-        settings.setdefault('SERIALIZATION_MODULES', {})
-        settings.setdefault('DEFAULT_CHARSET', 'utf-8')
-
-        settings.setdefault('FORMAT_MODULE_PATH', None)
-        settings.setdefault('TIME_INPUT_FORMATS', [
-            '%H:%M:%S',     # '14:30:59'
-            '%H:%M:%S.%f',  # '14:30:59.000200'
-            '%H:%M',        # '14:30'
-        ])
-
-        settings.setdefault('SUPERUSER_ID', 1)
-        settings.setdefault('SUPERUSER', 'admin')
-        settings.setdefault('PASSWORD', 'admin')
-
-        self.before_request(orun.auth.request.auth_before_request)
-        log = {}
-        l = logging.getLogger('orun.db.backends')
-        l.setLevel(logging.DEBUG)
-        l.addHandler(logging.StreamHandler())
-        log.update(DEFAULT_LOGGING)
-        log.update({
-            'loggers': {
-                'orun.db.backends.postgresql': {
-                    'level': 'INFO',
-                    'handlers': ['console'],
-                }
-            }
-        })
-        #logging.config.dictConfig(log)
-        # settings.setdefault('DATABASES', {
-        #     'default': {
-        #         'ENGINE': 'orun.db.backends.mssql',
-        #         'HOST': '.',
-        #         'USER': 'sa',
-        #         'PASSWORD': '1',
-        #         'NAME': 'test2',
-        #         'OPTIONS': {
-        #             'driver': 'SQL Server'
-        #         }
-        #     }
-        # })
-        LOCAL = os.path.isfile('.local')
-
-        if LOCAL:
-            settings.setdefault('DATABASES', {
-                'default': {
-                    'ENGINE': 'orun.db.backends.postgresql',
-                    'HOST': 'localhost',
-                    'USER': 'postgres',
-                    'PASSWORD': '1',
-                    'NAME': 'test2',
-                }
-            })
-        else:
-            settings.setdefault('DATABASES', {
-                'default': {
-                    'ENGINE': 'orun.db.backends.postgresql',
-                    'USER': 'postgres',
-                    'HOST': '',
-                    'PORT': '5433',
-                    'PASSWORD': '1',
-                    'NAME': 'mobmundi',
-                }
-            })
-        self.config.update(settings)
 
         # Load connections
         from orun.db import ConnectionHandler
         self.connections = ConnectionHandler()
+
+        self.config.update(settings)
+        self.meta = sa.MetaData()
 
         # Find addons
         if not registry.ready:
@@ -119,18 +37,22 @@ class Application(Flask):
             self.cli.add_command(cmd)
 
         # Load addons
-        mods = ['web', 'product', 'sopando', 'mobmundi']
+        mods = settings.get('ADDONS', [])
+        if 'web' not in mods:
+            mods.insert(1, 'web')
         mods = adjust_dependencies(mods)
-        self.installed_modules = []
+        self.app_configs = {}
+        self.addons = []
         with self.app_context():
             for mod_name in mods:
-                addon = registry.addons[mod_name]
+                addon = registry.app_configs[mod_name]
                 addon.init_addon()
-                self.installed_modules.append(addon)
+                self.app_configs[mod_name] = addon
+                self.addons.append(addon)
 
                 # Build models
-                for model_class in registry.module_models[addon.schema].values():
-                    model_class._build_model(self)
+                for model_class in registry.module_models[addon.name].values():
+                    model_class._meta._build_model(self)
 
                 # Register blueprints
                 self.register_blueprint(addon)
@@ -142,23 +64,81 @@ class Application(Flask):
                 # Register addon views on app
                 self._register_views(addon)
 
+            # Initialize app context models
+            self.build_models()
+
+    def build_models(self):
+        for model in self.models.values():
+            if model._meta.pk:
+                model._meta.pk._prepare()
+
+        for model in self.models.values():
+            print('building table', model)
+            model._meta._build_table(self.meta)
+
+        for model in list(self.models.values()):
+            print('building mappers', model)
+            model._meta._build_mapper()
+
+    def _create_all(self):
+        self._create_schemas()
+        self.meta.create_all(self.db_engine)
+        self._register_models()
+
+    def _create_schemas(self):
+        engine = self.db_engine
+        for app_config in self.addons:
+            if app_config.db_schema:
+                engine.execute(CreateSchema(app_config.db_schema))
+
+    def load_fixtures(self):
+        for addon in self.addons:
+            for fixture in addon.fixtures:
+                self.load_fixture(addon, fixture)
+
+    def load_fixture(self, app_config, fixture):
+        from orun.core.serializers import deserialize
+        fixture = os.path.join(app_config.path, 'fixtures', fixture)
+        format = fixture.rsplit('.', 1)[-1]
+        with open(fixture, 'rb') as f:
+            deserialize(format, f, app=self, app_config=app_config)
+
+    def _register_models(self):
+        from base.registry import register_model
+        for model in self.models.values():
+            print('building mappers', model)
+            register_model(model)
+
     def __getitem__(self, item):
+        if inspect.isclass(item):
+            item = item._meta.name
         return self.models[item]
 
     def __setitem__(self, key, value):
         self.models[key] = value
 
-    def _create_db(self):
-        pass
+    def __contains__(self, item):
+        if inspect.isclass(item):
+            item = item._meta.name
+        return item in self.models
+
+    @property
+    def db_engine(self):
+        """
+        Get the default database engine
+        """
+        return self.connections[DEFAULT_DB_ALIAS].engine
+
+    @property
+    def db_session(self):
+        """
+        Get the default database session
+        """
+        return connection.session
 
     def _register_views(self, addon):
         for view in registry.module_views[addon.schema]:
             view.register(self)
-
-    def get_model(self, model_name):
-        if isinstance(model_name, type):
-            model_name = model_name._meta.name
-        return self[model_name]
 
     def app_context(self, **kwargs):
         old_state = {}

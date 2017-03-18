@@ -4,7 +4,7 @@ import json
 import os
 from flask import redirect
 
-from orun import http, render_template_string, app
+from orun import render_template_string, app
 from orun.apps import apps
 from orun.conf import settings
 #from orun.core.urlresolvers import translate_url
@@ -102,8 +102,8 @@ def render_javascript_catalog(catalog=None, plural=None):
 
 def get_javascript_catalog(locale, domain, packages):
     default_locale = to_locale(settings.LANGUAGE_CODE)
-    app_configs = apps.get_addons()
-    allowable_packages = set(app_config.name for app_config in app_configs)
+    addons = app.addons
+    allowable_packages = set(addon.name for addon in addons)
     allowable_packages.update(DEFAULT_PACKAGES)
     packages = [p for p in packages if p in allowable_packages]
     t = {}
@@ -228,7 +228,13 @@ def javascript_catalog(request, domain='orunjs', packages=None):
     locale = _get_locale(request)
     packages = _parse_packages(packages)
     catalog, plural = get_javascript_catalog(locale, domain, packages)
-    return render_javascript_catalog(catalog, plural)
+    data = {
+        'catalog': catalog,
+        'formats': get_formats(),
+        'plural': plural,
+    }
+    s = """$(document).ready(function () {var js = %s;Katrid.i18n.initialize(js.plural, js.catalog, js.formats)});""" % json.dumps(data)
+    return Response(s, mimetype='application/javascript')
 
 
 def json_catalog(request, domain='orunjs', packages=None):

@@ -1,16 +1,16 @@
-from orun import api, app
+from orun import app
 from orun.db import models
 from orun.utils.translation import gettext_lazy as _
 
 from .model import Model
-from ..fields import GenericForeignKey
+#from ..fields import GenericForeignKey
 
 
 class Action(models.Model):
     name = models.CharField(128, _('Name'), null=False)
     action_type = models.CharField(32, _('Action Type'), null=False)
-    usage = models.TextField()
-    description = models.TextField()
+    usage = models.TextField(verbose_name=_('Usage'))
+    description = models.TextField(verbose_name=_('Description'))
 
     class Meta:
         name = 'sys.action'
@@ -21,34 +21,34 @@ class Action(models.Model):
         super(Action, self).save(*args, **kwargs)
 
     def get_action(self):
-        return app[self.action_type].objects.get(pk=self.pk)
+        return app[self.action_type].objects.get(self.pk)
 
     def execute(self):
         raise NotImplemented()
 
 
 class WindowAction(Action):
-    view = models.ForeignKey('ui.view')
-    domain = models.TextField()
-    context = models.TextField()
-    model = models.ForeignKey('sys.model', null=False)
-    object_id = models.BigIntegerField()
-    content_object = GenericForeignKey()
-    view_mode = models.CharField(128, default='list,form')
-    target = models.CharField(16, choices=(
+    view = models.ForeignKey('ui.view', verbose_name=_('View'))
+    domain = models.TextField(verbose_name=_('Domain'))
+    context = models.TextField(verbose_name=_('Context'))
+    model = models.ForeignKey('sys.model', null=False, verbose_name=_('Model'))
+    object_id = models.BigIntegerField(verbose_name=_('Object ID'))
+    #content_object = GenericForeignKey()
+    view_mode = models.CharField(128, default='list,form', verbose_name=_('View Mode'))
+    target = models.CharField(16, verbose_name=_('Target'), choices=(
         ('current', 'Current Window'),
         ('new', 'New Window'),
     ))
-    limit = models.PositiveIntegerField(default=100)
-    auto_search = models.BooleanField(default=True)
+    limit = models.IntegerField(default=100, verbose_name=_('Limit'))
+    auto_search = models.BooleanField(default=True, verbose_name=_('Auto Search'))
 
     class Meta:
         name = 'sys.action.window'
 
 
 class ReportAction(Action):
-    report_type = models.CharField(32, null=False)
-    report_name = models.CharField(256, null=False)
+    report_type = models.CharField(32, null=False, verbose_name=_('Report Type'))
+    report_name = models.CharField(256, null=False, verbose_name=_('Report Name'))
 
     class Meta:
         name = 'sys.action.report'

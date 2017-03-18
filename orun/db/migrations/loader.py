@@ -1,7 +1,8 @@
 import os
 import sys
-from importlib import import_module
+from importlib import import_module, reload
 
+from orun.utils import reraise
 from orun.apps import apps
 from orun.conf import settings
 from orun.db.migrations.graph import MigrationGraph
@@ -50,7 +51,7 @@ class MigrationLoader(object):
         if addon_name in settings.MIGRATION_MODULES:
             return settings.MIGRATION_MODULES[addon_name]
         else:
-            app_package_name = apps.get_addon(addon_name).schema
+            app_package_name = apps.get_app_config(addon_name).schema
             return '%s.%s' % (app_package_name, MIGRATIONS_MODULE_NAME)
 
     def load_disk(self):
@@ -60,7 +61,7 @@ class MigrationLoader(object):
         self.disk_migrations = {}
         self.unmigrated_apps = set()
         self.migrated_apps = set()
-        for app_config in apps.get_addons():
+        for app_config in apps.get_app_configs():
             # Get the migrations module directory
             module_name = self.migrations_module(app_config.schema)
             if module_name is None:
@@ -87,7 +88,7 @@ class MigrationLoader(object):
                     continue
                 # Force a reload if it's already loaded (tests need this)
                 if was_loaded:
-                    six.moves.reload_module(module)
+                    reload(module)
             self.migrated_apps.add(app_config.schema)
             directory = os.path.dirname(module.__file__)
             # Scan for .py files
@@ -269,7 +270,7 @@ class MigrationLoader(object):
                         ),
                         missing)
                     exc_value.__cause__ = exc
-                    six.reraise(NodeNotFoundError, exc_value, sys.exc_info()[2])
+                    reraise(NodeNotFoundError, exc_value, sys.exc_info()[2])
             raise exc
 
         # Add all internal dependencies first to ensure __first__ dependencies

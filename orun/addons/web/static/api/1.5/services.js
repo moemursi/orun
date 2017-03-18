@@ -70,28 +70,115 @@
     };
 
     Model.prototype.createName = function(name) {
-      return this.post('create_name', {
+      return this.post('create_name', null, {
         name: name
       });
     };
 
     Model.prototype.search = function(data, params) {
+      data = {
+        kwargs: data
+      };
       return this.post('search', params, data);
     };
 
-    Model.prototype.get = function(id) {
-      return this.post('get', null, {
-        id: id
+    Model.prototype.destroy = function(id) {
+      return this.post('destroy', null, {
+        kwargs: {
+          ids: [id]
+        }
       });
     };
 
+    Model.prototype.getById = function(id) {
+      return this.post('get', null, {
+        kwargs: {
+          id: id
+        }
+      });
+    };
+
+    Model.prototype.getDefaults = function() {
+      return this.post('get_defaults');
+    };
+
+    Model.prototype._prepareFields = function(view) {
+      var f, ref, results, v;
+      ref = view.fields;
+      results = [];
+      for (f in ref) {
+        v = ref[f];
+        if (v.choices) {
+          results.push(v.displayChoices = _.object(v.choices));
+        } else {
+          results.push(void 0);
+        }
+      }
+      return results;
+    };
+
     Model.prototype.getViewInfo = function(data) {
-      return this.post('get_view_info', null, data);
+      return this.post('get_view_info', null, {
+        kwargs: data
+      }).done((function(_this) {
+        return function(res) {
+          return _this._prepareFields(res.result);
+        };
+      })(this));
+    };
+
+    Model.prototype.loadViews = function(data) {
+      return this.post('load_views', null, {
+        kwargs: data
+      }).done((function(_this) {
+        return function(res) {
+          var obj, ref, results, view;
+          ref = res.result;
+          results = [];
+          for (view in ref) {
+            obj = ref[view];
+            results.push(_this._prepareFields(obj));
+          }
+          return results;
+        };
+      })(this));
+    };
+
+    Model.prototype.getFieldChoices = function(field, term) {
+      return this.get('get_field_choices', {
+        args: field,
+        q: term
+      });
+    };
+
+    Model.prototype.doViewAction = function(data) {
+      return this.post('do_view_action', null, {
+        kwargs: data
+      });
     };
 
     Model.prototype.write = function(data, params) {
       return this.post('write', params, {
-        data: data
+        kwargs: {
+          data: data
+        }
+      }).done(function() {
+        return Katrid.Dialogs.Alerts.success(Katrid.i18n.gettext('Registro gravado com sucesso.'));
+      }).fail(function(res) {
+        if (res.status === 500 && res.responseText) {
+          return alert(res.responseText);
+        } else {
+          return Katrid.Dialogs.Alerts.error(Katrid.i18n.gettext('Error saving record changes'));
+        }
+      });
+    };
+
+    Model.prototype.onFieldChange = function(field, record) {
+      return this.post('field_change', null, {
+        kwargs: {
+          field: field,
+          record: record
+        }
       });
     };
 

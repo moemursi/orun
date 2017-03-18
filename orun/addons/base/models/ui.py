@@ -2,15 +2,15 @@ import os
 from jinja2 import Environment, FunctionLoader
 
 import base64
-from orun import app, api, render_template
-from orun.template import Template
+from orun import app, render_template
+#from orun.template import Template
 from orun.apps import registry
 from orun.db import models
-from orun.utils.translation import gettext_lazy as _
+from orun.utils.translation import gettext, gettext_lazy as _
 
 
 def get_template(template):
-    # TODO try to find on db (if not found, try search on file system)
+    # TODO try to find on db (if not found, try to search on file system)
     app_label = template.split('/', 1)[0]
     addon = registry.addons[app_label]
     f = os.path.join(addon.root_path, addon.template_folder, template)
@@ -36,6 +36,7 @@ class View(models.Model):
         ('calendar', 'Calendar'),
         ('search', 'Search'),
         ('template', 'Template'),
+        ('custom', 'Custom'),
     ), null=False)
     mode = models.CharField(16, choices=(
         ('primary', _('Primary')),
@@ -43,7 +44,7 @@ class View(models.Model):
     ), default='primary', null=False)
     model = models.ForeignKey('sys.model')
     priority = models.IntegerField(_('Priority'), default=32, null=False)
-    template_name = models.FilePathField()
+    template_name = models.CharField(max_length=255)
     content = models.TextField()
 
     class Meta:
@@ -88,7 +89,7 @@ class View(models.Model):
             'views/%s/%s.html' % (opts.name, view_type),
             'views/%s/%s.html' % (opts.app_label, view_type),
             'views/%s.html' % view_type,
-        ], opts=opts)
+        ], opts=opts, _=gettext)
 
 
 class CustomView(models.Model):

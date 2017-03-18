@@ -1,7 +1,7 @@
-import sys
+import copy
 import os
+import sys
 from importlib import import_module
-from importlib.util import find_spec as importlib_find
 
 from orun.utils import reraise
 
@@ -27,6 +27,22 @@ def import_string(dotted_path):
         reraise(ImportError, ImportError(msg), sys.exc_info()[2])
 
 
+from importlib.util import _find_spec as importlib_find
+
+
+def module_has_submodule(package, module_name):
+    """See if 'module' is in 'package'."""
+    try:
+        package_name = package.__name__
+        package_path = package.__path__
+    except AttributeError:
+        # package isn't a package.
+        return False
+
+    full_module_name = package_name + '.' + module_name
+    return importlib_find(full_module_name, package_path) is not None
+
+
 def module_dir(module):
     """
     Find the name of the directory that contains a module, if possible.
@@ -43,16 +59,3 @@ def module_dir(module):
         if filename is not None:
             return os.path.dirname(filename)
     raise ValueError("Cannot determine directory containing %s" % module)
-
-
-def module_has_submodule(package, module_name):
-    """See if 'module' is in 'package'."""
-    try:
-        package_name = package.__name__
-        package_path = package.__path__
-    except AttributeError:
-        # package isn't a package.
-        return False
-
-    full_module_name = package_name + '.' + module_name
-    return importlib_find(full_module_name, package_path) is not None

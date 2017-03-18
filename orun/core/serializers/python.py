@@ -200,7 +200,7 @@ def Deserializer(object_list, **options):
         obj = base.build_instance(Model, data, db)
         obj.save()
         sys_object = app['sys.object']
-        if 'id' in d:
+        if 'id' in d and d['id']:
             ref = sys_object.objects.create(
                 name=d['id'],
                 object_id=obj.pk,

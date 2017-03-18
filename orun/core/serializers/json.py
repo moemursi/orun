@@ -1,14 +1,15 @@
 """
 Serialize data to/from JSON
 """
-
-# Avoid shadowing the standard library json module
 import datetime
 import decimal
 import json
 import sys
 import uuid
+from types import GeneratorType
+import sqlalchemy.orm.query
 
+from orun.db import models
 from orun.utils import reraise
 from orun.core.serializers.base import DeserializationError
 from orun.core.serializers.python import (
@@ -97,6 +98,10 @@ class OrunJSONEncoder(json.JSONEncoder):
             if r.endswith('+00:00'):
                 r = r[:-6] + 'Z'
             return r
+        elif isinstance(o, models.Model):
+            return dict(o)
+        elif isinstance(o, sqlalchemy.orm.query.Query):
+            return [r for r in o]
         elif isinstance(o, datetime.date):
             return o.isoformat()
         elif isinstance(o, datetime.time):
@@ -112,6 +117,8 @@ class OrunJSONEncoder(json.JSONEncoder):
             return str(o)
         elif isinstance(o, Promise):
             return str(o)
+        elif isinstance(o, GeneratorType):
+            return [obj for obj in o]
         else:
             return super(OrunJSONEncoder, self).default(o)
 
