@@ -57,21 +57,7 @@
     }
 
     DataSource.prototype.cancelChanges = function() {
-      if (this.state === DataSourceState.inserting && Katrid.Settings.UI.goToDefaultViewAfterCancelInsert) {
-        this.scope.record = null;
-        this.scope.action.setViewType('list');
-      } else {
-        if (this.state === DataSourceState.editing) {
-          this.refresh([this.scope.record.id]).then((function(_this) {
-            return function() {
-              return _this.setState(DataSourceState.browsing);
-            };
-          })(this));
-        } else {
-          this.scope.record = null;
-          this.setState(DataSourceState.browsing);
-        }
-      }
+      return this.setState(DataSourceState.browsing);
     };
 
     DataSource.prototype.saveChanges = function() {
@@ -105,6 +91,7 @@
                     elfield = el.find(".form-field[name=\"" + field.name + "\"]");
                     elfield.addClass('ng-invalid ng-touched');
                     s += "<strong>" + field.caption + "</strong><ul>";
+                    console.log(field);
                     for (j = 0, len1 = msgs.length; j < len1; j++) {
                       msg = msgs[j];
                       s += "<li>" + msg + "</li>";
@@ -216,6 +203,7 @@
           }).fail(function(res) {
             return def.reject(res);
           }).done(function(res) {
+            console.log(res);
             if (_this.pageIndex > 1) {
               _this.offset = (_this.pageIndex - 1) * _this.pageLimit + 1;
             } else {
@@ -364,7 +352,6 @@
           return _this.scope.model.getById(id).fail(function(res) {
             return def.reject(res);
           }).done(function(res) {
-            console.log(res);
             _this.scope.$apply(function() {
               return _this._setRecord(res.result.data[0]);
             });
@@ -395,7 +382,6 @@
           if (res.result) {
             return _this.scope.$apply(function() {
               var attr, control, ref, results, v;
-              console.log(res.result);
               ref = res.result;
               results = [];
               for (attr in ref) {
