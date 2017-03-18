@@ -157,7 +157,7 @@ class Options(object):
         return self.table
 
     def _build_mapper(self):
-        if self.abstract:
+        if self.abstract or self.mapped is not None:
             return
 
         # Build the orm mapper
@@ -184,27 +184,19 @@ class Options(object):
                     props[f.name] = f.related
 
         table = self.table
-
-        # Mapping sa joined tables (table inheritance)
-        # if self.parents:
-        #     tables = [table]
-        #     args = []
-        #     for base, field in self.parents.items():
-        #         fk_model = self.app[base._meta.name]
-        #         tables.append(fk_model._meta.table)
-        #         tables.append(self.pk.column == fk_model._meta.pk.column)
-        #     table = sa.join(*tables)
-
         mapped = self.model
 
         if self.parents:
+            print('building', self.name)
             for parent, field in self.parents.items():
+                parent = self.app[parent._meta.name]
+                if parent._meta.mapped is None:
+                    parent._meta._build_mapper()
                 col = self.fields_dict[field.name].column
                 mapped.c = mapper(
-                    mapped, table, inherits=self.app[parent], properties=props,
+                    mapped, table, inherits=parent, properties=props,
                     inherit_condition=col == list(col.foreign_keys)[0].column).c
         else:
-            #mapped = type(self.object_name, (Record,), {'_meta': self})
             mapped.c = mapper(mapped, table, properties=props).c
 
         self.mapped = mapped

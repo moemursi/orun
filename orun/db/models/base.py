@@ -179,6 +179,13 @@ class ModelBase(type):
 
         signals.class_prepared.send()
 
+    def __subclasscheck__(cls, sub):
+        print('subclass check', cls, sub)
+        if sub is not Model and sub._meta.parents:
+            for parent in sub._meta.parents:
+                return issubclass(cls, parent)
+        return super(ModelBase, cls).__subclasscheck__(sub)
+
     # Add DML attributes
     @property
     def select(cls):
@@ -197,14 +204,6 @@ class ModelBase(type):
             return session.query(cls)
         else:
             return session.query(cls._meta.app[cls._meta.name])
-
-    def __subclasscheck__(cls, sub):
-        print(cls, sub)
-        if sub is not Model and sub._meta.parents:
-            for parent in sub._meta.parents:
-                return issubclass(cls, parent)
-        return super(ModelBase, cls).__subclasscheck__(sub)
-
 
 
 class ModelFieldComparator(object):
