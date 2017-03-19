@@ -213,6 +213,9 @@ class Field(object):
         name, path, args, kwargs = self.deconstruct()
         return self.__class__(*args, **kwargs)
 
+    def has_default(self):
+        return False
+
     def deconstruct(self):
         """
         Returns enough information to recreate the field as a 4-tuple:
