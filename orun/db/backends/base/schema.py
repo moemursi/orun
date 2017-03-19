@@ -477,7 +477,7 @@ class BaseDatabaseSchemaEditor(object):
             definition += " CHECK (%s)" % db_params['check']
         # Build the SQL and run it
         sql = self.sql_create_column % {
-            "table": self.quote_name(model._meta.db_table),
+            "table": self.quote_name(model._meta.table_name),
             "column": self.quote_name(field.db_column),
             "definition": definition,
         }
