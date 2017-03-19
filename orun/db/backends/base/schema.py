@@ -499,8 +499,8 @@ class BaseDatabaseSchemaEditor(object):
         if field.remote_field and self.connection.features.supports_foreign_keys and field.db_constraint:
             self.deferred_sql.append(self._create_fk_sql(model, field, "_fk_%(to_table)s_%(to_column)s"))
         # Reset connection if required
-        if self.connection.features.connection_persists_old_columns:
-            self.connection.close()
+        #if self.connection.features.connection_persists_old_columns:
+        #    self.connection.close()
 
     def remove_field(self, model, field):
         """
