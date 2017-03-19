@@ -180,7 +180,6 @@ class ModelBase(type):
         signals.class_prepared.send()
 
     def __subclasscheck__(cls, sub):
-        print('subclass check', cls, sub)
         if sub is not Model and sub._meta.parents:
             for parent in sub._meta.parents:
                 return issubclass(cls, parent)
