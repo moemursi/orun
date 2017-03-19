@@ -142,3 +142,6 @@ msgstr "Administração"
 
 msgid "Localization"
 msgstr "Localização"
+
+msgid "%s (copy)"
+msgstr "%s (cópia)"

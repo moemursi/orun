@@ -34,9 +34,17 @@ class DataSource
     @fieldChangeWatchers = []
 
   cancelChanges: ->
-    #@scope.record = null
-    #@scope.action.setViewType('list')
-    @setState(DataSourceState.browsing)
+    if @state is DataSourceState.inserting and Katrid.Settings.UI.goToDefaultViewAfterCancelInsert
+      @scope.record = null
+      @scope.action.setViewType('list')
+    else
+      if @state is DataSourceState.editing
+        @refresh([@scope.record.id]).then =>
+          @setState(DataSourceState.browsing)
+      else
+        @scope.record = null
+        @setState(DataSourceState.browsing)
+    return
 
   saveChanges: ->
     # Submit fields with dirty state only
@@ -66,7 +74,6 @@ class DataSource
                 elfield = el.find(""".form-field[name="#{field.name}"]""")
                 elfield.addClass('ng-invalid ng-touched')
                 s += "<strong>#{field.caption}</strong><ul>"
-                console.log(field)
                 for msg in msgs
                   s += "<li>#{msg}</li>"
                 s += '</ul>'
@@ -81,6 +88,15 @@ class DataSource
         Katrid.Dialogs.Alerts.warn Katrid.i18n.gettext 'No pending changes'
     return
 
+  copy: (id) ->
+    @scope.model.copy(id)
+    .done (res) =>
+      console.log(res)
+      @setState(DataSourceState.inserting)
+      @scope.record = {}
+      @scope.$apply =>
+        @setFields(res.result)
+
   findById: (id) ->
     for rec in @scope.records
       if rec.id is id
@@ -93,9 +109,9 @@ class DataSource
 
   refresh: (data) ->
     if data
-      @get(data[0])
+      return @get(data[0])
     else
-      @search(@_params, @_page)
+      return @search(@_params, @_page)
 
   validate: ->
     if @scope.form.$invalid
@@ -137,7 +153,6 @@ class DataSource
       .fail (res) =>
         def.reject(res)
       .done (res) =>
-        console.log(res)
         if @pageIndex > 1
           @offset = (@pageIndex - 1) * @pageLimit + 1
         else
@@ -211,6 +226,7 @@ class DataSource
       for el in $(element).find('.form-field.ng-dirty')
         nm = el.name
         data[nm] = record[nm]
+
       for child in @children
         subData = data[child.fieldName] or []
         for attr, obj of child.modifiedData
@@ -246,6 +262,7 @@ class DataSource
       .fail (res) =>
         def.reject(res)
       .done (res) =>
+        console.log(res)
         @scope.$apply =>
           @_setRecord(res.result.data[0])
         def.resolve(res)
@@ -269,14 +286,20 @@ class DataSource
     .done (res) =>
       if res.result
         @scope.$apply =>
-          for attr, v of res.result
-            control = @scope.form[attr]
-            control.$setViewValue v
-            control.$render()
-            # Force dirty (bug fix for boolean (false) value
-            if v is false
-              @scope.record[attr] = v
-              control.$setDirty()
+          @setFields(res.result)
+
+  setFields: (values) ->
+    for attr, v of values
+      control = @scope.form[attr]
+      if control
+        control.$setViewValue v
+        control.$render()
+        # Force dirty (bug fix for boolean (false) value
+        if v is false
+          @scope.record[attr] = v
+          control.$setDirty()
+      else
+        @scope.record[attr] = v
 
   editRecord: ->
     @setState(DataSourceState.editing)

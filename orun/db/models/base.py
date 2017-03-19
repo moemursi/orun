@@ -13,6 +13,7 @@ from orun.db.models import signals
 from orun.core.exceptions import ObjectDoesNotExist, ValidationError
 from orun import app, env
 from orun.apps import apps
+from orun.utils.translation import gettext
 from .options import Options
 from .query import QuerySet, Insert, Update, Delete
 from .fields import (
@@ -464,7 +465,18 @@ class Model(metaclass=ModelBase):
     @api.method
     def copy(cls, id):
         obj = cls.get(id)
-        copy.deepcopy()
+        new_item = {}
+        fields = []
+        for f in cls._meta.fields:
+            if f.copy:
+                fields.append(f.name)
+                if cls._meta.title_field == f.name:
+                    new_item[f.name] = gettext('%s (copy)') % obj[f.name]
+                else:
+                    new_item[f.name] = obj[f.name]
+        fields.append('display_name')
+        new_item = cls(**new_item)
+        return new_item.serialize(fields=fields)
 
     @classmethod
     def _search(cls, params=None, fields=None, *args, **kwargs):

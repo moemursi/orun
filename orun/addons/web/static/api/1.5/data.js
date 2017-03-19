@@ -57,7 +57,21 @@
     }
 
     DataSource.prototype.cancelChanges = function() {
-      return this.setState(DataSourceState.browsing);
+      if (this.state === DataSourceState.inserting && Katrid.Settings.UI.goToDefaultViewAfterCancelInsert) {
+        this.scope.record = null;
+        this.scope.action.setViewType('list');
+      } else {
+        if (this.state === DataSourceState.editing) {
+          this.refresh([this.scope.record.id]).then((function(_this) {
+            return function() {
+              return _this.setState(DataSourceState.browsing);
+            };
+          })(this));
+        } else {
+          this.scope.record = null;
+          this.setState(DataSourceState.browsing);
+        }
+      }
     };
 
     DataSource.prototype.saveChanges = function() {
@@ -91,7 +105,6 @@
                     elfield = el.find(".form-field[name=\"" + field.name + "\"]");
                     elfield.addClass('ng-invalid ng-touched');
                     s += "<strong>" + field.caption + "</strong><ul>";
-                    console.log(field);
                     for (j = 0, len1 = msgs.length; j < len1; j++) {
                       msg = msgs[j];
                       s += "<li>" + msg + "</li>";
@@ -116,6 +129,19 @@
           Katrid.Dialogs.Alerts.warn(Katrid.i18n.gettext('No pending changes'));
         }
       }
+    };
+
+    DataSource.prototype.copy = function(id) {
+      return this.scope.model.copy(id).done((function(_this) {
+        return function(res) {
+          console.log(res);
+          _this.setState(DataSourceState.inserting);
+          _this.scope.record = {};
+          return _this.scope.$apply(function() {
+            return _this.setFields(res.result);
+          });
+        };
+      })(this));
     };
 
     DataSource.prototype.findById = function(id) {
@@ -203,7 +229,6 @@
           }).fail(function(res) {
             return def.reject(res);
           }).done(function(res) {
-            console.log(res);
             if (_this.pageIndex > 1) {
               _this.offset = (_this.pageIndex - 1) * _this.pageLimit + 1;
             } else {
@@ -352,6 +377,7 @@
           return _this.scope.model.getById(id).fail(function(res) {
             return def.reject(res);
           }).done(function(res) {
+            console.log(res);
             _this.scope.$apply(function() {
               return _this._setRecord(res.result.data[0]);
             });
@@ -381,26 +407,33 @@
         return function(res) {
           if (res.result) {
             return _this.scope.$apply(function() {
-              var attr, control, ref, results, v;
-              ref = res.result;
-              results = [];
-              for (attr in ref) {
-                v = ref[attr];
-                control = _this.scope.form[attr];
-                control.$setViewValue(v);
-                control.$render();
-                if (v === false) {
-                  _this.scope.record[attr] = v;
-                  results.push(control.$setDirty());
-                } else {
-                  results.push(void 0);
-                }
-              }
-              return results;
+              return _this.setFields(res.result);
             });
           }
         };
       })(this));
+    };
+
+    DataSource.prototype.setFields = function(values) {
+      var attr, control, results, v;
+      results = [];
+      for (attr in values) {
+        v = values[attr];
+        control = this.scope.form[attr];
+        if (control) {
+          control.$setViewValue(v);
+          control.$render();
+          if (v === false) {
+            this.scope.record[attr] = v;
+            results.push(control.$setDirty());
+          } else {
+            results.push(void 0);
+          }
+        } else {
+          results.push(this.scope.record[attr] = v);
+        }
+      }
+      return results;
     };
 
     DataSource.prototype.editRecord = function() {

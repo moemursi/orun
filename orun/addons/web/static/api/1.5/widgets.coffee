@@ -127,7 +127,11 @@ class DateField extends TextField
   tag: 'input datepicker'
 
   spanTemplate: (scope, el, attrs, field) ->
-    return """<span class="form-field-readonly" ng-show="!dataSource.changing">&nbsp;${ record.#{attrs.name} }</span>"""
+    return """<span class="form-field-readonly" ng-show="!dataSource.changing">&nbsp;${ record.#{attrs.name}|date:'shortDate' }</span>"""
+
+  widgetTemplate: (scope, el, attrs, field) ->
+    html = super(scope, el, attrs, field)
+    return """<div class="input-group date" ng-show="dataSource.changing">#{html}<div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div></div>"""
 
 
 class OneToManyField extends Widget
@@ -173,6 +177,21 @@ class CheckBox extends InputWidget
     return ''
 
 
+class FileField extends InputWidget
+  tag: 'input file-reader'
+
+  template: (scope, el, attrs, field, type='file') ->
+    return super(scope, el, attrs, field, type)
+
+
+class PasswordField extends InputWidget
+  template: (scope, el, attrs, field, type='password') ->
+    return super(scope, el, attrs, field, type)
+
+  spanTemplate: (scope, el, attrs, field) ->
+    return """<span class="form-field-readonly" ng-show="!dataSource.changing">*******************</span>"""
+
+
 @Katrid.UI.Widgets =
   Widget: Widget
   InputWidget: InputWidget
@@ -185,3 +204,5 @@ class CheckBox extends InputWidget
   CheckBox: CheckBox
   OneToManyField: OneToManyField
   ManyToManyField: ManyToManyField
+  FileField: FileField
+  PasswordField: PasswordField

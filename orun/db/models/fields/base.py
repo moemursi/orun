@@ -33,7 +33,7 @@ class Field(object):
     def __init__(self, label=None, db_column=None, db_index=False, primary_key=False,
                  concrete=None, readonly=False, null=True, required=None,
                  auto_created=False, default=NOT_PROVIDED, on_update=NOT_PROVIDED, choices=None,
-                 deferred=False, serializable=True, editable=True, help_text=None,
+                 deferred=False, copy=None, serializable=True, editable=True, help_text=None,
                  unique=False, db_tablespace=None, getter=None, setter=None, *args, **kwargs):
         self.column = None
         self.unique = unique
@@ -43,9 +43,13 @@ class Field(object):
         self.db_index = db_index
         if concrete is None and getter:
             concrete = False
+        elif concrete is None:
+            concrete = True
         self.concrete = concrete
         self.readonly = readonly
         self.primary_key = primary_key
+        if copy is None:
+            self.copy = not self.primary_key and self.concrete and not auto_created
         self.default = default
         self.on_update = on_update
         self.required = required

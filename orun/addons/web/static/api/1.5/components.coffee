@@ -22,6 +22,8 @@ uiKatrid.directive 'field', ($compile) ->
     if element.parent('list').length is 0
       element.removeAttr('name')
       widget = attrs.widget
+      if widget
+        console.log(widget)
       if not widget
         tp = field.type
         if tp is 'ForeignKey'
@@ -44,6 +46,9 @@ uiKatrid.directive 'field', ($compile) ->
         else if tp is 'IntegerField'
           widget = 'TextField'
           cols = 3
+        else if tp is 'SmallIntegerField'
+          widget = 'TextField'
+          cols = 3
         else if tp is 'CharField'
           widget = 'TextField'
           if field.max_length and field.max_length < 30
@@ -52,6 +57,9 @@ uiKatrid.directive 'field', ($compile) ->
           widget = tp
           cols = 12
         else if tp is 'ManyToManyField'
+          widget = tp
+        else if tp is 'FileField'
+          console.log('file field')
           widget = tp
         else
           widget = 'TextField'
@@ -275,44 +283,65 @@ uiKatrid.directive 'ngEnter', ->
         event.preventDefault()
 
 
-
-uiKatrid.directive 'datepicker', ->
+uiKatrid.directive 'datepicker', ['$filter', ($filter) ->
   restrict: 'A'
   require: '?ngModel'
   link: (scope, element, attrs, controller) ->
-    el = element.datepicker
+    el = element
+    calendar = element.parent('div').datepicker
       format: Katrid.i18n.gettext 'yyyy-mm-dd'
+      keyboardNavigation: false
+      language: 'pt-BR'
       forceParse: false
-
-    updateModelValue = ->
-      if controller.$modelValue != el.val()
-        dt = new Date(controller.$modelValue)
-        console.log('dt', dt)
-        el.datepicker('setDate', dt)
-
-    scope.$watch(attrs.ngModel, updateModelValue)
+      autoClose: true
+      showOnFocus: false
+    .on 'changeDate', (e) ->
+      dp = calendar.data('datepicker')
+      if dp.picker.is(':visible')
+        console.log('change date', dp.viewDate)
+        el.val($filter('date')(dp._utc_to_local(dp.viewDate), 'shortDate'))
 
     el = el.mask('00/00/0000')
 
-    controller.$render = ->
-      if controller.$modelValue
-        dt = moment(controller.$modelValue, "YYYY-MM-DD").toDate()
-        console.log('dt1', dt, controller.$modelValue)
-        el.datepicker('setDate', dt)
+    controller.$formatters.push (value) ->
+      dt = new Date(value)
+      calendar.datepicker('setDate', dt)
+      return $filter('date')(value, 'shortDate')
 
     el.on 'blur', (evt) ->
+      dp = calendar.data('datepicker')
+      if dp.picker.is(':visible')
+        dp.hide()
+      if '/' in Katrid.i18n.formats.SHORT_DATE_FORMAT
+        sep = '/'
+      else
+        sep = '-'
+      fmt = Katrid.i18n.formats.SHORT_DATE_FORMAT.toLowerCase().split(sep)
+      dt = new Date()
       s = el.val()
-      if (s.length is 5) or (s.length is 6)
-        if s.length is 6
-          s = s.substr(0, 5)
-        dt = new Date()
-        el.datepicker('setDate', s + '/' + dt.getFullYear().toString())
-      if (s.length is 2) or (s.length is 3)
-        if s.length is 3
-          s = s.substr(0, 2)
-        dt = new Date()
-        el.datepicker('setDate', new Date(dt.getFullYear(), dt.getMonth(), s))
-
+      if fmt[0] is 'd' and fmt[1] is 'm'
+        if (s.length is 5) or (s.length is 6)
+          if s.length is 6
+            s = s.substr(0, 5)
+          val = s + sep + dt.getFullYear().toString()
+        if (s.length is 2) or (s.length is 3)
+          if s.length is 3
+            s = s.substr(0, 2)
+          val = new Date(dt.getFullYear(), dt.getMonth(), s)
+      else if fmt[0] is 'm' and fmt[1] is 'd'
+        if (s.length is 5) or (s.length is 6)
+          if s.length is 6
+            s = s.substr(0, 5)
+          val = s + sep + dt.getFullYear().toString()
+        if (s.length is 2) or (s.length is 3)
+          if s.length is 3
+            s = s.substr(0, 2)
+          val = new Date(dt.getFullYear(), s, dt.getDay())
+      if val
+        calendar.datepicker('setDate', val)
+        el.val($filter('date')(dp._utc_to_local(dp.viewDate), 'shortDate'))
+        controller.$setViewValue($filter('date')(dp._utc_to_local(dp.viewDate), 'shortDate'))
+]
 
 uiKatrid.directive 'ajaxChoices', ($location) ->
   restrict: 'A'
@@ -406,17 +435,22 @@ Katrid.uiKatrid.directive 'foreignkey', ->
   require: 'ngModel'
   link: (scope, el, attrs, controller) ->
 
-    f = scope.view.fields['model']
+    #f = scope.view.fields['model']
     sel = el
 
     el.addClass 'form-field'
+
+    if attrs.serviceName
+      serviceName = attrs.serviceName
+    else
+      serviceName = scope.model.name
 
     newItem = () ->
 
     config =
       allowClear: true
       ajax:
-        url: '/api/rpc/' + scope.model.name + '/get_field_choices/?args=' + attrs.name
+        url: '/api/rpc/' + serviceName + '/get_field_choices/?args=' + attrs.name
 
         data: (term, page) ->
           q: term
@@ -530,7 +564,8 @@ uiKatrid.directive 'searchBox', ->
           results: ({ id: fields[f], text: options.term } for f of fields)
         return
 
-    $(el).select2(cfg)
+    el.select2(cfg)
+    el.data('select2').blur()
     el.on 'change', =>
       controller.$setViewValue(el.select2('data'))
 
@@ -703,7 +738,20 @@ uiKatrid.directive 'tabContentTransclude', ->
 
   }
 
+
 uiKatrid.filter 'm2m', ->
   return (input) ->
     if _.isArray input
       return (obj[1] for obj in input).join(', ')
+
+
+uiKatrid.directive 'fileReader', ->
+  restrict: 'A'
+  require: 'ngModel'
+  link: (scope, element, attrs, controller) ->
+    console.log('link file read')
+    element.bind 'change', ->
+      reader = new FileReader()
+      reader.onload = (event) ->
+        controller.$setViewValue event.target.result
+      reader.readAsDataURL(event.target.files[0])
