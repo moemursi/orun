@@ -226,7 +226,7 @@ class BaseDatabaseSchemaEditor(object):
             default = default()
         # Run it through the field's get_db_prep_save method so we can send it
         # to the database.
-        default = field.get_db_prep_save(default, self.connection)
+        #default = field.get_db_prep_save(default, self.connection)
         return default
 
     def quote_value(self, value):
