@@ -1,11 +1,11 @@
 import os
 
-from orun import app
 from orun.conf import settings
 from orun.utils.translation import activate
 from orun.core.management import commands
 from orun.apps import apps
 from orun.core.serializers import get_deserializer
+from orun.core.management.commands.loaddata import load_fixture
 
 
 @commands.command('upgrade')
@@ -17,14 +17,6 @@ def command(app_labels, **options):
         addon = apps.app_configs[app_label]
         cmd = Command()
         cmd.handle_app_config(addon, **options)
-
-
-def load_fixture(app_config, filename):
-    fpath = os.path.join(app_config.path, 'fixtures', filename)
-    format = filename.rsplit('.', 1)[1]
-    deserializer = get_deserializer(format)
-    f = open(fpath, encoding='utf-8')
-    deserializer(f, app, app_config=app_config, app_label=app_config.schema).deserialize()
 
 
 class Command(object):

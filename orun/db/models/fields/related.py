@@ -41,9 +41,11 @@ class RelatedField(Field):
 
 
 class ForeignKey(RelatedField):
-    def __init__(self, to, related_name=None, domain=None, to_field=None, db_constraint=True, *args, **kwargs):
+    def __init__(self, to, related_name=None, domain=None, to_field=None, db_constraint=True, parent_link=False,
+                 *args, **kwargs):
         self.to = to
         self.db_constraint = db_constraint
+        self.parent_link = parent_link
         kwargs.setdefault('db_index', True)
         super(ForeignKey, self).__init__(to_fields=[to_field], related_name=related_name, *args, **kwargs)
 

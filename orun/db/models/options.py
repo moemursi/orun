@@ -10,7 +10,7 @@ from .fields import AutoField
 from .record import Record
 
 
-DEFAULT_NAMES = ('unique_together', 'index_together')
+DEFAULT_NAMES = ('unique_together', 'index_together', 'fixtures')
 
 
 class Options(object):
@@ -36,6 +36,7 @@ class Options(object):
     required_db_vendor = None
     unique_together = ()
     index_together = ()
+    fixtures = None
 
     def __init__(self, attrs, app_config=None, bases=None):
         self.meta_attrs = attrs
@@ -106,14 +107,21 @@ class Options(object):
         if private:
             self.private_fields.append(field)
         else:
-            self.fields.insert(bisect(self.fields, field), field)
+            #self.fields.insert(bisect(self.fields, field), field)
+            if field.creation_counter < 0 and field.local:
+                self.fields.insert(0, field)
+            else:
+                self.fields.append(field)
             if field.local:
-                self.local_fields.insert(bisect(self.local_fields, field), field)
+                if field.creation_counter < 0:
+                    self.local_fields.insert(0, field)
+                else:
+                    self.local_fields.append(field)
             self.setup_pk(field)
             self._expire_cache()
 
     def setup_pk(self, field):
-        if not self.pk and field.primary_key:
+        if self.pk is None and field.primary_key:
             self.pk = field
 
     @property

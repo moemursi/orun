@@ -2,6 +2,7 @@ import base64
 import datetime
 import inspect
 import copy
+import collections
 from itertools import chain
 from sqlalchemy import orm
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -42,6 +43,10 @@ class ModelBase(type):
     """
     Metaclass for all models.
     """
+    @classmethod
+    def __prepare__(cls, name, bases):
+        return collections.OrderedDict()
+
     def __new__(cls, name, bases, attrs):
         super_new = super(ModelBase, cls).__new__
 
@@ -110,18 +115,18 @@ class ModelBase(type):
 
         else:
             if module != '__fake__':
+                if opts.log_changes and not opts.extension and not parents:
+                    from orun.db.models import ForeignKey, DateTimeField
+                    _add_auto_field(opts, 'created_by', ForeignKey('auth.user', auto_created=True, editable=False))
+                    _add_auto_field(opts, 'created_on', DateTimeField(default=datetime.datetime.now, auto_created=True, editable=False))
+                    _add_auto_field(opts, 'updated_by', ForeignKey('auth.user', auto_created=True, editable=False))
+                    _add_auto_field(opts, 'updated_on', DateTimeField(on_update=datetime.datetime.now, auto_created=True, editable=False))
+
                 if not opts.extension and not parents:
                     from orun.db.models import CharField
                     disp_name = CharField(label=opts.verbose_name, auto_created=True, getter='__str__', editable=False)
                     new_class.add_to_class('display_name', disp_name)
                     setattr(new_class, 'display_name', disp_name)
-
-                if opts.log_changes and not opts.extension and not parents:
-                    from orun.db.models import ForeignKey, DateTimeField
-                    _add_auto_field(opts, 'updated_on', DateTimeField(on_update=datetime.datetime.now, auto_created=True, editable=False))
-                    _add_auto_field(opts, 'updated_by', ForeignKey('auth.user', auto_created=True, editable=False))
-                    _add_auto_field(opts, 'created_on', DateTimeField(default=datetime.datetime.now, auto_created=True, editable=False))
-                    _add_auto_field(opts, 'created_by', ForeignKey('auth.user', auto_created=True, editable=False))
 
             for base in parents:
                 if not extension and not base._meta.abstract and module != '__fake__':
@@ -456,6 +461,10 @@ class Model(metaclass=ModelBase):
     def _destroy(self):
         session.delete(self)
 
+    @api.method
+    def copy(cls, id):
+        obj = cls.get(id)
+        copy.deepcopy()
 
     @classmethod
     def _search(cls, params=None, fields=None, *args, **kwargs):
@@ -501,8 +510,8 @@ class Model(metaclass=ModelBase):
             key = f.attname
         super(Model, self).__setattr__(key, value)
 
-    def save(self, update_fields=None):
-        if not self.pk:
+    def save(self, update_fields=None, force_insert=False):
+        if not self.pk or force_insert:
             session.add(self)
         session.flush((self,))
         return

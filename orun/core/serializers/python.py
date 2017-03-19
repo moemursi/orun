@@ -80,25 +80,6 @@ class Serializer(base.Serializer):
         return self.objects
 
 
-def test():
-    ## SAVE OBJECT TO DATABASE ##
-    model_name = obj['model']
-    model = app[model_name]
-    instance = model()
-    _id = obj.pop('id', None)
-    for attr, value in values.items():
-        setattr(instance, attr, value)
-    instance.save()
-    if _id:
-        sys_object = app['sys.object']
-        ref = sys_object.objects.create(
-            name=_id,
-            object_id=instance.pk,
-            model=model_name,
-            app_label=app_label,
-        )
-
-
 def Deserializer(object_list, **options):
     """
     Deserialize simple Python objects back into Orun ORM instances.
@@ -109,22 +90,19 @@ def Deserializer(object_list, **options):
     db = options.pop('using', DEFAULT_DB_ALIAS)
     ignore = options.pop('ignorenonexistent', False)
     field_names_cache = {}  # Model: <list of field_names>
+    model_name = options.get('model')
+    Model = app[model_name]
 
     for d in object_list:
-        # Look up the model and starting build a dict of data for it.
-        try:
-            Model = app[d["model"]]
-        except base.DeserializationError:
-            if ignore:
-                continue
-            else:
-                raise
+        yield Model(**d)
+        continue
+        break
         data = {}
         if 'pk' in d:
             try:
                 data[Model._meta.pk.attname] = Model._meta.pk.to_python(d.get('pk'))
             except Exception as e:
-                raise base.DeserializationError.WithData(e, d['model'], d.get('pk'), None)
+                raise base.DeserializationError.WithData(e, Model, d.get('pk'), None)
         m2m_data = {}
 
         if Model not in field_names_cache:

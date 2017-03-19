@@ -1032,3 +1032,8 @@ class BaseDatabaseSchemaEditor(object):
                     continue
                 result.append(name)
         return result
+
+    def load_fixtures(self, model, fixtures):
+        from orun.core.management.commands.loaddata import load_fixture
+        for fixture in fixtures:
+            load_fixture(model._meta.app_label, fixture, model=model._meta.name)

@@ -39,6 +39,10 @@ from orun.db.migrations.writer import MigrationWriter
     help="Just show what migrations would be made; don't actually write them.",
 )
 @commands.option(
+    '--noinput', '--no-input', default=False,
+    help="Just show what migrations would be made; don't actually write them.",
+)
+@commands.option(
     '-n', '--name',
     help='Use this name for migration file(s).'
 )
@@ -51,7 +55,7 @@ class Command(object):
     def handle(self, *app_labels, **options):
 
         self.verbosity = options.get('verbosity')
-        self.interactive = options.get('interactive')
+        self.interactive = not options.get('interactive')
         self.dry_run = options.get('dry_run', False)
         self.merge = options.get('merge', False)
         self.empty = options.get('empty', False)

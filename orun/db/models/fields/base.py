@@ -16,7 +16,6 @@ class NOT_PROVIDED:
     pass
 
 
-@total_ordering
 class Field(object):
     _db_type = sa.String(1024)
     creation_counter = 0
@@ -167,31 +166,6 @@ class Field(object):
     def _prepare(self):
         if self.column is None and self.db_column:
             self.column = self.create_column()
-
-    def __eq__(self, other):
-        # Needed for @total_ordering
-        if isinstance(other, Field):
-            return self.creation_counter == other.creation_counter
-        return NotImplemented
-
-    def __lt__(self, other):
-        # This is needed because bisect does not take a comparison function.
-        if isinstance(other, Field):
-            return self.creation_counter < other.creation_counter
-        return NotImplemented
-
-    def __sub__(self, other):
-        if isinstance(other, Field):
-            return self.column - other.column
-        return NotImplemented
-
-    def __add__(self, other):
-        if isinstance(other, Field):
-            return self.column + other.column
-        return NotImplemented
-
-    def __hash__(self):
-        return hash(self.creation_counter)
 
     def __get__(self, instance, owner):
         if instance is None:

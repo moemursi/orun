@@ -2,7 +2,7 @@ from .fields import AddField, AlterField, RemoveField, RenameField
 from .models import (
     AlterIndexTogether, AlterModelOptions, AlterModelTable,
     AlterOrderWithRespectTo, AlterUniqueTogether, CreateModel,
-    DeleteModel, RenameModel, CreateSchema,
+    DeleteModel, RenameModel, CreateSchema, LoadFixture,
 )
 from .special import RunPython, RunSQL, SeparateDatabaseAndState
 

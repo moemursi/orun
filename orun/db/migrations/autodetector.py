@@ -172,6 +172,7 @@ class MigrationAutodetector(object):
         self.generate_altered_index_together()
         self.generate_altered_db_table()
         self.generate_altered_order_with_respect_to()
+        self.generate_altered_fixtures()
 
         self._sort_migrations()
         self._build_migration_list(graph)
@@ -477,11 +478,11 @@ class MigrationAutodetector(object):
             related_fields = {}
             primary_key_rel = None
             for field in model_opts.local_fields:
-                if field.remote_field and False:  # TODO check in future
+                if field.remote_field:
                     if field.remote_field.model:
                         if field.primary_key:
                             primary_key_rel = field.remote_field.model
-                        elif not field.remote_field.parent_link:
+                        else: #elif not field.remote_field.parent_link: TODO CHECK
                             related_fields[field.name] = field
                     # through will be none on M2Ms on swapped-out models;
                     # we can treat lack of through as auto_created=True, though.
@@ -779,14 +780,8 @@ class MigrationAutodetector(object):
         # Fields that are foreignkeys/m2ms depend on stuff
         dependencies = []
         if field.remote_field and field.remote_field.model:
-            # Account for FKs to swappable models
-            swappable_setting = getattr(field, 'swappable_setting', None)
-            if swappable_setting is not None:
-                dep_app_label = "__setting__"
-                dep_object_name = swappable_setting
-            else:
-                dep_app_label = field.remote_field.model._meta.app_label
-                dep_object_name = field.remote_field.model._meta.name
+            dep_app_label = field.remote_field.model._meta.app_label
+            dep_object_name = field.remote_field.model._meta.object_name
             dependencies = [(dep_app_label, dep_object_name, None, True)]
             if getattr(field.remote_field, "through", None) and not field.remote_field.through._meta.auto_created:
                 dependencies.append((
@@ -1135,3 +1130,30 @@ class MigrationAutodetector(object):
         if match:
             return int(match.group())
         return None
+
+    def generate_altered_fixtures(self):
+        operation = operations.LoadFixture
+        option_name = operation.option_name
+        for app_label, model_name in sorted(self.kept_model_keys):
+            old_model_name = self.renamed_models.get((app_label, model_name), model_name)
+            old_model_state = self.from_state.models[app_label, old_model_name]
+            new_model_state = self.to_state.models[app_label, model_name]
+
+            # We run the old version through the field renames to account for those
+            old_value = old_model_state.options.get(option_name) or set()
+            if old_value:
+                old_value = set(old_value)
+
+            new_value = new_model_state.options.get(option_name) or set()
+            if new_value:
+                new_value = set(new_value)
+
+            if old_value != new_value:
+                self.add_operation(
+                    app_label,
+                    operation(
+                        name=model_name,
+                        files=(new_value - old_value) or None,
+                        fixtures=new_value,
+                    )
+                )

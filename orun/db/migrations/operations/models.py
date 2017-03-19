@@ -586,3 +586,50 @@ class AlterModelOptions(Operation):
 
     def describe(self):
         return "Change Meta options on %s" % (self.name, )
+
+
+class LoadFixture(Operation):
+    """
+    Loads fixtures/data of target model.
+    """
+    option_name = "fixtures"
+
+    def __init__(self, name, files, fixtures):
+        self.name = name
+        self.files = files
+        self.fixtures = list(fixtures)
+
+    @cached_property
+    def name_lower(self):
+        return self.name.lower()
+
+    def deconstruct(self):
+        kwargs = {
+            'name': self.name,
+            'files': self.files,
+            'fixtures': self.fixtures,
+        }
+        return (
+            self.__class__.__name__,
+            [],
+            kwargs
+        )
+
+    def state_forwards(self, app_label, state):
+        model_state = state.models[app_label, self.name_lower]
+        model_state.options[self.option_name] = self.fixtures
+        state.reload_model(app_label, self.name_lower)
+
+    def database_forwards(self, app_label, schema_editor, from_state, to_state):
+        new_model = to_state.apps.get_model(app_label, self.name)
+        if self.allow_migrate_model(schema_editor.connection.alias, new_model):
+            schema_editor.load_fixtures(new_model, self.files)
+
+    def database_backwards(self, app_label, schema_editor, from_state, to_state):
+        return self.database_forwards(app_label, schema_editor, from_state, to_state)
+
+    def references_model(self, name, app_label=None):
+        return name.lower() == self.name_lower
+
+    def describe(self):
+        return "Load %s for %s (%s fixture(s))" % (self.option_name, self.name, len(self.fixtures or ''))

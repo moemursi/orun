@@ -10,6 +10,10 @@ from orun.core.exceptions import ObjectDoesNotExist
 
 
 class Deserializer(base.Deserializer):
+    def __init__(self, stream_or_string, app, app_config=None, **kwargs):
+        super(Deserializer, self).__init__(stream_or_string, app, app_config=app_config, **kwargs)
+        self.deserialize()
+
     def deserialize(self):
         if not isinstance(self.stream_or_string, (bytes, str)):
             data = etree.parse(self.stream_or_string).getroot()

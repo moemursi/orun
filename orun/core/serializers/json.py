@@ -13,7 +13,7 @@ from orun.db import models
 from orun.utils import reraise
 from orun.core.serializers.base import DeserializationError
 from orun.core.serializers.python import (
-    Deserializer as PythonDeserializer, Serializer as PythonSerializer,
+    Serializer as PythonSerializer, # Deserializer as PythonDeserializer,
 )
 from orun.utils.functional import Promise
 from orun.utils.timezone import is_aware
