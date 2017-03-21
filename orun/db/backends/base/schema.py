@@ -491,7 +491,7 @@ class BaseDatabaseSchemaEditor(object):
         if field.db_index and not field.unique:
             self.deferred_sql.append(self._create_index_sql(model, [field]))
         # Add any FK constraints later
-        if field.remote_field and self.connection.features.supports_foreign_keys and field.db_constraint:
+        if field.remote_field and field.db_constraint:
             self.deferred_sql.append(self._create_fk_sql(model, field, "_fk_%(to_table)s_%(to_column)s"))
         # Reset connection if required
         #if self.connection.features.connection_persists_old_columns:
