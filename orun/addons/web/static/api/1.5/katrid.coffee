@@ -6,13 +6,21 @@ globals = @
     server: ''
     servicesProtocol: 'http'
 
+    # Katrid Framework UI Settings
+    UI:
+      defaultView: 'list'
+      goToDefaultViewAfterCancelInsert: true
+      goToDefaultViewAfterCancelEdit: false
+
+    Speech:
+      enabled: false
+
   # Internationalization
   i18n:
     formats: {}
     catalog: {}
 
     initialize: (plural, catalog, formats) ->
-      console.log('initialize')
       Katrid.i18n.plural = plural
       Katrid.i18n.catalog = catalog
       Katrid.i18n.formats = formats

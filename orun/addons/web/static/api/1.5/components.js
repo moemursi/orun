@@ -691,6 +691,21 @@
     };
   });
 
+  uiKatrid.directive('searchView', function() {
+    return {
+      restrict: 'E',
+      replace: true,
+      link: function(scope, el, attrs, controller) {
+        var html, widget;
+        widget = new Katrid.UI.Views.SearchView(el, {});
+        html = $(widget.template());
+        el.replaceWith(html);
+        html.addClass(attrs["class"]);
+        widget.link(scope, html);
+      }
+    };
+  });
+
   uiKatrid.directive('searchBox', function() {
     return {
       restrict: 'A',

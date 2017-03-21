@@ -76,12 +76,14 @@ class Templates
       <div class=\"toolbar\">
   <button class=\"btn btn-primary\" type=\"button\" ng-disabled="dataSource.uploading" ng-click=\"dataSource.saveChanges()\" ng-show="dataSource.changing">#{Katrid.i18n.gettext 'Save'}</button>
   <button class=\"btn btn-primary\" type=\"button\" ng-disabled="dataSource.uploading" ng-click=\"dataSource.editRecord()\" ng-show="!dataSource.changing">#{Katrid.i18n.gettext 'Edit'}</button>
+  <button class=\"btn btn-default\" type=\"button\" ng-disabled="dataSource.uploading" ng-click=\"dataSource.newRecord()\" ng-show="!dataSource.changing">#{Katrid.i18n.gettext 'Create'}</button>
   <button class=\"btn btn-default\" type=\"button\" ng-click=\"dataSource.cancelChanges()\" ng-show="dataSource.changing">#{Katrid.i18n.gettext 'Cancel'}</button>
   <div class=\"btn-group\">
     <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\">
       #{Katrid.i18n.gettext 'Action'} <span class=\"caret\"></span></button>
     <ul class=\"dropdown-menu animated flipInX\">
       <li><a href='javascript:void(0)' ng-click=\"action.deleteSelection()\"><i class=\"fa fa-fw fa-trash\"></i> #{Katrid.i18n.gettext 'Delete'}</a></li>
+      <li><a href='javascript:void(0)' ng-click=\"action.copy()\"><i class=\"fa fa-fw fa-files-o\"></i> #{Katrid.i18n.gettext 'Duplicate'}</a></li>
       #{actions}
     </ul>
   </div>
@@ -110,9 +112,9 @@ class Templates
           <li>${ action.info.display_name }</li>
         </ol>
         </div>
-        <div class="search-view col-md-6">
-          <input search-box type="hidden" ng-model="searchParams" ng-change="action.setSearchParams(searchParams)">
-        </div>
+        <search-view class="col-md-6"/>
+          <!--input search-box ng-model="searchParams" ng-change="action.setSearchParams(searchParams)" value="1">
+        </search-view-->
         <!--<p class=\"help-block\">${ action.info.usage }&nbsp;</p>-->
       </div>
       <div class="toolbar">

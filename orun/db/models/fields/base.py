@@ -340,19 +340,19 @@ class CharField(Field):
 
 
 class IntegerField(Field):
-    _db_type = sa.Integer
+    _db_type = sa.Integer()
 
 
 class BigIntegerField(Field):
-    _db_type = sa.BigInteger
+    _db_type = sa.BigInteger()
 
 
 class FloatField(Field):
-    _db_type = sa.Float
+    _db_type = sa.Float()
 
 
 class AutoField(Field):
-    _db_type = sa.Integer
+    _db_type = sa.Integer()
 
     def __init__(self, *args, **kwargs):
         kwargs['required'] = False
@@ -380,11 +380,11 @@ class BooleanField(Field):
 
 
 class DateTimeField(Field):
-    _db_type = sa.DateTime
+    _db_type = sa.DateTime()
 
 
 class DateField(DateTimeField):
-    _db_type = sa.Date
+    _db_type = sa.Date()
 
     def deserialize(self, value, instance=None):
         for format in settings.DATE_INPUT_FORMATS:
@@ -395,11 +395,11 @@ class DateField(DateTimeField):
 
 
 class TimeField(DateTimeField):
-    _db_type = sa.Time
+    _db_type = sa.Time()
 
 
 class SmallIntegerField(Field):
-    _db_type = sa.SmallInteger
+    _db_type = sa.SmallInteger()
 
 
 class PositiveSmallIntegerField(SmallIntegerField):
@@ -435,7 +435,7 @@ class URLField(CharField):
 
 
 class BinaryField(Field):
-    _db_type = sa.Binary
+    _db_type = sa.Binary()
 
 
 class HtmlField(TextField):

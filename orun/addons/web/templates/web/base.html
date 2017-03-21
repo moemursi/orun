@@ -102,6 +102,7 @@
 <script src="/static/web/static/api/1.5/utils.js"></script>
 <script src="/static/web/static/api/1.5/dialogs.js"></script>
 <script src="/static/web/static/api/1.5/reports.js"></script>
+<script src="/static/web/static/api/1.5/views.js"></script>
 
 <!-- additional scripts -->
 
@@ -132,19 +133,6 @@
 </script>
 <script>
   $(document).ready(function () {
-    // start metisMenu
-    $('#left-side-menu').metisMenu({toggle: false});
-
-    // navbar search
-    var items = [];
-    $('.menu-item>a').each(function (idx, el) {
-      items.push($(el).text());
-    });
-    $('#navbar-search').autocomplete({source: items});
-  });
-</script>
-<script>
-  $(document).ready(function () {
     var url = window.location.href.split('/');
     url = url[url.length - 1];
 
@@ -158,6 +146,8 @@
   });
 </script>
 <!-- end menu -->
+
+{% block page_loaded %}{% endblock %}
 
 <!-- demo js
 <script src="/static/web/static/assets/js/demo.js"></script>

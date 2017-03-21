@@ -50,3 +50,6 @@ msgstr "Erro gravando as alterações do registro"
 
 msgid "Loading..."
 msgstr "Carregando..."
+
+msgid "Search..."
+msgstr "Pesquisar..."

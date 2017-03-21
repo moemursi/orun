@@ -7,13 +7,20 @@
   this.Katrid = {
     Settings: {
       server: '',
-      servicesProtocol: 'http'
+      servicesProtocol: 'http',
+      UI: {
+        defaultView: 'list',
+        goToDefaultViewAfterCancelInsert: true,
+        goToDefaultViewAfterCancelEdit: false
+      },
+      Speech: {
+        enabled: false
+      }
     },
     i18n: {
       formats: {},
       catalog: {},
       initialize: function(plural, catalog, formats) {
-        console.log('initialize');
         Katrid.i18n.plural = plural;
         Katrid.i18n.catalog = catalog;
         Katrid.i18n.formats = formats;

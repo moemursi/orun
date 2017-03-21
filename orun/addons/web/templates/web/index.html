@@ -31,8 +31,11 @@
           <ul class="dropdown-menu" aria-haspopup="true" aria-expanded="true">
           </ul>
         </li>
-        <li><a href="javascript:void(0);" data-action="voiceCommand" title="Execute command voice"><i
-            class="fa fa-microphone"></i></a></li>
+        <li>
+          <a class="btn-voice-command" href="javascript:void(0);" onclick="$(this).toggleClass('active');Katrid.Speech.voiceCommand.toggle();" data-action="voiceCommand" title="Execute command voice">
+            <i class="fa fa-microphone"></i>
+          </a>
+        </li>
       </ul>
       <ul id="static-nav" class="nav navbar-nav navbar-right">
         <li>
@@ -124,5 +127,43 @@
 -->
 
   </div>
+
+{% endblock %}
+{% block page_loaded %}
+  <script src="/static/web/static/api/1.5/speech.js"></script>
+  <script>
+    $(document).ready(function () {
+      // start metisMenu
+      $('#left-side-menu').metisMenu({toggle: false});
+
+      // navbar search
+      var items = [];
+      $('.menu-item>a').each(function (idx, el) {
+        el = $(el);
+        items.push({href: el.attr('href'), name: el.text().trim()});
+      });
+      Katrid.Speech.voiceCommand.addCommands(items);
+      var el = $('#navbar-search').autocomplete(
+          {
+            source: function (request, response) {
+              var matcher = new RegExp($.ui.autocomplete.escapeRegex(request.term), "i");
+              response($.grep(items, function (value) {
+                return matcher.test(value.name);
+              }));
+            },
+            select: function (ev, ui) {
+              if (ui.item) window.location.href = ui.item.href;
+              el.val(ui.item.name);
+            }
+          });
+      el.data('ui-autocomplete')._renderItem = function (ul, item) {
+        console.log('<a href="' + item.href + '">' + item.name + '</a>');
+        return $('<li></li>')
+            .data('item.autocomplete', item)
+            .append('<div>' + item.name + '</div>')
+            .appendTo(ul);
+      };
+    });
+  </script>
 
 {% endblock %}
