@@ -1,4 +1,5 @@
 
+
 class Action
   actionType: null
   constructor: (@info, @scope) ->
@@ -100,8 +101,12 @@ class WindowAction extends Action
     return r
 
   setSearchParams: (params) ->
-    data = @_prepareParams(params)
-    @scope.dataSource.search(data)
+    #data = @_prepareParams(params)
+    @scope.dataSource.search(params)
+
+  applyGroups: (groups) ->
+    console.log('set grupo', groups)
+    @scope.dataSource.groupBy(groups[0])
 
   doViewAction: (viewAction, target, confirmation) ->
     if not confirmation or (confirmation and confirm(confirmation))
@@ -116,6 +121,18 @@ class WindowAction extends Action
         else if res.status is 'ok' and res.result.messages
           for msg in res.result.messages
             Katrid.Dialogs.Alerts.success msg
+
+  listRowClick: (index, row) ->
+    if row._group
+      row._group.expanded = not row._group.expanded
+      row._group.collapsed = not row._group.expanded
+      if row._group.expanded
+        @scope.dataSource.expandGroup(index, row)
+      else
+        @scope.dataSource.collapseGroup(index, row)
+    else
+      @scope.dataSource.setRecordIndex(index)
+      @location.search({view_type: 'form', id: row.id})
 
 
 class ReportAction extends Action

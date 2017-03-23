@@ -1,6 +1,6 @@
 import sqlalchemy as sa
 from sqlalchemy.sql import select, update, delete, text
-from sqlalchemy import orm
+from sqlalchemy import orm, or_
 
 from orun.db import session, connection
 
@@ -240,20 +240,26 @@ class Insert(object):
 
 
 def convert_params(model, params):
-    for k, v in params.items():
-        args = k.split('__')
-        col = args[0]
-        col = model._meta.fields_dict[col].column
-        attr = None
-        if len(args) > 1:
-            for arg in args[1:]:
-                attr = getattr(col, arg, None)
-                if attr is None:
-                    attr = getattr(col, arg + '_', None)
-        if attr and callable(attr):
-            yield attr(v)
-        else:
-            yield col == v
+    if not isinstance(params, (tuple, list)):
+        params = [params]
+    for param in params:
+        for k, v in param.items():
+            args = k.split('__')
+            col = args[0]
+            col = model._meta.fields_dict[col].column
+            attr = None
+            if len(args) > 1:
+                for arg in args[1:]:
+                    if arg == 'icontains':
+                        arg = 'ilike'
+                        v = '%' + v + '%'
+                    attr = getattr(col, arg, None)
+                    if attr is None:
+                        attr = getattr(col, arg + '_', None)
+            if attr and callable(attr):
+                yield attr(v)
+            else:
+                yield col == v
 
 
 class Query(orm.Query):
@@ -262,9 +268,15 @@ class Query(orm.Query):
         args = []
         for i, crit in enumerate(criterion):
             if isinstance(crit, dict):
-                args.extend(convert_params(self.selectable._froms[0].__model__, crit))
+                if 'OR' in crit:
+                    c = convert_params(self.selectable._froms[0].__model__, crit['OR'])
+                    args.append(or_(*c))
+                else:
+                    args.extend(convert_params(self.selectable._froms[0].__model__, crit))
             else:
                 args.append(crit)
+
+        # compile where clause
         return super(Query, self).filter(*args)
 
     def values_list(self, *fields):

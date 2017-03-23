@@ -691,17 +691,15 @@
     };
   });
 
-  uiKatrid.directive('searchView', function() {
+  uiKatrid.directive('searchView', function($compile) {
     return {
       restrict: 'E',
       replace: true,
       link: function(scope, el, attrs, controller) {
-        var html, widget;
-        widget = new Katrid.UI.Views.SearchView(el, {});
-        html = $(widget.template());
-        el.replaceWith(html);
-        html.addClass(attrs["class"]);
-        widget.link(scope, html);
+        var widget;
+        scope.search = {};
+        widget = new Katrid.UI.Views.SearchView(scope, {});
+        widget.link(scope, el, attrs, controller, $compile);
       }
     };
   });

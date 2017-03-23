@@ -14,6 +14,7 @@ class Service
       $.get(rpcName, params)
 
   post: (name, params, data) ->
+    console.log('post', name, params, data)
     if Katrid.Settings.servicesProtocol is 'ws'
       Katrid.socketio.emit('api', { channel: 'rpc', service: @name, method: name, data: data, args: params })
     else
@@ -69,6 +70,7 @@ class Model extends Service
         @_prepareFields(obj)
 
   getFieldChoices: (field, term) ->
+    console.log('get field choices', field, term)
     @get('get_field_choices', { args: field, q: term })
 
   doViewAction: (data) ->
@@ -83,6 +85,9 @@ class Model extends Service
         alert res.responseText
       else
         Katrid.Dialogs.Alerts.error Katrid.i18n.gettext 'Error saving record changes'
+
+  groupBy: (grouping) ->
+    @post('group_by', null, { kwargs: grouping })
 
   onFieldChange: (field, record) ->
     @post('field_change', null, { kwargs: { field: field, record: record } })

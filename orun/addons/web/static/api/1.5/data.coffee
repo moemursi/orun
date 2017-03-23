@@ -174,6 +174,31 @@ class DataSource
 
     return def.promise()
 
+  groupBy: (group) ->
+    if not group
+      @groups = []
+      return
+    @groups = [group]
+    @scope.model.groupBy(group.context)
+    .then (res) =>
+      @scope.records = []
+      grouping = group.context.grouping[0]
+      for r in res.result
+        s = r[grouping]
+        if $.isArray(s)
+          r._paramValue = s[0]
+          s = s[1]
+        else
+          r._paramValue = s
+        r.__str__ = s
+        r.expanded = false
+        r.collapsed = true
+        r._searchGroup = group
+        r._paramName = grouping
+        row = {_group: r, _hasGroup: true}
+        @scope.records.push(row)
+      @scope.$apply()
+
   goto: (index) ->
     @scope.moveBy(index - @recordIndex)
 
@@ -338,6 +363,23 @@ class DataSource
       @scope.$apply =>
         for f, v of res.result.fields
           @scope.$set(f, v)
+
+  expandGroup: (index, row) ->
+    rg = row._group
+    params =
+      params: {}
+    params.params[rg._paramName] = rg._paramValue
+    @scope.model.search(params)
+    .then (res) =>
+      if res.ok and res.result.data
+        @scope.$apply =>
+          rg._children = res.result.data
+          @scope.records.splice.apply(@scope.records, [index + 1, 0].concat(res.result.data))
+
+  collapseGroup: (index, row) ->
+    group = row._group
+    @scope.records.splice(index + 1, group._children.length)
+    delete group._children
 
 
 class Record

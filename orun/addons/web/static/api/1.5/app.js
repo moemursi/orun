@@ -2,7 +2,7 @@
 (function() {
   var ngApp;
 
-  ngApp = angular.module('katridApp', ['ngRoute', 'ngCookies', 'ngSanitize', 'ui-katrid']);
+  ngApp = angular.module('katridApp', ['ngRoute', 'ngCookies', 'ngSanitize', 'ui-katrid'].concat(Katrid.Bootstrap.additionalModules));
 
   ngApp.config(function($interpolateProvider) {
     $interpolateProvider.startSymbol('${');
@@ -76,15 +76,20 @@
     };
     $scope.setContent = function(content) {
       var el;
+      $('html, body').animate({
+        scrollTop: 0
+      }, 'fast');
       $scope.content = $(content);
-      el = angular.element('#katrid-action-view').html($compile(content)($scope));
+      el = angular.element('#katrid-action-view').html($compile($scope.content)($scope));
       $scope.formElement = el.find('form').first();
       return $scope.form = $scope.formElement.controller('form');
     };
     init = function(action) {
       var act;
       if (action) {
-        $scope.model = new Katrid.Services.Model(action.model[1]);
+        if (action.model) {
+          $scope.model = new Katrid.Services.Model(action.model[1]);
+        }
         $scope.action = act = new Katrid.Actions[action.action_type](action, $scope);
         return act.routeUpdate($location.$$search);
       }

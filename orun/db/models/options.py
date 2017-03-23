@@ -243,6 +243,20 @@ class Options(object):
         return [f for f in self.fields if f.editable]
 
     @property
+    def searchable_fields(self):
+        if self.field_groups and 'searchable_fields' in self.field_groups:
+            for field_name in self.field_groups['searchable_fields']:
+                yield self.fields_dict[field_name]
+        elif self.title_field:
+            return [self.get_title_field()]
+
+    @property
+    def groupable_fields(self):
+        if self.field_groups and 'groupable_fields' in self.field_groups:
+            for field_name in self.field_groups['groupable_fields']:
+                yield self.fields_dict[field_name]
+
+    @property
     def list_fields(self):
         if self.field_groups and 'list_fields' in self.field_groups:
             for field_name in self.field_groups['list_fields']:
@@ -294,6 +308,9 @@ class Options(object):
         #     return all(getattr(connection.features, feat, False)
         #                for feat in self.required_db_features)
         return True
+
+    def get_title_field(self):
+        return self.fields_dict[self.title_field]
 
 
 def normalize_together(option_together):

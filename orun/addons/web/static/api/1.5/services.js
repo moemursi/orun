@@ -29,6 +29,7 @@
 
     Service.prototype.post = function(name, params, data) {
       var rpcName;
+      console.log('post', name, params, data);
       if (Katrid.Settings.servicesProtocol === 'ws') {
         return Katrid.socketio.emit('api', {
           channel: 'rpc',
@@ -151,6 +152,7 @@
     };
 
     Model.prototype.getFieldChoices = function(field, term) {
+      console.log('get field choices', field, term);
       return this.get('get_field_choices', {
         args: field,
         q: term
@@ -176,6 +178,12 @@
         } else {
           return Katrid.Dialogs.Alerts.error(Katrid.i18n.gettext('Error saving record changes'));
         }
+      });
+    };
+
+    Model.prototype.groupBy = function(grouping) {
+      return this.post('group_by', null, {
+        kwargs: grouping
       });
     };
 

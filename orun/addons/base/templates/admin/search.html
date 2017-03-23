@@ -1,5 +1,12 @@
 <search>
-  {% if opts.title_field %}
-  <field name="{{ opts.title_field }}" />
+  {% for field in opts.searchable_fields %}
+  <field name="{{ field.name }}" />
+  {% endfor %}
+  {% if opts.groupable_fields %}
+    <group>
+    {% for field in opts.groupable_fields %}
+      <filter name="{{ field.name }}" label="{{ field.label }}"/>
+    {% endfor %}
+    </group>
   {% endif %}
 </search>

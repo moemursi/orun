@@ -257,6 +257,43 @@
       return def.promise();
     };
 
+    DataSource.prototype.groupBy = function(group) {
+      if (!group) {
+        this.groups = [];
+        return;
+      }
+      this.groups = [group];
+      return this.scope.model.groupBy(group.context).then((function(_this) {
+        return function(res) {
+          var grouping, i, len, r, ref, row, s;
+          _this.scope.records = [];
+          grouping = group.context.grouping[0];
+          ref = res.result;
+          for (i = 0, len = ref.length; i < len; i++) {
+            r = ref[i];
+            s = r[grouping];
+            if ($.isArray(s)) {
+              r._paramValue = s[0];
+              s = s[1];
+            } else {
+              r._paramValue = s;
+            }
+            r.__str__ = s;
+            r.expanded = false;
+            r.collapsed = true;
+            r._searchGroup = group;
+            r._paramName = grouping;
+            row = {
+              _group: r,
+              _hasGroup: true
+            };
+            _this.scope.records.push(row);
+          }
+          return _this.scope.$apply();
+        };
+      })(this));
+    };
+
     DataSource.prototype.goto = function(index) {
       return this.scope.moveBy(index - this.recordIndex);
     };
@@ -496,6 +533,32 @@
           };
         })(this));
       }
+    };
+
+    DataSource.prototype.expandGroup = function(index, row) {
+      var params, rg;
+      rg = row._group;
+      params = {
+        params: {}
+      };
+      params.params[rg._paramName] = rg._paramValue;
+      return this.scope.model.search(params).then((function(_this) {
+        return function(res) {
+          if (res.ok && res.result.data) {
+            return _this.scope.$apply(function() {
+              rg._children = res.result.data;
+              return _this.scope.records.splice.apply(_this.scope.records, [index + 1, 0].concat(res.result.data));
+            });
+          }
+        };
+      })(this));
+    };
+
+    DataSource.prototype.collapseGroup = function(index, row) {
+      var group;
+      group = row._group;
+      this.scope.records.splice(index + 1, group._children.length);
+      return delete group._children;
     };
 
     return DataSource;

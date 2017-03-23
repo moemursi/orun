@@ -53,3 +53,18 @@ msgstr "Carregando..."
 
 msgid "Search..."
 msgstr "Pesquisar..."
+
+msgid "or"
+msgstr "ou"
+
+msgid "Filters"
+msgstr "Filtros"
+
+msgid "Group By"
+msgstr "Agrupar Por"
+
+msgid "Favorites"
+msgstr "Favoritos"
+
+msgid "Group by:"
+msgstr "Agrupar por:"

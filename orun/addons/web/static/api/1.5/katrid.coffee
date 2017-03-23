@@ -14,6 +14,9 @@ globals = @
 
     Speech:
       enabled: false
+      
+  Bootstrap:
+    additionalModules: []  
 
   # Internationalization
   i18n:

@@ -518,16 +518,14 @@ Katrid.uiKatrid.directive 'foreignkey', ->
         sel.select2('val', null)
 
 
-uiKatrid.directive 'searchView', ->
+uiKatrid.directive 'searchView', ($compile) ->
   restrict: 'E'
   #require: 'ngModel'
   replace: true
   link: (scope, el, attrs, controller) ->
-    widget = new Katrid.UI.Views.SearchView(el, {})
-    html = $(widget.template())
-    el.replaceWith(html)
-    html.addClass(attrs.class)
-    widget.link(scope, html)
+    scope.search = {}
+    widget = new Katrid.UI.Views.SearchView(scope, {})
+    widget.link(scope, el, attrs, controller, $compile)
     return
 
 

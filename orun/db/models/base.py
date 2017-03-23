@@ -5,6 +5,7 @@ import copy
 import collections
 from itertools import chain
 from sqlalchemy import orm
+from sqlalchemy import func
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from orun import api, render_template
@@ -267,7 +268,7 @@ class Model(metaclass=ModelBase):
     def load_views(self, views=None):
         if views is None:
             views = ['form', 'list', 'search']
-        return {v: self.get_view_info(v) for v in views}
+        return {v: self.get_view_info(view_type=v) for v in views}
 
     @classmethod
     def get_field_info(cls, field, view_type=None):
@@ -276,10 +277,16 @@ class Model(metaclass=ModelBase):
     @classmethod
     def get_fields_info(cls, view_id=None, view_type='form', toolbar=False, context=None):
         opts = cls._meta
-        r = {}
-        for field in cls._meta.fields:
-            r[field.name] = cls.get_field_info(field, view_type)
-        return r
+        if view_type == 'search':
+            searchable_fields = opts.searchable_fields
+            if searchable_fields:
+                return {f.name: cls.get_field_info(f, view_type) for f in searchable_fields}
+            return {}
+        else:
+            r = {}
+            for field in cls._meta.fields:
+                r[field.name] = cls.get_field_info(field, view_type)
+            return r
 
     @classmethod
     def _get_default_view(cls, view_type):
@@ -307,10 +314,10 @@ class Model(metaclass=ModelBase):
             return self._search().get(id)
 
     @api.method
-    def get_view_info(self, view_type):
+    def get_view_info(cls, view_type):
         return {
-            'content': self._get_default_view(view_type),
-            'fields': self.get_fields_info(view_type),
+            'content': cls._get_default_view(view_type=view_type),
+            'fields': cls.get_fields_info(view_type=view_type),
             #'view_actions': self.get_view_actions(view_type),
         }
 
@@ -422,7 +429,9 @@ class Model(metaclass=ModelBase):
         return (self.pk, str(self))
 
     @api.method
-    def search_name(cls, *args, **kwargs):
+    def search_name(cls, name=None, *args, **kwargs):
+        if name:
+            kwargs = {'params': [cls._meta.get_title_field().column.ilike('%' + name + '%')]}
         qs = cls._search(*args, **kwargs)
         return [obj._get_rec_name() for obj in qs]
 
@@ -431,7 +440,7 @@ class Model(metaclass=ModelBase):
         field_name = field
         field = cls._meta.fields_dict[field_name]
         related_model = field.related_model
-        return related_model.search_name()
+        return related_model.search_name(name=q)
 
     @api.method
     def write(cls, data):
@@ -477,6 +486,19 @@ class Model(metaclass=ModelBase):
         fields.append('display_name')
         new_item = cls(**new_item)
         return new_item.serialize(fields=fields)
+
+    @api.method
+    def group_by(cls, grouping):
+        field = cls._meta.fields_dict[grouping[0]]
+        col = field.column
+        if col.foreign_keys:
+            qs = session.query(col.label('fk'), func.count(col).label('group_count')).group_by(col).subquery()
+            qs = session.query(field.related_model, qs.c.group_count).join(qs, qs.c.fk == field.remote_field.column)
+            for row in qs:
+                yield {grouping[0]: row[0]._get_rec_name(), 'count': row[1]}
+        else:
+            qs = session.query(col, func.count(col)).group_by(col).all()
+        return qs
 
     @classmethod
     def _search(cls, params=None, fields=None, *args, **kwargs):

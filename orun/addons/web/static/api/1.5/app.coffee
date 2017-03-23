@@ -1,5 +1,5 @@
 
-ngApp = angular.module('katridApp', ['ngRoute', 'ngCookies', 'ngSanitize', 'ui-katrid'])
+ngApp = angular.module('katridApp', ['ngRoute', 'ngCookies', 'ngSanitize', 'ui-katrid'].concat(Katrid.Bootstrap.additionalModules))
 
 ngApp.config ($interpolateProvider) ->
   $interpolateProvider.startSymbol '${'
@@ -42,7 +42,6 @@ ngApp.controller 'BasicController', ($scope, $compile, $location) ->
   $scope.Katrid = Katrid
 
 
-
 ngApp.controller 'ActionController', ($scope, $compile, action, $location) ->
   $scope.Katrid = Katrid
   $scope.data = null
@@ -66,8 +65,9 @@ ngApp.controller 'ActionController', ($scope, $compile, action, $location) ->
     return
 
   $scope.setContent = (content) ->
+    $('html, body').animate({ scrollTop: 0 }, 'fast')
     $scope.content = $(content)
-    el = angular.element('#katrid-action-view').html($compile(content)($scope))
+    el = angular.element('#katrid-action-view').html($compile($scope.content)($scope))
 
     # Get the first form controller
     $scope.formElement = el.find('form').first()
@@ -75,7 +75,8 @@ ngApp.controller 'ActionController', ($scope, $compile, action, $location) ->
 
   init = (action) ->
     if action
-      $scope.model = new Katrid.Services.Model(action.model[1])
+      if action.model
+        $scope.model = new Katrid.Services.Model(action.model[1])
       $scope.action = act = new Katrid.Actions[action.action_type](action, $scope)
       act.routeUpdate($location.$$search)
 
