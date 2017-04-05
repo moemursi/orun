@@ -1,0 +1,7 @@
+<form>
+  {% for f in opts.fields %}
+    {% if f.editable %}
+    <field name="{{ f.name }}" />
+    {% endif %}
+  {% endfor %}
+</form>

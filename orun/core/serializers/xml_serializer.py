@@ -1,11 +1,13 @@
 """
 A XML Deserializer. Shortcut to deserialize complex structured Xml files.
 """
+import os
 from xml.etree import ElementTree as etree
 
 from orun.db import DEFAULT_DB_ALIAS, session
 from orun.utils.translation import gettext as _
 from orun.core.serializers import base
+from orun.core.serializers.python import get_prep_value
 from orun.core.exceptions import ObjectDoesNotExist
 
 
@@ -57,15 +59,27 @@ class Deserializer(base.Deserializer):
 
         obj_name = obj.pop('id')
         obj_id = None
+        Model = self.app[obj['model']]
+        values = obj['fields']
+
+        # ui.view special case
+        if Model._meta.name == 'ui.view' and 'template_name' in values:
+            template_name = values['template_name']
+            assert '..' not in template_name
+            template_name = os.path.join(self.app_config.path, self.app_config.template_folder, 'views', template_name)
+            with open(template_name, encoding='utf-8') as f:
+                values['content'] = f.read()
+
         try:
             obj_id = Object.objects.filter(Object.name == obj_name).one()
             instance = obj_id.content_object
-            for k, v in obj['fields'].items():
-                setattr(instance, k, v)
-            instance.save()
         except ObjectDoesNotExist:
-            instance = self.build_instance(self.app[obj['model']], obj['fields'], attrs.get('using', DEFAULT_DB_ALIAS))
-            instance.save()
+            instance = Model()
+        pk = instance.pk
+        for k, v in obj['fields'].items():
+            setattr(instance, *get_prep_value(Model, k, v))
+        instance.save()
+        if pk is None:
             ct = ContentType.get_by_natural_key(instance._meta.name)
             obj_id = Object.create(
                 app_label=self.app_config.app_label,
@@ -123,7 +137,7 @@ class Deserializer(base.Deserializer):
         action = {
             'model': act,
             'id': obj.attrib['id'],
-            'children': [],
+            'children': obj.getchildren(),
             'fields': fields,
         }
         return self.read_object(action, **attrs)

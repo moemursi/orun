@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data translate="true">
+  <menuitem id="hr.payroll.menu" name="Payroll">
+    <menuitem id="fleet.menu.vehicles" name="Vehicles">
+      <menuitem id="fleet.menu.vehicle" name="Vehicles" action="fleet.action.view.vehicle" />
+      <menuitem id="fleet.menu.odometer" name="Odometer Log" action="fleet.action.view.odometer" />
+      <menuitem id="fleet.menu.vehicle.fuel.log" name="Fuel Log" action="fleet.action.view.vehicle.fuel.log" />
+      <menuitem id="fleet.menu.maintenance" name="Maintenance" action="fleet.action.view.maintenance" />
+      <menuitem id="fleet.menu.traffic.ticket" name="Traffic Ticket" action="fleet.action.view.traffic.ticket" />
+    </menuitem>
+    <menuitem id="fleet.menu.config" name="Configuration">
+      <menuitem id="fleet.menu.config.driver" name="Drivers" action="fleet.action.view.driver" />
+      <menuitem id="fleet.menu.config.contract" name="Contracts" action="fleet.action.view.contract" />
+      <menuitem id="fleet.menu.config.vehicle.make" name="Make of Vehicle" action="fleet.action.view.vehicle.make" />
+      <menuitem id="fleet.menu.config.vehicle.model" name="Model of Vehicle" action="fleet.action.view.vehicle.model" />
+      <menuitem id="fleet.menu.config.route" name="Routes" action="fleet.action.view.route" />
+    </menuitem>
+  </menuitem>
+</data>

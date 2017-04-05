@@ -4,8 +4,8 @@ import inspect
 import copy
 import collections
 from itertools import chain
-from sqlalchemy import orm
-from sqlalchemy import func
+from sqlalchemy import orm, func
+from sqlalchemy.orm import synonym
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from orun import api, render_template
@@ -15,6 +15,7 @@ from orun.core.exceptions import ObjectDoesNotExist, ValidationError
 from orun import app, env
 from orun.apps import apps
 from orun.utils.translation import gettext
+from orun.utils.xml import get_xml_fields
 from .options import Options
 from .query import QuerySet, Insert, Update, Delete
 from .fields import (
@@ -104,6 +105,8 @@ class ModelBase(type):
             for field in model._meta.fields:
                 new_field = copy.copy(field)
                 new_class.add_to_class(new_field.name, new_field)
+                if not field.concrete and field.getter:
+                    setattr(new_class, field.name, new_field)
 
             for field in model._meta.private_fields:
                 new_field = copy.copy(field)
@@ -212,11 +215,6 @@ class ModelBase(type):
             return session.query(cls._meta.app[cls._meta.name])
 
 
-class ModelFieldComparator(object):
-    def __get__(self, instance, owner):
-        return owner._meta.table.c
-
-
 class ModelState(object):
     def __init__(self, record=None):
         if record:
@@ -265,18 +263,26 @@ class Model(metaclass=ModelBase):
         raise NotImplementedError
 
     @api.method
-    def load_views(self, views=None):
+    def load_views(self, views=None, **kwargs):
         if views is None:
-            views = ['form', 'list', 'search']
-        return {v: self.get_view_info(view_type=v) for v in views}
+            Action = app['sys.action.window']
+            action = Action.objects.get(kwargs.get('action'))
+            views = {mode: None for mode in action.view_mode.split(',')}
+        return {mode: self.get_view_info(view_type=mode, view=v) for mode, v in views.items()}
 
     @classmethod
     def get_field_info(cls, field, view_type=None):
         return field.info
 
     @classmethod
-    def get_fields_info(cls, view_id=None, view_type='form', toolbar=False, context=None):
+    def get_fields_info(cls, view_id=None, view_type='form', toolbar=False, context=None, xml=None):
         opts = cls._meta
+        if xml:
+            fields = get_xml_fields(xml)
+            return {
+                f.name: cls.get_field_info(f, view_type)
+                for f in [opts.fields_dict[f.attrib['name']] for f in fields]
+            }
         if view_type == 'search':
             searchable_fields = opts.searchable_fields
             if searchable_fields:
@@ -284,16 +290,16 @@ class Model(metaclass=ModelBase):
             return {}
         else:
             r = {}
-            for field in cls._meta.fields:
+            for field in opts.fields:
                 r[field.name] = cls.get_field_info(field, view_type)
             return r
 
     @classmethod
     def _get_default_view(cls, view_type):
         return render_template([
-            'admin/%s/%s.html' % (cls._meta.name, view_type),
-            'admin/%s/%s.html' % (cls._meta.app_config.schema, view_type),
-            'admin/%s.html' % view_type,
+            'views/%s/%s.xml' % (cls._meta.name, view_type),
+            'views/%s/%s.xml' % (cls._meta.app_config.schema, view_type),
+            'views/%s.xml' % view_type,
         ], opts=cls._meta)
 
     @classmethod
@@ -313,11 +319,19 @@ class Model(metaclass=ModelBase):
         if id:
             return self._search().get(id)
 
-    @api.method
-    def get_view_info(cls, view_type):
+    @classmethod
+    def get_view_info(cls, view_type, view=None):
+        if view:
+            View = app['ui.view']
+            view = View.objects.get(view)
+            return {
+                'content': view.content,
+                'fields': cls.get_fields_info(view_type=view_type, content=view.content)
+            }
+        content = cls._get_default_view(view_type=view_type)
         return {
-            'content': cls._get_default_view(view_type=view_type),
-            'fields': cls.get_fields_info(view_type=view_type),
+            'content': content,
+            'fields': cls.get_fields_info(view_type=view_type, xml=content),
             #'view_actions': self.get_view_actions(view_type),
         }
 
@@ -510,7 +524,14 @@ class Model(metaclass=ModelBase):
         if args:
             qs = qs.filter(*args)
         if fields:
-            qs = qs.options(orm.load_only(*fields))
+            if 'display_name' in fields:
+                fields.append(cls._meta.title_field)
+            fields = [f.column.name for f in [cls._meta.fields_dict[f] for f in fields] if f.concrete]
+            pk = cls.pk.name
+            if pk not in fields:
+                fields.append(pk)
+            if fields:
+                qs = qs.options(orm.load_only(*fields))
         return qs
 
     def __str__(self):
@@ -532,11 +553,8 @@ class Model(metaclass=ModelBase):
            meta = self._meta
        return getattr(self, meta.pk.attname)
 
-    def _set_pk_val(self, value):
-       return setattr(self, self._meta.pk.attname, value)
-
     #pk = property(_get_pk_val, _set_pk_val)
-    pk = field_property(_get_pk_val, _set_pk_val)
+    #pk = field_property(_get_pk_val, _set_pk_val)
 
     def __setattr__(self, key, value):
         f = self._meta.fields_dict.get(key)

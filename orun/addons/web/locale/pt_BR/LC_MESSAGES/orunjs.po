@@ -68,3 +68,6 @@ msgstr "Favoritos"
 
 msgid "Group by:"
 msgstr "Agrupar por:"
+
+msgid "yyyy-mm-dd"
+msgstr "dd/mm/yyyy"

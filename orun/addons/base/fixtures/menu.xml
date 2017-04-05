@@ -2,19 +2,19 @@
 <data translate="true">
   <menuitem id="sys.menu" name="System">
     <menuitem id="sys.menu.auth" name="Authentication">
-      <menuitem id="sys.menu.auth.user" name="Users" action="sys.action.view.auth.user"/>
-      <menuitem id="sys.menu.auth.group" name="Groups" action="sys.action.view.auth.group"/>
+      <menuitem id="sys.menu.auth.user" name="Users" action="action.sys.view.auth.user"/>
+      <menuitem id="sys.menu.auth.group" name="Groups" action="action.sys.view.auth.group"/>
     </menuitem>
     <menuitem id="sys.menu.ui" name="User Interface">
-      <menuitem id="sys.menu.ui.action" name="Actions" action="sys.action.view.action">
-        <menuitem id="sys.menu.ui.action.window" name="Window Actions" action="sys.action.view.action.window"/>
+      <menuitem id="sys.menu.ui.action" name="Actions" action="action.sys.view.action">
+        <menuitem id="sys.menu.ui.action.window" name="Window Actions" action="action.sys.view.action.window"/>
       </menuitem>
-      <menuitem id="sys.menu.ui.menu" name="Menu" action="sys.action.view.ui.menu"/>
-      <menuitem id="sys.menu.ui.view" name="Views" action="sys.action.view.ui.view"/>
+      <menuitem id="sys.menu.ui.menu" name="Menu" action="action.sys.view.ui.menu"/>
+      <menuitem id="sys.menu.ui.view" name="Views" action="action.sys.view.ui.view"/>
     </menuitem>
     <menuitem id="sys.menu.db" name="Database Dictionary">
-      <menuitem id="sys.menu.db.models" name="Models" action="sys.action.view.model"/>
-      <menuitem id="sys.menu.db.fields" name="Fields" action="sys.action.view.field"/>
+      <menuitem id="sys.menu.db.models" name="Models" action="action.sys.view.model"/>
+      <menuitem id="sys.menu.db.fields" name="Fields" action="action.sys.view.field"/>
     </menuitem>
   </menuitem>
 </data>

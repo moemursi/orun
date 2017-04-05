@@ -62,6 +62,9 @@ msgstr "Título"
 msgid "Settings"
 msgstr "Configurações"
 
+msgid "Configuration"
+msgstr "Configuração"
+
 msgid "Name"
 msgstr "Nome"
 

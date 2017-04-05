@@ -4,12 +4,13 @@ and from basic Python data types (lists, dicts, strings, etc.). Useful as a basi
 other serializers.
 """
 from collections import OrderedDict
+from sqlalchemy.orm import load_only
 
 from orun import app
 from orun.apps import apps
 from orun.conf import settings
 from orun.core.serializers import base
-from orun.db import DEFAULT_DB_ALIAS, models
+from orun.db import DEFAULT_DB_ALIAS, models, session
 from orun.utils.encoding import force_text, is_protected_type
 
 
@@ -80,6 +81,14 @@ class Serializer(base.Serializer):
         return self.objects
 
 
+def get_prep_value(model, field, value):
+    if ':' in field:
+        k, f = field.split(':')
+        model_field = model._meta.fields_dict[k].related_model
+        return k, model_field.objects.filter({f: value}).options(load_only(model_field.pk)).one().pk
+    return field, value
+
+
 def Deserializer(object_list, **options):
     """
     Deserialize simple Python objects back into Orun ORM instances.
@@ -89,13 +98,48 @@ def Deserializer(object_list, **options):
     """
     db = options.pop('using', DEFAULT_DB_ALIAS)
     ignore = options.pop('ignorenonexistent', False)
-    field_names_cache = {}  # Model: <list of field_names>
+    val_names_cache = {}
     model_name = options.get('model')
     Model = app[model_name]
+    Object = app['sys.object']
+
+    pk = xml_id = None
 
     for d in object_list:
-        yield Model(**d)
+        vals = d
+        if xml_id or xml_id is None:
+            vals = {}
+            for k, v in d.items():
+                # has a field identified
+                if ':' in k:
+                    xml_id = True
+                    if v not in val_names_cache:
+                        field_name, f = k.split(':')
+                        # the identified is a xml id
+                        if f == 'id':
+                            v = val_names_cache[v] = Object.get_object(v).object_id
+                        else:
+                            v = get_prep_value(Model, k, v)
+                    else:
+                        v = val_names_cache[v]
+                vals[k] = v
+
+            # Avoid to check by the xml id again
+            xml_id = bool(xml_id)
+
+        if pk is None:
+            if 'pk' in vals:
+                pk = Model._meta.pk
+            else:
+                pk = False
+
+        # Ignore if pk is present and object already exists
+        if not pk or (pk and session.query(pk.column).filter(pk.column == d['pk']).scalar() is None):
+            obj = Model(**vals)
+            obj.save(force_insert=True)
+            yield obj
         continue
+
         break
         data = {}
         if 'pk' in d:

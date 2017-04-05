@@ -1,0 +1,11 @@
+pk	nome
+1	Ford
+2	Fiat
+3	Audi
+4	Toyota
+5	BMW
+6	Mercedes Benz
+7	Renault
+8	Peugeot
+9	Jeep
+10	Chrysler

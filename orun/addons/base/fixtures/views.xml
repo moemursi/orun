@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data translate="true">
+  <object id="view.res.partner.list" model="ui.view">
+    <field name="name">res.partner.list</field>
+    <field name="model:name">res.partner</field>
+    <field name="template_name">res.partner/list.xml</field>
+  </object>
+  <object id="view.res.partner.form" model="ui.view">
+    <field name="name">res.partner.form</field>
+    <field name="model:name">res.partner</field>
+    <field name="template_name">res.partner/form.xml</field>
+  </object>
+  <object id="view.res.partner.card" model="ui.view">
+    <field name="name">res.partner.card</field>
+    <field name="model:name">res.partner</field>
+    <field name="template_name">res.partner/card.xml</field>
+  </object>
+</data>

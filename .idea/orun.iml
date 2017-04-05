@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/backup/orun/addons" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/backup/addons" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/orun/addons" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/addons" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/backup" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.6.0 (C:\Python\36\python.exe)" jdkType="Python SDK" />

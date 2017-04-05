@@ -1,0 +1,84 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: orun\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-07-24 11:06+0100\n"
+"PO-Revision-Date: 2016-08-01 19:20+0000\n"
+"Last-Translator: Alexandre Dias <alexandre@katrid.com>\n"
+"Language-Team: Portuguese (Brazil)"
+"language/pt_BR/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt_BR\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Human Resources"
+msgstr "Recursos Humanos"
+
+msgid "Employee"
+msgstr "Funcionário"
+
+msgid "Employees"
+msgstr "Funcionários"
+
+msgid "Manager"
+msgstr "Gerente"
+
+msgid "Nationality (Country)"
+msgstr "Nacionalidade (País)"
+
+msgid "Social Security Number"
+msgstr "Número de Segurança Social"
+
+msgid "Social Insurance Number"
+msgstr "Número de Seguro Social"
+
+msgid "Passport No"
+msgstr "Nº Passporte"
+
+msgid "Gender"
+msgstr "Gênero"
+
+msgid "Marital"
+msgstr "Estado Civil"
+
+msgid "Identification No"
+msgstr "Nº Identificação"
+
+msgid "Department"
+msgstr "Departamento"
+
+msgid "Working Address"
+msgstr "Endereço de Trabalho"
+
+msgid "Home Address"
+msgstr "Endereço Residencial"
+
+msgid "Work Phone"
+msgstr "Telefone Trabalho"
+
+msgid "Mobile Phone"
+msgstr "Celular"
+
+msgid "Work Email"
+msgstr "E-mail de Trabalho"
+
+msgid "Coach"
+msgstr "Treinador"
+
+msgid "Job"
+msgstr "Treinador"
+
+msgid "Job Position"
+msgstr "Cargo"
+
+msgid "Job Title"
+msgstr "Função"
+
+msgid "Job Description"
+msgstr "Descrição do Trabalho"
+
+msgid "Requirements"
+msgstr "Requisitos"

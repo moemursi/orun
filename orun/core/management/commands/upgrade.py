@@ -12,6 +12,7 @@ from orun.core.management.commands.loaddata import load_fixture
 @commands.argument(
     'app_labels', nargs=-1,
 )
+@commands.option('--with-demo/--without-demo', default=False, help='Load demo data.')
 def command(app_labels, **options):
     for app_label in app_labels:
         addon = apps.app_configs[app_label]
@@ -23,11 +24,8 @@ class Command(object):
     help = 'Upgrade modules'
 
     def _load_file(self, app_config, filename):
-        #s = open(filename, encoding='utf-8').read()
-        #s = Template(s).render(settings=settings)
         activate(settings.LANGUAGE_CODE)
         load_fixture(app_config, filename)
-        #xml_serializer.Deserializer(s)
 
     def handle_app_config(self, app_config, **options):
         """
@@ -39,3 +37,9 @@ class Command(object):
             for filename in data:
                 filename = os.path.join(app_config.path, 'fixtures', filename)
                 self._load_file(app_config, filename)
+        if 'with_demo' in options:
+            demo = getattr(app_config, 'demo', None)
+            if demo:
+                for filename in demo:
+                    filename = os.path.join(app_config.path, 'fixtures', filename)
+                    self._load_file(app_config, filename)

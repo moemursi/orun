@@ -1,12 +1,10 @@
-from bisect import bisect
 import sqlalchemy as sa
-from sqlalchemy.orm import mapper, relationship, deferred, backref
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import mapper, relationship, deferred, backref, synonym
 
 from orun.db import connections
 from orun.utils.text import camel_case_to_spaces
 from orun.utils.functional import cached_property
-from .fields import AutoField
+from .fields import AutoField, field_property
 from .record import Record
 
 
@@ -77,6 +75,7 @@ class Options(object):
                 if name is None and self.bases:
                     for b in self.bases:
                         if not b._meta.abstract:
+                            opts.base_model = b
                             opts.extension = True
                             break
                 elif name:
@@ -191,11 +190,12 @@ class Options(object):
                 elif f.related:
                     props[f.name] = f.related
 
+        props['pk'] = synonym(self.pk.column.name)
+
         table = self.table
         mapped = self.model
 
         if self.parents:
-            print('building', self.name)
             for parent, field in self.parents.items():
                 parent = self.app[parent._meta.name]
                 if parent._meta.mapped is None:

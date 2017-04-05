@@ -8,18 +8,20 @@ globals = @
 
     # Katrid Framework UI Settings
     UI:
+      dateInputMask: true
       defaultView: 'list'
       goToDefaultViewAfterCancelInsert: true
       goToDefaultViewAfterCancelEdit: false
 
     Speech:
       enabled: false
-      
+
   Bootstrap:
-    additionalModules: []  
+    additionalModules: []
 
   # Internationalization
   i18n:
+    languageCode: 'pt-BR'
     formats: {}
     catalog: {}
 

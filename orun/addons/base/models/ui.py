@@ -1,5 +1,6 @@
 import os
 from jinja2 import Environment, FunctionLoader
+from xml.etree import ElementTree as etree
 
 import base64
 from orun import app, render_template
@@ -43,7 +44,7 @@ class View(models.Model):
         ('extension', _('Extension'))
     ), default='primary', null=False)
     model = models.ForeignKey('sys.model')
-    priority = models.IntegerField(_('Priority'), default=32, null=False)
+    priority = models.IntegerField(_('Priority'), default=99, null=False)
     template_name = models.CharField(max_length=255)
     content = models.TextField()
 
@@ -54,6 +55,9 @@ class View(models.Model):
     def save(self, *args, **kwargs):
         if self.parent and self.mode is None:
             self.mode = 'extension'
+        if self.view_type is None and self.content:
+            xml = etree.fromstring(self.content)
+            self.view_type = xml.tag
         super(View, self).save(*args, **kwargs)
 
     def get_content(self):
@@ -86,9 +90,9 @@ class View(models.Model):
     def generate_view(self, model, view_type='form'):
         opts = model._meta
         return render_template([
-            'views/%s/%s.html' % (opts.name, view_type),
-            'views/%s/%s.html' % (opts.app_label, view_type),
-            'views/%s.html' % view_type,
+            'views/%s/%s.xml' % (opts.name, view_type),
+            'views/%s/%s.xml' % (opts.app_label, view_type),
+            'views/%s.xml' % view_type,
         ], opts=opts, _=gettext)
 
 

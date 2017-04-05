@@ -57,7 +57,7 @@
     };
 
     WindowAction.prototype.routeUpdate = function(search) {
-      var filter;
+      var fields, filter, ref, ref1, ref2;
       if (search.view_type != null) {
         if (this.scope.records == null) {
           this.scope.records = [];
@@ -67,27 +67,31 @@
           this.scope.record = null;
           this.viewType = search.view_type;
           this.execute();
-        }
-        if (search.view_type === 'list' && !search.page) {
-          this.location.search('page', 1);
           return;
         }
-        filter = {};
-        if (search.q != null) {
-          filter.q = search.q;
-        }
-        if (search.view_type === 'list' && search.page !== this.scope.dataSource.pageIndex) {
-          this.scope.dataSource.pageIndex = parseInt(search.page);
-          this.scope.dataSource.search(filter, search.page);
-        } else if (search.view_type === 'list' && (search.q != null)) {
-          this.scope.dataSource.search(filter, search.page);
-        }
-        if (search.id && (((this.scope.record != null) && this.scope.record.id !== search.id) || (this.scope.record == null))) {
-          this.scope.record = null;
-          return this.scope.dataSource.get(search.id);
+        if (((ref = search.view_type) === 'list' || ref === 'card') && !search.page) {
+          console.log('set page');
+          this.location.search('page', 1);
+        } else {
+          filter = {};
+          if (search.q != null) {
+            filter.q = search.q;
+          }
+          fields = _.keys(this.scope.view.fields);
+          if (((ref1 = search.view_type) === 'list' || ref1 === 'card') && search.page !== this.scope.dataSource.pageIndex) {
+            this.scope.dataSource.pageIndex = parseInt(search.page);
+            this.scope.dataSource.search(filter, search.page, fields);
+          } else if (((ref2 = search.view_type) === 'list' || ref2 === 'card') && (search.q != null)) {
+            this.scope.dataSource.search(filter, search.page, fields);
+          }
+          if (search.id && (((this.scope.record != null) && this.scope.record.id !== search.id) || (this.scope.record == null))) {
+            console.log('set id', search.id);
+            this.scope.record = null;
+            this.scope.dataSource.get(search.id);
+          }
         }
       } else {
-        return this.setViewType(this.viewModes[0]);
+        this.setViewType(this.viewModes[0]);
       }
     };
 
@@ -98,16 +102,20 @@
     };
 
     WindowAction.prototype.apply = function() {
-      return this.render(this.scope, this.scope.view.content, this.viewType);
+      this.render(this.scope, this.scope.view.content, this.viewType);
+      return this.routeUpdate(this.location.$$search);
     };
 
     WindowAction.prototype.execute = function() {
       var r;
       if (this.views != null) {
         this.scope.view = this.views[this.viewType];
-        return this.apply();
+        this.apply();
       } else {
-        r = this.scope.model.loadViews();
+        r = this.scope.model.loadViews({
+          views: this.info.views,
+          action: this.info.id
+        });
         r.done((function(_this) {
           return function(res) {
             var views;
@@ -120,7 +128,9 @@
             });
           };
         })(this));
-        return r;
+      }
+      if (this.viewType !== 'list') {
+        return this.scope.dataSource.groupBy();
       }
     };
 
@@ -151,18 +161,20 @@
     };
 
     WindowAction.prototype.applyGroups = function(groups) {
-      console.log('set grupo', groups);
       return this.scope.dataSource.groupBy(groups[0]);
     };
 
     WindowAction.prototype.doViewAction = function(viewAction, target, confirmation) {
+      return this._doViewAction(this.scope, viewAction, target, confirmation);
+    };
+
+    WindowAction.prototype._doViewAction = function(scope, viewAction, target, confirmation) {
       if (!confirmation || (confirmation && confirm(confirmation))) {
-        return this.scope.model.doViewAction({
+        return scope.model.doViewAction({
           action_name: viewAction,
           target: target
         }).done(function(res) {
           var j, k, len, len1, msg, ref, ref1, results, results1;
-          console.log(res);
           if (res.status === 'open') {
             return window.open(res.open);
           } else if (res.status === 'fail') {
@@ -211,14 +223,37 @@
   ReportAction = (function(superClass) {
     extend(ReportAction, superClass);
 
-    function ReportAction() {
-      return ReportAction.__super__.constructor.apply(this, arguments);
-    }
-
     ReportAction.actionType = 'sys.action.report';
 
+    function ReportAction(info, scope) {
+      ReportAction.__super__.constructor.call(this, info, scope);
+      this.userReport = {};
+    }
+
+    ReportAction.prototype.userReportChanged = function(report) {
+      return this.location.search({
+        user_report: report
+      });
+    };
+
     ReportAction.prototype.routeUpdate = function(search) {
-      return this.scope.setContent(this.info.content);
+      var svc;
+      this.userReport.id = search.user_report;
+      if (this.userReport.id) {
+        svc = new Katrid.Services.Model('sys.action.report');
+        svc.post('load_user_report', null, {
+          kwargs: {
+            user_report: this.userReport.id
+          }
+        }).done((function(_this) {
+          return function(res) {
+            _this.userReport.params = res.result;
+            return _this.scope.setContent(_this.info.content);
+          };
+        })(this));
+      } else {
+        this.scope.setContent(this.info.content);
+      }
     };
 
     return ReportAction;

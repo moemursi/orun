@@ -41,9 +41,17 @@ class WindowAction(Action):
     ))
     limit = models.IntegerField(default=100, verbose_name=_('Limit'))
     auto_search = models.BooleanField(default=True, verbose_name=_('Auto Search'))
+    views = models.TextField(getter='_get_views', editable=False, serializable=True)
 
     class Meta:
         name = 'sys.action.window'
+
+    def _get_views(self):
+        modes = self.view_mode.split(',')
+        modes = {mode: None for mode in modes}
+        if 'search' not in modes:
+            modes['search'] = None
+        return modes
 
 
 class ReportAction(Action):

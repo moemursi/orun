@@ -7,7 +7,7 @@ class AppConfig(orun.AppConfig):
     version = '0.1'
     auto_install = True
     default_language = 'en-us'
-    fixtures = ['modules.xml', 'actions.xml', 'menu.xml', 'currency.xml', 'country.xml', 'partner.xml']
+    fixtures = ['modules.xml', 'views.xml', 'actions.xml', 'menu.xml', 'currency.xml', 'country.xml', 'partner.xml']
     depends = []
 
 

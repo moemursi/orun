@@ -25,4 +25,5 @@ def load_fixture(app_config, filename, **options):
     format = filename.rsplit('.', 1)[1]
     deserializer = get_deserializer(format)
     f = open(fpath, encoding='utf-8')
+    options['filename'] = fpath
     deserializer(f, app, app_config=app_config, app_label=app_config.schema, **options)

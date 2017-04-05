@@ -12,14 +12,12 @@ import sqlalchemy.orm.query
 from orun.db import models
 from orun.utils import reraise
 from orun.core.serializers.base import DeserializationError
-from orun.core.serializers.python import (
-    Serializer as PythonSerializer, # Deserializer as PythonDeserializer,
-)
+from orun.core.serializers import python
 from orun.utils.functional import Promise
 from orun.utils.timezone import is_aware
 
 
-class Serializer(PythonSerializer):
+class Serializer(python.Serializer):
     """
     Convert a queryset to JSON.
     """
@@ -63,10 +61,10 @@ class Serializer(PythonSerializer):
 
     def getvalue(self):
         # Grand-parent super
-        return super(PythonSerializer, self).getvalue()
+        return super(python.Serializer, self).getvalue()
 
 
-def Deserializer(stream_or_string, **options):
+def Deserializer(stream_or_string, app, **options):
     """
     Deserialize a stream or string of JSON data.
     """
@@ -76,8 +74,11 @@ def Deserializer(stream_or_string, **options):
         stream_or_string = stream_or_string.decode('utf-8')
     try:
         objects = json.loads(stream_or_string)
-        for obj in PythonDeserializer(objects, **options):
-            yield obj
+        translate = objects.get('translate', False)
+        for data in objects['data']:
+            model = data['model']
+            for obj in python.Deserializer(data['objects'], model=model, **options):
+                pass
     except GeneratorExit:
         raise
     except Exception as e:

@@ -252,11 +252,22 @@ class Params
 
     datetime: (param) ->
       if param.operation is 'between'
-        """<div class="col-sm-4"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" datepicker ng-model="param.value1" class="form-control"></div>
-<div class="col-sm-4"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}-2" datepicker ng-model="param.value2" class="form-control"></div>
+        """<div class="col-sm-4"><label class="control-label">&nbsp;</label>
+<div class="input-group date"><input id="rep-param-id-#{param.id}" datepicker ng-model="param.value1" class="form-control">
+<div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div>
+</div></div>
+<div class="col-sm-4"><label class="control-label">&nbsp;</label>
+<div class="input-group date"><input id="rep-param-id-#{param.id}-2" datepicker ng-model="param.value2" class="form-control">
+<div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div>
+</div>
+</div>
 """
       else
-        """<div class="col-sm-4"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" datepicker ng-model="param.value1" class="form-control"></div>"""
+        """<div class="col-sm-4"><label class="control-label">&nbsp;</label>
+<div class="input-group date"><input id="rep-param-id-#{param.id}" datepicker ng-model="param.value1" class="form-control">
+<div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div>
+</div>
+</div>"""
 
     sqlchoices: (param) ->
       """<div class="col-sm-8"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" report-file="#{param.params.info.file}" ajax-choices="/api/reports/choices/" sql-choices="#{param.name}" ng-model="param.value1"></div>"""

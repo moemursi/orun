@@ -42,26 +42,32 @@ class WindowAction extends Action
         @scope.record = null
         @viewType = search.view_type
         @execute()
-
-      if search.view_type is 'list' and not search.page
-        @location.search('page', 1)
         return
 
-      filter = {}
-      if search.q?
-        filter.q = search.q
+      if search.view_type in ['list', 'card'] and not search.page
+        console.log('set page')
+        @location.search('page', 1)
+      else
 
-      if search.view_type is 'list' and search.page isnt @scope.dataSource.pageIndex
-        @scope.dataSource.pageIndex = parseInt(search.page)
-        @scope.dataSource.search(filter, search.page)
-      else if search.view_type is 'list' and search.q?
-        @scope.dataSource.search(filter, search.page)
+        filter = {}
+        if search.q?
+          filter.q = search.q
 
-      if search.id and ((@scope.record? and @scope.record.id != search.id) or not @scope.record?)
-        @scope.record = null
-        @scope.dataSource.get(search.id)
+        fields = _.keys(@scope.view.fields)
+
+        if search.view_type in ['list', 'card'] and search.page isnt @scope.dataSource.pageIndex
+          @scope.dataSource.pageIndex = parseInt(search.page)
+          @scope.dataSource.search(filter, search.page, fields)
+        else if search.view_type in ['list', 'card'] and search.q?
+          @scope.dataSource.search(filter, search.page, fields)
+
+        if search.id and ((@scope.record? and @scope.record.id != search.id) or not @scope.record?)
+          console.log('set id', search.id)
+          @scope.record = null
+          @scope.dataSource.get(search.id)
     else
       @setViewType(@viewModes[0])
+    return
 
   setViewType: (viewType) ->
     @location.search
@@ -69,13 +75,16 @@ class WindowAction extends Action
 
   apply: ->
     @render(@scope, @scope.view.content, @viewType)
+    @routeUpdate(@location.$$search)
 
   execute: ->
     if @views?
       @scope.view = @views[@viewType]
       @apply()
     else
-      r = @scope.model.loadViews()
+      r = @scope.model.loadViews
+        views: @info.views
+        action: @info.id
       r.done (res) =>
         views = res.result
         @views = views
@@ -83,7 +92,10 @@ class WindowAction extends Action
           @scope.views = views
           @scope.view = views[@viewType]
           @apply()
-      return r
+
+    if @viewType isnt 'list'
+      @scope.dataSource.groupBy()
+
 
   render: (scope, html, viewType) ->
     scope.setContent(Katrid.UI.Utils.Templates['preRender_' + viewType](scope, html))
@@ -105,14 +117,15 @@ class WindowAction extends Action
     @scope.dataSource.search(params)
 
   applyGroups: (groups) ->
-    console.log('set grupo', groups)
     @scope.dataSource.groupBy(groups[0])
 
   doViewAction: (viewAction, target, confirmation) ->
+    @_doViewAction(@scope, viewAction, target, confirmation)
+
+  _doViewAction: (scope, viewAction, target, confirmation) ->
     if not confirmation or (confirmation and confirm(confirmation))
-      @scope.model.doViewAction({ action_name: viewAction, target: target })
+      scope.model.doViewAction({ action_name: viewAction, target: target })
       .done (res) ->
-        console.log(res)
         if res.status is 'open'
           window.open(res.open)
         else if res.status is 'fail'
@@ -137,8 +150,26 @@ class WindowAction extends Action
 
 class ReportAction extends Action
   @actionType: 'sys.action.report'
+
+  constructor: (info, scope) ->
+    super info, scope
+    @userReport = {}
+
+  userReportChanged: (report) ->
+    @location.search
+      user_report: report
+
   routeUpdate: (search) ->
-    @scope.setContent(@info.content)
+    @userReport.id = search.user_report
+    if @userReport.id
+      svc = new Katrid.Services.Model('sys.action.report')
+      svc.post 'load_user_report', null, { kwargs: { user_report: @userReport.id } }
+      .done (res) =>
+        @userReport.params = res.result
+        @scope.setContent(@info.content)
+    else
+      @scope.setContent(@info.content)
+    return
 
 
 class ViewAction extends Action

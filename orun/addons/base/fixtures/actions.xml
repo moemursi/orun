@@ -1,27 +1,27 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <data>
-  <action id="sys.action.view.action" type="sys.action.window" name="Actions" model="sys.action">
+  <action id="action.sys.view.action" type="sys.action.window" name="Actions" model="sys.action">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="sys.action.view.action.window" type="sys.action.window" name="Window Actions" model="sys.action.window">
+  <action id="action.sys.view.action.window" type="sys.action.window" name="Window Actions" model="sys.action.window">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="sys.action.view.model" type="sys.action.window" name="Models" model="sys.model">
+  <action id="action.sys.view.model" type="sys.action.window" name="Models" model="sys.model">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="sys.action.view.field" type="sys.action.window" name="Fields" model="sys.model.field">
+  <action id="action.sys.view.field" type="sys.action.window" name="Fields" model="sys.model.field">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="sys.action.view.ui.menu" type="sys.action.window" name="Menu" model="ui.menu">
+  <action id="action.sys.view.ui.menu" type="sys.action.window" name="Menu" model="ui.menu">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="sys.action.view.ui.view" type="sys.action.window" name="Views" model="ui.view">
+  <action id="action.sys.view.ui.view" type="sys.action.window" name="Views" model="ui.view">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="sys.action.view.auth.user" type="sys.action.window" name="Users" model="auth.user">
+  <action id="action.sys.view.auth.user" type="sys.action.window" name="Users" model="auth.user">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="sys.action.view.auth.group" type="sys.action.window" name="Groups" model="auth.group">
+  <action id="action.sys.view.auth.group" type="sys.action.window" name="Groups" model="auth.group">
     <field name="view_mode">list,form</field>
   </action>
 </data>

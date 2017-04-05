@@ -1,0 +1,153 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: orun\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-07-24 11:06+0100\n"
+"PO-Revision-Date: 2016-08-01 19:20+0000\n"
+"Last-Translator: Alexandre Dias <alexandre@katrid.com>\n"
+"Language-Team: Portuguese (Brazil)"
+"language/pt_BR/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt_BR\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Fleet"
+msgstr "Frota"
+
+msgid "Vehicle"
+msgstr "Veículo"
+
+msgid "Vehicles"
+msgstr "Veículos"
+
+msgid "Make of Vehicle"
+msgstr "Fabricante de Veículo"
+
+msgid "Make of Model"
+msgstr "Modelo de Veículo"
+
+msgid "General-Purpose Vehicle"
+msgstr "Veículo de Uso Geral"
+
+msgid "Utility Vehicle"
+msgstr "Veículo Utilitário"
+
+msgid "Driver"
+msgstr "Motorista"
+
+msgid "Drivers"
+msgstr "Motoristas"
+
+msgid "Contract"
+msgstr "Contrato"
+
+msgid "Contracts"
+msgstr "Contratos"
+
+msgid "Gasoline"
+msgstr "Gasolina"
+
+msgid "Ethanol"
+msgstr "Etanol"
+
+msgid "Gas"
+msgstr "Gás"
+
+msgid "Electric"
+msgstr "Elétrico"
+
+msgid "Hybrid"
+msgstr "Híbrido"
+
+msgid "Other"
+msgstr "Outro"
+
+msgid "Own"
+msgstr "Próprio"
+
+msgid "Outsourced"
+msgstr "Terceirizado"
+
+msgid "Service Provider"
+msgstr "Prestador de Serviços"
+
+msgid "Rented"
+msgstr "Alugado"
+
+msgid "Settings"
+msgstr "Configurações"
+
+msgid "Human"
+msgstr "Humano"
+
+msgid "Weight"
+msgstr "Peso"
+
+msgid "Kilometer"
+msgstr "Quilômetro"
+
+msgid "Mile"
+msgstr "Milha"
+
+msgid "Model Year"
+msgstr "Ano Modelo"
+
+msgid "Manufacture Year"
+msgstr "Ano Fabricação"
+
+msgid "Doors Number"
+msgstr "Número de Portas"
+
+msgid "Seats Number"
+msgstr "Número de Assentos"
+
+msgid "Vehicle State"
+msgstr "Estado do Veículo"
+
+msgid "Weight Unit"
+msgstr "Unidade de Peso"
+
+msgid "Ton"
+msgstr "Tonelada"
+
+msgid "Pound"
+msgstr "Libra"
+
+msgid "Kilogram"
+msgstr "Quilograma"
+
+msgid "Odometer"
+msgstr "Hodômetro"
+
+msgid "Fuel Log"
+msgstr "Registro de Combustível"
+
+msgid "Distance"
+msgstr "Distância"
+
+msgid "Back Distance"
+msgstr "Distância de Retorno"
+
+msgid "Planned"
+msgstr "Planejado"
+
+msgid "Corrective"
+msgstr "Corretivo"
+
+msgid "Maintenance Type"
+msgstr "Tipo de Manutenção"
+
+msgid "Route"
+msgstr "Rota"
+
+msgid "Routes"
+msgstr "Rotas"
+
+msgid "Start Date"
+msgstr "Data Início"
+
+msgid "End Date"
+msgstr "Data Fim"

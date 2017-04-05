@@ -62,6 +62,7 @@ class Field(object):
         self.help_text = help_text
         self.db_tablespace = db_tablespace or settings.DEFAULT_INDEX_TABLESPACE
         self.getter = getter
+        self.setter = setter
         if null is None:
             self.null = True
         self.required = required
@@ -387,9 +388,11 @@ class DateField(DateTimeField):
     _db_type = sa.Date()
 
     def deserialize(self, value, instance=None):
+        # Try the ISO format and then settings.DATE_INPUT_FORMATS
         for format in settings.DATE_INPUT_FORMATS:
             try:
                 value = datetime.datetime.strptime(force_str(value), format).date()
+                return value
             except (ValueError, TypeError):
                 continue
 
@@ -449,12 +452,16 @@ class FilePathField(CharField):
 
 
 class field_property(object):
-    def __init__(self, fget, fset=None):
+    def __init__(self, field_name, fget, fset=None):
+        self.field_name = field_name
         self.fget = fget
         self.fset = fset
 
     def __get__(self, instance, owner):
-        meta = owner._meta
         if instance:
             return self.fget(instance)
-        return meta.pk.column
+        meta = owner._meta
+        return meta.fields_dict[self.field_name]
+
+    def __set__(self, instance, value):
+        self.fset(instance, value)

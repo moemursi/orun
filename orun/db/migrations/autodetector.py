@@ -296,7 +296,7 @@ class MigrationAutodetector(object):
                         instance.initial = app_label not in self.existing_apps
                         if instance.initial and app_label in apps.app_configs:
                             addon = apps.get_app_config(app_label)
-                            if addon.db_schema:
+                            if addon.db_schema and addon.db_schema not in [apps.get_app_config(dep).db_schema for dep in addon.depends]:
                                 chopped.insert(0, operations.CreateSchema(addon.db_schema))
                         instance.operations = chopped
                         self.migrations.setdefault(app_label, []).append(instance)
@@ -477,8 +477,8 @@ class MigrationAutodetector(object):
             # Gather related fields
             related_fields = {}
             primary_key_rel = None
-            for field in model_opts.local_fields:
-                if field.remote_field:
+            for field in model_opts.concrete_fields:
+                if field.remote_field and not field.inherited:
                     if field.remote_field.model:
                         if field.primary_key:
                             primary_key_rel = field.remote_field.model

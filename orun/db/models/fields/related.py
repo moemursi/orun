@@ -2,6 +2,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import relationship
 
 from orun import app
+from orun.apps import apps
 from orun.utils.functional import cached_property
 from .base import Field
 
@@ -51,10 +52,15 @@ class ForeignKey(RelatedField):
 
     @property
     def related_model(self):
-        if self.to == 'self':
-            return self.model
-        elif self.model._meta.app:
-            return self.model._meta.app[self.to]
+        model = self.to
+        if model == 'self':
+            model = self.model
+        if self.model._meta.app:
+            model = self.model._meta.app[model]
+        # is a migration
+        if model and self.model.__module__ == '__fake__' and model._meta.extension:
+            model = model._meta.base_model
+        return model
 
     @property
     def remote_field(self):
@@ -130,16 +136,25 @@ class ForeignKey(RelatedField):
 class OneToManyField(RelatedField):
     one_to_many = True
 
-    def __init__(self, to, lazy='dynamic', *args, **kwargs):
+    def __init__(self, to, to_field=None, lazy='dynamic', *args, **kwargs):
         self.to = to
+        self.to_field = to_field
+        if isinstance(to, Field):
+            self.to = to.model._meta.name
+            self.to_field = to.name
         super(OneToManyField, self).__init__(lazy=lazy, *args, **kwargs)
 
     def get_attname(self):
         return None
 
     @property
+    def remote_field(self):
+        return self.to._meta.fields_dict[self.to_field]
+
+    @property
     def related(self):
-        return relationship(lambda: app[self.to.lower()]._meta.mapped, lazy=self.lazy)
+        self.to = app[self.to]
+        return relationship(lambda: self.to, foreign_keys=[self.remote_field.column], lazy=self.lazy)
 
 
 class OneToOneField(ForeignKey):
@@ -181,8 +196,8 @@ class ManyToManyField(RelatedField):
         else:
             rel_model = app[self.to]
 
-        from_ = 'from_%s' % self.model.__name__.lower()
-        to_ = 'to_%s' % rel_model.__name__.lower()
+        from_ = 'from_%s' % self.model._meta.name.replace('.', '_')
+        to_ = 'to_%s' % rel_model._meta.name.replace('.', '_')
 
         new_model = type('%s_%s' % (self.model.__name__, self.name), (models.Model,), {
             '__module__': self.model._meta.app_label,

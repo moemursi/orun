@@ -207,7 +207,7 @@
       return this.scope.records.indexOf(rec);
     };
 
-    DataSource.prototype.search = function(params, page) {
+    DataSource.prototype.search = function(params, page, fields) {
       var def;
       this._params = params;
       this._page = page;
@@ -219,7 +219,8 @@
       params = {
         count: true,
         page: page,
-        params: params
+        params: params,
+        fields: fields
       };
       def = new $.Deferred();
       this.pendingRequest = setTimeout((function(_this) {
