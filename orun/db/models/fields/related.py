@@ -123,18 +123,24 @@ class ForeignKey(RelatedField):
         #    kwargs['to_field'] = self.remote_field.field_name
         return name, path, args, kwargs
 
-    def deserialize(self, value, instance=None):
+    def deserialize(self, value, instance):
         if isinstance(value, (list, tuple)):
-            return value[0]
-        return value
+            value = value[0]
+        super(ForeignKey, self).deserialize(value, instance)
 
     def serialize(self, value, instance=None):
         if value:
             return value._get_rec_name()
 
 
+CREATE_CHILD = 'CREATE'
+UPDATE_CHILD = 'UPDATE'
+DESTROY_CHILD = 'DESTROY'
+
+
 class OneToManyField(RelatedField):
     one_to_many = True
+    child_field = True
 
     def __init__(self, to, to_field=None, lazy='dynamic', *args, **kwargs):
         self.to = to
@@ -147,6 +153,12 @@ class OneToManyField(RelatedField):
     def get_attname(self):
         return None
 
+    def _get_info(self):
+        r = super(OneToManyField, self)._get_info()
+        r['field'] = self.remote_field.name
+        r['model'] = self.remote_field.model._meta.name
+        return r
+
     @property
     def remote_field(self):
         return self.to._meta.fields_dict[self.to_field]
@@ -155,6 +167,23 @@ class OneToManyField(RelatedField):
     def related(self):
         self.to = app[self.to]
         return relationship(lambda: self.to, foreign_keys=[self.remote_field.column], lazy=self.lazy)
+
+    def deserialize(self, value, instance):
+        if value:
+            model = app[self.remote_field.model]
+            pk = instance.pk
+            for obj in value:
+                values = None
+                act = obj['action']
+                if act != DESTROY_CHILD:
+                    values = obj['values']
+                    values[self.remote_field.name] = pk
+                if act == CREATE_CHILD:
+                    item = model.create(**values)
+                elif act == UPDATE_CHILD:
+                    item = model.write([values])
+                elif act == DESTROY_CHILD:
+                    model.destroy([obj['id']])
 
 
 class OneToOneField(ForeignKey):
@@ -176,6 +205,7 @@ class OneToOneField(ForeignKey):
 
 class ManyToManyField(RelatedField):
     many_to_many = True
+    child_field = True
 
     def __init__(self, to, through=None, lazy='dynamic', *args, **kwargs):
         self.to = to

@@ -44,6 +44,7 @@ class VehicleModel(models.Model):
         field_groups = {
             'searchable_fields': ['name', 'vehicle_make'],
             'groupable_fields': ['vehicle_make'],
+            'list_fields': ['vehicle_make', 'name', 'model_type'],
         }
 
     def __str__(self):
@@ -97,10 +98,10 @@ class Vehicle(models.Model):
         ('weight', _('Weight'))
     )
     DISTANCE_UNIT = (
-        ('kilometer', 'Kilometer'),
-        ('mile', 'Mile'),
+        ('kilometer', _('Kilometer')),
+        ('mile', _('Mile')),
     )
-    company = models.ForeignKey('res.company')
+    company = models.ForeignKey('res.company', verbose_name=_('Company'))
     model = models.ForeignKey(VehicleModel, verbose_name=_('Model'), null=False, help_text='Modelo do veículo')
     model_year = models.SmallIntegerField(_('Model Year'), help_text='Ano do modelo')
     manufacture_year = models.SmallIntegerField(_('Manufacture Year'), null=False, help_text='Ano de fabricação')
@@ -108,15 +109,15 @@ class Vehicle(models.Model):
     doors = models.SmallIntegerField(_('Doors Number'), help_text='Quantidade de portas', default=4)
     seats = models.SmallIntegerField(_('Seats Number'))
     vehicle_state = models.ForeignKey(VehicleState)
-    co2 = models.FloatField(_('Co2 Emissions'))
-    transmission = models.CharField(16, choices=(
+    co2 = models.FloatField(_('CO2 Emissions'))
+    transmission = models.CharField(16, label=_('Transmission'), choices=(
         ('manual', _('Manual')),
         ('automatic', _('Automatic')),
     ))
     license_plate = models.CharField(20, verbose_name=_('License Plate'), help_text='Número da placa do veículo')
     color = models.CharField(max_length=20, verbose_name=_('Color'), help_text='Cor do equipamento')
     chassis = models.CharField(max_length=20, verbose_name=_('Chassis'), help_text='Número do Chassi do veículo')
-    driver = models.ForeignKey(Driver, verbose_name='Responsável', help_text='Responsável principal pelo veículo')
+    driver = models.ForeignKey(Driver, label=_('Driver'), help_text='Responsável principal pelo veículo')
     supplier = models.ForeignKey(
         'res.partner', verbose_name=_('Supplier'), help_text='Fornecedor responsável pelo venda ou locação do veículo'
     )
@@ -124,44 +125,49 @@ class Vehicle(models.Model):
     invoice_ref = models.CharField(20, verbose_name=_('Invoice Ref.'), help_text=_('Invoice reference number'))
     acquisition_date = models.DateField(_('Acquisition Date'), help_text='Data da compra/locação do equipamento')
     fuel = models.OneToManyField('fleet.vehicle.fuel', 'vehicle', verbose_name=_('Fuel'))
-    ownership = models.CharField(max_length=1, verbose_name='Tipo', choices=OWNERSHIP, default='P', page='Detalhes')
-    cargo = models.CharField(max_length=1, verbose_name=_('Cargo'), choices=CARGO, default='human')
+    ownership = models.CharField(max_length=16, verbose_name='Tipo', choices=OWNERSHIP, default='P', page='Detalhes')
+    cargo = models.CharField(max_length=16, verbose_name=_('Cargo'), choices=CARGO, default='human')
     weight_capacity = models.DecimalField(label=_('Weight Capacity'), help_text='Capacidade de transporte')
-    weight = models.DecimalField('Weight', help_text=_('Vehicle weight'))
-    weight_unit = models.CharField(16, _('Weight Unit'), choices=(
+    weight = models.DecimalField(label=_('Weight'), help_text=_('Vehicle weight'))
+    weight_unit = models.CharField(16, label=_('Weight Unit'), choices=(
         ('ton', _('Ton')),
         ('lb', _('Pound')),
         ('kg', _('Kilogram')),
     ), default='ton')
-    odometer = models.DecimalField(_('Odometer'), help_text='Horímetro atual do equipamento')
+    odometer = models.DecimalField(label=_('Odometer'), help_text='Horímetro atual do equipamento')
     odometer_unit = models.CharField(
-        16, _('Odometer Unit'), choices=DISTANCE_UNIT, help_text='Horímetro atual do equipamento', default='kilometer'
+        16, label=_('Odometer Unit'), choices=DISTANCE_UNIT, help_text='Horímetro atual do equipamento', default='kilometer'
     )
-    hp = models.IntegerField(_('Horsepower'))
-    hp_tax = models.IntegerField(_('Horsepower Taxation'))
+    hp = models.IntegerField(label=_('Horsepower'))
     lifespan_years = models.DecimalField(verbose_name=_('Lifespan (Years)'), help_text=_('Vehicle lifespan in years'))
     lifespan_hours = models.DecimalField(verbose_name=_('Lifespan (Hours)'), help_text=_('Vehicle lifespan in hours'))
     rented = models.BooleanField(_('Rented'), default=False, help_text=_('Vehicle is rented'))
     rent_value = models.DecimalField(_('Rent Value'), help_text='Valor de locação do veículo')
     category = models.ForeignKey(Category, verbose_name=_('Category'), help_text=_('Vehicle category'))
-    autonomy = models.FloatField()
+    autonomy = models.FloatField(label=_('Autonomy'))
     notes = models.TextField(verbose_name=_('Notes'))
-    purchase_value = models.DecimalField(_('Purchase Value'))
+    purchase_value = models.DecimalField(label=_('Purchase Value'))
+    vehicle_costs = models.OneToManyField('fleet.vehicle.cost', 'vehicle', label=_('Costs'))
 
     class Meta:
         name = 'fleet.vehicle'
         verbose_name = _('Vehicle')
         verbose_name_plural = _('Vehicles')
         title_field = 'model'
+        field_groups = {
+            'list_fields': ['model', 'description'],
+        }
 
     def __str__(self):
-        return '%s (%s/%s) / %s' % (self.license_plate, self.manufacture_year, self.model_year, str(self.model))
+        if self.license_plate:
+            return '%s - %s (%s/%s)' % (self.license_plate, str(self.model), self.manufacture_year, self.model_year)
+        return '%s (%s/%s)' % (str(self.model), self.manufacture_year, self.model_year)
 
 
 class VehicleFuel(models.Model):
-    vehicle = models.ForeignKey(Vehicle, null=False)
+    vehicle = models.ForeignKey(Vehicle, null=False, editable=False)
     fuel = models.CharField(16, choices=Vehicle.FUEL, label='Combustível')
-    capacity = models.FloatField()
+    capacity = models.FloatField(label=_('Capacity'))
     autonomy = models.DecimalField(
         label=_('Autonomy'),
         help_text='Autonomia em quilometro por parte de combustível. (Ex: 10km por litro)'
@@ -170,7 +176,7 @@ class VehicleFuel(models.Model):
     class Meta:
         name = 'fleet.vehicle.fuel'
         verbose_name = 'Combustível'
-        title_field = 'combustivel'
+        title_field = 'fuel'
 
     def __str__(self):
         return str(self.fuel)
@@ -191,7 +197,21 @@ class CostType(models.Model):
         verbose_name_plural = _('Cost Type')
 
 
-class Contract(models.Model):
+class VehicleCost(models.Model):
+    vehicle = models.ForeignKey(Vehicle, label=_('Vehicle'), null=False)
+    cost_type = models.ForeignKey(CostType, label=_('Cost Type'), null=False)
+    value = models.DecimalField(label=_('Amount'))
+    due_date = models.DateField(label=_('Due Date'))
+    payment_date = models.DateField(label=_('Payment Date'))
+    odometer = models.FloatField(label=_('Odometer'))
+    contract = models.ForeignKey('fleet.contract', label=_('Contract'))
+
+    class Meta:
+        name = 'fleet.vehicle.cost'
+        title_field = 'vehicle'
+
+
+class Contract(VehicleCost):
     STATE = (
         ('open', _('In Progress')),
         ('to close', _('To Close')),
@@ -202,10 +222,11 @@ class Contract(models.Model):
         ('rent', _('Rent')),
         ('insurance', _('Insurance')),
         ('leasing', _('Leasing')),
+        ('maintenance', _('Maintenance')),
         ('other', _('Other')),
     )
     FREQUENCY = (
-        ('no', 'No'),
+        ('no', _('No')),
         ('daily', _('Daily')),
         ('weekly', _('Weekly')),
         ('monthly', _('Monthly')),
@@ -213,12 +234,12 @@ class Contract(models.Model):
     )
     contract_no = models.CharField(20, null=False, label='Número do Contrato', help_text='Número do contrato', copy=False)
     description = models.CharField(label=_('Description'))
-    contract_type = models.CharField(16, label=_('Recurring Cost Frequency'), choices=TYPE)
+    contract_type = models.CharField(16, label=_('Contract Type'), choices=TYPE)
     cost_frequency = models.CharField(16, label=_('Charge Frequency'), choices=FREQUENCY)
-    state = models.CharField(max_length=16, null=False, verbose_name='Situação do Contrato', help_text='Situação/status atual do contrato')
-    start_date = models.DateField(verbose_name='Data Saída', help_text='Data da saída', null=False, group='Saída')
-    expiration_date = models.DateField(verbose_name='Data Retorno', help_text='Data prevista para o retorno', group='Retorno')
-    supplier = models.ForeignKey('res.partner', verbose_name='Contratado', help_text='Parceiro contratado para o serviço de frete')
+    status = models.CharField(max_length=16, null=False, label=_('Status'), help_text='Situação/status atual do contrato')
+    start_date = models.DateField(verbose_name=_('Start Date'), help_text='Data da saída', null=False, group='Saída')
+    expiration_date = models.DateField(verbose_name=_('Expiration Date'), help_text='Data prevista para o retorno', group='Retorno')
+    supplier = models.ForeignKey('res.partner', verbose_name=_('Supplier'), help_text='Parceiro contratado para o serviço de frete')
     destination = models.CharField(max_length=100, null=False, verbose_name='Destino', help_text='Destino do destino')
     notes = models.TextField(label=_('Terms and Conditions'))
 
@@ -227,20 +248,6 @@ class Contract(models.Model):
         verbose_name = _('Freight Contract')
         verbose_name_plural = _('Freight Contract')
         title_field = 'description'
-
-
-class VehicleCost(models.Model):
-    vehicle = models.ForeignKey(Vehicle, null=False)
-    cost_type = models.ForeignKey(CostType, null=False)
-    value = models.DecimalField()
-    due_date = models.DateField()
-    payment_date = models.DateField()
-    odometer = models.FloatField()
-    contract = models.ForeignKey(Contract)
-
-    class Meta:
-        name = 'fleet.vehicle.cost'
-        title_field = 'vehicle'
 
 
 class FuelLog(VehicleCost):
@@ -303,7 +310,7 @@ class VehicleOdometer(models.Model):
     reason = models.CharField(200, label=_('Reason'), help_text=_('Travel reason'))
     start_date = models.DateField(label=_('Start Date'), null=False)
     current_odometer = models.DecimalField(label=_('Start Odometer'))
-    elapsed_distance = models.DecimalField(label=_('Elapsed Distance'), help_text=_('Total elapsed distance'))
+    elapsed_distance = models.DecimalField(label=_('Travelled Distance'), help_text=_('Total travelled distance'))
     end_date = models.DateField(label=_('End Date'), help_text=_('Estimated return date'))
     origin = models.CharField(100, null=False, label=_('Origin'), help_text='Origem da viagem')
     destination = models.CharField(100, null=False, label=_('Destination'))
@@ -313,6 +320,9 @@ class VehicleOdometer(models.Model):
         name = 'fleet.vehicle.odometer'
         verbose_name = _('Odometer')
         verbose_name_plural = _('Odometer')
+        field_groups = {
+            'list_fields': ['start_date', 'vehicle', 'driver', 'origin', 'destination']
+        }
 
 
 class Maintenance(VehicleCost):
@@ -338,12 +348,12 @@ class Maintenance(VehicleCost):
 
 
 class TrafficTicket(VehicleCost):
-    reason = models.CharField()
-    date_time = models.DateTimeField()
-    kind = models.CharField()
-    driver = models.ForeignKey(Driver)
-    points = models.DecimalField()
-    notes = models.TextField()
+    reason = models.CharField(label=_('Reason'))
+    date_time = models.DateTimeField(label=_('Date/Time'))
+    kind = models.CharField(label=_('Kind'))
+    driver = models.ForeignKey(Driver, label=_('Driver'))
+    points = models.DecimalField(label=_('Points'))
+    notes = models.TextField(label=_('Notes'))
 
     class Meta:
         name = 'fleet.traffic.ticket'

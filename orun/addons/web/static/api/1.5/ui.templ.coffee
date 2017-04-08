@@ -291,7 +291,7 @@ class Templates
       else if  fieldInfo._listChoices
         cols += """<td class="#{cls}">${view.fields.#{name}._listChoices[row.#{name}]}</td>"""
       else if fieldInfo.type is 'BooleanField'
-        cols += """<td>${row.#{name} ? '#{Katrid.i18n.gettext('yes')}' : '#{Katrid.i18n.gettext('no')}'}</td>"""
+        cols += """<td class="bool-text #{cls}">${row.#{name} ? '#{Katrid.i18n.gettext('yes')}' : '#{Katrid.i18n.gettext('no')}'}</td>"""
       else if fieldInfo.type is 'DecimalField'
         cols += """<td class="#{cls}">${row.#{name}|number:2}</td>"""
       else if fieldInfo.type is 'DateField'
@@ -303,7 +303,7 @@ class Templates
       cols += """<td class="list-column-delete" ng-show="parent.dataSource.changing" ng-click="removeItem($index);$event.stopPropagation();"><i class="fa fa-trash"></i></td>"""
     if not rowClick?
       rowClick = 'action.listRowClick($index, row)'
-    s = """<table ng-show="!dataSource.loading" class="table table-striped table-bordered table-hover display responsive nowrap dataTable no-footer dtr-column">
+    s = """<table ng-show="!dataSource.loading" class="table table-striped table-bordered table-condensed table-hover display responsive nowrap dataTable no-footer dtr-column">
 <thead><tr>#{ths}</tr></thead>
 <tbody>
 <tr ng-repeat="row in records" ng-click="#{rowClick}" ng-class="{'group-header': row._hasGroup}">#{cols}</tr>
@@ -315,7 +315,7 @@ class Templates
 
   renderGrid: (scope, element, attrs, rowClick) ->
     tbl = @renderList(scope, element, attrs, rowClick, true)
-    return """<div><div><button class="btn btn-default" ng-click="addItem()" ng-show="parent.dataSource.changing" type="button">#{Katrid.i18n.gettext 'Add'}</button></div>#{tbl}</div>"""
+    return """<div><div><button class="btn btn-xs btn-info" ng-click="addItem()" ng-show="parent.dataSource.changing" type="button">#{Katrid.i18n.gettext 'Add'}</button></div>#{tbl}</div>"""
 
 @Katrid.UI.Utils =
   Templates: new Templates()

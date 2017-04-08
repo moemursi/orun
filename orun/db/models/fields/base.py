@@ -29,6 +29,7 @@ class Field(object):
     base_model = None
     local = None
     inherited = False
+    child_field = False
 
     def __init__(self, label=None, db_column=None, db_index=False, primary_key=False,
                  concrete=None, readonly=False, null=True, required=None,
@@ -283,11 +284,11 @@ class Field(object):
             keywords,
         )
 
-    def deserialize(self, value, instance=None):
+    def deserialize(self, value, instance):
         """
         Converts a serialized value to a python compatible value.
         """
-        return value
+        setattr(instance, self.name, value)
 
     def serialize(self, value, instance=None):
         """
@@ -335,9 +336,10 @@ class CharField(Field):
     def db_type(self, bind=None):
         return sa.String(self.max_length)
 
-    def deserialize(self, value, instance=None):
+    def deserialize(self, value, instance):
         # Force serialized value to string
-        return str(value)
+        value = str(value)
+        super(CharField, self).deserialize(value, instance)
 
 
 class IntegerField(Field):
@@ -387,12 +389,12 @@ class DateTimeField(Field):
 class DateField(DateTimeField):
     _db_type = sa.Date()
 
-    def deserialize(self, value, instance=None):
+    def deserialize(self, value, instance):
         # Try the ISO format and then settings.DATE_INPUT_FORMATS
         for format in settings.DATE_INPUT_FORMATS:
             try:
                 value = datetime.datetime.strptime(force_str(value), format).date()
-                return value
+                return super(DateField, self).deserialize(value, instance)
             except (ValueError, TypeError):
                 continue
 
@@ -418,11 +420,12 @@ class DecimalField(Field):
     def db_type(self, bind=None):
         return sa.Numeric(self.precision, self.scale)
 
-    def deserialize(self, value, instance=None):
+    def deserialize(self, value, instance):
         if isinstance(value, (str, float)):
             value = decimal.Decimal(str(value))
         if value is not None:
-            return round(value, self.scale)
+            value = round(value, self.scale)
+        super(DecimalField, self).deserialize(value, instance)
 
 
 class EmailField(CharField):
@@ -435,6 +438,14 @@ class URLField(CharField):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('max_length', 1024)
         super(URLField, self).__init__(*args, **kwargs)
+
+
+class SelectionField(CharField):
+    def __init__(self, *args, **kwargs):
+        if args and isinstance(args[0], (list, tuple)):
+            kwargs['choices'] = args[0]
+        kwargs.setdefault('max_length', 32)
+        super(SelectionField, self).__init__(*args[1:], **kwargs)
 
 
 class BinaryField(Field):

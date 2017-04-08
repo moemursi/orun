@@ -46,7 +46,7 @@
   <link href="/static/web/static/api/1.5/web.app.css" rel="stylesheet">
 </head>
 <!-- 3. Display the application -->
-<body class="default-skin bg-skin">
+<body class="gray-skin bg-skin skin">
 {% block content %}{% endblock %}
 
 <script src="/static/web/static/assets/js/jquery.min.js"></script>
@@ -145,6 +145,19 @@
       return this.href == url;
     }).addClass('active').parent().parent().addClass('in').parent().addClass('active');
 
+
+    var loadingTimeout;
+    var loadingMsg = $('#loading-msg').hide();
+    $(document).ajaxStart(function() {
+        loadingTimeout = setTimeout(function() {
+           loadingMsg.show();
+        }, 700);
+    })
+    .ajaxStop(function() {
+        clearTimeout(loadingTimeout);
+        loadingMsg.hide();
+    });
+
   });
 </script>
 <!-- end menu -->
@@ -154,5 +167,9 @@
 <!-- demo js
 <script src="/static/web/static/assets/js/demo.js"></script>
 -->
+<div id="loading-msg">
+  <span>{{ _('Loading...') }}</span>
+</div>
+
 </body>
 </html>

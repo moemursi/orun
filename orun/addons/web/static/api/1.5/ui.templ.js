@@ -119,7 +119,7 @@
         } else if (fieldInfo._listChoices) {
           cols += "<td class=\"" + cls + "\">${view.fields." + name + "._listChoices[row." + name + "]}</td>";
         } else if (fieldInfo.type === 'BooleanField') {
-          cols += "<td>${row." + name + " ? '" + (Katrid.i18n.gettext('yes')) + "' : '" + (Katrid.i18n.gettext('no')) + "'}</td>";
+          cols += "<td class=\"bool-text " + cls + "\">${row." + name + " ? '" + (Katrid.i18n.gettext('yes')) + "' : '" + (Katrid.i18n.gettext('no')) + "'}</td>";
         } else if (fieldInfo.type === 'DecimalField') {
           cols += "<td class=\"" + cls + "\">${row." + name + "|number:2}</td>";
         } else if (fieldInfo.type === 'DateField') {
@@ -135,14 +135,14 @@
       if (rowClick == null) {
         rowClick = 'action.listRowClick($index, row)';
       }
-      s = "<table ng-show=\"!dataSource.loading\" class=\"table table-striped table-bordered table-hover display responsive nowrap dataTable no-footer dtr-column\">\n<thead><tr>" + ths + "</tr></thead>\n<tbody>\n<tr ng-repeat=\"row in records\" ng-click=\"" + rowClick + "\" ng-class=\"{'group-header': row._hasGroup}\">" + cols + "</tr>\n</tbody>\n</table>\n<div ng-show=\"dataSource.loading\" class=\"col-sm-12 margin-bottom-16 margin-top-16\">" + (Katrid.i18n.gettext('Loading...')) + "</div>";
+      s = "<table ng-show=\"!dataSource.loading\" class=\"table table-striped table-bordered table-condensed table-hover display responsive nowrap dataTable no-footer dtr-column\">\n<thead><tr>" + ths + "</tr></thead>\n<tbody>\n<tr ng-repeat=\"row in records\" ng-click=\"" + rowClick + "\" ng-class=\"{'group-header': row._hasGroup}\">" + cols + "</tr>\n</tbody>\n</table>\n<div ng-show=\"dataSource.loading\" class=\"col-sm-12 margin-bottom-16 margin-top-16\">" + (Katrid.i18n.gettext('Loading...')) + "</div>";
       return s;
     };
 
     Templates.prototype.renderGrid = function(scope, element, attrs, rowClick) {
       var tbl;
       tbl = this.renderList(scope, element, attrs, rowClick, true);
-      return "<div><div><button class=\"btn btn-default\" ng-click=\"addItem()\" ng-show=\"parent.dataSource.changing\" type=\"button\">" + (Katrid.i18n.gettext('Add')) + "</button></div>" + tbl + "</div>";
+      return "<div><div><button class=\"btn btn-xs btn-info\" ng-click=\"addItem()\" ng-show=\"parent.dataSource.changing\" type=\"button\">" + (Katrid.i18n.gettext('Add')) + "</button></div>" + tbl + "</div>";
     };
 
     return Templates;

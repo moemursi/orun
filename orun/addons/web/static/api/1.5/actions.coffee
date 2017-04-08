@@ -45,7 +45,6 @@ class WindowAction extends Action
         return
 
       if search.view_type in ['list', 'card'] and not search.page
-        console.log('set page')
         @location.search('page', 1)
       else
 

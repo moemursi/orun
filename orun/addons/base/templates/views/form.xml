@@ -1,7 +1,5 @@
 <form>
-  {% for f in opts.fields %}
-    {% if f.editable %}
+  {% for f in opts.form_fields %}
     <field name="{{ f.name }}" />
-    {% endif %}
   {% endfor %}
 </form>

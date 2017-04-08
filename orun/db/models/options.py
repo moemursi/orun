@@ -195,6 +195,11 @@ class Options(object):
         table = self.table
         mapped = self.model
 
+        additional_args = {}
+
+        if self.ordering:
+            additional_args['order_by'] = self.ordering
+
         if self.parents:
             for parent, field in self.parents.items():
                 parent = self.app[parent._meta.name]
@@ -203,9 +208,9 @@ class Options(object):
                 col = self.fields_dict[field.name].column
                 mapped.c = mapper(
                     mapped, table, inherits=parent, properties=props,
-                    inherit_condition=col == list(col.foreign_keys)[0].column).c
+                    inherit_condition=col == list(col.foreign_keys)[0].column, **additional_args, **additional_args).c
         else:
-            mapped.c = mapper(mapped, table, properties=props).c
+            mapped.c = mapper(mapped, table, properties=props, **additional_args).c
 
         self.mapped = mapped
 
@@ -245,38 +250,34 @@ class Options(object):
     @property
     def searchable_fields(self):
         if self.field_groups and 'searchable_fields' in self.field_groups:
-            for field_name in self.field_groups['searchable_fields']:
-                yield self.fields_dict[field_name]
+            return [self.fields_dict[field_name] for field_name in self.field_groups['searchable_fields']]
         elif self.title_field:
             return [self.get_title_field()]
+        return []
 
     @property
     def groupable_fields(self):
         if self.field_groups and 'groupable_fields' in self.field_groups:
-            for field_name in self.field_groups['groupable_fields']:
-                yield self.fields_dict[field_name]
+            return [self.fields_dict[field_name] for field_name in self.field_groups['groupable_fields']]
 
     @property
     def list_fields(self):
         if self.field_groups and 'list_fields' in self.field_groups:
-            for field_name in self.field_groups['list_fields']:
-                yield self.fields_dict[field_name]
+            return [self.fields_dict[field_name] for field_name in self.field_groups['list_fields']]
         else:
             return self.editable_fields
 
     @property
     def form_fields(self):
         if self.field_groups and 'form_fields' in self.field_groups:
-            for field_name in self.field_groups['form_fields']:
-                yield self.fields_dict[field_name]
+            return [self.fields_dict[field_name] for field_name in self.field_groups['form_fields']]
         else:
             return self.editable_fields
 
     @property
     def auto_report_fields(self):
         if self.field_groups and 'auto_report' in self.field_groups:
-            for field_name in self.field_groups['auto_report']:
-                yield self.fields_dict[field_name]
+            return [self.fields_dict[field_name] for field_name in self.field_groups['auto_report']]
         else:
             return self.list_fields
 

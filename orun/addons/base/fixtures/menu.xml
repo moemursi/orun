@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <data translate="true">
-  <menuitem id="sys.menu" name="System">
+  <menuitem id="sys.menu" name="System" sequence="999">
     <menuitem id="sys.menu.auth" name="Authentication">
       <menuitem id="sys.menu.auth.user" name="Users" action="action.sys.view.auth.user"/>
       <menuitem id="sys.menu.auth.group" name="Groups" action="action.sys.view.auth.group"/>

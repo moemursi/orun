@@ -11,7 +11,7 @@ class Menu(models.Model):
 
     class Meta:
         name = 'ui.menu'
-        ordering = ('sequence', 'name')
+        ordering = ('sequence',)
 
     def __str__(self):
         return self.get_full_name()

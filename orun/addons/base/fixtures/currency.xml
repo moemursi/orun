@@ -8,4 +8,8 @@
     <field name="name">BRL</field>
     <field name="symbol">R$</field>
   </object>
+  <object id="BRL" model="res.currency">
+    <field name="name">XBT</field>
+    <field name="symbol">B</field>
+  </object>
 </data>

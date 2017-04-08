@@ -263,9 +263,13 @@ def convert_params(model, params):
 
 
 class Query(orm.Query):
-    def filter(self, *criterion):
+    def filter(self, *criterion, **kwargs):
         # prepare django-styled params
         args = []
+        if not criterion:
+            criterion = []
+        if kwargs:
+            criterion.append(kwargs)
         for i, crit in enumerate(criterion):
             if isinstance(crit, dict):
                 if 'OR' in crit:

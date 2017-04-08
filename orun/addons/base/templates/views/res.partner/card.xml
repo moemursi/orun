@@ -13,7 +13,7 @@
         <field name="display_name"/>
       </strong>
       <ul>
-        <li ng-show="record.email"><field name="email"/></li>
+        <li ng-if="record.email"><span class="fa fa-envelope fa-fw"/> <field name="email"/></li>
       </ul>
     </div>
   </div>

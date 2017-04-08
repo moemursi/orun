@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <data translate="true">
-  <menuitem id="fleet.menu" name="Fleet">
+  <menuitem id="fleet.menu" sequence="98" name="Fleet">
     <menuitem id="fleet.menu.vehicles" name="Vehicles">
       <menuitem id="fleet.menu.vehicle" name="Vehicles" action="fleet.action.view.vehicle" />
       <menuitem id="fleet.menu.odometer" name="Odometer Log" action="fleet.action.view.odometer" />

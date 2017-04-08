@@ -70,7 +70,6 @@
           return;
         }
         if (((ref = search.view_type) === 'list' || ref === 'card') && !search.page) {
-          console.log('set page');
           this.location.search('page', 1);
         } else {
           filter = {};

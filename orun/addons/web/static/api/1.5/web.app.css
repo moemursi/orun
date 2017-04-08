@@ -1,3 +1,7 @@
+.form-field-readonly.bool-text,
+table tbody tr td.bool-text {
+  text-transform: capitalize;
+}
 .search-area .search-view {
   padding: 2px 25px 3px 4px;
   border: 1px solid #cccccc;
@@ -280,9 +284,13 @@ th.DecimalField {
 .select2-container .select2-choice {
   border-radius: 2px;
   height: 30px;
+  background: transparent;
+  border: 1px solid #d5d5d5;
 }
 .select2-container .select2-choice .select2-arrow {
   border-radius: 0 2px 2px 0;
+  background: transparent;
+  border-left: none;
 }
 section div.checkbox {
   margin-top: 6px;
@@ -314,8 +322,9 @@ section div.checkbox {
 }
 .table > tbody > tr > td.list-column-delete,
 .table > thead > tr > th.list-column-delete {
-  padding: 5px;
+  padding: 5px 10px;
   text-align: center;
+  width: 1px;
 }
 .table > tbody > tr {
   cursor: pointer;

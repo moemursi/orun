@@ -1,7 +1,42 @@
 <form>
-  {% for f in opts.fields %}
-    {% if f.editable %}
-    <field name="{{ f.name }}" />
-    {% endif %}
-  {% endfor %}
+  <field name="name"/>
+  <field name="active"/>
+  <field name="company_type" cols="3"/>
+  <field name="company"/>
+  <div class="clearfix"/>
+  <fieldset class="col-sm-6">
+    <legend>{{ _('Address') }}</legend>
+    <div class="row">
+      <field name="address"/>
+      <field name="address_2" placeholder="teste" />
+      <field name="zip"/>
+      <field name="city"/>
+      <field name="country"/>
+      <field name="state"/>
+    </div>
+  </fieldset>
+  <fieldset class="col-sm-6">
+    <legend>{{ _('Details') }}</legend>
+    <div class="row">
+      <field name="phone"/>
+      <field name="fax"/>
+      <field name="mobile"/>
+      <field name="website"/>
+      <field name="email"/>
+      <field name="language"/>
+      <field name="title"/>
+    </div>
+  </fieldset>
+  <tabset>
+    <tab>
+      <tab-heading>{{ _('Additional Data') }}</tab-heading>
+      <field name="birth_date"/>
+      <field name="barcode"/>
+      <field name="color"/>
+    </tab>
+    <tab>
+      <tab-heading>{{ _('Notes') }}</tab-heading>
+      <field name="comments" nolabel="true"/>
+    </tab>
+  </tabset>
 </form>

@@ -68,9 +68,6 @@ msgstr "Configuração"
 msgid "Name"
 msgstr "Nome"
 
-msgid "Country"
-msgstr "País"
-
 msgid "Action Type"
 msgstr "Tipo de Ação"
 
@@ -148,3 +145,138 @@ msgstr "Localização"
 
 msgid "%s (copy)"
 msgstr "%s (cópia)"
+
+msgid "Notes"
+msgstr "Notas"
+
+msgid "Company"
+msgstr "Empresa"
+
+msgid "Invoice Ref."
+msgstr "Fatura Ref."
+
+msgid "Color"
+msgstr "Cor"
+
+msgid "Shortcuts"
+msgstr "Atalhos"
+
+msgid "Loading..."
+msgstr "Carregando..."
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "Image"
+msgstr "Imagem"
+
+msgid "General"
+msgstr "Geral"
+
+msgid "Unit"
+msgstr "Unidade"
+
+msgid "Reason"
+msgstr "Motivo"
+
+msgid "Due Date"
+msgstr "Data Vencimento"
+
+msgid "Payment Date"
+msgstr "Data Pagamento"
+
+msgid "Date/Time"
+msgstr "Data/Hora"
+
+msgid "Kind"
+msgstr "Espécie"
+
+msgid "Points"
+msgstr "Pontos"
+
+msgid "Amount"
+msgstr "Valor"
+
+msgid "Costs"
+msgstr "Custos"
+
+msgid "No"
+msgstr "Não"
+
+msgid "Record saved successfully."
+msgstr "Registro gravado com sucesso."
+
+msgid "Partner"
+msgstr "Parceiro"
+
+msgid "Partners"
+msgstr "Parceiros"
+
+msgid "Titles"
+msgstr "Títulos"
+
+msgid "Phone"
+msgstr "Telefone"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "City"
+msgstr "Cidade"
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "Comments"
+msgstr "Comentários"
+
+msgid "Barcode"
+msgstr "Código Barras"
+
+msgid "Address"
+msgstr "Endereço"
+
+msgid "Zip"
+msgstr "CEP"
+
+msgid "Country"
+msgstr "País"
+
+msgid "State"
+msgstr "Estado"
+
+msgid "Mobile"
+msgstr "Celular"
+
+msgid "Birth Date"
+msgstr "Nascimento"
+
+msgid "Company Type"
+msgstr "Tipo Empresa"
+
+msgid "Is Customer"
+msgstr "É Cliente"
+
+msgid "Is Supplier"
+msgstr "É Fornecedor"
+
+msgid "Is Employee"
+msgstr "É Funcionário"
+
+msgid "User"
+msgstr "Usuário"
+
+msgid "Address 2"
+msgstr "Complemento"
+
+msgid "Partner Categories"
+msgstr "Categorias de Parceiros"
+
+msgid "Abbreviation"
+msgstr "Abreviação"
+
+msgid "Partner Titles"
+msgstr "Títulos de Parceiros"
+
+msgid "Ending Date"
+msgstr "Data Final"

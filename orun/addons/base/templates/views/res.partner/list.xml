@@ -2,5 +2,4 @@
   <field name="display_name"/>
   <field name="phone"/>
   <field name="email"/>
-  <field name="active"/>
 </list>

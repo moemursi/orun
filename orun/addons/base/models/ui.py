@@ -1,8 +1,9 @@
 import os
 from jinja2 import Environment, FunctionLoader
 from xml.etree import ElementTree as etree
-
 import base64
+
+from orun.conf import settings
 from orun import app, render_template
 #from orun.template import Template
 from orun.apps import registry
@@ -60,7 +61,9 @@ class View(models.Model):
             self.view_type = xml.tag
         super(View, self).save(*args, **kwargs)
 
-    def get_content(self):
+    def get_content(self, model):
+        if settings.DEBUG and self.template_name:
+            return self.render(self.template_name.split(':')[-1], context={'opts': model._meta})
         if self.content:
             return self.content
         else:
@@ -84,7 +87,9 @@ class View(models.Model):
             return content.render()
 
     def render(self, template_name, context={}, parent=None):
-        return views_env.get_template(template_name).render(**context)
+        context['_'] = gettext
+        return render_template(template_name, **context)
+        #return views_env.get_template(template_name).render(**context)
 
     @classmethod
     def generate_view(self, model, view_type='form'):

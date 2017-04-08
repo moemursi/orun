@@ -65,8 +65,9 @@ class Deserializer(base.Deserializer):
         # ui.view special case
         if Model._meta.name == 'ui.view' and 'template_name' in values:
             template_name = values['template_name']
+            values['template_name'] = self.app_config.schema + ':' + template_name
             assert '..' not in template_name
-            template_name = os.path.join(self.app_config.path, self.app_config.template_folder, 'views', template_name)
+            template_name = os.path.join(self.app_config.path, self.app_config.template_folder, template_name)
             with open(template_name, encoding='utf-8') as f:
                 values['content'] = f.read()
 

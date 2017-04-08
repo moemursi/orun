@@ -26,7 +26,7 @@ msgstr "Veículos"
 msgid "Make of Vehicle"
 msgstr "Fabricante de Veículo"
 
-msgid "Make of Model"
+msgid "Model of Vehicle"
 msgstr "Modelo de Veículo"
 
 msgid "General-Purpose Vehicle"
@@ -83,12 +83,6 @@ msgstr "Configurações"
 msgid "Human"
 msgstr "Humano"
 
-msgid "Weight"
-msgstr "Peso"
-
-msgid "Kilometer"
-msgstr "Quilômetro"
-
 msgid "Mile"
 msgstr "Milha"
 
@@ -107,9 +101,6 @@ msgstr "Número de Assentos"
 msgid "Vehicle State"
 msgstr "Estado do Veículo"
 
-msgid "Weight Unit"
-msgstr "Unidade de Peso"
-
 msgid "Ton"
 msgstr "Tonelada"
 
@@ -118,12 +109,6 @@ msgstr "Libra"
 
 msgid "Kilogram"
 msgstr "Quilograma"
-
-msgid "Odometer"
-msgstr "Hodômetro"
-
-msgid "Fuel Log"
-msgstr "Registro de Combustível"
 
 msgid "Distance"
 msgstr "Distância"
@@ -151,3 +136,141 @@ msgstr "Data Início"
 
 msgid "End Date"
 msgstr "Data Fim"
+
+msgid "Cargo"
+msgstr "Carga"
+
+msgid "Kilometer"
+msgstr "Quilômetro"
+
+msgid "Weight"
+msgstr "Peso"
+
+msgid "Weight Unit"
+msgstr "Unidade Peso"
+
+msgid "Odometer Unit"
+msgstr "Unidade Odômetro"
+
+msgid "Acquisition Date"
+msgstr "Data de Aquisição"
+
+msgid "Supplier"
+msgstr "Fornecedor"
+
+msgid "Transmission"
+msgstr "Transmissão"
+
+msgid "License Plate"
+msgstr "Placa"
+
+msgid "Lifespan (Years)"
+msgstr "Vida Útil (Anos)"
+
+msgid "Lifespan (Hours)"
+msgstr "Vida Útil (Horas)"
+
+msgid "Odometer Log"
+msgstr "Histórico Odômetro"
+
+msgid "Traffic Ticket"
+msgstr "Multa de Trânsito"
+
+msgid "Maintenance"
+msgstr "Manutenção"
+
+msgid "Recurring Cost Frequency"
+msgstr "Frequencia Custo Recorrente"
+
+msgid "Charge Frequency"
+msgstr "Frequencia de Cobrança"
+
+msgid "Terms and Conditions"
+msgstr "Termos e Condições"
+
+msgid "Horsepwoer"
+msgstr "Cavalos de Força"
+
+msgid "Weight Capacity"
+msgstr "Capacidade de Peso"
+
+msgid "Vehicle is rented"
+msgstr "Veículo é alugado"
+
+msgid "Rent Value"
+msgstr "Valor Aluguel"
+
+msgid "Purchase Value"
+msgstr "Valor Compra"
+
+msgid "Odometer"
+msgstr "Odômetro"
+
+msgid "Autonomy"
+msgstr "Autonomia"
+
+msgid "Chassis"
+msgstr "Chassi"
+
+msgid "CO2 Emissions"
+msgstr "Emissão de CO2"
+
+msgid "Fuel"
+msgstr "Combustível"
+
+msgid "Capacity"
+msgstr "Capacidade"
+
+msgid "Characteristics"
+msgstr "Características"
+
+msgid "Start Odometer"
+msgstr "Odômetro Inicial"
+
+msgid "End Odometer"
+msgstr "Odômetro Final"
+
+msgid "Travelled Distance"
+msgstr "Distância Percorrida"
+
+msgid "Destination"
+msgstr "Destino"
+
+msgid "Origin"
+msgstr "Origem"
+
+msgid "Cost Type"
+msgstr "Tipo de Custo"
+
+msgid "Fuel Log"
+msgstr "Histórico Combustível"
+
+msgid "Vehicle Costs"
+msgstr "Custos do Veículo"
+
+msgid "Daily"
+msgstr "Diário"
+
+msgid "Weekly"
+msgstr "Semanal"
+
+msgid "Monthly"
+msgstr "Mensal"
+
+msgid "Yearly"
+msgstr "Anual"
+
+msgid "Freight"
+msgstr "Frete"
+
+msgid "Insurance"
+msgstr "Seguro"
+
+msgid "Contract Type"
+msgstr "Tipo Contrato"
+
+msgid "Rent"
+msgstr "Aluguel"
+
+msgid "Expiration Date"
+msgstr "Data Expiração"

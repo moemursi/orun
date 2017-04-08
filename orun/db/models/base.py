@@ -212,7 +212,7 @@ class ModelBase(type):
         if cls._meta.app:
             return session.query(cls)
         else:
-            return session.query(cls._meta.app[cls._meta.name])
+            return session.query(app[cls._meta.name])
 
 
 class ModelState(object):
@@ -223,11 +223,6 @@ class ModelState(object):
         else:
             self.record = {}
             self.adding = True
-
-
-CREATE_CHILDREN = 'CREATE'
-UPDATE_CHILDREN = 'UPDATE'
-DESTROY_CHILDREN = 'DESTROY'
 
 
 class Model(metaclass=ModelBase):
@@ -264,11 +259,17 @@ class Model(metaclass=ModelBase):
 
     @api.method
     def load_views(self, views=None, **kwargs):
-        if views is None:
+        if views is None and 'action' in kwargs:
             Action = app['sys.action.window']
             action = Action.objects.get(kwargs.get('action'))
             views = {mode: None for mode in action.view_mode.split(',')}
-        return {mode: self.get_view_info(view_type=mode, view=v) for mode, v in views.items()}
+        elif views is None:
+            views = {'form': None, 'list': None, 'search': None}
+
+        return {
+            mode: self.get_view_info(view_type=mode, view=v)
+            for mode, v in views.items()
+        }
 
     @classmethod
     def get_field_info(cls, field, view_type=None):
@@ -300,7 +301,7 @@ class Model(metaclass=ModelBase):
             'views/%s/%s.xml' % (cls._meta.name, view_type),
             'views/%s/%s.xml' % (cls._meta.app_config.schema, view_type),
             'views/%s.xml' % view_type,
-        ], opts=cls._meta)
+        ], opts=cls._meta, _=gettext)
 
     @classmethod
     def _get_default_form_view(cls):
@@ -321,12 +322,21 @@ class Model(metaclass=ModelBase):
 
     @classmethod
     def get_view_info(cls, view_type, view=None):
-        if view:
-            View = app['ui.view']
+        View = app['ui.view']
+        model = app['sys.model']
+
+        if view is None:
+            view = list(View.objects.filter(mode='primary', view_type=view_type, model=model.get_by_natural_key(cls._meta.name).pk))
+            if view:
+               view = view[0]
+        elif isinstance(view, (int, str)):
             view = View.objects.get(view)
+
+        if view:
+            xml_content = view.get_content(model=cls)
             return {
-                'content': view.content,
-                'fields': cls.get_fields_info(view_type=view_type, content=view.content)
+                'content': xml_content,
+                'fields': cls.get_fields_info(view_type=view_type, xml=xml_content)
             }
         content = cls._get_default_view(view_type=view_type)
         return {
@@ -366,43 +376,33 @@ class Model(metaclass=ModelBase):
             self.deserialize(obj, v['values'])
 
     def _deserialize_value(self, field, value):
-        field_name = field.name
-
-        if isinstance(field, ManyToManyField):
-            self.__m2m[field.name] = value
-            return
-
         if value == '':
             value = None
-        value = field.deserialize(value, self)
-
-        setattr(self, field_name, value)
+        field.deserialize(value, self)
 
     @classmethod
     def deserialize(cls, instance, data):
-        m2m = {}
         data.pop('id', None)
-        file_fields = {}
+        children = {}
         for k, v in data.items():
-            field = instance.__class__._meta.get_field(k)
-            instance._deserialize_value(field, v)
-
-        # Processing File Fields
-        for k, v in file_fields.items():
-            cls._deserialize_value(instance, k, v)
+            field = instance.__class__._meta.fields_dict[k]
+            if field.child_field:
+                children[field] = v
+            else:
+                instance._deserialize_value(field, v)
 
         #instance.full_clean()
         if instance.pk:
-            flds = data.keys() - m2m.keys()
+            flds = data.keys() - [f.name for f in children]
             if flds:
-                instance.save(update_fields=flds)
+                instance.save()
         else:
             instance.save()
 
         #post_data = cls.post_data.pop(id(instance), None)
 
-        for k, v in m2m.items():
-            getattr(instance, k).set(v)
+        for k, v in children.items():
+            instance._deserialize_value(k, v)
 
         #if post_data:
         #    for f, v in post_data.items():
@@ -526,7 +526,7 @@ class Model(metaclass=ModelBase):
         if fields:
             if 'display_name' in fields:
                 fields.append(cls._meta.title_field)
-            fields = [f.column.name for f in [cls._meta.fields_dict[f] for f in fields] if f.concrete]
+            fields = [f.db_column for f in [cls._meta.fields_dict[f] for f in fields] if f.concrete]
             pk = cls.pk.name
             if pk not in fields:
                 fields.append(pk)
