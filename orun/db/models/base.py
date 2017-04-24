@@ -1,4 +1,4 @@
-import base64
+import os
 import datetime
 import inspect
 import copy
@@ -8,6 +8,7 @@ from sqlalchemy import orm, func
 from sqlalchemy.orm import synonym
 from sqlalchemy.ext.hybrid import hybrid_property
 
+from orun.utils.xml import etree
 from orun import api, render_template
 from orun.db import session
 from orun.db.models import signals
@@ -22,6 +23,9 @@ from .fields import (
     Field, OneToOneField, CASCADE, AutoField, ManyToManyField, ForeignKey, BooleanField, NOT_PROVIDED,
     field_property
 )
+
+
+CHOICES_PAGE_LIMIT = 10
 
 
 class DO_NOTHING:
@@ -122,10 +126,10 @@ class ModelBase(type):
             if module != '__fake__':
                 if opts.log_changes and not opts.extension and not parents:
                     from orun.db.models import ForeignKey, DateTimeField
-                    _add_auto_field(opts, 'created_by', ForeignKey('auth.user', auto_created=True, editable=False))
-                    _add_auto_field(opts, 'created_on', DateTimeField(default=datetime.datetime.now, auto_created=True, editable=False))
-                    _add_auto_field(opts, 'updated_by', ForeignKey('auth.user', auto_created=True, editable=False))
-                    _add_auto_field(opts, 'updated_on', DateTimeField(on_update=datetime.datetime.now, auto_created=True, editable=False))
+                    _add_auto_field(opts, 'created_by', ForeignKey('auth.user', auto_created=True, editable=False, deferred=True))
+                    _add_auto_field(opts, 'created_on', DateTimeField(default=datetime.datetime.now, auto_created=True, editable=False, deferred=True))
+                    _add_auto_field(opts, 'updated_by', ForeignKey('auth.user', auto_created=True, editable=False, deferred=True))
+                    _add_auto_field(opts, 'updated_on', DateTimeField(on_update=datetime.datetime.now, auto_created=True, editable=False, deferred=True))
 
                 if not opts.extension and not parents:
                     from orun.db.models import CharField
@@ -134,6 +138,7 @@ class ModelBase(type):
                     setattr(new_class, 'display_name', disp_name)
 
             for base in parents:
+                base = apps.all_models[base._meta.name]
                 if not extension and not base._meta.abstract and module != '__fake__':
                     attr_name = '%s_ptr' % base._meta.model_name
                     new_field = OneToOneField(
@@ -152,11 +157,12 @@ class ModelBase(type):
 
                 # Clone base local fields to new class local fields
                 for f in base._meta.fields:
-                    new_field = copy.deepcopy(f)
-                    new_field.inherited = True
-                    new_field.local = (extension and f in base._meta.local_fields) or base._meta.abstract
-                    new_field.base_model = base
-                    new_class.add_to_class(new_field.name, new_field)
+                    if f.name not in opts._get_fields_dict():
+                        new_field = copy.deepcopy(f)
+                        new_field.inherited = not base._meta.abstract
+                        new_field.local = (extension and f in base._meta.local_fields) or base._meta.abstract
+                        new_field.base_model = base
+                        new_class.add_to_class(new_field.name, new_field)
 
                 if extension and base._meta.parents:
                     for base_parent, f in base._meta.parents.items():
@@ -278,11 +284,12 @@ class Model(metaclass=ModelBase):
     @classmethod
     def get_fields_info(cls, view_id=None, view_type='form', toolbar=False, context=None, xml=None):
         opts = cls._meta
-        if xml:
+        if xml is not None:
             fields = get_xml_fields(xml)
             return {
                 f.name: cls.get_field_info(f, view_type)
-                for f in [opts.fields_dict[f.attrib['name']] for f in fields]
+                for f in [opts.fields_dict.get(f.attrib['name']) for f in fields]
+                if f
             }
         if view_type == 'search':
             searchable_fields = opts.searchable_fields
@@ -333,9 +340,9 @@ class Model(metaclass=ModelBase):
             view = View.objects.get(view)
 
         if view:
-            xml_content = view.get_content(model=cls)
+            xml_content = view.get_xml(model=cls)
             return {
-                'content': xml_content,
+                'content': etree.tostring(xml_content, encoding='utf-8').decode('utf-8'),
                 'fields': cls.get_fields_info(view_type=view_type, xml=xml_content)
             }
         content = cls._get_default_view(view_type=view_type)
@@ -414,8 +421,8 @@ class Model(metaclass=ModelBase):
         if fields:
             deferred_fields = []
         else:
-            deferred_fields = self._meta.deferred_fields
-        for f in self._meta.fields:
+            deferred_fields = opts.deferred_fields
+        for f in opts.fields:
             if f in deferred_fields:
                 continue
             if not f.serializable:
@@ -424,7 +431,7 @@ class Model(metaclass=ModelBase):
                 continue
             if exclude and f.name in exclude:
                 continue
-            data[f.name] = f.serialize(getattr(self, f.name, None))
+            data[f.name] = f.serialize(getattr(self, f.name, None), instance=self)
         if 'id' not in data:
             data['id'] = self.pk
         return data
@@ -443,18 +450,28 @@ class Model(metaclass=ModelBase):
         return (self.pk, str(self))
 
     @api.method
-    def search_name(cls, name=None, *args, **kwargs):
+    def search_name(cls, name=None, count=None, page=None, *args, **kwargs):
         if name:
             kwargs = {'params': [cls._meta.get_title_field().column.ilike('%' + name + '%')]}
         qs = cls._search(*args, **kwargs)
-        return [obj._get_rec_name() for obj in qs]
+        if count:
+            count = qs.count()
+        if page:
+            page = int(page)
+            qs = qs[page * CHOICES_PAGE_LIMIT:(page + 1) * CHOICES_PAGE_LIMIT]
+        else:
+            qs = qs[:CHOICES_PAGE_LIMIT]
+        return {
+            'count': count,
+            'items': [obj._get_rec_name() for obj in qs],
+        }
 
     @api.method
-    def get_field_choices(cls, field, q=None):
+    def get_field_choices(cls, field, q=None, count=False, page=None):
         field_name = field
         field = cls._meta.fields_dict[field_name]
         related_model = field.related_model
-        return related_model.search_name(name=q)
+        return related_model.search_name(name=q, count=count, page=page)
 
     @api.method
     def write(cls, data):
@@ -534,6 +551,24 @@ class Model(metaclass=ModelBase):
                 qs = qs.options(orm.load_only(*fields))
         return qs
 
+    @api.method
+    def auto_report(cls, *args, **kwargs):
+        view = render_template([
+            'reports/%s/auto_report.xml' % cls._meta.name,
+            'reports/%s/auto_report.xml' % cls._meta.app_config.schema,
+            'reports/auto_report.xml',
+        ], opts=cls._meta, _=gettext)
+
+        from orun.reports.engines import get_engine
+        query = cls._search()
+        engine = get_engine()
+        rep = engine.auto_report(view, cls, query)
+        out_file = '/web/reports/' + os.path.basename(rep.export())
+
+        return {
+            'open': out_file,
+        }
+
     def __str__(self):
         if self._meta.title_field:
             return self[self._meta.title_field]
@@ -566,48 +601,3 @@ class Model(metaclass=ModelBase):
         if not self.pk or force_insert:
             session.add(self)
         session.flush((self,))
-        return
-        if self._meta.parents:
-            try:
-                if self._cache:
-                    self._save_parents(cls=self.__class__, update_fields=update_fields)
-                    values = self._get_prep_values(self.__class__)
-                    if values:
-                        if self.pk:
-                            self.update.values(values)
-                        else:
-                            r = self.insert.values(values)
-                            self.__dict__[self._meta.pk.attname] = r.inserted_primary_key[0]
-                        self._cache = {}
-            except Exception as e:
-                print(self._cache)
-                raise
-            session.expunge(self)
-        else:
-            session.flush((self,))
-        self._cache = {}
-
-    # def _get_prep_values(self, cls):
-    #     values = {}
-    #     for k, v in self._cache.items():
-    #         f = cls._meta.fields_dict.get(k)
-    #         if f:
-    #             if f in cls._meta.local_fields:
-    #                 values[f.attname] = v
-    #         elif k in cls._meta.table.columns:
-    #             values[k] = v
-    #     return values
-
-    # def _save_parents(self, cls, update_fields):
-    #     meta = cls._meta
-    #     for parent, field in meta.parents.items():
-    #         parent = self._meta.app[parent._meta.name]
-    #         self._save_parents(cls=parent, update_fields=update_fields)
-    #         values = self._get_prep_values(parent)
-    #         if values:
-    #             if self._get_pk_val(parent._meta):
-    #                 parent.update.where(parent._meta.pk.column == self._get_pk_val(parent._meta)).values(**values)
-    #             else:
-    #                 r = parent.insert.values(**values)
-    #                 if field:
-    #                     self._cache[field.attname] = r.inserted_primary_key[0]

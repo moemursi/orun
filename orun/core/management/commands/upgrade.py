@@ -1,5 +1,6 @@
 import os
 
+from orun import app
 from orun.conf import settings
 from orun.utils.translation import activate
 from orun.core.management import commands
@@ -14,6 +15,8 @@ from orun.core.management.commands.loaddata import load_fixture
 )
 @commands.option('--with-demo/--without-demo', default=False, help='Load demo data.')
 def command(app_labels, **options):
+    if not app_labels:
+        app_labels = app.app_configs.keys()
     for app_label in app_labels:
         addon = apps.app_configs[app_label]
         cmd = Command()

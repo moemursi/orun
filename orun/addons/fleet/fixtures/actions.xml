@@ -1,33 +1,33 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <data translate="true">
-  <action id="fleet.action.view.vehicle.make" type="sys.action.window" name="Make of Vehicle" model="fleet.vehicle.make">
+  <action id="action.fleet.view.vehicle.make" type="sys.action.window" name="Make of Vehicle" model="fleet.vehicle.make">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="fleet.action.view.vehicle.model" type="sys.action.window" name="Model of Vehicle" model="fleet.vehicle.model">
+  <action id="action.fleet.view.vehicle.model" type="sys.action.window" name="Model of Vehicle" model="fleet.vehicle.model">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="fleet.action.view.driver" type="sys.action.window" name="Driver" model="fleet.driver">
+  <action id="action.fleet.view.driver" type="sys.action.window" name="Driver" model="fleet.driver">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="fleet.action.view.vehicle" type="sys.action.window" name="Vehicles" model="fleet.vehicle">
+  <action id="action.fleet.view.vehicle" type="sys.action.window" name="Vehicles" model="fleet.vehicle">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="fleet.action.view.contract" type="sys.action.window" name="Contracts" model="fleet.contract">
+  <action id="action.fleet.view.contract" type="sys.action.window" name="Contracts" model="fleet.contract">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="fleet.action.view.odometer" type="sys.action.window" name="Odometer" model="fleet.vehicle.odometer">
+  <action id="action.fleet.view.odometer" type="sys.action.window" name="Odometer" model="fleet.vehicle.odometer">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="fleet.action.view.vehicle.fuel.log" type="sys.action.window" name="Fuel Log" model="fleet.vehicle.fuel.log">
+  <action id="action.fleet.view.vehicle.fuel.log" type="sys.action.window" name="Fuel Log" model="fleet.vehicle.fuel.log">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="fleet.action.view.maintenance" type="sys.action.window" name="Maintenance" model="fleet.vehicle.maintenance">
+  <action id="action.fleet.view.maintenance" type="sys.action.window" name="Maintenance" model="fleet.vehicle.maintenance">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="fleet.action.view.traffic.ticket" type="sys.action.window" name="Traffic Ticket" model="fleet.traffic.ticket">
+  <action id="action.fleet.view.traffic.ticket" type="sys.action.window" name="Traffic Ticket" model="fleet.traffic.ticket">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="fleet.action.view.route" type="sys.action.window" name="Routes" model="fleet.route">
+  <action id="action.fleet.view.route" type="sys.action.window" name="Routes" model="fleet.route">
     <field name="view_mode">list,form</field>
   </action>
 </data>

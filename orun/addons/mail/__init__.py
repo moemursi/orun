@@ -3,11 +3,13 @@ from orun.utils.translation import gettext_lazy as _
 
 
 class AppConfig(orun.AppConfig):
-    name = _('Mail')
+    name = _('Discuss')
     category = _('Communication')
     version = '0.1'
     auto_install = False
     installable = True
+    application = True
+    fixtures = ['mail.xml', 'views.xml']
     depends = ['base']
     db_schema = 'mail'
 

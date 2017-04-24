@@ -31,7 +31,7 @@ class WindowAction(Action):
     view = models.ForeignKey('ui.view', verbose_name=_('View'))
     domain = models.TextField(verbose_name=_('Domain'))
     context = models.TextField(verbose_name=_('Context'))
-    model = models.ForeignKey('sys.model', null=False, verbose_name=_('Model'))
+    model = models.ForeignKey('sys.model', null=False, label=_('Model'))
     object_id = models.BigIntegerField(verbose_name=_('Object ID'))
     #content_object = GenericForeignKey()
     view_mode = models.CharField(128, default='list,form', verbose_name=_('View Mode'))
@@ -52,14 +52,6 @@ class WindowAction(Action):
         if 'search' not in modes:
             modes['search'] = None
         return modes
-
-
-class ReportAction(Action):
-    report_type = models.CharField(32, null=False, verbose_name=_('Report Type'))
-    report_name = models.CharField(256, null=False, verbose_name=_('Report Name'))
-
-    class Meta:
-        name = 'sys.action.report'
 
 
 class ServerAction(Action):

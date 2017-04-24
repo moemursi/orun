@@ -14,7 +14,6 @@ DEFAULT_NAMES = ('unique_together', 'index_together', 'fixtures')
 class Options(object):
     app = None
     app_config = None
-    abstract = None
     extension = None
     name = None
     log_changes = True
@@ -38,7 +37,7 @@ class Options(object):
 
     def __init__(self, attrs, app_config=None, bases=None):
         self.meta_attrs = attrs
-        if self.abstract is None:
+        if 'abstract' not in attrs:
             self.abstract = False
         self.app_config = app_config
         self.fields = []
@@ -60,6 +59,8 @@ class Options(object):
 
         if opts.verbose_name is None:
             opts.verbose_name = camel_case_to_spaces(self.object_name)
+        if opts.verbose_name_plural is None:
+            opts.verbose_name_plural = camel_case_to_spaces(self.object_name + 's')
 
         # Get the app_label
         self.app_label = self.meta_attrs.get('app_label', cls.__module__ and cls.__module__.split('.')[0]) or self.app_label
@@ -178,14 +179,13 @@ class Options(object):
                             kwargs['lazy'] = f.lazy
                         if f.related_name and f.related_name != '+':
                             kwargs['backref'] = backref(f.related_name, lazy='dynamic')
-                            kwargs['remote_side'] = fk.column
-
+                        kwargs['remote_side'] = fk.column
                         props[f.name] = relationship(
                             lambda fk=fk: fk.column.table.__model__._meta.mapped,
                             foreign_keys=[f.column],
                             **kwargs
                         )
-                    if f.deferred and not f.column.foreign_keys:
+                    if f.deferred:
                         props[f.name] = deferred(f.column)
                 elif f.related:
                     props[f.name] = f.related
@@ -198,7 +198,9 @@ class Options(object):
         additional_args = {}
 
         if self.ordering:
-            additional_args['order_by'] = self.ordering
+            additional_args['order_by'] = normalize_ordering(self, self.ordering)
+        elif not self.parents:
+            additional_args['order_by'] = normalize_ordering(self, 'pk')
 
         if self.parents:
             for parent, field in self.parents.items():
@@ -335,3 +337,21 @@ def normalize_together(option_together):
         # verbatim; this will be picked up by the check framework later.
         return option_together
 
+
+def normalize_ordering(opts, ordering):
+    if not isinstance(ordering, (list, tuple)):
+        ordering = [ordering]
+    r = []
+    for o in ordering:
+        desc = False
+        if o[0] == '-':
+            desc = True
+            o = o[1:]
+        if o == 'pk':
+            o = opts.pk.column
+        else:
+            o = opts.fields_dict[o].column
+        if desc:
+            o = o.desc()
+        r.append(o)
+    return r

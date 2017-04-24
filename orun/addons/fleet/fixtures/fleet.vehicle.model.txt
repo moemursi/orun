@@ -1,4 +1,4 @@
-pk	name	make
+pk	name	vehicle_make
 1	Uno	2
 2	Palio	2
 3	Siena	2

@@ -6,59 +6,14 @@ class Reports
   @currentReport = {}
   @currentUserReport = {}
 
-  @getUserParams = ->
-    params =
-      data: []
-      file: $('#id-report-file').val()
-    $('[data-param]').each ->
-      scope = angular.element(this).scope()
-      param = scope.param
-      pt = $(this).data('param')
-      param.name = pt.name
-      param.type = pt.type
-      params.data.push(param)
-
-    fields = $('#report-id-fields').val()
-    params['fields'] = fields
-
-    totals = $('#report-id-totals').val()
-    params['totals'] = totals
-
-    sorting = $('#report-id-sorting').val()
-    params['sorting'] = sorting
-
-    grouping = $('#report-id-grouping').val()
-    params['grouping'] = grouping
-
-    params
-
-
-  @preview = (format) ->
-    params = @getUserParams()
-    params['format'] = format
-
-    $.ajax
-      type: 'POST'
-      url: $('#report-form').attr('action')
-      contentType: "application/json; charset=utf-8",
-      dataType: 'json'
-      data: JSON.stringify params
-    .then (res) ->
-      if res.open
-        window.open res.open
-    false
-
-  @export = (format) ->
-    @preview(format)
-
-  @saveDialog = ->
+  @saveDialog = (report) ->
     params = @getUserParams()
     name = window.prompt(Katrid.i18n.gettext('Report name'), Katrid.Reports.Reports.currentUserReport.name)
     if name
       Katrid.Reports.Reports.currentUserReport.name = name
       $.ajax
         type: 'POST'
-        url: $('#report-form').attr('action') + '?save=' + name
+        url: report.container.find('#report-form').attr('action') + '?save=' + name
         contentType: "application/json; charset=utf-8",
         dataType: 'json'
         data: JSON.stringify params
@@ -66,58 +21,142 @@ class Reports
 
   @get = (repName) ->
 
+  @renderDialog = (action) ->
+    Katrid.UI.Utils.Templates.renderReportDialog(action)
+
 
 class Report
-  constructor: (@info, @scope) ->
+  constructor: (@action, @scope) ->
+    @info = @action.info
     Katrid.Reports.Reports.currentReport = @
+    if not Params.Labels?
+      Params.Labels =
+        exact: Katrid.i18n.gettext 'Is equal'
+        in: Katrid.i18n.gettext 'Selection'
+        contains: Katrid.i18n.gettext 'Contains'
+        startswith: Katrid.i18n.gettext 'Starting with'
+        endswith: Katrid.i18n.gettext 'Ending with'
+        gt: Katrid.i18n.gettext 'Greater-than'
+        lt: Katrid.i18n.gettext 'Less-than'
+        between: Katrid.i18n.gettext 'Between'
+        isnull: Katrid.i18n.gettext 'Is Null'
+
     @name = @info.name
     @id = ++_counter
     @values = {}
     @params = []
+    @filters = []
     @groupables = []
     @sortables = []
     @totals = []
-    @load()
 
+  getUserParams: ->
+    report = @
+    params =
+      data: []
+      file: report.container.find('#id-report-file').val()
+    for p in @params
+      params.data.push
+        name: p.name
+        op: p.operation
+        value1: p.value1
+        value2: p.value2
+        type: p.type
 
-  load: ->
+    fields = report.container.find('#report-id-fields').val()
+    params['fields'] = fields
+
+    totals = report.container.find('#report-id-totals').val()
+    params['totals'] = totals
+
+    sorting = report.container.find('#report-id-sorting').val()
+    params['sorting'] = sorting
+
+    grouping = report.container.find('#report-id-grouping').val()
+    params['grouping'] = grouping
+
+    params
+
+  loadFromXml: (xml) ->
+    if _.isString(xml)
+      xml = $(xml)
+    fields = []
+
+    for f in xml.find('field')
+      f = $(f)
+      name = f.attr('name')
+      label = f.attr('label') or (@info.fields[name] and @info.fields[name].caption) or name
+      groupable = f.attr('groupable')
+      sortable = f.attr('sortable')
+      total = f.attr('total')
+      param = f.attr('param')
+      console.log(name, label, f)
+      fields.push
+        name: name
+        label: label
+        groupable: groupable
+        sortable: sortable
+        total: total
+        param: param
+
+    params = ($(p).attr('name') for p in xml.find('param'))
+
+    @load(fields, params)
+
+  load: (fields, params) ->
+    if not fields
+      fields = @info.fields
+    if not params
+      params = []
+    @fields = fields
+
     # Create params
-    for p in @info.fields
+    for p in fields
       if p.groupable
         @groupables.push(p)
       if p.sortable
         @sortables.push(p)
       if p.total
         @totals.push(p)
-      if p.param?
-        p = new Param(p, @)
-        @params.push(p)
+      p.autoCreate = p.name in params
+
+  loadParams: ->
+    console.log('load params', @fields)
+    for p in @fields
+      if p.autoCreate
+        @addParam(p.name)
 
   addParam: (paramName) ->
-    for p in @info.fields
+    for p in @fields
       if p.name is paramName
         p = new Param(p, @)
         @params.push(p)
-        $(p.render(@elParams))
+        #$(p.render(@elParams))
         break
 
   getValues: ->
 
 
   export: (format='pdf') ->
-    @preview(format)
+    params = @getUserParams()
+    svc = new Katrid.Services.Model('sys.action.report')
+    svc.post 'export_report', null, { args: [@info.id], kwargs: { format: format, params: params } }
+    .done (res) ->
+      if res.result.open
+        window.open res.result.open
+    false
 
   preview: ->
-    console.log('Report preview')
+    @export()
 
   renderFields: ->
     el = $('<div></div>')
-    flds = ("""<option value="#{p.name}">#{p.label}</option>""" for p in @info.fields).join('')
-    aggs = ("""<option value="#{p.name}">#{p.label}</option>""" for p in @info.fields when p.total).join('')
-    el = $('#report-params')
+    flds = ("""<option value="#{p.name}">#{p.label}</option>""" for p in @fields).join('')
+    aggs = ("""<option value="#{p.name}">#{p.label}</option>""" for p in @fields when p.total).join('')
+    el = @container.find('#report-params')
     sel = el.find('#report-id-fields')
     sel.append($(flds))
-    .select2()
+    .select2({ tags: ({id: p.name, text: p.label} for p in @fields) })
     .select2("container").find("ul.select2-choices").sortable
         containment: 'parent'
         start: -> sel.select2("onSortStart")
@@ -125,9 +164,10 @@ class Report
     if Katrid.Reports.Reports.currentUserReport.params and Katrid.Reports.Reports.currentUserReport.params.fields
       console.log(Katrid.Reports.Reports.currentUserReport.params.fields)
       sel.select2('val', Katrid.Reports.Reports.currentUserReport.params.fields)
+    #sel.data().select2.updateSelection([{ id: 'vehicle', text: 'Vehicle'}])
     sel = el.find('#report-id-totals')
     sel.append(aggs)
-    .select2()
+    .select2({ tags: ({ id: p.name, text: p.label } for p in @fields when p.total) })
     .select2("container").find("ul.select2-choices").sortable
         containment: 'parent'
         start: -> sel.select2("onSortStart")
@@ -171,6 +211,7 @@ class Report
         update: -> sel.select2("onSortEnd")
 
   render: (container) ->
+    @container = container
     el = @renderFields()
     if @sortables.length
       el = @renderSorting(container)
@@ -187,90 +228,78 @@ class Report
 
 class Params
   @Operations =
-    equals: 'equals'
+    exact: 'exact'
     in: 'in'
     contains: 'contains'
-    startsWith: 'startsWith'
-    endsWith: 'endsWith'
-    greaterThan: 'greaterThan'
-    lessThan: 'lessThan'
+    startswith: 'startswith'
+    endswith: 'endswith'
+    gt: 'gt'
+    lt: 'lt'
     between: 'between'
-
-  @Labels =
-#    equals: Katrid.i18n.gettext 'Equals'
-#    in: Katrid.i18n.gettext 'Selection'
-#    contains: Katrid.i18n.gettext 'Contains'
-#    startsWith: Katrid.i18n.gettext 'Starts with'
-#    endsWith: Katrid.i18n.gettext 'Ends with'
-#    greaterThan: Katrid.i18n.gettext 'Greater then'
-#    lessThan: Katrid.i18n.gettext 'Less than'
-#    between: Katrid.i18n.gettext 'Between'
-    equals: Katrid.i18n.gettext 'É igual'
-    in: Katrid.i18n.gettext 'Seleção'
-    contains: Katrid.i18n.gettext 'Contendo'
-    startsWith: Katrid.i18n.gettext 'Começando com'
-    endsWith: Katrid.i18n.gettext 'Terminando com'
-    greaterThan: Katrid.i18n.gettext 'Maior que'
-    lessThan: Katrid.i18n.gettext 'Menor que'
-    between: Katrid.i18n.gettext 'Entre'
+    isnull: 'isnull'
 
   @DefaultOperations =
-    str: @Operations.equals
-    int: @Operations.equals
-    datetime: @Operations.between
-    float: @Operations.between
-    decimal: @Operations.between
-    sqlchoices: @Operations.equals
+    CharField: @Operations.exact
+    IntegerField: @Operations.exact
+    DateTimeField: @Operations.between
+    DateField: @Operations.between
+    FloatField: @Operations.between
+    DecimalField: @Operations.between
+    ForeignKey: @Operations.exact
+    sqlchoices: @Operations.exact
 
   @TypeOperations =
-    str: [@Operations.equals, @Operations.in, @Operations.contains, @Operations.startsWith, @Operations.endsWith]
-    int: [@Operations.equals, @Operations.in, @Operations.greaterThan, @Operations.lessThan, @Operations.between]
-    float: [@Operations.equals, @Operations.in, @Operations.greaterThan, @Operations.lessThan, @Operations.between]
-    decimal: [@Operations.equals, @Operations.in, @Operations.greaterThan, @Operations.lessThan, @Operations.between]
-    datetime: [@Operations.equals, @Operations.in, @Operations.greaterThan, @Operations.lessThan, @Operations.between]
-    sqlchoices: [@Operations.equals, @Operations.in]
+    CharField: [@Operations.exact, @Operations.in, @Operations.contains, @Operations.startswith, @Operations.endswith, @Operations.isnull]
+    IntegerField: [@Operations.exact, @Operations.in, @Operations.gt, @Operations.lt, @Operations.between, @Operations.isnull]
+    FloatField: [@Operations.exact, @Operations.in, @Operations.gt, @Operations.lt, @Operations.between, @Operations.isnull]
+    DecimalField: [@Operations.exact, @Operations.in, @Operations.gt, @Operations.lt, @Operations.between, @Operations.isnull]
+    DateTimeField: [@Operations.exact, @Operations.in, @Operations.gt, @Operations.lt, @Operations.between, @Operations.isnull]
+    DateField: [@Operations.exact, @Operations.in, @Operations.gt, @Operations.lt, @Operations.between, @Operations.isnull]
+    ForeignKey: [@Operations.exact, @Operations.in, @Operations.isnull]
+    sqlchoices: [@Operations.exact, @Operations.in, @Operations.isnull]
 
   @Widgets =
-    str: (param) ->
-      """<div class="col-sm-8"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" ng-model="param.value1" type="text" class="form-control"></div>"""
+    CharField: (param) ->
+      """<div><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" ng-model="param.value1" type="text" class="form-control"></div>"""
 
-    int: (param) ->
+    IntegerField: (param) ->
+      secondField = ''
       if param.operation is 'between'
-        """<div class="col-sm-4"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" ng-model="param.value1" type="text" class="form-control"></div>
-<div class="col-sm-4"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}-2" ng-model="param.value2" type="text" class="form-control"></div>
-"""
-      else
-        """<div class="col-sm-4"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" type="number" ng-model="param.value1" class="form-control"></div>"""
+        secondField = """<div class="col-xs-6"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}-2" ng-model="param.value2" type="text" class="form-control"></div>"""
+      """<div class="row"><div class="col-sm-6"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" type="number" ng-model="param.value1" class="form-control"></div>#{secondField}</div>"""
 
-    decimal: (param) ->
+    DecimalField: (param) ->
+      secondField = ''
       if param.operation is 'between'
-        """<div class="col-sm-4"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" ng-model="param.value1" type="text" class="form-control"></div>
-<div class="col-sm-4"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}-2" ng-model="param.value2" type="text" class="form-control"></div>
-"""
-      else
-        """<div class="col-sm-4"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" type="number" ng-model="param.value1" class="form-control"></div>"""
+        secondField = """<div class="col-xs-6"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}-2" ng-model="param.value2" type="text" class="form-control"></div>"""
+      """<div class="col-sm-6"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" type="number" ng-model="param.value1" class="form-control"></div>#{secondField}"""
 
-    datetime: (param) ->
+    DateTimeField: (param) ->
+      secondField = ''
       if param.operation is 'between'
-        """<div class="col-sm-4"><label class="control-label">&nbsp;</label>
-<div class="input-group date"><input id="rep-param-id-#{param.id}" datepicker ng-model="param.value1" class="form-control">
-<div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div>
-</div></div>
-<div class="col-sm-4"><label class="control-label">&nbsp;</label>
+        secondField = """<div class="col-xs-6"><label class="control-label">&nbsp;</label>
 <div class="input-group date"><input id="rep-param-id-#{param.id}-2" datepicker ng-model="param.value2" class="form-control">
 <div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div>
 </div>
 </div>
 """
-      else
-        """<div class="col-sm-4"><label class="control-label">&nbsp;</label>
-<div class="input-group date"><input id="rep-param-id-#{param.id}" datepicker ng-model="param.value1" class="form-control">
-<div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div>
-</div>
-</div>"""
+      """<div class="row">><div class="col-xs-6"><label class="control-label">&nbsp;</label><div class="input-group date"><input id="rep-param-id-#{param.id}" datepicker ng-model="param.value1" class="form-control"><div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div></div></div>#{secondField}</div"""
+
+    DateField: (param) ->
+      secondField = ''
+      if param.operation is 'between'
+        secondField = """<div class="col-xs-6"><label class="control-label">&nbsp;</label><div class="input-group date"><input id="rep-param-id-#{param.id}-2" datepicker ng-model="param.value2" class="form-control"><div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div></div></div>"""
+      """<div class="row"><div class="col-xs-6"><label class="control-label">&nbsp;</label><div class="input-group date"><input id="rep-param-id-#{param.id}" datepicker ng-model="param.value1" class="form-control"><div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div></div></div>#{secondField}</div>"""
+
+    ForeignKey: (param) ->
+      serviceName = param.params.info.model
+      multiple = ''
+      if param.operation is 'in'
+        multiple = 'multiple'
+      """<div><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" ajax-choices="/api/rpc/#{serviceName}/get_field_choices/" field="#{param.name}" ng-model="param.value1" #{multiple}></div>"""
 
     sqlchoices: (param) ->
-      """<div class="col-sm-8"><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" report-file="#{param.params.info.file}" ajax-choices="/api/reports/choices/" sql-choices="#{param.name}" ng-model="param.value1"></div>"""
+      """<div><label class="control-label">&nbsp;</label><input id="rep-param-id-#{param.id}" ajax-choices="/api/reports/choices/" sql-choices="#{param.name}" ng-model="param.value1"></div>"""
 
 
 class Param
@@ -278,38 +307,35 @@ class Param
     @name = @info.name
     @label = @info.label
     @static = @info.param is 'static'
-    @type = @info.type or 'str'
+    @field = @params.info.fields and @params.info.fields[@name]
+    @type = @info.type or (@field and @field.type) or 'CharField'
     if @info.sql_choices
       @type = 'sqlchoices'
     @defaultOperation = @info.default_operation or Params.DefaultOperations[@type]
     @operation = @defaultOperation
-    @operations = @info.operations or Params.TypeOperations[@type]
+    # @operations = @info.operations or Params.TypeOperations[@type]
+    @operations = @getOperations()
     @exclude = @info.exclude
     @id = ++_counter
 
   defaultValue: ->
     null
 
-  change: ->
-    ops = @el.find("#param-op-#{@id}")
-    op = ops.val()
-    @operation = op
-    @createControls(@el.scope())
+  setOperation: (op, focus=true) ->
+    @createControls(@scope)
+    el = @el.find('#rep-param-id-' + @id)
+    if focus
+      el.focus()
+    return
 
   createControls: (scope) ->
-    el = @el.find("#param-widget-#{@id}")
+    el = @el.find("#param-widget")
     el.empty()
     widget = Params.Widgets[@type](@)
     widget = @params.scope.compile(widget)(scope)
     el.append(widget)
 
-  getOperations: ->
-    operations = Params.TypeOperations[@type]
-    opts = ''
-    for op in operations
-      label = Params.Labels[op]
-      opts += """<option value="#{op}">#{label}</option>"""
-    opts
+  getOperations: -> ({ id: op, text: Params.Labels[op] }for op in Params.TypeOperations[@type])
 
   operationTemplate: ->
     opts = @getOperations()
@@ -324,13 +350,23 @@ class Param
   render: (container) ->
     @el = @params.scope.compile(@template())(@params.scope)
     @el.data('param', @)
-    console.log(@el.scope())
     @createControls(@el.scope())
     container.append(@el)
 
 
-Katrid.uiKatrid.controller 'ParamController', ($scope, $element, $compile) ->
-  $scope.param = {}
+Katrid.uiKatrid.controller 'ReportController', ($scope, $element, $compile) ->
+  xmlReport = $scope.$parent.action.info.content
+  report = new Report($scope.$parent.action, $scope)
+  report.loadFromXml(xmlReport)
+  $scope.report = report
+  report.render($element)
+  report.loadParams()
+
+
+Katrid.uiKatrid.controller 'ReportParamController', ($scope, $element) ->
+  $scope.$parent.param.el = $element
+  $scope.$parent.param.scope = $scope
+  $scope.$parent.param.setOperation($scope.$parent.param.operation, false)
 
 
 @Katrid.Reports =

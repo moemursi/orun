@@ -24,11 +24,24 @@ class CountryGroup(models.Model):
 
 class CountryState(models.Model):
     country = models.ForeignKey(Country, null=False)
-    name = models.CharField(128, _('name'), null=False)
+    name = models.CharField(64, _('name'), null=False)
     code = models.CharField(3, _('State Code'), null=False)
 
     class Meta:
         name = 'res.country.state'
+        verbose_name = _('State')
+        verbose_name_plural = _('States')
+
+
+class City(models.Model):
+    state = models.ForeignKey(CountryState, label=_('State'), null=False)
+    name = models.CharField(64, label=_('Name'), db_index=True)
+
+    class Meta:
+        ordering = 'name'
+        name = 'res.city'
+        verbose_name = _('City')
+        verbose_name_plural = _('Cities')
 
 
 class Language(models.Model):

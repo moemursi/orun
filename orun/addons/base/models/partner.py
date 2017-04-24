@@ -1,8 +1,6 @@
 from orun.db import models
 from orun.utils.translation import gettext_lazy as _
 
-import mail.models
-
 
 class PartnerCategory(models.Model):
     name = models.CharField(128, _('name'))
@@ -25,7 +23,7 @@ class PartnerTitle(models.Model):
         verbose_name_plural = _('Partner Titles')
 
 
-class Partner(models.Model, mail.models.Comments):
+class Partner(models.Model):
     name = models.CharField(128, label=_('Name'))
     title = models.ForeignKey(PartnerTitle, label=_('Title'))
     active = models.BooleanField(default=True, label=_('Active'))
@@ -41,13 +39,13 @@ class Partner(models.Model, mail.models.Comments):
     address = models.CharField(256, label=_('Address'))
     address_2 = models.CharField(256, label=_('Address 2'))
     zip = models.CharField(32, label=_('Zip'))
-    city = models.CharField(128, label=_('City'))
     country = models.ForeignKey('res.country', label=_('Country'), on_delete=models.SET_NULL)
     state = models.ForeignKey('res.country.state', label=_('State'), on_delete=models.SET_NULL)
+    city = models.ForeignKey('res.city', label=_('City'))
     phone = models.CharField(64, _('Phone'))
-    fax = models.CharField(64, _('fax'))
+    fax = models.CharField(64, 'Fax')
     mobile = models.CharField(64, label=_('Mobile'))
-    birth_date = models.CharField(64, label=_('Birth Date'))
+    birthdate = models.CharField(64, label=_('Birthdate'))
     is_company = models.BooleanField(default=False, label=_('Is Company'))
     company_type = models.CharField(16, label=_('Company Type'), choices=(
         ('individual', 'Individual'),
@@ -55,6 +53,7 @@ class Partner(models.Model, mail.models.Comments):
     ))
     company = models.ForeignKey('res.company', label=_('Company'))
     comments = models.TextField(label=_('Notes'))
+    image = models.ImageField(storage='attachment')
 
     class Meta:
         name = 'res.partner'

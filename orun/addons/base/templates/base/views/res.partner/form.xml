@@ -1,0 +1,50 @@
+<form>
+  <div class="media">
+    <div class="media-left">
+      <field name="image"/>
+    </div>
+    <div class="media-body">
+      <field name="name" cols="12"/>
+    </div>
+  </div>
+
+  <field name="company_type"/>
+  <field name="company"/>
+  <div class="clearfix"/>
+  <fieldset class="col-sm-6">
+    <legend><span class="fa fa-map-marker fa-fw"/> {{ _('Address') }}</legend>
+    <div class="row">
+      <label class="col-sm-12"><a class="pull-right" href="https://maps.google.com" target="_blank">{{ _('Show on google maps') }}</a></label>
+      <field name="address" cols="12" nolabel="placeholder"/>
+      <field name="address_2" cols="12" nolabel="placeholder"/>
+      <field name="zip" cols="4" nolabel="placeholder"/>
+      <field name="city" cols="8" nolabel="placeholder"/>
+      <field name="state" cols="6" nolabel="placeholder"/>
+      <field name="country" cols="6" nolabel="placeholder"/>
+    </div>
+  </fieldset>
+  <fieldset class="col-sm-6">
+    <legend>{{ _('Details') }}</legend>
+    <div class="row">
+      <field name="phone" icon="fa fa-phone"/>
+      <field name="fax"/>
+      <field name="mobile" icon="fa fa-mobile"/>
+      <field name="website" icon="fa fa-globe"/>
+      <field name="email" icon="fa fa-envelope"/>
+      <field name="language"/>
+      <field name="title"/>
+    </div>
+  </fieldset>
+  <tabset>
+    <tab>
+      <tab-heading>{{ _('Additional Data') }}</tab-heading>
+      <field name="birthdate"/>
+      <field name="barcode"/>
+      <field name="color"/>
+    </tab>
+    <tab>
+      <tab-heading>{{ _('Notes') }}</tab-heading>
+      <field name="comments" nolabel="true"/>
+    </tab>
+  </tabset>
+</form>

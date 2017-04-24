@@ -11,4 +11,6 @@ def _get_xml_field(parent):
 
 
 def get_xml_fields(xml):
-    return [f for f in _get_xml_field(etree.fromstring(xml))]
+    if isinstance(xml, str):
+        xml = etree.fromstring(xml)
+    return [f for f in _get_xml_field(xml)]

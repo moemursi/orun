@@ -52,7 +52,8 @@ class Application(Flask):
 
                 # Build models
                 for model_class in registry.module_models[addon.name].values():
-                    model_class._meta._build_model(self)
+                    if not model_class._meta.abstract:
+                        model_class._meta._build_model(self)
 
                 # Register blueprints
                 self.register_blueprint(addon)

@@ -1,4 +1,4 @@
-pk	nome
+pk	name
 1	Ford
 2	Fiat
 3	Audi

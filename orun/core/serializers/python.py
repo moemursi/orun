@@ -111,6 +111,7 @@ def Deserializer(object_list, **options):
             vals = {}
             for k, v in d.items():
                 # has a field identified
+                field_name = k
                 if ':' in k:
                     xml_id = True
                     if v not in val_names_cache:
@@ -122,7 +123,7 @@ def Deserializer(object_list, **options):
                             v = get_prep_value(Model, k, v)
                     else:
                         v = val_names_cache[v]
-                vals[k] = v
+                vals[field_name] = v
 
             # Avoid to check by the xml id again
             xml_id = bool(xml_id)

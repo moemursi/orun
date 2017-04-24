@@ -100,7 +100,7 @@ class OrunJSONEncoder(json.JSONEncoder):
                 r = r[:-6] + 'Z'
             return r
         elif isinstance(o, models.Model):
-            return dict(o)
+            return o.serialize()
         elif isinstance(o, sqlalchemy.orm.query.Query):
             return [r for r in o]
         elif isinstance(o, datetime.date):

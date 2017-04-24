@@ -1,6 +1,6 @@
 {% macro menu_item(menu) %}
   <li class="menu-item">
-    <a href="{{ menu.get_absolute_url() }}">
+    <a href="{{ menu.get_absolute_url() }}"{% if menu.action_id %} class="menu-item-action"{% endif %}>
       {{ menu.name }}
     </a>
   {% set children_menu = menu.children.all() %}

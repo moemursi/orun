@@ -280,3 +280,18 @@ msgstr "Títulos de Parceiros"
 
 msgid "Ending Date"
 msgstr "Data Final"
+
+msgid "Countries"
+msgstr "Países"
+
+msgid "Fed. States"
+msgstr "Estados Fed."
+
+msgid "Fed. State"
+msgstr "Estado Fed."
+
+msgid "Cities"
+msgstr "Cidades"
+
+msgid "Reports"
+msgstr "Relatórios"

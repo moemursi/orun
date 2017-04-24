@@ -274,3 +274,12 @@ msgstr "Aluguel"
 
 msgid "Expiration Date"
 msgstr "Data Expiração"
+
+msgid "Makes of Vehicles"
+msgstr "Fabricantes de Veículos"
+
+msgid "Odometer Listing"
+msgstr "Listagem do Odômetro"
+
+msgid "Departure Date"
+msgstr "Data de Saída"

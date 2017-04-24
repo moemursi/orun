@@ -1,11 +1,11 @@
 import os
 from jinja2 import Environment, FunctionLoader
-from xml.etree import ElementTree as etree
 import base64
 
+from orun.utils.xml import etree
 from orun.conf import settings
 from orun import app, render_template
-#from orun.template import Template
+from orun import render_template_string
 from orun.apps import registry
 from orun.db import models
 from orun.utils.translation import gettext, gettext_lazy as _
@@ -34,10 +34,12 @@ class View(models.Model):
     view_type = models.CharField(64, choices=(
         ('list', 'List'),
         ('form', 'Form'),
+        ('card', 'Card'),
         ('chart', 'Chart'),
         ('calendar', 'Calendar'),
         ('search', 'Search'),
         ('template', 'Template'),
+        ('report', 'Report'),
         ('custom', 'Custom'),
     ), null=False)
     mode = models.CharField(16, choices=(
@@ -56,40 +58,51 @@ class View(models.Model):
     def save(self, *args, **kwargs):
         if self.parent and self.mode is None:
             self.mode = 'extension'
-        if self.view_type is None and self.content:
-            xml = etree.fromstring(self.content)
+        if self.view_type is None:
+            xml = etree.fromstring(self.render({}))
             self.view_type = xml.tag
         super(View, self).save(*args, **kwargs)
 
     def get_content(self, model):
-        if settings.DEBUG and self.template_name:
-            return self.render(self.template_name.split(':')[-1], context={'opts': model._meta})
-        if self.content:
-            return self.content
-        else:
-            # Load in the FileSystem
-            return self.render(self.template_name)
+        return etree.tostring(self.get_xml(model))
 
-    def get_full_content(self, parent=None):
+    def get_xml(self, model):
+        context = {'opts': model._meta}
+        return self.compile(context)
+
+    def xpath(self, source, element):
+        pos = element.attrib.get('position')
+        expr = element.attrib.get('expr')
+        target = source
+        if expr:
+            target = target.xpath(expr)[0]
+        if pos == 'append':
+            for child in element:
+                target.append(etree.fromstring(etree.tostring(child)))
+
+    def merge(self, source, dest):
+        for child in dest:
+            if child.tag == 'xpath':
+                self.xpath(source, child)
+
+    def compile(self, context, parent=None):
+        xml = etree.fromstring(self.render(context))
         if self.parent and self.mode == 'primary':
-            s = self.parent.get_full_content()
-            content = Template(self.parent.get_full_content())
-            content.merge(self.get_content())
-        elif parent:
-            content = parent
-        else:
-            content = Template(self.get_content())
-        children = self.__class__.objects.filter(parent_id=self.pk, mode='extension')
-        for obj in children:
-            content.merge(obj.get_content())
-            obj.get_full_content(content)
-        if parent is None:
-            return content.render()
+            parent_xml = etree.fromstring(self.parent.render(context))
+            self.merge(parent_xml, xml)
+            xml = parent_xml
 
-    def render(self, template_name, context={}, parent=None):
+        view_cls = self.__class__
+        children = view_cls.objects.filter(view_cls.c.parent_id == self.pk, view_cls.c.mode == 'extension')
+        for child in children:
+            self.merge(xml, etree.fromstring(child.render(context)))
+        return xml
+
+    def render(self, context):
         context['_'] = gettext
-        return render_template(template_name, **context)
-        #return views_env.get_template(template_name).render(**context)
+        if settings.DEBUG and self.template_name:
+            return render_template(self.template_name.split(':')[-1], **context)
+        return render_template_string(self.content, **context)
 
     @classmethod
     def generate_view(self, model, view_type='form'):

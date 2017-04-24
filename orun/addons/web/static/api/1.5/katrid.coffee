@@ -12,6 +12,10 @@ globals = @
       defaultView: 'list'
       goToDefaultViewAfterCancelInsert: true
       goToDefaultViewAfterCancelEdit: false
+      horizontalForms: true
+
+    Services:
+      choicesPageLimit: 10
 
     Speech:
       enabled: false

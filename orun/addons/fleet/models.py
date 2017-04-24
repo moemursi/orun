@@ -25,6 +25,7 @@ class VehicleMake(models.Model):
     class Meta:
         name = 'fleet.vehicle.make'
         verbose_name = _('Make of Vehicle')
+        verbose_name_plural = _('Makes of Vehicles')
 
 
 class VehicleModel(models.Model):
@@ -308,7 +309,7 @@ class VehicleOdometer(models.Model):
     vehicle = models.ForeignKey(Vehicle, label=_('Vehicle'), null=False)
     driver = models.ForeignKey(Driver, label=_('Driver'), null=False)
     reason = models.CharField(200, label=_('Reason'), help_text=_('Travel reason'))
-    start_date = models.DateField(label=_('Start Date'), null=False)
+    start_date = models.DateField(label=_('Departure Date'), null=False)
     current_odometer = models.DecimalField(label=_('Start Odometer'))
     elapsed_distance = models.DecimalField(label=_('Travelled Distance'), help_text=_('Total travelled distance'))
     end_date = models.DateField(label=_('End Date'), help_text=_('Estimated return date'))
@@ -367,4 +368,4 @@ class Allocation(models.Model):
     end_date = models.DateTimeField(_('End Date'), help_text='Data final de alocação')
 
     class Meta:
-        name = 'frota.alocacao'
+        name = 'fleet.allocation'

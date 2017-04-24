@@ -72,6 +72,9 @@ msgstr "ou"
 msgid "Filters"
 msgstr "Filtros"
 
+msgid "FILTERS"
+msgstr "FILTROS"
+
 msgid "Group By"
 msgstr "Agrupar Por"
 
@@ -86,3 +89,60 @@ msgstr "dd/mm/yyyy"
 
 msgid "(New)"
 msgstr "(Novo)"
+
+msgid "Print"
+msgstr "Imprimir"
+
+msgid "Auto Report"
+msgstr "Relatório Automático"
+
+msgid "My reports"
+msgstr "Meus relatórios"
+
+msgid "Add Parameter"
+msgstr "Adicionar Parâmetro"
+
+msgid "Advanced options"
+msgstr "Opções avançadas"
+
+msgid "Load"
+msgstr "Carregar"
+
+msgid "Preview"
+msgstr "Visualizar"
+
+msgid "Printable Fields"
+msgstr "Campos Imprimíveis"
+
+msgid "Totalizing Fields"
+msgstr "Campos Totalizadores"
+
+msgid "Sorting"
+msgstr "Ordenar"
+
+msgid "Grouping"
+msgstr "Agrupar"
+
+msgid "Export"
+msgstr "Exportar"
+
+msgid "Is equal"
+msgstr "É igual"
+
+msgid "Selection"
+msgstr "Seleção"
+
+msgid "Starting with"
+msgstr "Começando com"
+
+msgid "Ending with"
+msgstr "Terminando com"
+
+msgid "Greater-than"
+msgstr "Maior que"
+
+msgid "Less-than"
+msgstr "Menor que"
+
+msgid "Contains"
+msgstr "Contém"

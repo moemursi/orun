@@ -7,9 +7,9 @@ class AppConfig(orun.AppConfig):
     version = '0.1'
     auto_install = False
     installable = True
-    fixtures = ['actions.xml', 'menu.xml']
+    fixtures = ['actions.xml', 'fleet.vehicle.make.txt', 'fleet.vehicle.model.txt', 'reports.xml', 'menu.xml']
     #demo = ['demo.json']
-    depends = ['base']
+    depends = ['base', 'mail']
     db_schema = 'fleet'
 
 

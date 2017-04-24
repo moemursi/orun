@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, load_only
 
 from orun import app
 from orun.apps import apps
@@ -35,7 +35,7 @@ class RelatedField(Field):
     def related_model(self):
         # Can't cache this property until all the models are loaded.
         #apps.check_models_ready()
-        return self.remote_field.model
+        return self.rel_field.model
 
     def related(self):
         raise NotImplementedError
@@ -63,7 +63,7 @@ class ForeignKey(RelatedField):
         return model
 
     @property
-    def remote_field(self):
+    def rel_field(self):
         if self.to_fields and self.to_fields[0]:
             to_field = self.to_fields[0]
             if isinstance(to_field, str):
@@ -142,9 +142,10 @@ class OneToManyField(RelatedField):
     one_to_many = True
     child_field = True
 
-    def __init__(self, to, to_field=None, lazy='dynamic', *args, **kwargs):
+    def __init__(self, to, to_field=None, lazy='dynamic', primary_join=None, *args, **kwargs):
         self.to = to
         self.to_field = to_field
+        self.primary_join = primary_join
         if isinstance(to, Field):
             self.to = to.model._meta.name
             self.to_field = to.name
@@ -155,29 +156,38 @@ class OneToManyField(RelatedField):
 
     def _get_info(self):
         r = super(OneToManyField, self)._get_info()
-        r['field'] = self.remote_field.name
-        r['model'] = self.remote_field.model._meta.name
+        r['field'] = self.rel_field.name
+        r['model'] = self.rel_field.model._meta.name
         return r
 
     @property
-    def remote_field(self):
+    def rel_field(self):
         return self.to._meta.fields_dict[self.to_field]
 
     @property
     def related(self):
         self.to = app[self.to]
-        return relationship(lambda: self.to, foreign_keys=[self.remote_field.column], lazy=self.lazy)
+        if self.primary_join:
+            print(self.rel_field.column)
+            return relationship(
+                self.to, lazy=self.lazy, primaryjoin=lambda self=self: self.primary_join(app[self.model], app[self.to])
+            )
+        return relationship(lambda: app[self.to], foreign_keys=[self.rel_field.column], lazy=self.lazy)
+
+    def serialize(self, value, instance=None):
+        value = value.options(load_only('pk'))
+        return [v.pk for v in value]
 
     def deserialize(self, value, instance):
         if value:
-            model = app[self.remote_field.model]
+            model = app[self.rel_field.model]
             pk = instance.pk
             for obj in value:
                 values = None
                 act = obj['action']
                 if act != DESTROY_CHILD:
                     values = obj['values']
-                    values[self.remote_field.name] = pk
+                    values[self.rel_field.name] = pk
                 if act == CREATE_CHILD:
                     item = model.create(**values)
                 elif act == UPDATE_CHILD:

@@ -163,6 +163,11 @@
             .append('<div>' + item.name + '</div>')
             .appendTo(ul);
       };
+
+      if (!window.location.hash) {
+        var href = $('a.menu-item-action').first().attr('href');
+        if (href) window.location.href = href;
+      }
     });
   </script>
 

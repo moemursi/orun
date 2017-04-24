@@ -4,6 +4,7 @@ A XML Deserializer. Shortcut to deserialize complex structured Xml files.
 import os
 from xml.etree import ElementTree as etree
 
+from orun import app
 from orun.db import DEFAULT_DB_ALIAS, session
 from orun.utils.translation import gettext as _
 from orun.core.serializers import base
@@ -35,12 +36,12 @@ class Deserializer(base.Deserializer):
 
     def read_object(self, obj, **attrs):
         Object = self.app['sys.object']
-        ContentType = self.app['sys.model']
+        ct = self.app['sys.model']
         if not isinstance(obj, dict):
             values = obj.getchildren()
             obj = dict(obj.attrib)
         else:
-            values = obj['children']
+            values = obj.get('children', [])
 
         if 'fields' not in obj:
             obj['fields'] = {}
@@ -50,7 +51,7 @@ class Deserializer(base.Deserializer):
                 if 'ref' in child.attrib:
                     obj['fields'][child.attrib['name']] = Object.get_object(child.attrib['ref']).object_id
                 elif 'model' in child.attrib:
-                    obj['fields'][child.attrib['name']] = ContentType.objects.only('pk').get_by_natural_key(*child.attrib['model'].split('.')).pk
+                    obj['fields'][child.attrib['name']] = ct.objects.only('pk').filter(ct.c.name == child.attrib['model']).first().pk
                 else:
                     s = child.text
                     if 'translate' in child.attrib:
@@ -62,14 +63,14 @@ class Deserializer(base.Deserializer):
         Model = self.app[obj['model']]
         values = obj['fields']
 
-        # ui.view special case
-        if Model._meta.name == 'ui.view' and 'template_name' in values:
-            template_name = values['template_name']
-            values['template_name'] = self.app_config.schema + ':' + template_name
-            assert '..' not in template_name
-            template_name = os.path.join(self.app_config.path, self.app_config.template_folder, template_name)
-            with open(template_name, encoding='utf-8') as f:
-                values['content'] = f.read()
+        # # ui.view special case
+        # if Model._meta.name == 'ui.view' and 'template_name' in values:
+        #     template_name = values['template_name']
+        #     values['template_name'] = self.app_config.schema + ':' + template_name
+        #     assert '..' not in template_name
+        #     template_name = os.path.join(self.app_config.path, self.app_config.template_folder, template_name)
+        #     with open(template_name, encoding='utf-8') as f:
+        #         values['content'] = f.read()
 
         try:
             obj_id = Object.objects.filter(Object.name == obj_name).one()
@@ -81,7 +82,7 @@ class Deserializer(base.Deserializer):
             setattr(instance, *get_prep_value(Model, k, v))
         instance.save()
         if pk is None:
-            ct = ContentType.get_by_natural_key(instance._meta.name)
+            ct = ct.get_by_natural_key(instance._meta.name)
             obj_id = Object.create(
                 app_label=self.app_config.app_label,
                 name=obj_name,
@@ -133,8 +134,7 @@ class Deserializer(base.Deserializer):
             'name': s,
         }
         if 'model' in obj.attrib:
-            model = self.app[obj.attrib['model']]
-            fields['model'] = ContentType.get_by_natural_key(model._meta.name)
+            fields['model'] = ContentType.get_by_natural_key(obj.attrib['model'])
         action = {
             'model': act,
             'id': obj.attrib['id'],
@@ -159,10 +159,37 @@ class Deserializer(base.Deserializer):
         }
         return self.read_object(view)
 
+    def read_report(self, obj, **attrs):
+        model = obj.attrib.get('model')
+        if model:
+            ct = self.app['sys.model']
+        view = {
+            'model': 'ui.view',
+            'id': obj.attrib.get('view-id'),
+            'fields': {
+                'template_name': obj.attrib.get('template'),
+                'name': obj.attrib.get('view-id'),
+                'model': (model and ct.objects.only('pk').filter(ct.c.name == model).one()) or None,
+            },
+        }
+        view = self.read_object(view)
+        report = {
+            'model': 'sys.action.report',
+            'id': obj.attrib.get('id'),
+            'fields': {
+                'report_type': obj.attrib.get('type', 'paginated'),
+                'name': obj.attrib.get('name'),
+                'view': view,
+                'model': model,
+            }
+        }
+        return self.read_object(report)
+
     TAGS = {
         'object': read_object,
         'action': read_action,
         'template': read_template,
         'view': read_view,
         'menuitem': read_menu,
+        'report': read_report,
     }

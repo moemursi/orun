@@ -187,6 +187,12 @@
       });
     };
 
+    Model.prototype.autoReport = function() {
+      return this.post('auto_report', null, {
+        kwargs: {}
+      });
+    };
+
     Model.prototype.onFieldChange = function(field, record) {
       return this.post('field_change', null, {
         kwargs: {

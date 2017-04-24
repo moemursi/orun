@@ -163,15 +163,21 @@
       return this.scope.dataSource.groupBy(groups[0]);
     };
 
-    WindowAction.prototype.doViewAction = function(viewAction, target, confirmation) {
-      return this._doViewAction(this.scope, viewAction, target, confirmation);
+    WindowAction.prototype.doViewAction = function(viewAction, target, confirmation, prompt) {
+      return this._doViewAction(this.scope, viewAction, target, confirmation, prompt);
     };
 
-    WindowAction.prototype._doViewAction = function(scope, viewAction, target, confirmation) {
+    WindowAction.prototype._doViewAction = function(scope, viewAction, target, confirmation, prompt) {
+      var promptValue;
+      promptValue = null;
+      if (prompt) {
+        promptValue = window.prompt(prompt);
+      }
       if (!confirmation || (confirmation && confirm(confirmation))) {
         return scope.model.doViewAction({
           action_name: viewAction,
-          target: target
+          target: target,
+          prompt: promptValue
         }).done(function(res) {
           var j, k, len, len1, msg, ref, ref1, results, results1;
           if (res.status === 'open') {
@@ -215,6 +221,14 @@
       }
     };
 
+    WindowAction.prototype.autoReport = function() {
+      return this.scope.model.autoReport().done(function(res) {
+        if (res.ok && res.result.open) {
+          return window.open(res.result.open);
+        }
+      });
+    };
+
     return WindowAction;
 
   })(Action);
@@ -237,6 +251,7 @@
 
     ReportAction.prototype.routeUpdate = function(search) {
       var svc;
+      console.log('report action', this.info);
       this.userReport.id = search.user_report;
       if (this.userReport.id) {
         svc = new Katrid.Services.Model('sys.action.report');
@@ -251,7 +266,7 @@
           };
         })(this));
       } else {
-        this.scope.setContent(this.info.content);
+        this.scope.setContent(Katrid.Reports.Reports.renderDialog(this));
       }
     };
 

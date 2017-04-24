@@ -1,5 +1,7 @@
 from orun.db import models
 
+MENU_SEP = '/'
+
 
 class Menu(models.Model):
     name = models.CharField(null=False)
@@ -30,4 +32,4 @@ class Menu(models.Model):
         while parent:
             objs.insert(0, parent.name)
             parent = parent.parent
-        return ' / '.join(objs)
+        return MENU_SEP.join(objs)

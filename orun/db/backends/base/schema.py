@@ -267,7 +267,7 @@ class BaseDatabaseSchemaEditor(object):
         if cols:
             if model._meta.extension:
                 sql = self.sql_alter_table % {
-                    "table": self.quote_name(model._meta.db_table),
+                    "table": self.quote_name(model._meta.table_name),
                     "definition": ", ".join([self.sql_alter_table_add_column % {'column': CreateColumn(col).compile(bind=self.connection)} for col in cols])
                 }
                 self.connection.execute(sql)
@@ -974,8 +974,8 @@ class BaseDatabaseSchemaEditor(object):
     def _create_fk_sql(self, model, field, suffix):
         from_table = model._meta.table_name
         from_column = field.db_column
-        to_table = field.remote_field.model._meta.table_name
-        to_column = field.remote_field.db_column
+        to_table = field.rel_field.model._meta.table_name
+        to_column = field.rel_field.db_column
         #to_table = field.target_field.model._meta.db_table
         #to_column = field.target_field.column
         suffix = suffix % {

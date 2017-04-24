@@ -1,4 +1,4 @@
-from flask import redirect
+from flask import redirect, send_from_directory
 from orun.conf import settings
 from orun import request
 from orun.utils.json import jsonify
@@ -13,7 +13,6 @@ class WebClient(BaseView):
 
     @route('/', defaults={'menu_id': None})
     @route('/menu/<menu_id>/')
-    #@login_required(login_url='/login/')
     def index(self, menu_id=None):
         menu = app['ui.menu']
         context = {
@@ -25,11 +24,11 @@ class WebClient(BaseView):
             cur_menu = menu.objects.get(menu_id)
             context['current_menu'] = cur_menu
         else:
-            return redirect('/web/menu/%s/' % menu.objects.filter(menu.parent_id == None)[0].id)
+            main_menu = menu.objects.filter(menu.parent_id == None).first()
+            return redirect('/web/menu/%s/' % main_menu.id)
         return render_template('web/index.html', _=gettext, **context)
 
     @route('/action/<action_id>/')
-    #@login_required(login_url='/login/')
     def action(self, action_id=None):
         Action = app['sys.action']
         Menu = app['ui.menu']
@@ -49,6 +48,10 @@ class WebClient(BaseView):
     def i18n_js_catalog(self):
         from .i18n import javascript_catalog
         return javascript_catalog(request, packages=[addon.name for addon in app.addons])
+
+    @route('/reports/<path:path>')
+    def report(self, path):
+        return send_from_directory(settings.REPORT_PATH, path)
 
     def login(self):
         return render_template('web/login.html')

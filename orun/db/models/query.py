@@ -1,6 +1,8 @@
+from functools import reduce
 import sqlalchemy as sa
 from sqlalchemy.sql import select, update, delete, text
 from sqlalchemy import orm, or_
+from sqlalchemy.orm import load_only
 
 from orun.db import session, connection
 
@@ -286,5 +288,9 @@ class Query(orm.Query):
     def values_list(self, *fields):
         for obj in self:
             yield [getattr(obj, f, None) for f in fields]
+
+    def only(self, *args):
+        return self.options(load_only(*args))
+
 
 Session = sa.orm.sessionmaker(autoflush=False, autocommit=True, query_cls=Query)

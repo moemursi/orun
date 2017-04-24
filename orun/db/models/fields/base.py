@@ -329,7 +329,15 @@ class Field(object):
 
 class CharField(Field):
 
-    def __init__(self, max_length=1024, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        max_length = kwargs.pop('max_lengtth', 1024)
+        args = list(args)
+        if args:
+            arg = args.pop(0)
+            if isinstance(arg, str):
+                kwargs.setdefault('label', arg)
+            elif isinstance(arg, int):
+                max_length = arg
         super(CharField, self).__init__(*args, **kwargs)
         self.max_length = max_length
 
@@ -448,8 +456,28 @@ class SelectionField(CharField):
         super(SelectionField, self).__init__(*args[1:], **kwargs)
 
 
+class SlugField(CharField):
+    pass
+
+
 class BinaryField(Field):
     _db_type = sa.Binary()
+
+    def __init__(self, storage='db', *args, **kwargs):
+        kwargs.setdefault('deferred', True)
+        super(BinaryField, self).__init__(*args, **kwargs)
+        self.storage = storage
+
+    def deserialize(self, value, instance):
+        print(value)
+
+
+class FileField(BinaryField):
+    pass
+
+
+class ImageField(FileField):
+    pass
 
 
 class HtmlField(TextField):
@@ -460,6 +488,10 @@ class FilePathField(CharField):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('max_length', 1024)
         super(FilePathField, self).__init__(*args, **kwargs)
+
+
+class ImagePathField(FilePathField):
+    pass
 
 
 class field_property(object):

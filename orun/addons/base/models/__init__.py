@@ -10,3 +10,5 @@ from .bank import *
 from .module import *
 from .menu import *
 from .sequence import *
+from .mail import *
+from .reports import *
