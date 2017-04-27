@@ -210,7 +210,7 @@ class Options(object):
                 col = self.fields_dict[field.name].column
                 mapped.c = mapper(
                     mapped, table, inherits=parent, properties=props,
-                    inherit_condition=col == list(col.foreign_keys)[0].column, **additional_args, **additional_args).c
+                    inherit_condition=col == list(col.foreign_keys)[0].column, **additional_args).c
         else:
             mapped.c = mapper(mapped, table, properties=props, **additional_args).c
 
