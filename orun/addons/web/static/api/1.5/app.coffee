@@ -23,7 +23,7 @@ ngApp.config ($routeProvider) ->
       action: ['actions', '$route', (actions, $route) ->
         return actions.get($route.current.params.actionId)
       ]
-    template: "<div id=\"katrid-action-view\">#{Katrid.i18n.gettext 'Loading...'}</div>"
+    template: "<div id=\"katrid-action-view\">#{Katrid.i18n.gettext('Loading...')}</div>"
   })
   .when('/action/:service/:actionId/', {
     controller: 'ActionController'
@@ -32,7 +32,7 @@ ngApp.config ($routeProvider) ->
       action: ['actions', '$route', (actions, $route) ->
         return actions.get($route.current.params.service, $route.current.params.actionId)
       ]
-    template: "<div id=\"katrid-action-view\">#{Katrid.i18n.gettext 'Loading...'}</div>"
+    template: "<div id=\"katrid-action-view\">#{Katrid.i18n.gettext('Loading...')}</div>"
   })
   return
 
@@ -60,8 +60,11 @@ ngApp.controller 'ActionController', ($scope, $compile, action, $location) ->
 
   $scope.$set = (field, value) ->
     control = $scope.form[field]
-    control.$setViewValue value
-    control.$render()
+    if control
+      control.$setViewValue value
+      control.$render()
+    else
+      $scope.record[field] = value
     return
 
   $scope.setContent = (content) ->

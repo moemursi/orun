@@ -51,6 +51,16 @@ class DataSource
     el = @scope.formElement
     if @validate()
       data = @getModifiedData(@scope.form, el, @scope.record)
+      @scope.form.data = data
+
+      beforeSubmit = el.attr('before-submit')
+      console.log('before submit', beforeSubmit)
+      if beforeSubmit
+        beforeSubmit = @scope.$eval(beforeSubmit)
+
+      console.log(@scope.form.data)
+
+      #@scope.form.data = null
 
       if data
         @uploading++
@@ -146,6 +156,7 @@ class DataSource
       page: page
       params: params
       fields: fields
+      limit: @limit
 
     def = new $.Deferred()
 

@@ -249,9 +249,6 @@ table tbody tr td.bool-text {
   padding-bottom: 4px;
   margin-bottom: 0;
 }
-.data-panel .media-left {
-  padding-left: 15px;
-}
 #loading-msg {
   position: fixed;
   border-radius: 2px;
@@ -273,6 +270,9 @@ table tbody tr td.bool-text {
 td.DecimalField,
 th.DecimalField {
   text-align: right;
+}
+th span {
+  cursor: default;
 }
 .page-badge-ref {
   position: absolute;
@@ -365,6 +365,9 @@ label.prepend-icon {
 }
 .image-box.image-field {
   width: 120px;
+}
+.image-box.image-field input[type=file] {
+  display: none;
 }
 .data-panel.browsing .image-box:hover .image-box-buttons {
   visibility: hidden;

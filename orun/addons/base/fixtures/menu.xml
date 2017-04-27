@@ -4,6 +4,7 @@
     <menuitem id="sys.menu.auth" name="Authentication">
       <menuitem id="sys.menu.auth.user" name="Users" action="action.sys.view.auth.user"/>
       <menuitem id="sys.menu.auth.group" name="Groups" action="action.sys.view.auth.group"/>
+      <menuitem id="sys.menu.auth.company" name="Companies" action="action.sys.view.res.company"/>
     </menuitem>
     <menuitem id="sys.menu.ui" name="User Interface">
       <menuitem id="sys.menu.ui.action" name="Actions" action="action.sys.view.action">

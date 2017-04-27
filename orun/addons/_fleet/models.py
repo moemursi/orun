@@ -160,9 +160,10 @@ class Vehicle(models.Model):
         }
 
     def __str__(self):
+        year = '%s/%s' % (self.manufacture_year, self.model_year) if self.model_year else str(self.manufacture_year)
         if self.license_plate:
-            return '%s - %s (%s/%s)' % (self.license_plate, str(self.model), self.manufacture_year, self.model_year)
-        return '%s (%s/%s)' % (str(self.model), self.manufacture_year, self.model_year)
+            return '%s - %s (%s)' % (self.license_plate, str(self.model), year)
+        return '%s (%s)' % (str(self.model), year)
 
 
 class VehicleFuel(models.Model):

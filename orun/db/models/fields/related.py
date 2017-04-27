@@ -162,13 +162,15 @@ class OneToManyField(RelatedField):
 
     @property
     def rel_field(self):
+        if self.to_field is None:
+            to = app[self.to]
+            self.to_field = get_first_rel_field(to, self.model).name
         return self.to._meta.fields_dict[self.to_field]
 
     @property
     def related(self):
         self.to = app[self.to]
         if self.primary_join:
-            print(self.rel_field.column)
             return relationship(
                 self.to, lazy=self.lazy, primaryjoin=lambda self=self: self.primary_join(app[self.model], app[self.to])
             )
@@ -217,9 +219,10 @@ class ManyToManyField(RelatedField):
     many_to_many = True
     child_field = True
 
-    def __init__(self, to, through=None, lazy='dynamic', *args, **kwargs):
+    def __init__(self, to, through=None, through_fields=None, lazy='dynamic', *args, **kwargs):
         self.to = to
         self.through = through
+        self.through_fields = through_fields
         super(ManyToManyField, self).__init__(lazy=lazy, *args, **kwargs)
 
     def get_attname(self):
@@ -231,32 +234,45 @@ class ManyToManyField(RelatedField):
 
         if self.to == 'self':
             rel_model = self.model
-        elif isinstance(self.to, models.Model):
-            rel_model = app[self.to._meta.name]
+        #elif isinstance(self.to, models.Model):
+        #    rel_model = app[self.to._meta.name]
         else:
             rel_model = app[self.to]
 
-        from_ = 'from_%s' % self.model._meta.name.replace('.', '_')
-        to_ = 'to_%s' % rel_model._meta.name.replace('.', '_')
+        if self.through:
+            new_model = app[self.through]
+            if self.through_fields:
+                from_field, to_field = self.through_fields
+                from_field = new_model._meta.fields_dict[from_field].db_column
+                to_field = new_model._meta.fields_dict[to_field].db_column
+            else:
+                from_field = get_first_rel_field(new_model, self.model).db_column
+                to_field = get_first_rel_field(new_model, rel_model).db_column
+        else:
+            from_ = 'from_%s' % self.model._meta.name.replace('.', '_')
+            to_ = 'to_%s' % rel_model._meta.name.replace('.', '_')
 
-        new_model = type('%s_%s' % (self.model.__name__, self.name), (models.Model,), {
-            '__module__': self.model._meta.app_label,
-            # '__app__': self.model._meta.app,
-            from_: ForeignKey(self.model, null=False),
-            to_: ForeignKey(rel_model, null=False),
-        })
+            from_field = from_ + '_id'
+            to_field = to_ + '_id'
 
-        new_model._meta.app = self.model._meta.app
+            new_model = type('%s_%s' % (self.model.__name__, self.name), (models.Model,), {
+                '__module__': self.model._meta.app_label,
+                # '__app__': self.model._meta.app,
+                from_: ForeignKey(self.model, null=False),
+                to_: ForeignKey(rel_model, null=False),
+            })
 
-        new_model._meta._build_table(self.model._meta.app.meta)
-        new_model._meta._build_mapper()
+            new_model._meta.app = self.model._meta.app
+
+            new_model._meta._build_table(self.model._meta.app.meta)
+            new_model._meta._build_mapper()
 
         return relationship(
             lambda: rel_model._meta.mapped,
             secondary=new_model._meta.table,
             lazy=None,
-            primaryjoin=self.model._meta.pk.column == new_model._meta.table.c[from_ + '_id'],
-            secondaryjoin=rel_model._meta.pk.column == new_model._meta.table.c[to_ + '_id'],
+            primaryjoin=self.model._meta.pk.column == new_model._meta.table.c[from_field],
+            secondaryjoin=rel_model._meta.pk.column == new_model._meta.table.c[to_field],
         )
 
     def deconstruct(self):
@@ -271,3 +287,9 @@ class ManyToManyField(RelatedField):
             )
 
         return name, path, args, kwargs
+
+
+def get_first_rel_field(model, rel_model):
+    for f in model._meta.fields:
+        if isinstance(f, ForeignKey) and f.related_model._meta.name == rel_model._meta.name:
+            return f

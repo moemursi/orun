@@ -295,3 +295,9 @@ msgstr "Cidades"
 
 msgid "Reports"
 msgstr "Relatórios"
+
+msgid "Country Groups"
+msgstr "Grupo de Países"
+
+msgid "Show on google maps"
+msgstr "Mostrar no google maps"

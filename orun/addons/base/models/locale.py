@@ -43,6 +43,9 @@ class City(models.Model):
         verbose_name = _('City')
         verbose_name_plural = _('Cities')
 
+    def __str__(self):
+        return '%s - %s' % (self.name, str(self.state.code))
+
 
 class Language(models.Model):
     name = models.CharField(128, _('name'), null=False)

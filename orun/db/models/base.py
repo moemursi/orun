@@ -440,10 +440,17 @@ class Model(metaclass=ModelBase):
         return self._search(*args, **kwargs)
 
     @api.method
-    def search(cls, fields=None, *args, **kwargs):
-        qs = cls._search(fields=fields, *args, **kwargs)
+    def search(cls, fields=None, count=None, page=None, limit=None, **kwargs):
+        qs = cls._search(fields=fields, **kwargs)
+        if count:
+            count = qs.count()
+        if page and limit:
+            page = int(page)
+            limit = int(limit)
+            qs = qs[(page - 1) * limit:page * limit]
         return {
             'data': [obj.serialize(fields=fields) for obj in qs],
+            'count': count,
         }
 
     def _get_rec_name(self):
@@ -458,7 +465,7 @@ class Model(metaclass=ModelBase):
             count = qs.count()
         if page:
             page = int(page)
-            qs = qs[page * CHOICES_PAGE_LIMIT:(page + 1) * CHOICES_PAGE_LIMIT]
+            qs = qs[(page - 1) * CHOICES_PAGE_LIMIT:page * CHOICES_PAGE_LIMIT]
         else:
             qs = qs[:CHOICES_PAGE_LIMIT]
         return {

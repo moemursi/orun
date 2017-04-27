@@ -71,6 +71,7 @@
         }
         if (((ref = search.view_type) === 'list' || ref === 'card') && !search.page) {
           this.location.search('page', 1);
+          this.location.search('limit', this.info.limit);
         } else {
           filter = {};
           if (search.q != null) {
@@ -79,12 +80,12 @@
           fields = _.keys(this.scope.view.fields);
           if (((ref1 = search.view_type) === 'list' || ref1 === 'card') && search.page !== this.scope.dataSource.pageIndex) {
             this.scope.dataSource.pageIndex = parseInt(search.page);
+            this.scope.dataSource.limit = parseInt(search.limit);
             this.scope.dataSource.search(filter, search.page, fields);
           } else if (((ref2 = search.view_type) === 'list' || ref2 === 'card') && (search.q != null)) {
             this.scope.dataSource.search(filter, search.page, fields);
           }
           if (search.id && (((this.scope.record != null) && this.scope.record.id !== search.id) || (this.scope.record == null))) {
-            console.log('set id', search.id);
             this.scope.record = null;
             this.scope.dataSource.get(search.id);
           }

@@ -95,7 +95,7 @@ class Templates
   </div>
 
   <div class=\"pull-right\">
-            <div class="pagination-area">
+            <div class="btn-group pagination-area">
               <span class="paginator">${dataSource.offset|number} - ${dataSource.offsetLimit|number}</span> / <span class="total-pages">${dataSource.recordCount|number}</span>
             </div>
     <div class=\"btn-group\">
@@ -153,15 +153,10 @@ class Templates
       <div>
         <a href=\"javascript:void(0)\" title=\"Add to favorite\"><i class=\"fa star fa-star-o pull-right\"></i></a>
         <ol class=\"breadcrumb\">
-          <li><a href=\"javascript:void(0)\" ng-click=\"action.setViewType(\'list\')\">${ action.info.display_name }</a></li>
+          <li><h2><a href=\"javascript:void(0)\" ng-click=\"action.setViewType(\'list\')\">${ action.info.display_name }</a></h2></li>
           <li>${ (dataSource.loadingRecord && Katrid.i18n.gettext('Loading...')) || record.display_name }</li>
         </ol>
-        <div class=\"pull-right\">
-            <span ng-show="records.length">
-              ${dataSource.recordIndex} / ${records.length}
-            </span>
-        </div>
-        <p class=\"help-block\">${ action.info.usage }&nbsp;</p>
+        <p class=\"help-block\">${ action.info.usage }</p>
       </div>
       <div class=\"toolbar\">
   <button class=\"btn btn-primary\" type=\"button\" ng-disabled="dataSource.uploading" ng-click=\"dataSource.saveChanges()\" ng-show="dataSource.changing">#{Katrid.i18n.gettext 'Save'}</button>
@@ -178,6 +173,11 @@ class Templates
     </ul>
   </div>
   <div class=\"pull-right\">
+    <div class="btn-group pagination-area">
+        <span ng-show="records.length">
+          ${dataSource.recordIndex} / ${records.length}
+        </span>
+    </div>
     <div class=\"btn-group\" role=\"group\">
       <button class=\"btn btn-default\" type=\"button\" ng-click=\"dataSource.prior(\'form\')\"><i class=\"fa fa-chevron-left\"></i>
       </button>
@@ -240,7 +240,7 @@ class Templates
   </div>
 
   <div class=\"pull-right\">
-            <div class="pagination-area">
+            <div class="btn-group pagination-area">
               <span class="paginator">${dataSource.offset|number} - ${dataSource.offsetLimit|number}</span> / <span class="total-pages">${dataSource.recordCount|number}</span>
             </div>
     <div class=\"btn-group\">
@@ -273,7 +273,7 @@ class Templates
       name = col.attr('name')
       if not name
         cols += """<td>#{col.html()}</td>"""
-        ths += """<th><label>${col.attr('caption')}</label></th>"""
+        ths += """<th><span>${col.attr('caption')}</span></th>"""
         continue
 
       if col.attr('visible') is 'False'
@@ -289,7 +289,7 @@ class Templates
           fieldInfo._listChoices[choice[0]] = choice[1]
 
       cls = """#{fieldInfo.type} list-column"""
-      ths += """<th class="#{cls}" name="#{name}"><label>${view.fields.#{name}.caption}</label></th>"""
+      ths += """<th class="#{cls}" name="#{name}"><span>${view.fields.#{name}.caption}</span></th>"""
       cls = """#{fieldInfo.type} field-#{name}"""
 
       colHtml = col.html()

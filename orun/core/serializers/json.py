@@ -99,6 +99,8 @@ class OrunJSONEncoder(json.JSONEncoder):
             if r.endswith('+00:00'):
                 r = r[:-6] + 'Z'
             return r
+        elif isinstance(o, bytes):
+            return o.decode()
         elif isinstance(o, models.Model):
             return o.serialize()
         elif isinstance(o, sqlalchemy.orm.query.Query):

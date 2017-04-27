@@ -15,4 +15,24 @@
     <field name="model" model="res.partner"/>
     <field name="template_name">base/views/res.partner/card.xml</field>
   </object>
+  <object id="view.res.company.form" model="ui.view">
+    <field name="name">res.company.form</field>
+    <field name="model" model="res.company"/>
+    <field name="template_name">base/views/res.company/form.xml</field>
+  </object>
+  <object id="view.auth.user.form" model="ui.view">
+    <field name="name">auth.user.form</field>
+    <field name="model" model="auth.user"/>
+    <field name="template_name">base/views/auth.user/form.xml</field>
+  </object>
+  <object id="view.auth.user.list" model="ui.view">
+    <field name="name">auth.user.list</field>
+    <field name="model" model="auth.user"/>
+    <field name="template_name">base/views/auth.user/list.xml</field>
+  </object>
+  <object id="view.res.company.list" model="ui.view">
+    <field name="name">res.company.list</field>
+    <field name="model" model="res.company"/>
+    <field name="template_name">base/views/res.company/list.xml</field>
+  </object>
 </data>

@@ -3,7 +3,7 @@
   <report
       id="action.fleet.report.odometer"
       view-id="report.fleet.odometer"
-      name="Odometer Listing"
+      name="Departures Listing"
       model="fleet.vehicle.odometer"
       template="fleet/reports/odometer.listing.xml"
   />

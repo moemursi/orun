@@ -46,6 +46,7 @@ class WindowAction extends Action
 
       if search.view_type in ['list', 'card'] and not search.page
         @location.search('page', 1)
+        @location.search('limit', @info.limit)
       else
 
         filter = {}
@@ -56,12 +57,12 @@ class WindowAction extends Action
 
         if search.view_type in ['list', 'card'] and search.page isnt @scope.dataSource.pageIndex
           @scope.dataSource.pageIndex = parseInt(search.page)
+          @scope.dataSource.limit = parseInt(search.limit)
           @scope.dataSource.search(filter, search.page, fields)
         else if search.view_type in ['list', 'card'] and search.q?
           @scope.dataSource.search(filter, search.page, fields)
 
         if search.id and ((@scope.record? and @scope.record.id != search.id) or not @scope.record?)
-          console.log('set id', search.id)
           @scope.record = null
           @scope.dataSource.get(search.id)
     else

@@ -53,7 +53,7 @@ class Partner(models.Model):
     ))
     company = models.ForeignKey('res.company', label=_('Company'))
     comments = models.TextField(label=_('Notes'))
-    image = models.ImageField(storage='attachment')
+    image = models.ImageField(attachment=True, deferred=False)
 
     class Meta:
         name = 'res.partner'

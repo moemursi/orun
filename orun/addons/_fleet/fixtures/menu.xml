@@ -9,7 +9,7 @@
       <menuitem id="fleet.menu.traffic.ticket" name="Traffic Ticket" action="action.fleet.view.traffic.ticket" />
     </menuitem>
     <menuitem id="fleet.menu.reports" name="Reports">
-      <menuitem id="fleet.menu.reports.odometer" name="Odometer Listing" action="action.fleet.report.odometer"/>
+      <menuitem id="fleet.menu.reports.odometer" name="Departures Listing" action="action.fleet.report.odometer"/>
     </menuitem>
     <menuitem id="fleet.menu.config" name="Configuration">
       <menuitem id="fleet.menu.config.driver" name="Drivers" action="action.fleet.view.driver" />

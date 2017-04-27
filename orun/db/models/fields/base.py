@@ -23,7 +23,7 @@ class Field(object):
     max_length = None
     is_relation = None
     many_to_many = False
-    remote_field = None
+    rel_field = None
 
     related = None
     base_model = None
@@ -420,19 +420,19 @@ class PositiveSmallIntegerField(SmallIntegerField):
 
 
 class DecimalField(Field):
-    def __init__(self, precision=18, scale=2, *args, **kwargs):
-        self.precision = precision
-        self.scale = scale
+    def __init__(self, digits=18, decimal_places=2, *args, **kwargs):
+        self.digits = digits
+        self.decimal_places = decimal_places
         super(DecimalField, self).__init__(*args, **kwargs)
 
     def db_type(self, bind=None):
-        return sa.Numeric(self.precision, self.scale)
+        return sa.Numeric(self.digits, self.decimal_places)
 
     def deserialize(self, value, instance):
         if isinstance(value, (str, float)):
             value = decimal.Decimal(str(value))
         if value is not None:
-            value = round(value, self.scale)
+            value = round(value, self.decimal_places)
         super(DecimalField, self).deserialize(value, instance)
 
 
@@ -463,13 +463,14 @@ class SlugField(CharField):
 class BinaryField(Field):
     _db_type = sa.Binary()
 
-    def __init__(self, storage='db', *args, **kwargs):
+    def __init__(self, attachment=None, storage='db', *args, **kwargs):
         kwargs.setdefault('deferred', True)
         super(BinaryField, self).__init__(*args, **kwargs)
+        self.attachment = attachment
         self.storage = storage
 
     def deserialize(self, value, instance):
-        print(value)
+        super(BinaryField, self).deserialize(value.encode('utf-8') if value else None, instance)
 
 
 class FileField(BinaryField):

@@ -24,4 +24,7 @@
   <action id="action.sys.view.auth.group" type="sys.action.window" name="Groups" model="auth.group">
     <field name="view_mode">list,form</field>
   </action>
+  <action id="action.sys.view.res.company" type="sys.action.window" name="Companies" model="res.company">
+    <field name="view_mode">list,form</field>
+  </action>
 </data>

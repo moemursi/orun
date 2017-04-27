@@ -75,10 +75,17 @@
     };
 
     DataSource.prototype.saveChanges = function() {
-      var data, el;
+      var beforeSubmit, data, el;
       el = this.scope.formElement;
       if (this.validate()) {
         data = this.getModifiedData(this.scope.form, el, this.scope.record);
+        this.scope.form.data = data;
+        beforeSubmit = el.attr('before-submit');
+        console.log('before submit', beforeSubmit);
+        if (beforeSubmit) {
+          beforeSubmit = this.scope.$eval(beforeSubmit);
+        }
+        console.log(this.scope.form.data);
         if (data) {
           this.uploading++;
           this.scope.model.write([data]).done((function(_this) {
@@ -220,7 +227,8 @@
         count: true,
         page: page,
         params: params,
-        fields: fields
+        fields: fields,
+        limit: this.limit
       };
       def = new $.Deferred();
       this.pendingRequest = setTimeout((function(_this) {
