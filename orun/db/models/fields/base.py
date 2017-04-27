@@ -32,7 +32,7 @@ class Field(object):
     child_field = False
 
     def __init__(self, label=None, db_column=None, db_index=False, primary_key=False,
-                 concrete=None, readonly=False, null=True, required=None,
+                 concrete=None, readonly=False, null=True, required=None, widget_attrs=None,
                  auto_created=False, default=NOT_PROVIDED, on_update=NOT_PROVIDED, choices=None,
                  deferred=False, copy=None, serializable=True, editable=True, help_text=None,
                  unique=False, db_tablespace=None, getter=None, setter=None, *args, **kwargs):
@@ -70,6 +70,7 @@ class Field(object):
         if required is None:
             self.required = not self.null
         self.auto_created = auto_created
+        self.widget_attrs = widget_attrs
 
         # Adjust the appropriate creation counter, and save our local copy.
         if auto_created:
@@ -155,6 +156,7 @@ class Field(object):
             'type': self.get_internal_type(),
             'caption': capfirst(self.label),
             'choices': self.choices,
+            'widget_attrs': self.widget_attrs,
         }
         if hasattr(self, 'max_length'):
             info['max_length'] = self.max_length

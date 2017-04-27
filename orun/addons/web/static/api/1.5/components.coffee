@@ -79,7 +79,7 @@ uiKatrid.directive 'field', ($compile) ->
 
       templ = """<#{templTag} class="section-field-#{attrs.name} form-group" #{templAttrs}>""" +
         widget.template(scope, element, attrs, field) +
-        '</#{templTag}>'
+        "</#{templTag}>"
       templ = $compile(templ)(scope)
       element.replaceWith(templ)
       templ.addClass("col-md-#{attrs.cols or cols or 6}")

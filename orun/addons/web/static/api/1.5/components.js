@@ -75,7 +75,7 @@
           }
           templAttrs = templAttrs.join(' ');
           templTag = 'section';
-          templ = ("<" + templTag + " class=\"section-field-" + attrs.name + " form-group\" " + templAttrs + ">") + widget.template(scope, element, attrs, field) + '</#{templTag}>';
+          templ = ("<" + templTag + " class=\"section-field-" + attrs.name + " form-group\" " + templAttrs + ">") + widget.template(scope, element, attrs, field) + ("</" + templTag + ">");
           templ = $compile(templ)(scope);
           element.replaceWith(templ);
           templ.addClass("col-md-" + (attrs.cols || cols || 6));
