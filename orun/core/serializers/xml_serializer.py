@@ -74,7 +74,7 @@ class Deserializer(base.Deserializer):
 
         try:
             obj_id = Object.objects.filter(Object.name == obj_name).one()
-            instance = obj_id.content_object
+            instance = obj_id.object
         except ObjectDoesNotExist:
             instance = Model()
         pk = instance.pk
@@ -94,15 +94,19 @@ class Deserializer(base.Deserializer):
     def read_menu(self, obj, parent=None, **attrs):
         Object = self.app['sys.object']
         lst = []
+        action = None
         action_id = obj.attrib.get('action')
         if action_id:
             sys_obj = Object
             try:
-                action_id = sys_obj.get_object(action_id).object_id
+                action = sys_obj.get_object(action_id).object
+                action_id = action.pk
             except ObjectDoesNotExist:
                 raise Exception('The object id "%s" does not exist' % action_id)
         s = obj.attrib.get('name')
-        if attrs.get('translate'):
+        if s is None and action:
+            s = action.name
+        elif attrs.get('translate'):
             s = _(s)
         fields = {
             'parent_id': obj.attrib.get('parent', parent),

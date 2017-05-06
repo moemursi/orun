@@ -156,7 +156,6 @@ class Field(object):
             'type': self.get_internal_type(),
             'caption': capfirst(self.label),
             'choices': self.choices,
-            'widget_attrs': self.widget_attrs,
         }
         if hasattr(self, 'max_length'):
             info['max_length'] = self.max_length
@@ -415,6 +414,10 @@ class TimeField(DateTimeField):
 
 class SmallIntegerField(Field):
     _db_type = sa.SmallInteger()
+
+
+class PositiveIntegerField(IntegerField):
+    pass
 
 
 class PositiveSmallIntegerField(SmallIntegerField):

@@ -9,7 +9,7 @@ class Object(models.Model):
     name = models.CharField(128, _('Object Name'), null=False)
     model = models.ForeignKey('sys.model', null=False)
     object_id = models.BigIntegerField()
-    content_object = GenericForeignKey()
+    object = GenericForeignKey()
     app_label = models.CharField(64, null=False)
     can_update = models.BooleanField(default=True)
 
