@@ -31,7 +31,10 @@ def drop(db):
 
     if db_engine == 'sqlite':
         del conn
-        os.remove(db_name)
+        try:
+            os.remove(db_name)
+        except Exception as e:
+            commands.echo(e, err=True)
     elif db_engine == 'postgresql':
         conn.connection.set_isolation_level(0)
         try:

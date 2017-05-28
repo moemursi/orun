@@ -6,19 +6,6 @@ class Reports
   @currentReport = {}
   @currentUserReport = {}
 
-  @saveDialog = (report) ->
-    params = @getUserParams()
-    name = window.prompt(Katrid.i18n.gettext('Report name'), Katrid.Reports.Reports.currentUserReport.name)
-    if name
-      Katrid.Reports.Reports.currentUserReport.name = name
-      $.ajax
-        type: 'POST'
-        url: report.container.find('#report-form').attr('action') + '?save=' + name
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json'
-        data: JSON.stringify params
-    false
-
   @get = (repName) ->
 
   @renderDialog = (action) ->
@@ -102,6 +89,19 @@ class Report
     params = ($(p).attr('name') for p in xml.find('param'))
 
     @load(fields, params)
+
+  saveDialog: ->
+    params = @getUserParams()
+    name = window.prompt(Katrid.i18n.gettext('Report name'), Katrid.Reports.Reports.currentUserReport.name)
+    if name
+      Katrid.Reports.Reports.currentUserReport.name = name
+      $.ajax
+        type: 'POST'
+        url: @container.find('#report-form').attr('action') + '?save=' + name
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json'
+        data: JSON.stringify params
+    false
 
   load: (fields, params) ->
     if not fields
@@ -357,8 +357,9 @@ class Param
 Katrid.uiKatrid.controller 'ReportController', ($scope, $element, $compile) ->
   xmlReport = $scope.$parent.action.info.content
   report = new Report($scope.$parent.action, $scope)
-  report.loadFromXml(xmlReport)
   $scope.report = report
+  console.log(report)
+  report.loadFromXml(xmlReport)
   report.render($element)
   report.loadParams()
 

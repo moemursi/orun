@@ -14,7 +14,10 @@ from .utils import adjust_dependencies
 
 
 class Application(Flask):
+    current_instance = None
+
     def __init__(self, *args, **kwargs):
+        Application.current_instance = self
         settings = {}
         settings.update(global_settings.settings)
         settings.update(kwargs.pop('settings', {}))

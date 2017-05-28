@@ -18,7 +18,9 @@ from orun.core.management import commands
               'loading is enabled if the reloader is disabled.')
 @commands.option('--with-threads/--without-threads', default=False,
               help='Enable or disable multithreading.')
-def command(host, port, reload, debugger, eager_loading, with_threads, **kwargs):
+@commands.option('--websocket', is_flag=True, default=False,
+              help='Enable websocket.')
+def command(host, port, reload, debugger, eager_loading, with_threads, websocket, **kwargs):
     """Runs a local development server for the Flask application.
 
     This local server is recommended for development purposes only but it
@@ -54,6 +56,11 @@ def command(host, port, reload, debugger, eager_loading, with_threads, **kwargs)
         if debug:
             print(' * Forcing debug mode %s' % (debug and 'on' or 'off'))
 
-    run_simple(host, port, app, use_reloader=reload,
-               use_debugger=debugger, threaded=with_threads)
+    if websocket:
+        from orun import io
+        app.config['WEBSOCKET'] = True
+        io.socketio.run(app, host, port, debug=True, use_reloader=reload)
+    else:
+        app.config['WEBSOCKET'] = False
+        run_simple(host, port, app, use_reloader=reload, use_debugger=debugger, threaded=with_threads)
 

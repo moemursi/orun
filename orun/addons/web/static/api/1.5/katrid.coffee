@@ -4,7 +4,7 @@ globals = @
 @Katrid =
   Settings:
     server: ''
-    servicesProtocol: 'http'
+    servicesProtocol: if io? and io.connect then 'io' else 'http'
 
     # Katrid Framework UI Settings
     UI:
@@ -100,3 +100,6 @@ globals = @
           value
         else
           formatType
+
+if Katrid.Settings.servicesProtocol is 'io'
+  Katrid.socketio = io.connect('//' + document.domain + ':' + location.port + '/rpc')

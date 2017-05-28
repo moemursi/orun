@@ -12,23 +12,6 @@
 
     Reports.currentUserReport = {};
 
-    Reports.saveDialog = function(report) {
-      var name, params;
-      params = this.getUserParams();
-      name = window.prompt(Katrid.i18n.gettext('Report name'), Katrid.Reports.Reports.currentUserReport.name);
-      if (name) {
-        Katrid.Reports.Reports.currentUserReport.name = name;
-        $.ajax({
-          type: 'POST',
-          url: report.container.find('#report-form').attr('action') + '?save=' + name,
-          contentType: "application/json; charset=utf-8",
-          dataType: 'json',
-          data: JSON.stringify(params)
-        });
-      }
-      return false;
-    };
-
     Reports.get = function(repName) {};
 
     Reports.renderDialog = function(action) {
@@ -134,6 +117,23 @@
         return results;
       })();
       return this.load(fields, params);
+    };
+
+    Report.prototype.saveDialog = function() {
+      var name, params;
+      params = this.getUserParams();
+      name = window.prompt(Katrid.i18n.gettext('Report name'), Katrid.Reports.Reports.currentUserReport.name);
+      if (name) {
+        Katrid.Reports.Reports.currentUserReport.name = name;
+        $.ajax({
+          type: 'POST',
+          url: this.container.find('#report-form').attr('action') + '?save=' + name,
+          contentType: "application/json; charset=utf-8",
+          dataType: 'json',
+          data: JSON.stringify(params)
+        });
+      }
+      return false;
     };
 
     Report.prototype.load = function(fields, params) {
@@ -578,8 +578,9 @@
     var report, xmlReport;
     xmlReport = $scope.$parent.action.info.content;
     report = new Report($scope.$parent.action, $scope);
-    report.loadFromXml(xmlReport);
     $scope.report = report;
+    console.log(report);
+    report.loadFromXml(xmlReport);
     report.render($element);
     return report.loadParams();
   });

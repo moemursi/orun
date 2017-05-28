@@ -77,23 +77,12 @@
 <script src="/static/web/static/assets/js/angular/i18n/angular-locale_pt-br.js"></script>
 
 <!-- app scripts -->
-<script src="/static/web/static/api/1.5/katrid.js"></script>
 <script src="/web/client/i18n/catalog.js"></script>
-<!--script>
-  // Load javascript translations
-  $(document).ready(function () {
-    $.ajax({
-      url: '/web/client/i18n/catalog.js',
-      type: 'GET',
-      async: false
-    }).then(function (res) {
-      Katrid.i18n.initialize(res.plural, res.catalog, res.formats);
-    });
-  })
-</script-->
-
+{% if settings.WEBSOCKET %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+{% endif %}
 <script src="/static/web/static/libs/underscore-min.js"></script>
-
+<script src="/static/web/static/api/1.5/katrid.js"></script>
 <script src="/static/web/static/api/1.5/services.js"></script>
 <script src="/static/web/static/api/1.5/ui.js"></script>
 <script src="/static/web/static/api/1.5/actions.js"></script>

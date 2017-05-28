@@ -4,7 +4,7 @@ from sqlalchemy.orm import mapper, relationship, deferred, backref, synonym
 from orun.db import connections
 from orun.utils.text import camel_case_to_spaces
 from orun.utils.functional import cached_property
-from .fields import AutoField, field_property
+from .fields import BigAutoField, field_property
 from .record import Record
 
 
@@ -148,7 +148,7 @@ class Options(object):
                 if self.parents:
                     pass
                 else:
-                    auto = AutoField('ID', primary_key=True, auto_created=True)
+                    auto = BigAutoField('ID', primary_key=True, auto_created=True)
                     model.add_to_class('id', auto)
 
     def _build_table(self, meta):
@@ -196,6 +196,13 @@ class Options(object):
         mapped = self.model
 
         additional_args = {}
+
+        if self.parents:
+            for parent, field in self.parents.items():
+                parent = self.app[parent._meta.name]
+                for f in self.fields:
+                    if f.inherited:
+                        f._prepare()
 
         if self.ordering:
             additional_args['order_by'] = normalize_ordering(self, self.ordering)

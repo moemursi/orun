@@ -1,5 +1,32 @@
 
 
+class RequestManager
+  constructor: ->
+    @requestId = 0
+    @requests = {}
+
+  request: ->
+    reqId = ++requestManager.requestId
+    def = new $.Deferred()
+    @requests[reqId] = def
+    def.requestId = reqId
+    return def
+
+
+if Katrid.socketio
+  console.log('socketio defined')
+  requestManager = new RequestManager()
+
+  Katrid.socketio.on 'connect', ->
+    console.log("I'm connected!")
+
+  Katrid.socketio.on 'api', (data) ->
+    if _.isString(data)
+      data = JSON.parse(data)
+    def = requestManager.requests[data['req-id']]
+    def.resolve(data)
+
+
 class Service
   constructor: (@name) ->
 
@@ -14,14 +41,24 @@ class Service
       $.get(rpcName, params)
 
   post: (name, params, data) ->
-    console.log('post', name, params, data)
-    if Katrid.Settings.servicesProtocol is 'ws'
-      Katrid.socketio.emit('api', { channel: 'rpc', service: @name, method: name, data: data, args: params })
+    # Check if protocol is socket.io
+    if Katrid.Settings.servicesProtocol is 'io'
+      def = requestManager.request()
+      Katrid.socketio.emit 'api',
+        "req-id": def.requestId
+        "req-method": 'POST'
+        service: @name
+        method: name
+        data: data
+        args: params
+      return def
+
+    # Else, using ajax
     else
       rpcName = Katrid.Settings.server + '/api/rpc/' + @name + '/' + name + '/'
       if params
         rpcName += '?' + $.param(params)
-      $.ajax
+      return $.ajax
         method: 'POST'
         url: rpcName
         data: JSON.stringify(data)

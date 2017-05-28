@@ -3,10 +3,7 @@ import datetime
 import inspect
 import copy
 import collections
-from itertools import chain
 from sqlalchemy import orm, func
-from sqlalchemy.orm import synonym
-from sqlalchemy.ext.hybrid import hybrid_property
 
 from orun.utils.xml import etree
 from orun import api, render_template
@@ -20,8 +17,7 @@ from orun.utils.xml import get_xml_fields
 from .options import Options
 from .query import QuerySet, Insert, Update, Delete
 from .fields import (
-    Field, OneToOneField, CASCADE, AutoField, ManyToManyField, ForeignKey, BooleanField, NOT_PROVIDED,
-    field_property
+    Field, OneToOneField, CASCADE, ForeignKey, BooleanField, NOT_PROVIDED,
 )
 
 

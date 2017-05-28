@@ -329,7 +329,7 @@ class Templates
 
   renderReportDialog: (scope) ->
     """<div ng-controller="ReportController">
-  <form id="report-form" method="get">
+  <form id="report-form" method="get" action="/web/reports/report/">
     <div class="data-heading panel panel-default">
       <div class="panel-body">
       <h2>${ report.name }</h3>
@@ -366,7 +366,7 @@ class Templates
         <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
                 aria-expanded="false"><i class="fa fa-gear fa-fw"></i></button>
         <ul class="dropdown-menu">
-          <li><a href="javascript:void(0)" ng-click="Katrid.Reports.Reports.saveDialog()">#{ Katrid.i18n.gettext 'Save' }</a></li>
+          <li><a href="javascript:void(0)" ng-click="report.saveDialog()">#{ Katrid.i18n.gettext 'Save' }</a></li>
           <li><a href="#">#{ Katrid.i18n.gettext 'Load' }</a></li>
         </ul>
       </div>
