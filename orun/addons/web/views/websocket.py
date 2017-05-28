@@ -21,10 +21,10 @@ def call(message):
     req_method = message['req-method']
     service = message['service']
     method = message['method']
-    args = message['args']
+    args = message.get('args')
     if args is None or isinstance(args, dict):
         args = ()
-    kwargs = message['data']['kwargs']
+    kwargs = message['data'].get('kwargs')
     if kwargs is None:
         kwargs = {}
     service = app[service]
@@ -53,4 +53,3 @@ def call(message):
         'api',
         res,
     )
-    print('result')
