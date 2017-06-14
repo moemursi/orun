@@ -73,6 +73,7 @@ class Registry(object):
                             app_config.path = os.path.dirname(mod.__file__)
                             self.modules[name] = mod
                             self.app_configs[name] = app_config
+                            print('module loaded', name)
                         except (ImportError, AttributeError):
                             print('error loading addon', name)
                             pass
