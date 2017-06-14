@@ -64,7 +64,6 @@ class Registry(object):
         paths = self.addon_path
         with self._lock:
             for path in paths:
-                print('addon path', path)
                 sys.path.append(path)
                 for _, name, is_pkg in pkgutil.iter_modules([path]):
                     if is_pkg and not name.startswith('_'):
@@ -74,9 +73,7 @@ class Registry(object):
                             app_config.path = os.path.dirname(mod.__file__)
                             self.modules[name] = mod
                             self.app_configs[name] = app_config
-                            print('module loaded', name)
                         except (ImportError, AttributeError):
-                            print('error loading addon', name)
                             pass
 
     def check_models_ready(self):
