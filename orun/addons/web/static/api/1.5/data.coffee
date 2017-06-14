@@ -39,14 +39,27 @@ class DataSource
       @scope.action.setViewType('list')
     else
       if @state is DataSourceState.editing
-        @refresh([@scope.record.id]).then =>
+        r = @refresh([@scope.record.id])
+        if r and $.isFunction(r.promise)
+          r.done =>
+            @setState(DataSourceState.browsing)
+        else
           @setState(DataSourceState.browsing)
       else
         @scope.record = null
         @setState(DataSourceState.browsing)
     return
 
-  saveChanges: ->
+  saveAndClose: ->
+    # Save changes and close dialog
+    r = @saveChanges(false)
+    if r and $.isFunction(r.promise)
+      r.done (res) =>
+        if res.ok and res.result
+          @scope.result = res.result
+        $(@scope.root).closest('.modal').modal('toggle')
+
+  saveChanges: (autoRefresh=true) ->
     # Submit fields with dirty state only
     el = @scope.formElement
     if @validate()
@@ -64,7 +77,7 @@ class DataSource
 
       if data
         @uploading++
-        @scope.model.write([data])
+        return @scope.model.write([data])
         .done (res) =>
           if res.ok
             @scope.form.$setPristine()
@@ -72,7 +85,8 @@ class DataSource
             for child in @children
               delete child.modifiedData
             @setState(DataSourceState.browsing)
-            @refresh(res.result)
+            if autoRefresh
+              @refresh(res.result)
           else
             s = "<span>#{Katrid.i18n.gettext 'The following fields are invalid:'}<hr></span>"
             if res.message
@@ -119,9 +133,10 @@ class DataSource
 
   refresh: (data) ->
     if data
-      return @get(data[0])
+      # Refresh current record
+      @scope.action.location.search 'id', data[0]
     else
-      return @search(@_params, @_page)
+      return @search @_params, @_page
 
   validate: ->
     if @scope.form.$invalid
@@ -218,7 +233,7 @@ class DataSource
     newIndex = @recordIndex + index - 1
     if newIndex > -1 and newIndex < @scope.records.length
       @recordIndex = newIndex + 1
-      @scope.location.search('id', @scope.records[newIndex].id)
+      @scope.action.location.search('id', @scope.records[newIndex].id)
 
   _clearTimeout: ->
     if @pendingRequest
@@ -247,7 +262,6 @@ class DataSource
 
       @modifiedData = ds
       @masterSource.scope.form.$setDirty()
-    console.log(@modifiedData)
     return data
 
   getModifiedData: (form, element, record) ->
@@ -299,7 +313,6 @@ class DataSource
       .fail (res) =>
         def.reject(res)
       .done (res) =>
-        console.log(res)
         @scope.$apply =>
           @_setRecord(res.result.data[0])
         def.resolve(res)
@@ -361,11 +374,11 @@ class DataSource
     if Math.floor(p)
       p++
     if p > @pageIndex + 1
-      @scope.location.search('page', @pageIndex + 1)
+      @scope.action.location.search('page', @pageIndex + 1)
 
   prevPage: ->
     if @pageIndex > 1
-      @scope.location.search('page', @pageIndex - 1)
+      @scope.action.location.search('page', @pageIndex - 1)
 
   setRecordIndex: (index) ->
     @recordIndex = index + 1

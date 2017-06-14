@@ -1,6 +1,7 @@
 from orun import request
 from orun.utils.json import jsonify
 from orun.views import BaseView, route
+from orun.auth.decorators import login_required
 
 
 class Auth(BaseView):
@@ -12,5 +13,6 @@ class Auth(BaseView):
             return jsonify({'result': {'success': True, 'is_authenticated': True}})
 
     @route('/logout/')
+    @login_required
     def logout(self):
         return jsonify({'result': {'success': True, 'is_authenticated': False, 'next': None}})

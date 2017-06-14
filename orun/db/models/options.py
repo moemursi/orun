@@ -33,6 +33,7 @@ class Options(object):
     required_db_vendor = None
     unique_together = ()
     index_together = ()
+    proxy = None
     fixtures = None
 
     def __init__(self, attrs, app_config=None, bases=None):
@@ -91,8 +92,8 @@ class Options(object):
             if db_table is None:
                 if self.extension:
                     opts.db_table = self.bases[0]._meta.db_table
-                else:
-                    opts.db_schema = self.app_config.db_schema
+                elif not self.abstract and self.app_config:
+                    opts.db_schema = opts.db_schema or self.app_config.db_schema
                     opts.db_table = self.name.replace('.', '_')
                     if opts.db_schema and opts.db_table.startswith(opts.db_schema + '_'):
                         opts.db_table = opts.db_table[len(opts.db_schema) + 1:]
@@ -180,6 +181,8 @@ class Options(object):
                         if f.related_name and f.related_name != '+':
                             kwargs['backref'] = backref(f.related_name, lazy='dynamic')
                         kwargs['remote_side'] = fk.column
+                        if f.cascade:
+                            kwargs['cascade'] = f.cascade
                         props[f.name] = relationship(
                             lambda fk=fk: fk.column.table.__model__._meta.mapped,
                             foreign_keys=[f.column],
@@ -321,6 +324,11 @@ class Options(object):
 
     def get_title_field(self):
         return self.fields_dict[self.title_field]
+
+    def get_name_fields(self):
+        if self.field_groups and 'name_fields' in self.field_groups:
+            return [self.fields_dict[field_name] for field_name in self.field_groups['name_fields']]
+        return [self.fields_dict[self.title_field]]
 
 
 def normalize_together(option_together):

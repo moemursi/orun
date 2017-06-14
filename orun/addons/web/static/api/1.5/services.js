@@ -109,7 +109,9 @@
 
     Model.prototype.createName = function(name) {
       return this.post('create_name', null, {
-        name: name
+        kwargs: {
+          name: name
+        }
       });
     };
 

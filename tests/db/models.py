@@ -8,7 +8,7 @@ from orun import app
 class ModelsTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.engine = sa.create_engine('sqlite:///:memory:', echo=True)
+        cls.engine = sa.create_engine('sqlite://', echo=True)
 
     def test_recreate(self):
         from orun.core.management.commands import recreatedb

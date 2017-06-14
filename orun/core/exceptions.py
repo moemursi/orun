@@ -4,7 +4,7 @@ Global Orun exception and warning classes.
 
 from sqlalchemy.orm.exc import NoResultFound
 
-#from orun.utils.encoding import force_text
+from orun.utils.encoding import force_text
 
 
 class FieldDoesNotExist(Exception):
@@ -110,7 +110,7 @@ class ValidationError(Exception):
             # PY2 has a `message` property which is always there so we can't
             # duck-type on it. It was introduced in Python 2.5 and already
             # deprecated in Python 2.6.
-            elif not hasattr(message, 'message' if six.PY3 else 'code'):
+            elif not hasattr(message, 'message'):
                 message = message.error_list
             else:
                 message, code, params = message.message, message.code, message.params
@@ -170,7 +170,7 @@ class ValidationError(Exception):
                 message = error.message
                 if error.params:
                     message %= error.params
-                #yield force_text(message)
+                yield force_text(message)
 
     def __str__(self):
         if hasattr(self, 'error_dict'):

@@ -24,9 +24,10 @@ class RelatedField(Field):
     many_to_many = False
     many_to_one = False
 
-    def __init__(self, related_name=None, lazy=None, to_fields=None, *args, **kwargs):
+    def __init__(self, related_name=None, lazy=None, to_fields=None, domain=None, *args, **kwargs):
         self.related_name = related_name
         self.lazy = lazy
+        self.domain = domain
         self.to_fields = to_fields
         super(RelatedField, self).__init__(*args, **kwargs)
 
@@ -40,13 +41,22 @@ class RelatedField(Field):
     def related(self):
         raise NotImplementedError
 
+    def _get_info(self):
+        info = super(RelatedField, self)._get_info()
+        info['domain'] = self.domain
+        return info
+
 
 class ForeignKey(RelatedField):
-    def __init__(self, to, related_name=None, domain=None, to_field=None, db_constraint=True, parent_link=False,
-                 *args, **kwargs):
+    def __init__(self, to, related_name=None, to_field=None, db_constraint=True, parent_link=False,
+                 cascade=None, on_delete=SET_NULL, label_from_instance=None, name_fields=None, *args, **kwargs):
+        self.cascade = cascade
+        self.on_delete = on_delete
         self.to = to
         self.db_constraint = db_constraint
         self.parent_link = parent_link
+        self.label_from_instance = label_from_instance
+        self.name_fields = name_fields
         kwargs.setdefault('db_index', True)
         super(ForeignKey, self).__init__(to_fields=[to_field], related_name=related_name, *args, **kwargs)
 
@@ -130,7 +140,7 @@ class ForeignKey(RelatedField):
 
     def serialize(self, value, instance=None):
         if value:
-            return value._get_rec_name()
+            return value._get_instance_label()
 
 
 CREATE_CHILD = 'CREATE'
@@ -185,6 +195,9 @@ class OneToManyField(RelatedField):
             model = app[self.rel_field.model]
             pk = instance.pk
             for obj in value:
+                # Set to create if no action defined
+                if 'action' not in obj:
+                    obj = {'action': CREATE_CHILD, 'values': obj}
                 values = None
                 act = obj['action']
                 if act != DESTROY_CHILD:

@@ -2,6 +2,7 @@ import os
 import sys
 from importlib import import_module, reload
 
+from orun import app
 from orun.utils import reraise
 from orun.apps import apps
 from orun.conf import settings
@@ -61,7 +62,7 @@ class MigrationLoader(object):
         self.disk_migrations = {}
         self.unmigrated_apps = set()
         self.migrated_apps = set()
-        for app_config in apps.get_app_configs():
+        for app_config in app.addons:
             # Get the migrations module directory
             module_name = self.migrations_module(app_config.schema)
             if module_name is None:

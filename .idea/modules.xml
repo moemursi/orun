@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/../myerp/.idea/myerp.iml" filepath="$PROJECT_DIR$/../myerp/.idea/myerp.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/orun.iml" filepath="$PROJECT_DIR$/.idea/orun.iml" />
       <module fileurl="file://$PROJECT_DIR$/../orun-demo/.idea/orun-demo.iml" filepath="$PROJECT_DIR$/../orun-demo/.idea/orun-demo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../orun-plus/.idea/orun-plus.iml" filepath="$PROJECT_DIR$/../orun-plus/.idea/orun-plus.iml" />
       <module fileurl="file://$PROJECT_DIR$/../pybr/.idea/pybr.iml" filepath="$PROJECT_DIR$/../pybr/.idea/pybr.iml" />
     </modules>
   </component>

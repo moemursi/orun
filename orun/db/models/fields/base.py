@@ -1,15 +1,18 @@
 import decimal
 import datetime
 import collections
-from functools import total_ordering
+import itertools
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship
 
 from orun.utils.datastructures import DictWrapper
 from orun.conf import settings
+from orun.core import exceptions
+from orun.core import validators
 from orun.utils.text import capfirst
 from orun.utils.encoding import force_text, force_str
 from orun.utils.functional import cached_property
+from orun.utils.translation import gettext_lazy as _
 
 
 class NOT_PROVIDED:
@@ -18,12 +21,28 @@ class NOT_PROVIDED:
 
 class Field(object):
     _db_type = sa.String(1024)
+
+    empty_values = list(validators.EMPTY_VALUES)
+
+    default_validators = []  # Default set of validators
     creation_counter = 0
     auto_creation_counter = -1
     max_length = None
     is_relation = None
     many_to_many = False
     rel_field = None
+
+    default_error_messages = {
+        'invalid_choice': _('Value %(value)r is not a valid choice.'),
+        'null': _('This field cannot be null.'),
+        'required': _('This field cannot be blank.'),
+        'unique': _('%(model_name)s with this %(field_label)s '
+                    'already exists.'),
+        # Translators: The 'lookup_type' is one of 'date', 'year' or 'month'.
+        # Eg: "Title must be unique for pub_date year"
+        'unique_for_date': _("%(field_label)s must be unique for "
+                             "%(date_field_label)s %(lookup_type)s."),
+    }
 
     related = None
     base_model = None
@@ -34,14 +53,20 @@ class Field(object):
     def __init__(self, label=None, db_column=None, db_index=False, primary_key=False,
                  concrete=None, readonly=False, null=True, required=None, widget_attrs=None,
                  auto_created=False, default=NOT_PROVIDED, on_update=NOT_PROVIDED, choices=None,
-                 deferred=False, copy=None, serializable=True, editable=True, help_text=None,
-                 unique=False, db_tablespace=None, getter=None, setter=None, *args, **kwargs):
+                 deferred=False, copy=None, serializable=True, editable=True, help_text=None, validators=[],
+                 error_messages=None,
+                 unique=False, db_tablespace=None, getter=None, setter=None, proxy=None, *args, **kwargs):
         self.column = None
         self.unique = unique
         self.name = None
         self.label = label or kwargs.get('verbose_name')
         self.db_column = db_column
         self.db_index = db_index
+        if isinstance(proxy, str):
+            proxy = proxy.split('.')
+            if getter is None:
+                getter = 'get_proxy_field_value'
+        self.proxy_field = proxy
         if concrete is None and getter:
             concrete = False
         elif concrete is None:
@@ -62,8 +87,10 @@ class Field(object):
         self.editable = editable and serializable
         self.help_text = help_text
         self.db_tablespace = db_tablespace or settings.DEFAULT_INDEX_TABLESPACE
+        self.depends = None
         self.getter = getter
         self.setter = setter
+
         if null is None:
             self.null = True
         self.required = required
@@ -79,6 +106,14 @@ class Field(object):
         else:
             self.creation_counter = Field.creation_counter
             Field.creation_counter += 1
+
+        self._validators = validators
+
+        messages = {}
+        for c in reversed(self.__class__.__mro__):
+            messages.update(getattr(c, 'default_error_messages', {}))
+        messages.update(error_messages or {})
+        self.error_messages = messages
 
     def __str__(self):
         """ Return "app_label.model_label.field_name". """
@@ -112,6 +147,9 @@ class Field(object):
         # Initialize the primary key sqlalchemy column
         if self.primary_key and self.model._meta.app:
             self._prepare()
+        if self.getter:
+            fn = getattr(cls, self.getter, None)
+            self.depends = getattr(fn, 'depends', None)
 
     def create_column(self, bind=None, *args, **kwargs):
         if self.primary_key:
@@ -142,6 +180,12 @@ class Field(object):
         column = self.db_column or attname
         return attname, column
 
+    def get_proxy_field_value(self, instance):
+        obj = instance
+        for f in self.proxy_field:
+            obj = getattr(obj, f)
+        return obj
+
     @cached_property
     def info(self):
         return self._get_info()
@@ -156,6 +200,8 @@ class Field(object):
             'type': self.get_internal_type(),
             'caption': capfirst(self.label),
             'choices': self.choices,
+            'depends': self.depends,
+            'attrs': self.widget_attrs,
         }
         if hasattr(self, 'max_length'):
             info['max_length'] = self.max_length
@@ -177,14 +223,82 @@ class Field(object):
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        if self.getter:
-            v = getattr(instance, self.getter, None)
+        getter = self.getter
+        if isinstance(getter, str):
+            v = getattr(instance, getter, None)
             if callable(v):
                 return v()
             return v
+        elif callable(getter):
+            return getter(instance)
 
     def __set__(self, instance, value):
         instance._state.record[self] = value
+
+    @cached_property
+    def validators(self):
+        """
+        Some validators can't be created at field initialization time.
+        This method provides a way to delay their creation until required.
+        """
+        return list(itertools.chain(self.default_validators, self._validators))
+
+    def run_validators(self, value):
+        if value in self.empty_values:
+            return
+
+        errors = []
+        for v in self.validators:
+            try:
+                v(value)
+            except exceptions.ValidationError as e:
+                if hasattr(e, 'code') and e.code in self.error_messages:
+                    e.message = self.error_messages[e.code]
+                errors.extend(e.error_list)
+
+        if errors:
+            raise exceptions.ValidationError(errors)
+
+    def validate(self, value, instance):
+        """
+        Validates value and throws ValidationError. Subclasses should override
+        this to provide validation logic.
+        """
+        if not self.editable:
+            # Skip validation for non-editable fields.
+            return
+
+        if self.choices and value not in self.empty_values:
+            for option_key, option_value in self.choices:
+                if isinstance(option_value, (list, tuple)):
+                    # This is an optgroup, so look inside the group for
+                    # options.
+                    for optgroup_key, optgroup_value in option_value:
+                        if value == optgroup_key:
+                            return
+                elif value == option_key:
+                    return
+            raise exceptions.ValidationError(
+                self.error_messages['invalid_choice'],
+                code='invalid_choice',
+                params={'value': value},
+            )
+
+        # if value is None and not self.null:
+        #     raise exceptions.ValidationError(self.error_messages['null'], code='null')
+
+        if self.required and self.default is NOT_PROVIDED and value in self.empty_values:
+            raise exceptions.ValidationError(self.error_messages['required'], code='required')
+
+    def clean(self, value, instance):
+        """
+        Convert the value's type and run validation. Validation errors
+        from to_python and validate are propagated. The correct value is
+        returned if no error is raised.
+        """
+        self.validate(value, instance)
+        self.run_validators(value)
+        return value
 
     def clone(self):
         """
@@ -227,11 +341,9 @@ class Field(object):
         # Short-form way of fetching all the default parameters
         keywords = {}
         possibles = {
-            #"verbose_name": None,
             "primary_key": False,
             "max_length": None,
             "unique": False,
-            #"blank": False,
             "null": True,
             "db_index": False,
             #"default": NOT_PROVIDED,
@@ -244,9 +356,6 @@ class Field(object):
             #"help_text": '',
             "db_column": self.attname,
             "db_tablespace": settings.DEFAULT_INDEX_TABLESPACE,
-            #"auto_created": False,
-            #"validators": [],
-            #"error_messages": None,
         }
         attr_overrides = {
             #"unique": "_unique",
@@ -349,6 +458,12 @@ class CharField(Field):
         # Force serialized value to string
         value = str(value)
         super(CharField, self).deserialize(value, instance)
+
+    def serialize(self, value, instance=None):
+        if value is None:
+            value = ''
+        value = str(value)
+        return super(CharField, self).serialize(value, instance)
 
 
 class IntegerField(Field):

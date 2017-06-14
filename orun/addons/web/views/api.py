@@ -4,6 +4,7 @@ from orun.db import models, transaction
 from orun.db.models.query import Query
 from orun.utils.json import jsonify
 from orun.views import BaseView, route
+from orun.auth.decorators import login_required
 
 
 class RPC(BaseView):
@@ -11,6 +12,7 @@ class RPC(BaseView):
 
     @route('/rpc/<service>/<method>/', methods=['GET', 'POST', 'DELETE', 'PUT'])
     @transaction.atomic
+    @login_required
     def call(self, service, method):
         if not method.startswith('_'):
             kwargs = {}
@@ -56,6 +58,7 @@ class RPC(BaseView):
                 return jsonify(res)
 
     @route('/field/choices/<service>/<field>/', methods=['GET'])
+    @login_required
     def choices(self, service, field):
         service = app[service]
         field = service._meta.get_field(field)
@@ -64,6 +67,7 @@ class RPC(BaseView):
         return jsonify({'result': r})
 
     @route('/app/settings/', methods=['GET'])
+    @login_required
     def app_settings(self):
         return jsonify({'result': {}})
 

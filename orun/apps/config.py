@@ -18,6 +18,7 @@ class AppConfig(flask.Blueprint):
     installable = True
     schema = None
     db_schema = None
+    create_schema = None
     models_module = None
 
     def __init__(self, schema=None, app_module=None, *args, **kwargs):

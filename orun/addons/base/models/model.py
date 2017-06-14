@@ -20,7 +20,10 @@ class Model(models.Model):
 
     @classmethod
     def get_by_natural_key(cls, name):
-        return cls.objects.filter(cls.name == name).one()
+        try:
+            return cls.objects.filter(cls.name == name).one()
+        except:
+            raise Exception('Item not found', name)
 
     @classmethod
     def get_for_model(cls, obj):

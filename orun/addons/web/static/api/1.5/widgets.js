@@ -23,19 +23,29 @@
     };
 
     Widget.prototype.widgetAttrs = function(scope, el, attrs, field) {
-      var attr, attrName, r, v;
+      var attr, attrName, r, ref, ref1, v;
       r = {};
       if (field.required) {
         r['required'] = null;
       }
       r['ng-model'] = this.ngModel(attrs);
       r['ng-show'] = 'dataSource.changing';
-      for (attr in attrs) {
-        v = attrs[attr];
-        if (!(attr.startsWith('field'))) {
+      if (field.attrs) {
+        ref = field.attrs;
+        for (attr in ref) {
+          v = ref[attr];
+          if (!attr.startsWith('container-') && attr !== 'ng-show') {
+            r[attr] = v;
+          }
+        }
+      }
+      ref1 = attrs.$attr;
+      for (attr in ref1) {
+        attrName = ref1[attr];
+        if (!(!attrName.startsWith('container-') && attr !== 'ngShow')) {
           continue;
         }
-        attrName = attrs.$attr[attr];
+        v = attrs[attr];
         if (attrName.startsWith('field-')) {
           attrName = attrName.substr(6, attrName.length - 6);
         }
@@ -57,8 +67,12 @@
       for (att in attributes) {
         v = attributes[att];
         html += ' ' + att;
-        if (v) {
-          html += '="' + v + '"';
+        if (v || v === false) {
+          if (_.isString(v) && v.indexOf('"') > -1) {
+            html += "='" + v + "'";
+          } else {
+            html += '="' + v + '"';
+          }
         }
       }
       if (this.placeholder) {
@@ -85,7 +99,7 @@
     };
 
     Widget.prototype.spanTemplate = function(scope, el, attrs, field) {
-      return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing\">${ record." + attrs.name + " || '--' }</span>";
+      return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing\">${ record." + attrs.name + ".toString() || '--' }</span>";
     };
 
     Widget.prototype.widgetTemplate = function(scope, el, attrs, field, type) {
@@ -217,7 +231,13 @@
     ForeignKey.prototype.tag = 'input foreignkey';
 
     ForeignKey.prototype.spanTemplate = function(scope, el, attrs, field) {
-      return "<a href=\"javascript:void(0)\" class=\"form-field-readonly\" ng-show=\"!dataSource.changing\">${ record." + attrs.name + "[1] || '--' }</a>";
+      var allowOpen;
+      allowOpen = true;
+      if (((attrs.allowOpen != null) && attrs.allowOpen === 'false') || ((attrs.allowOpen == null) && field.attrs && field.attrs['allow-open'] === false)) {
+        allowOpen = false;
+      }
+      console.log('allow open', allowOpen);
+      return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing && (!record." + attrs.name + " || " + (!allowOpen) + ")\">${ record." + attrs.name + "[1] || '--' }</span>\n<a href=\"#/action/" + field.model + "/view/?id=${ record." + attrs.name + "[0] }&title=" + field.caption + "\" ng-click=\"action.openObject('" + field.model + "', record." + attrs.name + "[0], $event, '" + field.caption + "')\" class=\"form-field-readonly\" ng-show=\"!dataSource.changing && record." + attrs.name + " && " + allowOpen + "\">${ record." + attrs.name + "[1] }</a>";
     };
 
     ForeignKey.prototype.template = function(scope, el, attrs, field) {
@@ -333,7 +353,7 @@
     }
 
     CheckBox.prototype.spanTemplate = function(scope, el, attrs, field) {
-      return "<span class=\"form-field-readonly bool-text\" ng-show=\"!dataSource.changing\">\n${ record." + attrs.name + " ? Katrid.i18n.gettext('yes') : Katrid.i18n.gettext('no') }\n</span>";
+      return "<span class=\"form-field-readonly bool-text\" ng-show=\"!dataSource.changing\">\n${ (record." + attrs.name + " && Katrid.i18n.gettext('yes')) || ((record." + attrs.name + " === false) && Katrid.i18n.gettext('no')) || (!record." + attrs.name + " && '--') }\n</span>";
     };
 
     CheckBox.prototype.widgetTemplate = function(scope, el, attrs, field) {
@@ -353,7 +373,7 @@
       if (field.help_text) {
         return CheckBox.__super__.labelTemplate.call(this, scope, el, attrs, field);
       }
-      return "<label for=\"" + attrs._id + "\" class=\"form-label\"><span ng-show=\"!dataSource.changing\">" + field.caption + "</span></label>";
+      return "<label for=\"" + attrs._id + "\" class=\"form-label\"><span ng-show=\"!dataSource.changing\">" + field.caption + "</span>&nbsp;</label>";
     };
 
     return CheckBox;

@@ -18,6 +18,10 @@ uiKatrid.directive 'field', ($compile) ->
 
   link: (scope, element, attrs, ctrl, transclude) ->
     field = scope.view.fields[attrs.name]
+    
+    # Check if field depends from another
+    if field.depends and field.depends.length
+      scope.action.addNotifyField(field)
 
     if element.parent('list').length is 0
       element.removeAttr('name')
@@ -73,6 +77,10 @@ uiKatrid.directive 'field', ($compile) ->
       templAttrs = []
       if attrs.ngShow
         templAttrs.push(' ng-show="' + attrs.ngShow + '"')
+      if field.attrs
+        for k, v of field.attrs when k.startsWith('container') or (k is 'ng-show' and not attrs.ngShow)
+          templAttrs.push(k + '="' + v + '"')
+          console.log(templAttrs)
       templAttrs = templAttrs.join(' ')
 
       templTag = 'section'
@@ -124,7 +132,6 @@ uiKatrid.directive 'list', ($compile, $http) ->
   restrict: 'E'
   priority: 700
   link: (scope, element, attrs) ->
-    console.log('im list', 1)
     html = Katrid.UI.Utils.Templates.renderList(scope, element, attrs)
     element.replaceWith($compile(html)(scope))
 
@@ -453,12 +460,20 @@ uiKatrid.directive 'decimal', ($filter) ->
         element.val('')
 
 
-Katrid.uiKatrid.directive 'foreignkey', ->
+Katrid.uiKatrid.directive 'foreignkey', ($compile, $controller) ->
   restrict: 'A'
   require: 'ngModel'
   link: (scope, el, attrs, controller) ->
     #f = scope.view.fields['model']
     sel = el
+    field = scope.view.fields[attrs.name]
+    if attrs.domain?
+      domain = attrs.domain
+    else if field.domain
+      domain = field.domain
+
+    if _.isString(domain)
+      domain = $.parseJSON(domain)
 
     el.addClass 'form-field'
 
@@ -468,35 +483,70 @@ Katrid.uiKatrid.directive 'foreignkey', ->
       serviceName = scope.model.name
 
     newItem = ->
+    newEditItem = ->
+    _timeout = null
+
+    console.log('name fields', attrs)
 
     config =
       allowClear: true
+
+      query: (query) ->
+        data =
+          args: [attrs.name]
+          kwargs:
+            count: 1
+            page: query.page
+            q: query.term
+            domain: domain
+            name_fields: (attrs.nameFields and attrs.nameFields.split(',')) or null
+
+        f = ->
+          $.ajax
+            url: config.ajax.url
+            type: config.ajax.type
+            dataType: config.ajax.dataType
+            contentType: config.ajax.contentType
+            data: JSON.stringify(data)
+            success: (data) ->
+              res = data.result
+              data = res.items
+              r = ({ id: item[0], text: item[1] } for item in data)
+              more = (query.page * Katrid.Settings.Services.choicesPageLimit) < res.count
+              if not multiple and not more
+                v = sel.data('select2').search.val()
+                if ((attrs.allowCreate and attrs.allowCreate isnt 'false') or not attrs.allowCreate?) and v
+                  msg = Katrid.i18n.gettext('Create <i>"{0}"</i>...')
+                  r.push
+                    id: newItem
+                    text: msg
+                if ((attrs.allowCreateEdit and attrs.allowCreateEdit isnt 'false') or not attrs.allowCreateEdit) and v
+                  msg = Katrid.i18n.gettext('Create and Edit...')
+                  r.push
+                    id: newEditItem
+                    text: msg
+              query.callback({results: r, more: more})
+        if _timeout
+          clearTimeout _timeout
+        _timeout = setTimeout f, 400
+
       ajax:
-        url: '/api/rpc/' + serviceName + '/get_field_choices/?args=' + attrs.name
+        url: '/api/rpc/' + serviceName + '/get_field_choices/'
+        contentType: 'application/json'
+        dataType: 'json'
+        type: 'POST'
 
-        data: (term, page) ->
-          count: 1
-          page: page
-          q: term
-
-        results: (data, page) ->
-          console.log('load page', page, data)
-          res = data.result
-          data = res.items
-          r = ({ id: item[0], text: item[1] } for item in data)
-          more = (page * Katrid.Settings.Services.choicesPageLimit) < res.count
-          if not multiple and not more
-            msg = Katrid.i18n.gettext('Create <i>"{0}"</i>...')
-            if sel.data('select2').search.val()
-              r.push
-                id: newItem
-                text: msg
-          results: r
-          more: more
+      formatSelection: (val) ->
+        if val.id is newItem or val.id is newEditItem
+          return Katrid.i18n.gettext 'Creating...'
+        return val.text
 
       formatResult: (state) ->
         s = sel.data('select2').search.val()
         if state.id is newItem
+          state.str = s
+          return '<strong>' + state.text.format(s) + '</strong>'
+        else if state.id is newEditItem
           state.str = s
           return '<strong>' + state.text.format(s) + '</strong>'
         return state.text
@@ -504,10 +554,10 @@ Katrid.uiKatrid.directive 'foreignkey', ->
       initSelection: (el, cb) ->
         v = controller.$modelValue
         if multiple
-          v = ({id: obj[0], text: obj[1]} for obj in v)
+          v = ({ id: obj[0], text: obj[1] } for obj in v)
           cb(v)
         else if v
-          cb({id: v[0], text: v[1]})
+          cb({ id: v[0], text: v[1] })
 
     multiple = attrs.multiple
 
@@ -519,12 +569,51 @@ Katrid.uiKatrid.directive 'foreignkey', ->
     sel.on 'change', (e) ->
       v = sel.select2('data')
       if v.id is newItem
-        service = new Katrid.Services.Model(scope.view.fields[attrs.name].model)
+        service = new Katrid.Services.Model(field.model)
         service.createName(v.str)
-        .then (res) ->
+        .done (res) ->
           controller.$setDirty()
           controller.$setViewValue res.result
-          sel.select2('val', {id: res.result[0], text: res.result[1]})
+          sel.select2('val', { id: res.result[0], text: res.result[1] })
+      else if v.id is newEditItem
+        service = new Katrid.Services.Model(field.model)
+        service.loadViews({ views: { form: null } })
+        .done (res) ->
+          if res.ok and res.result.form
+            elScope = scope.$new()
+            elScope.parentAction = scope.action
+            elScope.views = res.result
+            elScope.isDialog = true
+            elScope.dialogTitle = Katrid.i18n.gettext 'Create: '
+            el = $(Katrid.UI.Utils.Templates.windowDialog(elScope))
+            elScope.root = el.find('.modal-dialog-body')
+            $controller 'ActionController',
+              $scope: elScope
+              action:
+                model: [null, field.model]
+                action_type: "sys.action.window"
+                view_mode: 'form'
+                view_type: 'form'
+                display_name: field.caption
+
+            el = $compile(el)(elScope)
+
+            el.modal('show').on 'shown.bs.modal', ->
+              el.find('.form-field').first().focus()
+
+            el.modal('show').on 'hide.bs.modal', ->
+              if elScope.result
+                $.get '/api/rpc/' + serviceName + '/get_field_choices/',
+                  args: attrs.name
+                  ids: elScope.result[0]
+                .done (res) ->
+                  if res.ok
+                    result = res.result.items[0]
+                    controller.$setDirty()
+                    controller.$setViewValue result
+                    console.log('result', { id: result[0], text: result[1] })
+                    sel.select2('val', { id: result[0], text: result[1] })
+
       else if v and multiple
         v = (obj.id for obj in v)
         controller.$setViewValue v

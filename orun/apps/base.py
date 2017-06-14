@@ -21,6 +21,7 @@ class Application(Flask):
         settings = {}
         settings.update(global_settings.settings)
         settings.update(kwargs.pop('settings', {}))
+
         super(Application, self).__init__(*args, **kwargs)
         self.models = {}
 
@@ -77,11 +78,9 @@ class Application(Flask):
                 model._meta.pk._prepare()
 
         for model in self.models.values():
-            print('building table', model)
             model._meta._build_table(self.meta)
 
         for model in list(self.models.values()):
-            print('building mappers', model)
             model._meta._build_mapper()
 
     def _create_all(self):
@@ -157,6 +156,9 @@ class Application(Flask):
             setattr(ctx.g, k, v)
         ctx.g.LANGUAGE_CODE = kwargs.pop('LANGUAGE_CODE', old_state.get('LANGUAGE_CODE', self.config['LANGUAGE_CODE']))
         return ctx
+
+    def iter_blueprints(self):
+        return reversed(self._blueprint_order)
 
 
 class AppContext(flask.app.AppContext):

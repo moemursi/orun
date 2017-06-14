@@ -8,6 +8,7 @@ from .base import SerializerDoesNotExist
 BUILTIN_SERIALIZERS = {
     "xml": "orun.core.serializers.xml_serializer",
     "txt": "orun.core.serializers.txt",
+    "csv": "orun.core.serializers.csv",
     "python": "orun.core.serializers.python",
     "json": "orun.core.serializers.json",
     #"yaml": "orun.core.serializers.pyyaml",

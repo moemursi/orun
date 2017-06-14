@@ -2,14 +2,21 @@
 A XML Deserializer. Shortcut to deserialize complex structured Xml files.
 """
 import os
+import functools
 from xml.etree import ElementTree as etree
 
 from orun import app
 from orun.db import DEFAULT_DB_ALIAS, session
+from orun.db import models
 from orun.utils.translation import gettext as _
 from orun.core.serializers import base
 from orun.core.serializers.python import get_prep_value
 from orun.core.exceptions import ObjectDoesNotExist
+
+
+def ref(app, xml_id):
+    Object = app['sys.object']
+    return Object.get_object(xml_id).object_id
 
 
 class Deserializer(base.Deserializer):
@@ -35,7 +42,6 @@ class Deserializer(base.Deserializer):
         return lst
 
     def read_object(self, obj, **attrs):
-        Object = self.app['sys.object']
         ct = self.app['sys.model']
         if not isinstance(obj, dict):
             values = obj.getchildren()
@@ -49,7 +55,9 @@ class Deserializer(base.Deserializer):
         for child in values:
             if child.tag == 'field':
                 if 'ref' in child.attrib:
-                    obj['fields'][child.attrib['name']] = Object.get_object(child.attrib['ref']).object_id
+                    obj['fields'][child.attrib['name']] = ref(self.app, child.attrib['ref'])
+                elif 'eval' in child.attrib:
+                    obj['fields'][child.attrib['name']] = eval(child.attrib['eval'], {'ref': functools.partial(ref, self.app)})
                 elif 'model' in child.attrib:
                     obj['fields'][child.attrib['name']] = ct.objects.only('pk').filter(ct.c.name == child.attrib['model']).first().pk
                 else:
@@ -72,14 +80,20 @@ class Deserializer(base.Deserializer):
         #     with open(template_name, encoding='utf-8') as f:
         #         values['content'] = f.read()
 
+        Object = app['sys.object']
         try:
             obj_id = Object.objects.filter(Object.name == obj_name).one()
             instance = obj_id.object
         except ObjectDoesNotExist:
             instance = Model()
         pk = instance.pk
-        for k, v in obj['fields'].items():
-            setattr(instance, *get_prep_value(Model, k, v))
+        children = {}
+        for k, v in values.items():
+            # Check if there's a list of objects
+            if isinstance(v, list) and isinstance(instance._meta.fields_dict[k], models.OneToManyField):
+                children[k] = v
+            else:
+                setattr(instance, *get_prep_value(Model, k, v))
         instance.save()
         if pk is None:
             ct = ct.get_by_natural_key(instance._meta.name)
@@ -89,6 +103,11 @@ class Deserializer(base.Deserializer):
                 object_id=instance.pk,
                 model=ct
             )
+        for child, v in children.items():
+            # Delete all items
+            getattr(instance, child).delete()
+            # Re-eval the xml data
+            instance._meta.fields_dict[k].deserialize(v, instance)
         return instance
 
     def read_menu(self, obj, parent=None, **attrs):
@@ -138,7 +157,10 @@ class Deserializer(base.Deserializer):
             'name': s,
         }
         if 'model' in obj.attrib:
-            fields['model'] = ContentType.get_by_natural_key(obj.attrib['model'])
+            try:
+                fields['model'] = ContentType.get_by_natural_key(obj.attrib['model'])
+            except:
+                raise Exception('"%s" ContentType not found on app %s' % (obj.attrib['model'], self.app_config.name))
         action = {
             'model': act,
             'id': obj.attrib['id'],

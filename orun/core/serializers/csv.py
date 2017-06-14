@@ -7,13 +7,14 @@ import csv
 from orun.core.serializers.python import Deserializer as PythonDeserializer
 
 
-def Deserializer(stream_or_string, **options):
+def Deserializer(stream_or_string, app, **options):
     """
     Deserialize a stream or string of CSV data.
     """
-    rows = csv.reader(stream_or_string)
-    cols = rows[0]
-    model_name = os.path.splitext(options['filename'])
-    for obj in rows[1:]:
-        fields = dict(zip(cols, obj))
-        obj = PythonDeserializer({'model': model_name, 'fields': fields})
+    reader = csv.DictReader(stream_or_string, delimiter=';')
+    row = reader.reader
+    cols = reader.fieldnames
+    model_name = os.path.basename(options['filename']).rsplit('.', 1)[0]
+    # mandatory fields for csv deserializer
+    for obj in PythonDeserializer(reader, app=app, model=model_name, fields=cols):
+        pass

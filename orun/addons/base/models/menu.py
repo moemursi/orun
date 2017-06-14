@@ -14,6 +14,9 @@ class Menu(models.Model):
     class Meta:
         name = 'ui.menu'
         ordering = ('sequence',)
+        field_groups = {
+            'list_fields': ['name', 'sequence', 'parent', 'action']
+        }
 
     def __str__(self):
         return self.get_full_name()

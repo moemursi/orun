@@ -4,12 +4,13 @@ import inspect
 import copy
 import collections
 from sqlalchemy import orm, func
+import sqlalchemy as sa
 
 from orun.utils.xml import etree
 from orun import api, render_template
 from orun.db import session
 from orun.db.models import signals
-from orun.core.exceptions import ObjectDoesNotExist, ValidationError
+from orun.core.exceptions import ObjectDoesNotExist, ValidationError, NON_FIELD_ERRORS
 from orun import app, env
 from orun.apps import apps
 from orun.utils.translation import gettext
@@ -237,6 +238,8 @@ class Model(metaclass=ModelBase):
 
     def __init__(self, *args, **kwargs):
         for k, v in kwargs.items():
+            if v == '':
+                v = None
             setattr(self, k, v)
     #    self._state = ModelState(_record)
     #    if self._state.adding:
@@ -254,6 +257,13 @@ class Model(metaclass=ModelBase):
         obj = cls(**kwargs)
         obj.save()
         return obj
+
+    @api.method
+    def create_name(cls, *args, **kwargs):
+        name = kwargs['name']
+        opts = cls._meta
+        assert opts.title_field
+        return cls.create(**{opts.title_field: name})._get_instance_label()
 
     @classmethod
     def get_by_natural_key(cls, *args, **kwargs):
@@ -362,22 +372,6 @@ class Model(metaclass=ModelBase):
                     r[f.name] = False
         return r or None
 
-    def _save_children(self, field, value, parent_id):
-        rel_model = field.related_model
-        remote_field = field.remote_field.attname
-        for v in value:
-            obj = None
-            vals = v.get('values')
-            if v['action'] == DESTROY_CHILDREN:
-                rel_model.objects.filter(pk=v['id'], **{remote_field: parent_id}).delete()
-                continue
-            elif v['action'] == CREATE_CHILDREN:
-                obj = rel_model()
-                vals[remote_field] = parent_id
-            elif v['action'] == UPDATE_CHILDREN:
-                obj = rel_model._default_manager.get(pk=v['values']['id'])
-            self.deserialize(obj, v['values'])
-
     def _deserialize_value(self, field, value):
         if value == '':
             value = None
@@ -394,7 +388,7 @@ class Model(metaclass=ModelBase):
             else:
                 instance._deserialize_value(field, v)
 
-        #instance.full_clean()
+        instance.full_clean()
         if instance.pk:
             flds = data.keys() - [f.name for f in children]
             if flds:
@@ -406,10 +400,6 @@ class Model(metaclass=ModelBase):
 
         for k, v in children.items():
             instance._deserialize_value(k, v)
-
-        #if post_data:
-        #    for f, v in post_data.items():
-        #        cls._save_children(f, v, instance.pk)
 
     def serialize(self, fields=None, exclude=None, view_type=None):
         opts = self._meta
@@ -449,13 +439,20 @@ class Model(metaclass=ModelBase):
             'count': count,
         }
 
-    def _get_rec_name(self):
+    def _get_instance_label(self):
         return (self.pk, str(self))
 
     @api.method
-    def search_name(cls, name=None, count=None, page=None, *args, **kwargs):
+    def search_name(cls, name=None, count=None, page=None, label_from_instance=None, name_fields=None, *args, **kwargs):
+        print('name fields', name_fields)
+        params = kwargs.get('params')
         if name:
-            kwargs = {'params': [cls._meta.get_title_field().column.ilike('%' + name + '%')]}
+            if name_fields is None:
+                name_fields = cls._meta.get_name_fields()
+            q = [sa.or_(*[fld.column.ilike('%' + name + '%') for fld in name_fields])]
+            if params:
+                q.append(params)
+            kwargs = {'params': q}
         qs = cls._search(*args, **kwargs)
         if count:
             count = qs.count()
@@ -464,17 +461,104 @@ class Model(metaclass=ModelBase):
             qs = qs[(page - 1) * CHOICES_PAGE_LIMIT:page * CHOICES_PAGE_LIMIT]
         else:
             qs = qs[:CHOICES_PAGE_LIMIT]
+        if isinstance(label_from_instance, list):
+            label_from_instance = lambda obj, label_from_instance=label_from_instance: (obj.pk, ' - '.join([str(getattr(obj, f, '')) for f in label_from_instance if f in cls._meta.fields_dict]))
+        if callable(label_from_instance):
+            res = [label_from_instance(obj) for obj in qs]
+        else:
+            res = [obj._get_instance_label() for obj in qs]
         return {
             'count': count,
-            'items': [obj._get_rec_name() for obj in qs],
+            'items': res,
         }
 
     @api.method
-    def get_field_choices(cls, field, q=None, count=False, page=None):
+    def get_field_choices(cls, field, q=None, count=False, ids=None, page=None, **kwargs):
         field_name = field
         field = cls._meta.fields_dict[field_name]
         related_model = field.related_model
-        return related_model.search_name(name=q, count=count, page=page)
+        search_params = {}
+        if ids is None:
+            search_params['name_fields'] = kwargs.get('name_fieds', (field.name_fields is not None and [related_model._meta.fields_dict[f] for f in field.name_fields]) or None)
+            search_params['name'] = q
+            search_params['page'] = page
+            search_params['count'] = count
+            domain = kwargs.get('domain')
+            if domain:
+                search_params['params'] = domain
+        else:
+            search_params['params'] = [related_model.pk.in_(ids if isinstance(ids, (list, tuple)) else [ids])]
+        label_from_instance = kwargs.get('label_from_instance', field.label_from_instance or kwargs.get('name_fields'))
+        return related_model.search_name(label_from_instance=label_from_instance, **search_params)
+
+    def clean_fields(self, exclude=None):
+        """
+        Clean all fields and raise a ValidationError containing a dict
+        of all validation errors if any occur.
+        """
+        if exclude is None:
+            exclude = []
+
+        errors = {}
+        for f in self._meta.fields:
+            if f.name in exclude:
+                continue
+
+            if f.concrete:
+                raw_value = getattr(self, f.attname or f.name, None)
+                try:
+                    f.clean(raw_value, self)
+                except ValidationError as e:
+                    errors[f.name] = e.error_list
+
+        if errors:
+            raise ValidationError(errors)
+
+    def clean(self):
+        """
+        Hook for doing any extra model-wide validation after clean() has been
+        called on every field by self.clean_fields. Any ValidationError raised
+        by this method will not be associated with a particular field; it will
+        have a special-case association with the field defined by NON_FIELD_ERRORS.
+        """
+        pass
+
+    def full_clean(self, exclude=None, validate_unique=True):
+        """
+        Calls clean_fields, clean, and validate_unique, on the model,
+        and raises a ``ValidationError`` for any errors that occurred.
+        """
+        errors = {}
+        if exclude is None:
+            exclude = []
+        else:
+            exclude = list(exclude)
+
+        try:
+            self.clean_fields(exclude=exclude)
+        except ValidationError as e:
+            errors = e.update_error_dict(errors)
+
+        # Form.clean() is run even if other validation fails, so do the
+        # same with Model.clean() for consistency.
+        try:
+            self.clean()
+        except ValidationError as e:
+            errors = e.update_error_dict(errors)
+
+        # Run unique checks, but only for fields that passed validation.
+        # TODO validate unique
+        # if validate_unique:
+        #     for name in errors.keys():
+        #         if name != NON_FIELD_ERRORS and name not in exclude:
+        #             exclude.append(name)
+        #     try:
+        #         self.validate_unique(exclude=exclude)
+        #     except ValidationError as e:
+        #         errors = e.update_error_dict(errors)
+
+        if errors:
+            raise ValidationError(errors)
 
     @api.method
     def write(cls, data):
@@ -529,10 +613,10 @@ class Model(metaclass=ModelBase):
             qs = session.query(col.label('fk'), func.count(col).label('group_count')).group_by(col).subquery()
             qs = session.query(field.related_model, qs.c.group_count).join(qs, qs.c.fk == field.remote_field.column)
             for row in qs:
-                yield {grouping[0]: row[0]._get_rec_name(), 'count': row[1]}
+                yield {grouping[0]: row[0]._get_instance_label(), 'count': row[1]}
         else:
-            qs = session.query(col, func.count(col)).group_by(col).all()
-        return qs
+            for row in session.query(col, func.count(col)).group_by(col).all():
+                yield row
 
     @classmethod
     def _search(cls, params=None, fields=None, *args, **kwargs):
@@ -575,7 +659,7 @@ class Model(metaclass=ModelBase):
     def __str__(self):
         if self._meta.title_field:
             return self[self._meta.title_field]
-        super(Model, self).__str__()
+        return super(Model, self).__str__()
 
     def __iter__(self):
         for f in self._meta.fields:

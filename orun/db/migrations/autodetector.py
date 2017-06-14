@@ -140,6 +140,8 @@ class MigrationAutodetector(object):
 
         for al, mn in sorted(self.to_state.models.keys()):
             model = self.new_apps.get_model(al, mn)
+            if model._meta.abstract:
+                continue
             if not model._meta.managed:
                 self.new_unmanaged_keys.append((al, mn))
             elif (
@@ -296,7 +298,7 @@ class MigrationAutodetector(object):
                         instance.initial = app_label not in self.existing_apps
                         if instance.initial and app_label in apps.app_configs:
                             addon = apps.get_app_config(app_label)
-                            if addon.db_schema and addon.db_schema not in [apps.get_app_config(dep).db_schema for dep in addon.depends]:
+                            if addon.db_schema and addon.create_schema is not False and addon.db_schema not in [apps.get_app_config(dep).db_schema for dep in addon.depends]:
                                 chopped.insert(0, operations.CreateSchema(addon.db_schema))
                         instance.operations = chopped
                         self.migrations.setdefault(app_label, []).append(instance)

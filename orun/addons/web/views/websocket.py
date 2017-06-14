@@ -21,12 +21,17 @@ def call(message):
     req_method = message['req-method']
     service = message['service']
     method = message['method']
-    args = message.get('args')
-    if args is None or isinstance(args, dict):
-        args = ()
-    kwargs = message['data'].get('kwargs')
-    if kwargs is None:
+    data = message.get('data')
+    if data:
+        args = data.get('args')
+        if args is None or isinstance(args, dict):
+            args = ()
+        kwargs = data.get('kwargs')
+        if kwargs is None:
+            kwargs = {}
+    else:
         kwargs = {}
+        args = ()
     service = app[service]
     meth = getattr(service, method)
     res = meth(*args, **kwargs)

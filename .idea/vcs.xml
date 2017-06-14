@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../orun-plus" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../pybr" vcs="Git" />
   </component>
 </project>

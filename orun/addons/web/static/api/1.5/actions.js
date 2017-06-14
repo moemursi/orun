@@ -7,15 +7,69 @@
   Action = (function() {
     Action.prototype.actionType = null;
 
-    function Action(info1, scope1) {
+    function Action(info1, scope1, location1) {
       this.info = info1;
       this.scope = scope1;
-      this.location = this.scope.location;
+      this.location = location1;
+      this.currentUrl = {
+        path: this.location.$$path,
+        params: this.location.$$search
+      };
+      this.history = [];
+      if (this.info._currentAction) {
+        this.history.push(this.info._currentAction);
+      }
     }
+
+    Action.prototype.openObject = function(service, id, evt, title) {
+      var url;
+      evt.preventDefault();
+      evt.stopPropagation();
+      if (evt.ctrlKey) {
+        window.open(evt.target.href);
+        return false;
+      }
+      url = "action/" + service + "/view/";
+      this.location.path(url, this).search({
+        view_type: 'form',
+        id: id,
+        title: title
+      });
+      return false;
+    };
 
     Action.prototype.apply = function() {};
 
+    Action.prototype.backTo = function(index) {
+      var h, location, params, path;
+      if (index === -1) {
+        h = this.history[0];
+        if (h.backUrl) {
+          location = h.backUrl;
+        } else {
+          location = h.currentUrl;
+        }
+      } else {
+        h = this.history[index];
+        location = h.currentUrl;
+      }
+      path = location.path;
+      params = location.search;
+      return this.location.path(path, false, h).search(params);
+    };
+
     Action.prototype.execute = function(scope) {};
+
+    Action.prototype.getCurrentTitle = function() {
+      return this.info.display_name;
+    };
+
+    Action.prototype.search = function() {
+      if (!this.isDialog) {
+        console.log(arguments);
+        return this.location.search.apply(null, arguments);
+      }
+    };
 
     return Action;
 
@@ -26,12 +80,29 @@
 
     WindowAction.actionType = 'sys.action.window';
 
-    function WindowAction(info, scope) {
-      WindowAction.__super__.constructor.call(this, info, scope);
+    function WindowAction(info, scope, location) {
+      WindowAction.__super__.constructor.call(this, info, scope, location);
+      this.notifyFields = [];
       this.viewMode = info.view_mode;
       this.viewModes = this.viewMode.split(',');
       this.viewType = null;
     }
+
+    WindowAction.prototype.registerFieldNotify = function(field) {
+      if (this.notifyFields.indexOf(field.name) === -1) {
+        this.scope.$watch('record.' + field.name, function() {
+          return console.log('field changed', field);
+        });
+        return this.notifyFields.push(fields);
+      }
+    };
+
+    WindowAction.prototype.getCurrentTitle = function() {
+      if (this.viewType === 'form') {
+        return this.scope.record.display_name;
+      }
+      return WindowAction.__super__.getCurrentTitle.call(this);
+    };
 
     WindowAction.prototype.createNew = function() {
       this.setViewType('form');
@@ -57,7 +128,11 @@
     };
 
     WindowAction.prototype.routeUpdate = function(search) {
-      var fields, filter, ref, ref1, ref2;
+      var fields, filter, ref, ref1, ref2, viewType;
+      viewType = search.view_type;
+      if (this.viewType && this.viewType !== 'form' && viewType === 'form') {
+        this.backUrl = this.currentUrl;
+      }
       if (search.view_type != null) {
         if (this.scope.records == null) {
           this.scope.records = [];
@@ -78,6 +153,7 @@
             filter.q = search.q;
           }
           fields = _.keys(this.scope.view.fields);
+          console.log(filter);
           if (((ref1 = search.view_type) === 'list' || ref1 === 'card') && search.page !== this.scope.dataSource.pageIndex) {
             this.scope.dataSource.pageIndex = parseInt(search.page);
             this.scope.dataSource.limit = parseInt(search.limit);
@@ -93,12 +169,28 @@
       } else {
         this.setViewType(this.viewModes[0]);
       }
+      this.currentUrl = {
+        url: this.location.$$url,
+        path: this.location.$$path,
+        search: this.location.$$search
+      };
+      if (search.title) {
+        this.info.display_name = search.title;
+      }
     };
 
     WindowAction.prototype.setViewType = function(viewType) {
-      return this.location.search({
-        view_type: viewType
-      });
+      var search;
+      if (this.viewType === 'form' && !viewType && this.backUrl) {
+        return this.location.path(this.backUrl.path, false, this).search(this.backUrl.search);
+      } else {
+        search = this.location.$$search;
+        if (viewType !== 'form') {
+          delete search.id;
+        }
+        search.view_type = viewType;
+        return this.location.search(search);
+      }
     };
 
     WindowAction.prototype.apply = function() {
@@ -135,7 +227,10 @@
     };
 
     WindowAction.prototype.render = function(scope, html, viewType) {
-      return scope.setContent(Katrid.UI.Utils.Templates['preRender_' + viewType](scope, html));
+      if (!this.isDialog) {
+        html = Katrid.UI.Utils.Templates['preRender_' + viewType](scope, html);
+      }
+      return scope.setContent(html);
     };
 
     WindowAction.prototype.searchText = function(q) {
@@ -157,6 +252,18 @@
     };
 
     WindowAction.prototype.setSearchParams = function(params) {
+      var arg, k, p, v;
+      p = {};
+      if (this.info.domain) {
+        p = $.parseJSON(this.info.domain);
+      }
+      for (k in p) {
+        v = p[k];
+        arg = {};
+        arg[k] = v;
+        params.push(arg);
+      }
+      console.log(params);
       return this.scope.dataSource.search(params);
     };
 
@@ -180,7 +287,7 @@
           target: target,
           prompt: promptValue
         }).done(function(res) {
-          var j, k, len, len1, msg, ref, ref1, results, results1;
+          var j, l, len, len1, msg, ref, ref1, results, results1;
           if (res.status === 'open') {
             return window.open(res.open);
           } else if (res.status === 'fail') {
@@ -194,8 +301,8 @@
           } else if (res.status === 'ok' && res.result.messages) {
             ref1 = res.result.messages;
             results1 = [];
-            for (k = 0, len1 = ref1.length; k < len1; k++) {
-              msg = ref1[k];
+            for (l = 0, len1 = ref1.length; l < len1; l++) {
+              msg = ref1[l];
               results1.push(Katrid.Dialogs.Alerts.success(msg));
             }
             return results1;
@@ -204,21 +311,28 @@
       }
     };
 
-    WindowAction.prototype.listRowClick = function(index, row) {
+    WindowAction.prototype.listRowClick = function(index, row, evt) {
+      var search, url;
+      search = {
+        view_type: 'form',
+        id: row.id
+      };
+      if (evt.ctrlKey) {
+        url = '#' + this.location.$$path + '?' + $.param(search);
+        window.open(url);
+        return;
+      }
       if (row._group) {
         row._group.expanded = !row._group.expanded;
         row._group.collapsed = !row._group.expanded;
         if (row._group.expanded) {
-          return this.scope.dataSource.expandGroup(index, row);
+          this.scope.dataSource.expandGroup(index, row);
         } else {
-          return this.scope.dataSource.collapseGroup(index, row);
+          this.scope.dataSource.collapseGroup(index, row);
         }
       } else {
         this.scope.dataSource.setRecordIndex(index);
-        return this.location.search({
-          view_type: 'form',
-          id: row.id
-        });
+        this.location.search(search);
       }
     };
 
@@ -239,8 +353,8 @@
 
     ReportAction.actionType = 'sys.action.report';
 
-    function ReportAction(info, scope) {
-      ReportAction.__super__.constructor.call(this, info, scope);
+    function ReportAction(info, scope, location) {
+      ReportAction.__super__.constructor.call(this, info, scope, location);
       this.userReport = {};
     }
 
@@ -252,7 +366,6 @@
 
     ReportAction.prototype.routeUpdate = function(search) {
       var svc;
-      console.log('report action', this.info);
       this.userReport.id = search.user_report;
       if (this.userReport.id) {
         svc = new Katrid.Services.Model('sys.action.report');

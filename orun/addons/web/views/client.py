@@ -1,4 +1,4 @@
-from flask import redirect, send_from_directory
+from flask import redirect, send_from_directory, session, url_for
 from orun.conf import settings
 from orun import request
 from orun.utils.json import jsonify
@@ -13,6 +13,7 @@ class WebClient(BaseView):
 
     @route('/', defaults={'menu_id': None})
     @route('/menu/<menu_id>/')
+    @login_required
     def index(self, menu_id=None):
         menu = app['ui.menu']
         context = {
@@ -53,8 +54,17 @@ class WebClient(BaseView):
     def report(self, path):
         return send_from_directory(settings.REPORT_PATH, path)
 
-    def login(self):
-        return render_template('web/login.html')
+    @route('/login/', methods=['GET', 'POST'])
+    def login(self, next=None):
+        if request.method == 'POST':
+            session['is_authenticated'] = True
+        if session.get('is_authenticated'):
+            if next is None:
+                return redirect('/web/')
+            else:
+                return redirect(next)
+        return render_template('web/login.html', settings=settings, _=gettext)
 
     def logout(self):
-        return render_template('web/login.html')
+        session['is_authenticated'] = None
+        return redirect(url_for('WebClient:login'))

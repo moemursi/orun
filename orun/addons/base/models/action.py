@@ -28,6 +28,13 @@ class Action(models.Model):
 
 
 class WindowAction(Action):
+    VIEW_MODE = (
+        ('form', 'Form'),
+        ('list', 'List'),
+        ('card', 'Card'),
+        ('search', 'Search'),
+        ('calendar', 'Calendar'),
+    )
     view = models.ForeignKey('ui.view', verbose_name=_('View'))
     domain = models.TextField(verbose_name=_('Domain'))
     context = models.TextField(verbose_name=_('Context'))
@@ -42,16 +49,31 @@ class WindowAction(Action):
     limit = models.IntegerField(default=100, verbose_name=_('Limit'))
     auto_search = models.BooleanField(default=True, verbose_name=_('Auto Search'))
     views = models.TextField(getter='_get_views', editable=False, serializable=True)
+    view_list = models.OneToManyField('sys.action.window.view')
 
     class Meta:
         name = 'sys.action.window'
 
     def _get_views(self):
         modes = self.view_mode.split(',')
+        views = self.view_list.all()
         modes = {mode: None for mode in modes}
+        for v in views:
+            modes[v.view_mode] = v.view_id
         if 'search' not in modes:
             modes['search'] = None
         return modes
+
+
+class WindowActionView(models.Model):
+    window_action = models.ForeignKey(WindowAction, null=False)
+    sequence = models.SmallIntegerField()
+    view = models.ForeignKey('ui.view')
+    view_mode = models.SelectionField(WindowAction.VIEW_MODE, label=_('View Type'))
+
+    class Meta:
+        name = 'sys.action.window.view'
+        title_field = 'view'
 
 
 class ServerAction(Action):

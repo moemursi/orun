@@ -149,3 +149,24 @@ msgstr "Contém"
 
 msgid "Between"
 msgstr "Entre"
+
+msgid "Search Results"
+msgstr "Resultados da Pesquisa"
+
+msgid "No results found."
+msgstr "Nenhum resultado encontrado."
+
+msgid "Page"
+msgstr "Página"
+
+msgid "Refresh"
+msgstr "Atualizar"
+
+msgid "The following fields are invalid:"
+msgstr "Os seguintes campos estão inválidos:"
+
+msgid "This field cannot be empty."
+msgstr "Este campo deve ser preenchido."
+
+msgid "Creating..."
+msgstr "Criando..."

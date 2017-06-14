@@ -14,6 +14,7 @@
     <orderEntry type="module" module-name="orun-demo" />
     <orderEntry type="module" module-name="myerp" />
     <orderEntry type="module" module-name="pybr" />
+    <orderEntry type="module" module-name="orun-plus" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />

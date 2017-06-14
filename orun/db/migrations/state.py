@@ -420,6 +420,7 @@ class ModelState(object):
             options['db_schema'] = model._meta.db_schema
         if model._meta.extension:
             options['extension'] = model._meta.extension
+        options['abstract'] = model._meta.abstract
 
         def flatten_bases(model):
             bases = []

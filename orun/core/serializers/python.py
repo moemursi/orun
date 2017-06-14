@@ -136,7 +136,10 @@ def Deserializer(object_list, **options):
 
         # Ignore if pk is present and object already exists
         if not pk or (pk and session.query(pk.column).filter(pk.column == d['pk']).scalar() is None):
-            obj = Model(**vals)
+            try:
+                obj = Model(**vals)
+            except:
+                print(obj)
             obj.save(force_insert=True)
             yield obj
         continue

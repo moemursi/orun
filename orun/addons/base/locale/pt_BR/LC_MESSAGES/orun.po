@@ -297,7 +297,31 @@ msgid "Reports"
 msgstr "Relatórios"
 
 msgid "Country Groups"
-msgstr "Grupo de Países"
+msgstr "Grupos de Países"
 
 msgid "Show on google maps"
 msgstr "Mostrar no google maps"
+
+msgid "Additional Data"
+msgstr "Dados Adicionais"
+
+msgid "Modules"
+msgstr "Módulos"
+
+msgid "Birthdate"
+msgstr "Data Nascimento"
+
+msgid "Companies"
+msgstr "Empresas"
+
+msgid "Authentication"
+msgstr "Autenticação"
+
+msgid "User Interface"
+msgstr "Interface do Usuário"
+
+msgid "Actions"
+msgstr "Ações"
+
+msgid "Database Dictionary"
+msgstr "Dicionário de Dados"

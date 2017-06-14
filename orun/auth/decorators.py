@@ -1,9 +1,9 @@
 from functools import wraps
 from urllib.parse import urlparse, urlunparse
 from datetime import timedelta
-from flask import request, redirect, make_response
+from flask import request, redirect, make_response, session, url_for
 
-from orun import env, app
+from orun import app
 from orun.utils.decorators import available_attrs
 from orun.conf import settings
 from orun.auth import REDIRECT_FIELD_NAME
@@ -14,9 +14,9 @@ def login_required(fn=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=N
     def decorator(view_func):
         @wraps(view_func)
         def wrapped(*args, **kwargs):
-            if env.user.is_authenticated():
+            if session.get('is_authenticated'):
                 return view_func(*args, **kwargs)
-            return redirect('/web/login/')
+            return redirect(url_for('WebClient:login', next=request.path))
         return wrapped
 
     if fn:

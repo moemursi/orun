@@ -71,7 +71,7 @@ class Model extends Service
     @post('search_name', { name: name })
 
   createName: (name) ->
-    @post('create_name', null, { name: name })
+    @post('create_name', null, { kwargs: { name: name } })
 
   search: (data, params) ->
     data = { kwargs: data }
