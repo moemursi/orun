@@ -64,6 +64,7 @@ class Registry(object):
         paths = self.addon_path
         with self._lock:
             for path in paths:
+                print('addon path', path)
                 sys.path.append(path)
                 for _, name, is_pkg in pkgutil.iter_modules([path]):
                     if is_pkg and not name.startswith('_'):
