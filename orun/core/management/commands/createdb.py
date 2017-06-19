@@ -6,11 +6,6 @@ from orun.db import connections, DEFAULT_DB_ALIAS
 
 
 @commands.command('createdb')
-@commands.option(
-    '--database',
-    default=DEFAULT_DB_ALIAS,
-    help='Nominates a database to create. Defaults to the "default" database.',
-)
 def command(database, **options):
     create(database)
 
@@ -54,10 +49,10 @@ def create(db):
 
     if 'postgres' in db_engine:
         conn.connection.set_isolation_level(0)
-        conn.execute("""CREATE DATABASE %s ENCODING='UTF-8'""" % db_name)
+        conn.execute("""CREATE DATABASE "%s" ENCODING='UTF-8'""" % db_name)
     elif db_engine == 'mssql':
         conn.autocommit = True
-        conn.execute("""CREATE DATABASE %s""" % db_name)
+        conn.execute("""CREATE DATABASE [%s]""" % db_name)
         conn.autocommit = False
     elif db_engine == 'oracle':
         conn.execute('create user %s identified by %s' % (db_settings['USER'], db_settings['PASSWORD']))

@@ -33,11 +33,6 @@ from orun.core.management.sql import (
     help='Tells Orun to NOT prompt the user for input of any kind.',
 )
 @commands.option(
-    '--database',
-    default=DEFAULT_DB_ALIAS,
-    help='Nominates a database to synchronize. Defaults to the "default" database.',
-)
-@commands.option(
     '--fake',
     help='Mark migrations as run without actually running them.',
 )

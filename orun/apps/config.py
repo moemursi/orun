@@ -73,7 +73,7 @@ class AppConfig(flask.Blueprint):
                 for mod_name in apps.find_commands(os.path.join(self.path, 'management')):
                     try:
                         mod = import_module('%s.management.commands.%s' % (self.schema, mod_name))
-                        apps.module_commands[self.schema] = mod.cli
+                        apps.module_commands[self.schema].append(mod.command)
                     except ImportError:
                         pass
                 self.ready()

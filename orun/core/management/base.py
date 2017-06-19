@@ -1,6 +1,6 @@
 import click
 from click import argument, option, UsageError, echo
-
+from orun.db import DEFAULT_DB_ALIAS
 from orun.core.management import color
 
 
@@ -23,6 +23,12 @@ def command(name=None, cls=None, **attrs):
         fn = click.option(
             '--pythonpath',
             help='A directory to add to the Python path, e.g. "/home/orunprojects/myproject".',
+        )(fn)
+
+        fn = click.option(
+            '--database',
+            default=DEFAULT_DB_ALIAS,
+            help='Nominates a database to create. Defaults to the "default" database.',
         )(fn)
         return click.command(name=name, cls=cls, **attrs)(fn)
 
