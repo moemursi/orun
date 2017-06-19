@@ -32,6 +32,7 @@ def drop(db):
     elif db_engine == 'postgresql':
         conn.connection.set_isolation_level(0)
         try:
+            conn.execute('''SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s';''' % db_name)
             conn.execute('''DROP DATABASE "%s"''' % db_name)
         except Exception as e:
             commands.echo(e, err=True)
