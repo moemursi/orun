@@ -1,3 +1,4 @@
+from orun import app
 from orun.db import models
 from orun.utils.translation import gettext_lazy as _
 
@@ -54,6 +55,8 @@ class Partner(models.Model):
     company = models.ForeignKey('res.company', label=_('Company'))
     comments = models.TextField(label=_('Notes'))
     image = models.ImageField(attachment=True, deferred=False)
+    # Password used for both api and site users
+    password = models.PasswordField()
 
     class Meta:
         name = 'res.partner'
@@ -63,3 +66,35 @@ class Partner(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    def send_mail(self, subject, message, from_=None):
+        """
+        Sends an email to this User.
+        """
+
+        from flask_mail import Message
+        msg = Message(
+            subject,
+            recipients=[self.email],
+        )
+        if from_:
+            msg.sender = from_
+        msg.body = message
+        msg.html = message
+        app.mail.send(msg)
+
+    def set_password(self, password):
+        from orun.auth.hashers import make_password
+        self.password = make_password(password)
+        self._password = password
+
+    @classmethod
+    def authenticate(cls, username, password):
+        from orun.auth.hashers import check_password
+        usr = cls.objects.filter(email=username, active=True).first()
+        if usr and check_password(password, usr.password):
+            return usr

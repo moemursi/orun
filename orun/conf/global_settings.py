@@ -44,6 +44,13 @@ settings.setdefault('TIME_INPUT_FORMATS', [
     '%m/%d/%y %H:%M',        # '10/25/06 14:30'
     '%m/%d/%y',              # '10/25/06'
 ])
+settings.setdefault('PASSWORD_HASHERS', [
+    'orun.auth.hashers.PBKDF2PasswordHasher',
+    'orun.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'orun.auth.hashers.Argon2PasswordHasher',
+    'orun.auth.hashers.BCryptSHA256PasswordHasher',
+    'orun.auth.hashers.BCryptPasswordHasher',
+])
 
 settings.setdefault('SUPERUSER_ID', 1)
 settings.setdefault('SUPERUSER', 'admin')

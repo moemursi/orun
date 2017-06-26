@@ -1,6 +1,7 @@
 #from orun.core.mail import send_mail
 from orun.db import models
 from orun.utils.translation import gettext_lazy as _
+from orun.auth.hashers import check_password
 
 from .partner import Partner
 
@@ -31,9 +32,8 @@ class ModelAccess(models.Model):
 
 
 class User(Partner):
-    date_joined = models.DateTimeField(_('Date Joined'))
+    date_joined = models.DateTimeField(_('Date Joined'), auto_now=True)
     username = models.CharField(255, _('Login Name'))
-    password = models.CharField(128, _('password'))
     signature = models.HtmlField(_('signature'))
     is_active = models.BooleanField(default=True)
     action = models.ForeignKey('sys.action')
@@ -55,11 +55,11 @@ class User(Partner):
                 return False
         return True
 
-    def email_user(self, subject, message, from_email=None, **kwargs):
-        """
-        Sends an email to this User.
-        """
-        send_mail(subject, message, from_email, [self.email], **kwargs)
+    @classmethod
+    def authenticate(cls, username, password):
+        usr = cls.objects.filter(cls.c.username == username, cls.c.active == True).first()
+        if usr and check_password(password, usr.password):
+            return usr
 
 
 class Rule(models.Model):
@@ -75,3 +75,19 @@ class Rule(models.Model):
 
     class Meta:
         name = 'auth.rule'
+
+
+class Export(models.Model):
+    name = models.CharField(256)
+    model = models.CharField(128, db_index=True)
+
+    class Meta:
+        name = 'auth.export'
+
+
+class ExportField(models.Model):
+    export = models.ForeignKey(Export, null=False, on_delete=models.CASCADE)
+    name = models.CharField(128)
+
+    class Meta:
+        name = 'auth.export.field'

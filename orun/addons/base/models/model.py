@@ -1,3 +1,4 @@
+from orun.core.exceptions import ObjectDoesNotExist
 from orun.db import models
 from orun.utils.translation import gettext_lazy as _
 
@@ -22,8 +23,8 @@ class Model(models.Model):
     def get_by_natural_key(cls, name):
         try:
             return cls.objects.filter(cls.name == name).one()
-        except:
-            raise Exception('Item not found', name)
+        except ObjectDoesNotExist:
+            raise ObjectDoesNotExist('Model not found %s' % name)
 
     @classmethod
     def get_for_model(cls, obj):

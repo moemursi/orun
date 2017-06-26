@@ -2,6 +2,7 @@ import os
 from jinja2 import Environment, FunctionLoader
 import base64
 
+from orun import env
 from orun.utils.xml import etree
 from orun.conf import settings
 from orun import app, render_template
@@ -121,3 +122,17 @@ class CustomView(models.Model):
 
     class Meta:
         name = 'ui.view.custom'
+
+
+class Filter(models.Model):
+    name = models.CharField(256, null=False)
+    user = models.ForeignKey('auth.user', default=lambda x: env.user, on_delete=models.CASCADE)
+    domain = models.TextField()
+    context = models.TextField()
+    sort = models.TextField()
+    is_default = models.BooleanField(default=False)
+    action = models.ForeignKey('sys.action')
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        name = 'ui.filter'

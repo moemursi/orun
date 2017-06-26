@@ -2,34 +2,56 @@ import os
 import inspect
 import flask
 from flask import Flask
+from flask_mail import Mail
 import sqlalchemy as sa
 from sqlalchemy.schema import CreateSchema
+from sqlalchemy.engine.url import URL, make_url
 
+from orun import env
 from orun.utils.translation import activate
 from orun.conf import global_settings
 from orun.db import (connection, DEFAULT_DB_ALIAS)
-from orun.utils.functional import cached_property
+from orun.utils.functional import SimpleLazyObject
 from .registry import registry
 from .utils import adjust_dependencies
 
 
-class Application(Flask):
-    current_instance = None
+def create_app(name, settings):
+    return Application(name, settings=settings)
 
+
+def _current_user_env():
+    from orun.auth import get_user, AUTH_SESSION_KEY, SITE_SESSION_KEY
+    env.user = SimpleLazyObject(lambda: get_user(AUTH_SESSION_KEY))
+    env.site_user = SimpleLazyObject(lambda: get_user(SITE_SESSION_KEY, 'res.partner'))
+
+
+class Application(Flask):
     def __init__(self, *args, **kwargs):
-        Application.current_instance = self
         settings = {}
         settings.update(global_settings.settings)
-        settings.update(kwargs.pop('settings', {}))
+        self.base_settings = kwargs.pop('settings', {})
+        settings.update(self.base_settings)
 
         super(Application, self).__init__(*args, **kwargs)
         self.models = {}
+
+        # Site user definition request handler
+        self.before_request(_current_user_env)
 
         # Load connections
         from orun.db import ConnectionHandler
         self.connections = ConnectionHandler()
 
         self.config.update(settings)
+
+        # Start mail server
+        if 'MAIL_SERVER' in self.config:
+            mail = Mail()
+            mail.init_app(self)
+            self.mail = mail
+
+        # Init sqlalchemy metadata
         self.meta = sa.MetaData()
 
         # Find addons
@@ -49,6 +71,7 @@ class Application(Flask):
         self.addons = []
         with self.app_context():
             for mod_name in mods:
+                print('Loading module', mod_name)
                 addon = registry.app_configs[mod_name]
                 addon.init_addon()
                 self.app_configs[mod_name] = addon
@@ -56,7 +79,7 @@ class Application(Flask):
 
                 # Build models
                 for model_class in registry.module_models[addon.name].values():
-                    if not model_class._meta.abstract:
+                    if not model_class._meta.abstract and not getattr(model_class._meta, 'auto_created', None):
                         model_class._meta._build_model(self)
 
                 # Register blueprints
@@ -95,16 +118,19 @@ class Application(Flask):
                 engine.execute(CreateSchema(app_config.db_schema))
 
     def load_fixtures(self):
+        from orun.core.management.commands import loaddata
         for addon in self.addons:
             for fixture in addon.fixtures:
-                self.load_fixture(addon, fixture)
+                loaddata.load_fixture(addon, fixture)
 
-    def load_fixture(self, app_config, fixture):
-        from orun.core.serializers import deserialize
-        fixture = os.path.join(app_config.path, 'fixtures', fixture)
-        format = fixture.rsplit('.', 1)[-1]
-        with open(fixture, 'rb') as f:
-            deserialize(format, f, app=self, app_config=app_config)
+    def register_db(self, database):
+        if database not in self.config['DATABASES']:
+            def_db = self.config['DATABASES'][DEFAULT_DB_ALIAS]
+            url = make_url(def_db['ENGINE'])
+            url.database = database
+            self.config['DATABASES'][database] = {
+                'ENGINE': str(url)
+            }
 
     def _register_models(self):
         from base.registry import register_model
@@ -151,6 +177,10 @@ class Application(Flask):
             ctx._old_lang = old_state['LANGUAGE_CODE']
         except:
             pass
+        database = kwargs.pop('db', None)
+        if database:
+            self.register_db(database)
+        ctx.g.DEFAULT_DB_ALIAS = database or self.config.get('DEFAULT_DB_ALIAS', DEFAULT_DB_ALIAS)
         ctx.g.user_id = 1  # Replace by the current user
         for k, v in kwargs.items():
             setattr(ctx.g, k, v)

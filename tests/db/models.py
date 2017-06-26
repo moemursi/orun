@@ -6,11 +6,10 @@ from orun import app
 
 
 class ModelsTestCase(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.engine = sa.create_engine('sqlite://', echo=True)
-
-    def test_recreate(self):
+    """
+    Basic ORM tests
+    """
+    def _test_recreate(self):
         from orun.core.management.commands import recreatedb
         recreatedb.recreate()
         app._create_all()
@@ -19,9 +18,12 @@ class ModelsTestCase(TestCase):
         obj = app['sys.object'].get_by_natural_key('sys.module.category.accounting')
         obj.name += ' 1'
         obj.save()
-        obj = app['sys.object'].objects.filter(app['sys.object'].name == 'sys.module.category.accounting 1').one()
+        obj = app['sys.object'].objects.filter(app['sys.object'].c.name == 'sys.module.category.accounting 1').first()
+        self.assertIsNotNone(obj)
 
-    def _models(self):
+    def test_models(self):
+        from orun.core.management.commands import recreatedb
+        recreatedb.recreate()
         #app.build_models()
         app.meta.create_all(app.db_engine)
         app._register_models()
@@ -32,16 +34,26 @@ class ModelsTestCase(TestCase):
         obj.save()
         obj = app['sys.object'].objects.filter(app['sys.object'].name == 'sys.module.category.accounting 1').one()
 
-    def b4(self):
+    def test_design(self):
         from orun.db.models import Model, CharField, ForeignKey, IntegerField, OneToManyField, ManyToManyField
+
+        from orun.core.management.commands import recreatedb
+        recreatedb.recreate()
 
         class Author(Model):
             name = CharField(100, 'name', null=False)
             books = OneToManyField('Book', )
 
+            class Meta:
+                db_table = 'author'
+
+
         class Book(Model):
             name = CharField(30, 'name', null=False)
             author = ForeignKey(Author, lazy='joined')
+
+            class Meta:
+                db_table = 'book'
 
         class Interval(Model):
             start = IntegerField()
@@ -51,41 +63,61 @@ class ModelsTestCase(TestCase):
             def length(self):
                 return self.end - self.start
 
+            class Meta:
+                db_table = 'interval'
+
         class Friend(Model):
             name = CharField()
-            friends = ManyToManyField('self')
+
+            class Meta:
+                db_table = 'friend'
+
 
         class ModelA(Model):
             name = CharField()
 
             class Meta:
-                db_table = 'db_table'
+                db_table = 'model_a'
                 field_groups = {
                     'printable_fields': '*',
                 }
+
 
         class ModelB(ModelA):
             description = CharField()
             friend = ForeignKey(Friend)
 
-            class Meta1:
+            class Meta:
                 name = 'db.modelb'
+                db_table = 'db_modelb'
 
         from base.models import Menu
 
-        app.build_models()
+        new_models = [Author, Book, Interval, Friend, ModelA, ModelB]
+        models = [model._meta._build_model(app) for model in new_models]
+        app.models['Author'] = models[0]
+        app.models['Book'] = models[1]
+        app.models['Interval'] = models[2]
+        app.models['Friend'] = models[3]
+        app.models['ModelA'] = models[4]
+        app.models['ModelB'] = models[5]
+        for model in models:
+            model._meta._build_table(app.meta)
 
-        print(Author._meta.db_table)
-        print(Book._meta.db_table)
-        print(Interval._meta.db_table)
-        print(Friend._meta.db_table)
-        print(ModelA._meta.db_table)
-        print(ModelB._meta.db_table, ModelB._meta.field_groups)
-        print(Menu._meta.name)
+        for model in models:
+            model._meta._build_mapper()
 
-    def b2(self):
+        app._create_all()
 
-        app.build_models()
+        self.assertIsNotNone(Author._meta.db_table)
+        self.assertIsNotNone(Book._meta.db_table)
+        self.assertIsNotNone(Interval._meta.db_table)
+        self.assertIsNotNone(Friend._meta.db_table)
+        self.assertIsNotNone(ModelA._meta.db_table)
+        self.assertIsNotNone(ModelB._meta.db_table)
+        self.assertIsNotNone(Menu._meta.name)
+
+        Author = app['Author']
 
         Author.insert.values(name='Author 1')
         for r in Author.select.where(name='Author 1'):
@@ -104,6 +136,8 @@ class ModelsTestCase(TestCase):
         Author.update.values(name='Author 1')
         for r in Author.select.where(name='Author 1').order_by('pk'):
             print('pk', r.id)
+
+        Book = app['Book']
 
         Book.insert.values(name='Book 1', author_id=1)
         Book.insert.values(name='Book 2', author_id=1)
@@ -125,9 +159,13 @@ class ModelsTestCase(TestCase):
         for book in obj.author.books:
             print(book.name)
 
+        Interval = app['Interval']
+
         Interval.insert.values(start=10, end=123)
         for r in Interval.objects.filter(Interval.length > 1):
             print(r.pk, r.length)
+
+        Friend = app['Friend']
 
         Friend.insert.values(name='Friend 1')
         Friend.insert.values(name='Friend 2')
@@ -135,36 +173,11 @@ class ModelsTestCase(TestCase):
         Friend.insert.values(name='Friend 4')
         friend = Friend.objects.first()
 
-        friend.friends.append(Friend.objects.filter_by(id=2).first())
-
-        for f in friend.friends:
-            print(friend.name, f.name)
-
+        ModelA = app['ModelA']
         ModelA.insert.values(name='Model A.1')
-        ModelB.insert.values(modela_ptr_id=1, description='Model B.1')
 
+        ModelB = app['ModelB']
+        ModelB.insert.values(modela_ptr_id=1, description='Model B.1')
         obj = ModelB.objects.first()
         self.assertEqual(obj.name, 'Model A.1')
         self.assertEqual(obj.description, 'Model B.1')
-
-    def _b(self):
-        meta = sa.MetaData()
-
-        author = Author._meta._build_table(meta)
-        tbl = Book._meta._build_table(meta)
-
-        # tbl = sa.Table('book', meta, sa.Column('id', sa.Integer()), sa.Column('name', sa.String))
-        print('models', app.models)
-
-        meta.create_all(app.db_engine)
-
-        conn = app.db_engine.connect()
-
-        conn.execute(author.insert().values(name='test'))
-        conn.execute(tbl.insert().values(name='test', author=1))
-        conn.execute(tbl.insert().values(name='test2'))
-        r = conn.execute(select([tbl]))
-        for row in r:
-            print(row.author)
-
-        Author.select.where(Author.c.name == 'test')._fetch_all(conn)

@@ -10,8 +10,8 @@ class Attachment(models.Model):
     name = models.CharField(label=_('Attachment Name'), null=False)
     file_name = models.CharField(label=_('File Name'))
     description = models.TextField(label=_('Description'))
-    model_name = models.CharField(128, label=_('Model'))
-    model_field = models.CharField(128)
+    model = models.CharField(128, label=_('Model'))
+    field = models.CharField(128)
     object_name = models.CharField()
     object_id = models.BigIntegerField()
     company = models.ForeignKey('res.company')
@@ -24,7 +24,7 @@ class Attachment(models.Model):
     file_size = models.BigIntegerField()
     checksum = models.CharField(40, db_index=True)
     mimetype = models.CharField(128, 'Mime Type', readonly=True)
-    indexed_content = models.TextField()
+    indexed_content = models.TextField(deferred=True)
 
     class Meta:
         name = 'sys.attachment'

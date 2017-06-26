@@ -1,4 +1,4 @@
-from functools import wraps
+from functools import wraps, partial
 from urllib.parse import urlparse, urlunparse
 from datetime import timedelta
 from flask import request, redirect, make_response, session, url_for
@@ -7,21 +7,35 @@ from orun import app
 from orun.utils.decorators import available_attrs
 from orun.conf import settings
 from orun.auth import REDIRECT_FIELD_NAME
+from orun.auth import AUTH_SESSION_KEY, SITE_SESSION_KEY
 
 
-def login_required(fn=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None):
+def _login_required(fn=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None, session_key=AUTH_SESSION_KEY):
+    if callable(login_url):
+        login_url = login_url()
 
     def decorator(view_func):
         @wraps(view_func)
         def wrapped(*args, **kwargs):
-            if session.get('is_authenticated'):
+            user = session.get(session_key)
+            if user:
                 return view_func(*args, **kwargs)
-            return redirect(url_for('WebClient:login', next=request.path))
+            return redirect(
+                url_for(login_url, **{redirect_field_name: request.path}) if ':' in login_url else login_url
+            )
         return wrapped
 
     if fn:
         return decorator(fn)
     return decorator
+
+
+# API Login Required Decorator
+login_required = partial(_login_required, login_url='WebClient:login')
+# Basic Site Login Required Decorator
+site_login_required = partial(
+    _login_required, session_key=SITE_SESSION_KEY, login_url=lambda: app.config.get('SITE_LOGIN_URL')
+)
 
 
 def cross_domain(origin=None, methods=None, headers=None, max_age=21600, attach_to_all=True, automatic_options=True):

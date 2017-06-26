@@ -15,6 +15,10 @@ from orun.core.management.commands.loaddata import load_fixture
 )
 @commands.option('--with-demo/--without-demo', default=False, help='Load demo data.')
 def command(app_labels, **options):
+    upgrade(app_labels, **options)
+
+
+def upgrade(app_labels, **options):
     if not app_labels:
         app_labels = app.app_configs.keys()
     for app_label in app_labels:

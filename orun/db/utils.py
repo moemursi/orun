@@ -3,6 +3,7 @@ from importlib import import_module
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 
+from orun import env
 from orun.core.exceptions import ImproperlyConfigured
 from orun.conf import settings
 from orun.utils.functional import cached_property
@@ -112,8 +113,8 @@ class ConnectionHandler(object):
         except KeyError:
             raise ConnectionDoesNotExist("The connection %s doesn't exist" % alias)
 
-        conn.setdefault('ATOMIC_REQUESTS', False)
-        conn.setdefault('AUTOCOMMIT', True)
+        conn.setdefault('ATOMIC_REQUESTS', True)
+        conn.setdefault('AUTOCOMMIT', False)
         conn.setdefault('ENGINE', 'sqlite:///:memory:')
         if not conn['ENGINE']:
             conn['ENGINE'] = 'sqlite:///:memory:'
@@ -135,6 +136,9 @@ class ConnectionHandler(object):
             test_settings.setdefault(key, None)
 
     def __getitem__(self, alias):
+        # Get the current database
+        if alias == DEFAULT_DB_ALIAS:
+            alias = env.DEFAULT_DB_ALIAS
         from orun.db.models.query import Session
         if hasattr(self._connections, alias):
             return getattr(self._connections, alias)

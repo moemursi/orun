@@ -130,6 +130,7 @@ class Field(object):
         return '<%s>' % path
 
     def contribute_to_class(self, cls, name):
+        self.column = None
         self.set_attributes_from_name(name)
         self.model = cls
         if self.local is None:
@@ -491,7 +492,7 @@ class AutoField(Field):
 
 
 class BigAutoField(AutoField):
-    _db_type = sa.BigInteger
+    _db_type = sa.BigInteger().with_variant(sa.Integer, 'sqlite')
 
 
 class TextField(Field):
@@ -508,6 +509,12 @@ class BooleanField(Field):
 
 class DateTimeField(Field):
     _db_type = sa.DateTime()
+
+    def __init__(self, *args, **kwargs):
+        auto_now = kwargs.pop('auto_now', None)
+        if auto_now:
+            kwargs.setdefault('default', datetime.datetime.now)
+        super(DateTimeField, self).__init__(*args, **kwargs)
 
 
 class DateField(DateTimeField):
@@ -576,12 +583,18 @@ class SelectionField(CharField):
         super(SelectionField, self).__init__(*args[1:], **kwargs)
 
 
+class PasswordField(CharField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('max_length', 128)
+        super(PasswordField, self).__init__(*args, **kwargs)
+
+
 class SlugField(CharField):
     pass
 
 
 class BinaryField(Field):
-    _db_type = sa.Binary()
+    _db_type = sa.LargeBinary()
 
     def __init__(self, attachment=None, storage='db', *args, **kwargs):
         kwargs.setdefault('deferred', True)

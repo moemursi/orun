@@ -4,7 +4,7 @@ from sqlalchemy.orm import mapper, relationship, deferred, backref, synonym
 from orun.db import connections
 from orun.utils.text import camel_case_to_spaces
 from orun.utils.functional import cached_property
-from .fields import BigAutoField, field_property
+from .fields import BigAutoField
 from .record import Record
 
 
@@ -153,7 +153,7 @@ class Options(object):
                     model.add_to_class('id', auto)
 
     def _build_table(self, meta):
-        if self.abstract:
+        if self.abstract or self.table is not None:
             return
 
         # Build the table

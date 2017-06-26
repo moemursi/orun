@@ -128,3 +128,5 @@ class GenericForeignKey(object):
         setattr(instance, self.fk_field, fk)
         setattr(instance, self.cache_attr, value)
 
+    def _invalidate_cache(self):
+        pass

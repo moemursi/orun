@@ -1,4 +1,4 @@
-from flask import redirect, send_from_directory, session, url_for
+from flask import redirect, send_from_directory, session, url_for, flash
 from orun.conf import settings
 from orun import request
 from orun.utils.json import jsonify
@@ -6,6 +6,7 @@ from orun.utils.translation import gettext
 from orun import app, render_template
 from orun.views import BaseView, route
 from orun.auth.decorators import login_required
+from orun import auth
 
 
 class WebClient(BaseView):
@@ -55,14 +56,15 @@ class WebClient(BaseView):
         return send_from_directory(settings.REPORT_PATH, path)
 
     @route('/login/', methods=['GET', 'POST'])
-    def login(self, next=None):
+    def login(self):
         if request.method == 'POST':
-            session['is_authenticated'] = True
-        if session.get('is_authenticated'):
-            if next is None:
-                return redirect('/web/')
-            else:
-                return redirect(next)
+            username = request.form['username']
+            password = request.form['password']
+            u = auth.authenticate(username=username, password=password)
+            if u and u.is_authenticated:
+                auth.login(u)
+                return redirect(request.args.get('next', '/'))
+            flash(gettext('Invalid username and password.'), 'danger')
         return render_template('web/login.html', settings=settings, _=gettext)
 
     def logout(self):

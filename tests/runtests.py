@@ -1,6 +1,5 @@
 import os
 import unittest
-os.environ['ORUN_ADDONS_PATH'] = r'c:\workspace\katrid\myerp'
 
 from orun.apps import Application
 

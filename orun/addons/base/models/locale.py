@@ -9,6 +9,7 @@ class Country(models.Model):
     phone_code = models.PositiveSmallIntegerField()
     image_flag = models.CharField(256)
     currency = models.ForeignKey('res.currency')
+    language = models.ForeignKey('res.language')
 
     class Meta:
         name = 'res.country'

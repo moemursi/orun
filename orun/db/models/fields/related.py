@@ -180,11 +180,12 @@ class OneToManyField(RelatedField):
     @property
     def related(self):
         self.to = app[self.to]
+        _app = app
         if self.primary_join:
             return relationship(
-                self.to, lazy=self.lazy, primaryjoin=lambda self=self: self.primary_join(app[self.model], app[self.to])
+                self.to, lazy=self.lazy, primaryjoin=lambda self=self, app=_app: self.primary_join(app[self.model], app[self.to])
             )
-        return relationship(lambda: app[self.to], foreign_keys=[self.rel_field.column], lazy=self.lazy)
+        return relationship(app[self.to], foreign_keys=[self.rel_field.column], lazy=self.lazy)
 
     def serialize(self, value, instance=None):
         value = value.options(load_only('pk'))
@@ -252,6 +253,11 @@ class ManyToManyField(RelatedField):
         else:
             rel_model = app[self.to]
 
+        if isinstance(self.through, models.Model):
+            try:
+                new_model = app[self.through]
+            except KeyError:
+                self.through = None
         if self.through:
             new_model = app[self.through]
             if self.through_fields:
@@ -262,23 +268,11 @@ class ManyToManyField(RelatedField):
                 from_field = get_first_rel_field(new_model, self.model).db_column
                 to_field = get_first_rel_field(new_model, rel_model).db_column
         else:
-            from_ = 'from_%s' % self.model._meta.name.replace('.', '_')
-            to_ = 'to_%s' % rel_model._meta.name.replace('.', '_')
-
+            new_model, from_, to_ = self._build_model(rel_model)
             from_field = from_ + '_id'
             to_field = to_ + '_id'
-
-            new_model = type('%s_%s' % (self.model.__name__, self.name), (models.Model,), {
-                '__module__': self.model._meta.app_label,
-                # '__app__': self.model._meta.app,
-                from_: ForeignKey(self.model, null=False),
-                to_: ForeignKey(rel_model, null=False),
-            })
-
-            new_model._meta.app = self.model._meta.app
-
-            new_model._meta._build_table(self.model._meta.app.meta)
-            new_model._meta._build_mapper()
+            self.through_fields = (from_, to_)
+            self.through = new_model
 
         return relationship(
             lambda: rel_model._meta.mapped,
@@ -287,6 +281,26 @@ class ManyToManyField(RelatedField):
             primaryjoin=self.model._meta.pk.column == new_model._meta.table.c[from_field],
             secondaryjoin=rel_model._meta.pk.column == new_model._meta.table.c[to_field],
         )
+
+    def _build_model(self, rel_model):
+        from orun.db import models
+
+        from_ = 'from_%s' % self.model._meta.name.replace('.', '_')
+        to_ = 'to_%s' % rel_model._meta.name.replace('.', '_')
+
+        new_model = type('%s_%s' % (self.model.__name__, self.name), (models.Model,), {
+            '__module__': self.model._meta.app_label,
+            # '__app__': self.model._meta.app,
+            from_: ForeignKey(self.model, null=False),
+            to_: ForeignKey(rel_model, null=False),
+        })
+
+        new_model._meta.auto_created = True
+        new_model._meta.app = self.model._meta.app
+
+        new_model._meta._build_table(self.model._meta.app.meta)
+        new_model._meta._build_mapper()
+        return new_model, from_, to_
 
     def deconstruct(self):
         name, path, args, kwargs = super(ManyToManyField, self).deconstruct()
