@@ -155,7 +155,7 @@ class ModelBase(type):
                 # Clone base local fields to new class local fields
                 for f in base._meta.fields:
                     if f.name not in opts._get_fields_dict():
-                        new_field = copy.deepcopy(f)
+                        new_field = copy.copy(f)
                         new_field.inherited = not base._meta.abstract
                         new_field.local = (extension and f in base._meta.local_fields) or base._meta.abstract
                         new_field.base_model = base

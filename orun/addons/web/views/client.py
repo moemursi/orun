@@ -31,6 +31,7 @@ class WebClient(BaseView):
         return render_template('web/index.html', _=gettext, **context)
 
     @route('/action/<action_id>/')
+    @login_required
     def action(self, action_id=None):
         Action = app['sys.action']
         Menu = app['ui.menu']
@@ -63,10 +64,10 @@ class WebClient(BaseView):
             u = auth.authenticate(username=username, password=password)
             if u and u.is_authenticated:
                 auth.login(u)
-                return redirect(request.args.get('next', '/'))
+                return redirect(request.args.get('next', url_for('WebClient:index_1')))
             flash(gettext('Invalid username and password.'), 'danger')
         return render_template('web/login.html', settings=settings, _=gettext)
 
     def logout(self):
-        session['is_authenticated'] = None
+        auth.logout()
         return redirect(url_for('WebClient:login'))

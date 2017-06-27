@@ -1,4 +1,6 @@
 
 
 class AnonymousUser(object):
-    pass
+    @property
+    def is_authenticated(self):
+        return False

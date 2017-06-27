@@ -1,7 +1,5 @@
 from unittest import TestCase
-import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.sql import select
 from orun import app
 
 
@@ -9,7 +7,7 @@ class ModelsTestCase(TestCase):
     """
     Basic ORM tests
     """
-    def _test_recreate(self):
+    def test_recreate(self):
         from orun.core.management.commands import recreatedb
         recreatedb.recreate()
         app._create_all()
@@ -24,7 +22,6 @@ class ModelsTestCase(TestCase):
     def test_models(self):
         from orun.core.management.commands import recreatedb
         recreatedb.recreate()
-        #app.build_models()
         app.meta.create_all(app.db_engine)
         app._register_models()
         app.load_fixtures()
@@ -46,7 +43,6 @@ class ModelsTestCase(TestCase):
 
             class Meta:
                 db_table = 'author'
-
 
         class Book(Model):
             name = CharField(30, 'name', null=False)
@@ -72,7 +68,6 @@ class ModelsTestCase(TestCase):
             class Meta:
                 db_table = 'friend'
 
-
         class ModelA(Model):
             name = CharField()
 
@@ -81,7 +76,6 @@ class ModelsTestCase(TestCase):
                 field_groups = {
                     'printable_fields': '*',
                 }
-
 
         class ModelB(ModelA):
             description = CharField()
@@ -144,7 +138,6 @@ class ModelsTestCase(TestCase):
         Book.insert.values(name='Book 3', author_id=1)
         Book.insert.values(name='Book 4')
 
-
         obj = Book.objects.filter_by(name='Book 2').first()
         self.assertEqual(obj.pk, 2)
         self.assertEqual(obj.name, 'Book 2')
@@ -172,6 +165,7 @@ class ModelsTestCase(TestCase):
         Friend.insert.values(name='Friend 3')
         Friend.insert.values(name='Friend 4')
         friend = Friend.objects.first()
+        self.assertIsNotNone(friend)
 
         ModelA = app['ModelA']
         ModelA.insert.values(name='Model A.1')
