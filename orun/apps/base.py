@@ -85,6 +85,10 @@ class Application(Flask):
                 # Register blueprints
                 self.register_blueprint(addon)
 
+                # Initialize addon on current instance
+                if hasattr(addon, 'init_app'):
+                    addon.init_app(self)
+
                 # Register addon commands
                 for cmd in registry.module_commands[addon.app_label]:
                     self.cli.add_command(cmd)
