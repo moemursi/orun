@@ -83,6 +83,7 @@ class Partner(models.Model):
         )
         if from_:
             msg.sender = from_
+        message = message.encode('ascii', errors='ignore')
         msg.body = message
         msg.html = message
         app.mail.send(msg)
