@@ -80,10 +80,10 @@ class Partner(models.Model):
         msg = Message(
             subject,
             recipients=[self.email],
+            charset='utf-8',
         )
         if from_:
             msg.sender = from_
-        message = message.encode('ascii', errors='ignore')
         msg.body = message
         msg.html = message
         app.mail.send(msg)
