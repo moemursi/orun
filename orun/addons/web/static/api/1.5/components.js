@@ -350,6 +350,7 @@
     '$filter', function($filter) {
       return {
         restrict: 'A',
+        priority: 1,
         require: '?ngModel',
         link: function(scope, element, attrs, controller) {
           var calendar, dateFmt, el, shortDate;
@@ -378,14 +379,29 @@
           }
           controller.$formatters.push(function(value) {
             var dt;
-            dt = new Date(value);
-            calendar.datepicker('setDate', dt);
-            return $filter('date')(value, shortDate);
+            if (value) {
+              dt = new Date(value);
+              calendar.datepicker('setDate', dt);
+              return $filter('date')(value, shortDate);
+            }
           });
           controller.$parsers.push(function(value) {
-            console.log('parsers', value, controller);
-            return moment.utc(value, shortDate.toUpperCase()).format('YYYY-MM-DD');
+            if (_.isDate(value)) {
+              return moment.utc(value).format('YYYY-MM-DD');
+            }
+            if (_.isString(value)) {
+              return moment.utc(value, shortDate.toUpperCase()).format('YYYY-MM-DD');
+            }
           });
+          controller.$render = function() {
+            var v;
+            if (_.isDate(controller.$viewValue)) {
+              v = $filter('date')(controller.$viewValue, shortDate);
+              return el.val(v);
+            } else {
+              return el.val(controller.$viewValue);
+            }
+          };
           return el.on('blur', function(evt) {
             var dp, dt, fmt, s, sep, val;
             dp = calendar.data('datepicker');

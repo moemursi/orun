@@ -205,7 +205,7 @@ class OneToManyField(RelatedField):
                     values = obj['values']
                     values[self.rel_field.name] = pk
                 if act == CREATE_CHILD:
-                    item = model.create(**values)
+                    item = model.write([values])
                 elif act == UPDATE_CHILD:
                     item = model.write([values])
                 elif act == DESTROY_CHILD:

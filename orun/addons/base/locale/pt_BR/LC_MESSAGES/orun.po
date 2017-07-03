@@ -325,9 +325,3 @@ msgstr "Ações"
 
 msgid "Database Dictionary"
 msgstr "Dicionário de Dados"
-
-msgid "Title"
-msgstr "Título"
-
-msgid "Country"
-msgstr "País"

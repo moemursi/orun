@@ -491,6 +491,9 @@
         v = values[attr];
         control = this.scope.form[attr];
         if (control) {
+          if (v) {
+            v = this.toClientValue(attr, v);
+          }
           control.$setViewValue(v);
           control.$render();
           if (v === false) {
@@ -508,6 +511,18 @@
 
     DataSource.prototype.editRecord = function() {
       return this.setState(DataSourceState.editing);
+    };
+
+    DataSource.prototype.toClientValue = function(attr, value) {
+      var field;
+      console.log(attr, value);
+      field = this.scope.view.fields[attr];
+      if (field) {
+        if (field.type === 'DateTimeField') {
+          value = new Date(value);
+        }
+      }
+      return value;
     };
 
     DataSource.prototype.setState = function(state) {

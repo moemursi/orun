@@ -18,7 +18,7 @@ uiKatrid.directive 'field', ($compile) ->
 
   link: (scope, element, attrs, ctrl, transclude) ->
     field = scope.view.fields[attrs.name]
-    
+
     # Check if field depends from another
     if field.depends and field.depends.length
       scope.action.addNotifyField(field)
@@ -305,6 +305,7 @@ uiKatrid.directive 'ngEnter', ->
 
 uiKatrid.directive 'datepicker', ['$filter', ($filter) ->
   restrict: 'A'
+  priority: 1
   require: '?ngModel'
   link: (scope, element, attrs, controller) ->
     el = element
@@ -330,13 +331,24 @@ uiKatrid.directive 'datepicker', ['$filter', ($filter) ->
       el = el.mask(Katrid.Settings.UI.dateInputMask)
 
     controller.$formatters.push (value) ->
-      dt = new Date(value)
-      calendar.datepicker('setDate', dt)
-      return $filter('date')(value, shortDate)
+      if value
+        dt = new Date(value)
+        calendar.datepicker('setDate', dt)
+        return $filter('date')(value, shortDate)
+      return
 
     controller.$parsers.push (value) ->
-      console.log('parsers', value, controller)
-      return moment.utc(value, shortDate.toUpperCase()).format('YYYY-MM-DD')
+      if _.isDate(value)
+        return moment.utc(value).format('YYYY-MM-DD')
+      if _.isString(value)
+        return moment.utc(value, shortDate.toUpperCase()).format('YYYY-MM-DD')
+
+    controller.$render = ->
+      if _.isDate(controller.$viewValue)
+        v = $filter('date')(controller.$viewValue, shortDate)
+        el.val(v)
+      else
+        el.val(controller.$viewValue)
 
     el.on 'blur', (evt) ->
       dp = calendar.data('datepicker')

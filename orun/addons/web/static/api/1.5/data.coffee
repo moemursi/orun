@@ -342,6 +342,8 @@ class DataSource
     for attr, v of values
       control = @scope.form[attr]
       if control
+        if v
+          v = @toClientValue(attr, v)
         control.$setViewValue v
         control.$render()
         # Force dirty (bug fix for boolean (false) value
@@ -353,6 +355,14 @@ class DataSource
 
   editRecord: ->
     @setState(DataSourceState.editing)
+
+  toClientValue: (attr, value) ->
+    console.log(attr, value)
+    field = @scope.view.fields[attr]
+    if field
+      if field.type is 'DateTimeField'
+        value = new Date(value)
+    return value
 
   setState: (state) ->
     @state = state

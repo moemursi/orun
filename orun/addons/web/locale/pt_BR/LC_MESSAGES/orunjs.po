@@ -87,6 +87,9 @@ msgstr "Agrupar por:"
 msgid "yyyy-mm-dd"
 msgstr "dd/mm/yyyy"
 
+msgid "yyyy-MM-dd hh:mm"
+msgstr "dd/MM/yyyy hh:mm"
+
 msgid "(New)"
 msgstr "(Novo)"
 
@@ -170,3 +173,6 @@ msgstr "Este campo deve ser preenchido."
 
 msgid "Creating..."
 msgstr "Criando..."
+
+msgid "Create and Edit..."
+msgstr "Criar e Editar..."

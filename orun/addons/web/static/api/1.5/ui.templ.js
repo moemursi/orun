@@ -169,6 +169,8 @@
           cols += "<td class=\"" + cls + "\">${row." + name + "|number:2}</td>";
         } else if (fieldInfo.type === 'DateField') {
           cols += "<td class=\"" + cls + "\">${row." + name + "|date:'" + (Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')) + "'}</td>";
+        } else if (fieldInfo.type === 'DateTimeField') {
+          cols += "<td class=\"" + cls + "\">${row." + name + "|date:'" + (Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')) + "'}</td>";
         } else {
           cols += "<td>${row." + name + "}</td>";
         }
