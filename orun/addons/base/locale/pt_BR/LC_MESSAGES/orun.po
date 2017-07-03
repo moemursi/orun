@@ -328,3 +328,6 @@ msgstr "Dicionário de Dados"
 
 msgid "Title"
 msgstr "Título"
+
+msgid "Country"
+msgstr "País"

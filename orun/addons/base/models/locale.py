@@ -13,6 +13,8 @@ class Country(models.Model):
 
     class Meta:
         name = 'res.country'
+        verbose_name = _('Country')
+        verbose_name_plural = _('Countries')
 
 
 class CountryGroup(models.Model):
