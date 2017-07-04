@@ -40,8 +40,8 @@ class User(Partner):
     user_company = models.ForeignKey('res.company')
     is_staff = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
-    groups = models.ManyToManyField(Group)
-    companies = models.ManyToManyField('res.company')
+    groups = models.ManyToManyField(Group, label=_('Groups'))
+    companies = models.ManyToManyField('res.company', label=_('Companies'))
 
     class Meta:
         name = 'auth.user'

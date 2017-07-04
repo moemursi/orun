@@ -331,3 +331,6 @@ msgstr "Assinatura"
 
 msgid "Date Joined"
 msgstr "Data Ingresso"
+
+msgid "Is staff"
+msgstr "Membro da Equipe"
