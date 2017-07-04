@@ -325,3 +325,9 @@ msgstr "Ações"
 
 msgid "Database Dictionary"
 msgstr "Dicionário de Dados"
+
+msgid "Signature"
+msgstr "Assinatura"
+
+msgid "Date Joined"
+msgstr "Data Ingresso"

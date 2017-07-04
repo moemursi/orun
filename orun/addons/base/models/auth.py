@@ -34,7 +34,7 @@ class ModelAccess(models.Model):
 class User(Partner):
     date_joined = models.DateTimeField(_('Date Joined'), auto_now=True)
     username = models.CharField(255, _('Login Name'))
-    signature = models.HtmlField(_('signature'))
+    signature = models.HtmlField(_('Signature'))
     is_active = models.BooleanField(default=True)
     action = models.ForeignKey('sys.action')
     user_company = models.ForeignKey('res.company')

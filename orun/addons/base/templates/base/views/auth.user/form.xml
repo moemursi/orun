@@ -1,3 +1,10 @@
 <form>
   <field name="name" />
+  <field name="login_name" />
+  <field name="is_staff" />
+  <field name="action" />
+  <field name="date_joined" />
+  <field name="signature" />
+  <field name="groups" />
+  <field name="companies" />
 </form>
