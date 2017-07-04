@@ -16,6 +16,7 @@
         <item url="file://$PROJECT_DIR$/../katrid/1.5/actions.js" />
         <item url="file://$PROJECT_DIR$/../katrid/1.5/utils.js" />
         <item url="file://$PROJECT_DIR$/../katrid/1.5/auth.js" />
+        <item url="file://$PROJECT_DIR$/../myerp/br_pos/static/ng-pos/pos.js" />
         <item url="file://$PROJECT_DIR$/../katrid/1.5/speech.js" />
         <item url="file://$PROJECT_DIR$/../katrid/1.5/services.js" />
         <item url="file://$PROJECT_DIR$/../katrid/1.5/app.js" />
@@ -64,6 +65,7 @@
       <root url="file://$PROJECT_DIR$/../katrid/1.5/actions.js" />
       <root url="file://$PROJECT_DIR$/../katrid/1.5/utils.js" />
       <root url="file://$PROJECT_DIR$/../katrid/1.5/auth.js" />
+      <root url="file://$PROJECT_DIR$/../myerp/br_pos/static/ng-pos/pos.js" />
       <root url="file://$PROJECT_DIR$/../katrid/1.5/ui.js" />
       <root url="file://$PROJECT_DIR$/../katrid/1.5/speech.js" />
       <root url="file://$PROJECT_DIR$/../katrid/1.5/services.js" />
