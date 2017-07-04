@@ -27,7 +27,7 @@ class Widget
       if attrName.startsWith('field-')
         attrName = attrName.substr(6, attrName.length - 6)
       r[attrName] = v
-    if attrs.readonly?
+    if attrs.readonly? or field.readonly
       r['readonly'] = ''
     if @classes
       r['class'] = @classes.join(' ')

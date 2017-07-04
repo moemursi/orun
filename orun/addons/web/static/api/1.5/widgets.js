@@ -51,7 +51,7 @@
         }
         r[attrName] = v;
       }
-      if (attrs.readonly != null) {
+      if ((attrs.readonly != null) || field.readonly) {
         r['readonly'] = '';
       }
       if (this.classes) {
