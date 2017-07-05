@@ -1,7 +1,7 @@
 from functools import reduce
 import sqlalchemy as sa
 from sqlalchemy.sql import select, update, delete, text
-from sqlalchemy import orm, or_
+from sqlalchemy import orm, or_, and_
 from sqlalchemy.orm import load_only
 
 from orun.db import session, connection
@@ -246,22 +246,25 @@ def convert_params(model, params):
         params = [params]
     for param in params:
         for k, v in param.items():
-            args = k.split('__')
-            col = args[0]
-            col = model._meta.fields_dict[col].column
-            attr = None
-            if len(args) > 1:
-                for arg in args[1:]:
-                    if arg == 'icontains':
-                        arg = 'ilike'
-                        v = '%' + v + '%'
-                    attr = getattr(col, arg, None)
-                    if attr is None:
-                        attr = getattr(col, arg + '_', None)
-            if attr and callable(attr):
-                yield attr(v)
+            if k == 'OR':
+                yield or_(*convert_params(model, v))
             else:
-                yield col == v
+                args = k.split('__')
+                col = args[0]
+                col = model._meta.fields_dict[col].column
+                attr = None
+                if len(args) > 1:
+                    for arg in args[1:]:
+                        if arg == 'icontains':
+                            arg = 'ilike'
+                            v = '%' + v + '%'
+                        attr = getattr(col, arg, None)
+                        if attr is None:
+                            attr = getattr(col, arg + '_', None)
+                if attr and callable(attr):
+                    yield attr(v)
+                else:
+                    yield col == v
 
 
 class Query(orm.Query):
@@ -274,11 +277,7 @@ class Query(orm.Query):
             criterion.append(kwargs)
         for i, crit in enumerate(criterion):
             if isinstance(crit, dict):
-                if 'OR' in crit:
-                    c = convert_params(self.selectable._froms[0].__model__, crit['OR'])
-                    args.append(or_(*c))
-                else:
-                    args.extend(convert_params(self.selectable._froms[0].__model__, crit))
+                args.extend(convert_params(self.selectable._froms[0].__model__, crit))
             else:
                 args.append(crit)
 
