@@ -45,7 +45,7 @@ def drop(db):
         conn.autocommit = False
     elif db_engine == 'oracle':
         try:
-            conn.execute('DROP USER %s CASCADE' % db_settings['USER'])
+            conn.execute('DROP USER usr_%s CASCADE' % db)
         except Exception as e:
             commands.echo(e, err=True)
 

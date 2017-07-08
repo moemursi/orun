@@ -7,11 +7,8 @@ import uuid
 from orun.conf import settings
 from orun.db.backends.base.operations import BaseDatabaseOperations
 from orun.db.backends.utils import truncate_name
-from orun.utils import six, timezone
+from orun.utils import timezone
 from orun.utils.encoding import force_bytes, force_text
-
-from .base import Database
-from .utils import InsertIdVar, Oracle_datetime, convert_unicode
 
 
 class DatabaseOperations(BaseDatabaseOperations):

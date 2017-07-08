@@ -16,6 +16,7 @@ settings.setdefault('MAX_NAME_LENGTH', 30)
 settings.setdefault('TIME_ZONE', None)
 settings.setdefault('SERIALIZATION_MODULES', {})
 settings.setdefault('DEFAULT_CHARSET', 'utf-8')
+settings.setdefault('DATABASE_SCHEMA_SUPPORT', False)
 
 settings.setdefault('FORMAT_MODULE_PATH', None)
 settings.setdefault('DATE_INPUT_FORMATS', [

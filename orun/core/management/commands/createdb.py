@@ -27,8 +27,8 @@ def _create_connection(db):
         database = 'postgres'
     elif db_engine == 'mssql':
         database = 'master'
-    elif db_engine == 'orun.db.backends.oracle':
-        database = 'SYSTEM'
+    elif db_engine == 'oracle':
+        database = connections.databases[DEFAULT_DB_ALIAS].get('SYSTEM_DB', 'SYSTEM')
 
     url = URL(url.drivername, url.username, url.password, url.host, url.port, database, url.query)
     return create_engine(url).connect()
@@ -38,7 +38,11 @@ def create(db):
     commands.echo('Creating database "%s"' % db)
     url = make_url(connections.databases[db]['ENGINE'])
 
+    # sqlite create database bug fix
     if url.drivername == 'sqlite':
+        if url.database != ':memory:':
+            import sqlite3
+            sqlite3.connect(url.database)
         return
 
     conn = _create_connection(url)
@@ -55,7 +59,7 @@ def create(db):
         conn.execute("""CREATE DATABASE [%s]""" % db_name)
         conn.autocommit = False
     elif db_engine == 'oracle':
-        conn.execute('create user %s identified by %s' % (db_settings['USER'], db_settings['PASSWORD']))
-        conn.execute('grant all privilege to %s' % db_settings['USER'])
+        conn.execute('create user usr_%s identified by %s' % (db, db_settings.password))
+        conn.execute('grant all privilege to usr_%s' % db)
 
     commands.echo('Database "%s" has been created succesfully' % db)

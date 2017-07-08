@@ -1,12 +1,15 @@
 from threading import local
 from importlib import import_module
 import sqlalchemy as sa
+from sqlalchemy.exc import DatabaseError
+from sqlalchemy.engine.url import URL, make_url
 from sqlalchemy.orm import sessionmaker
 
 from orun import env
 from orun.core.exceptions import ImproperlyConfigured
 from orun.conf import settings
 from orun.utils.functional import cached_property
+from orun.utils.module_loading import import_string
 
 
 DEFAULT_DB_ALIAS = 'default'
@@ -17,10 +20,6 @@ class Error(Exception):
 
 
 class InterfaceError(Error):
-    pass
-
-
-class DatabaseError(Error):
     pass
 
 
@@ -52,6 +51,11 @@ class ConnectionDoesNotExist(Exception):
     pass
 
 
+def get_backend(engine):
+    backend = 'orun.db.backends.' + engine + '.base.Backend'
+    return import_string(backend)
+
+
 class ConnectionInfo(object):
     def __init__(self, engine):
         self.engine = engine
@@ -60,11 +64,6 @@ class ConnectionInfo(object):
         self.commit_on_exit = True
         self.needs_rollback = False
         self.closed_in_transaction = False
-
-    @property
-    def backend(self):
-        backend = 'orun.db.backends' + self.engine.name
-        return import_module(backend)
 
     def schema_editor(self):
         backend = import_module('orun.db.backends.%s.schema' % self.engine.name)
@@ -146,7 +145,11 @@ class ConnectionHandler(object):
         self.ensure_defaults(alias)
         self.prepare_test_settings(alias)
         db = self.databases[alias]
-        conn = sa.create_engine(db['ENGINE'], echo=True)
+        if 'url' not in db:
+            db['url'] = make_url(db['ENGINE'])
+        url = db['url']
+        backend = get_backend(url.drivername.split('+')[0])
+        conn = backend.create_engine(alias, url)
         conn.session = Session(bind=conn)
         conn.conn_info = ConnectionInfo(conn)
         conn.alias = alias

@@ -226,7 +226,7 @@ class OneToOneField(ForeignKey):
 
     def create_column(self, bind=None, *args, **kwargs):
         kwargs['autoincrement'] = False
-        return super(OneToOneField, self).create_column(*args, **kwargs)
+        return super(OneToOneField, self).create_column(bind=bind, *args, **kwargs)
 
 
 class ManyToManyField(RelatedField):

@@ -100,8 +100,11 @@ class Options(object):
 
     @property
     def table_name(self):
+        if self.app and self.app.config['DATABASE_SCHEMA_SUPPORT']:
+            if self.db_schema:
+                return '"%s"."%s"' % (self.db_schema, self.db_table)
         if self.db_schema:
-            return '"%s"."%s"' % (self.db_schema, self.db_table)
+            return '%s_%s' % (self.db_schema, self.db_table)
         return self.db_table
 
     def add_field(self, field, private=False):
@@ -161,7 +164,10 @@ class Options(object):
         for f in self.concrete_fields:
             f._prepare()
             args.append(f.column)
-        self.table = sa.Table(self.db_table.split('.')[-1], meta, *args, schema=self.db_schema)
+        if self.app and self.app.config['DATABASE_SCHEMA_SUPPORT']:
+            self.table = sa.Table(self.db_table.split('.')[-1], meta, *args, schema=self.db_schema)
+        else:
+            self.table = sa.Table(self.table_name, meta, *args)
         self.table.__model__ = self.model
         return self.table
 

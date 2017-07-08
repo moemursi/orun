@@ -536,8 +536,12 @@ class MigrationAutodetector(object):
             # Generate operations for each related field
             for name, field in sorted(related_fields.items()):
                 # Account for FKs to swappable models
-                dep_app_label = field.rel_field.model._meta.app_label
-                dep_object_name = field.rel_field.model._meta.model_name
+                if field.rel_field.model._meta.extension:
+                    dep_app_label = field.rel_field.model._meta.base_model._meta.app_label
+                    dep_object_name = field.rel_field.model._meta.base_model._meta.model_name
+                else:
+                    dep_app_label = field.rel_field.model._meta.app_label
+                    dep_object_name = field.rel_field.model._meta.model_name
                 dependencies = [(dep_app_label, dep_object_name, None, True)]
                 if getattr(field.rel_field, "through", None) and not field.rel_field.through._meta.auto_created:
                     dependencies.append((

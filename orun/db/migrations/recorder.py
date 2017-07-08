@@ -33,19 +33,6 @@ class MigrationRecorder(object):
         PrimaryKeyConstraint('id', name='pk_sys_migration')
     )
 
-    # class Migration(models.Model):
-    #     app = models.CharField(max_length=255)
-    #     name = models.CharField(max_length=255)
-    #     applied = models.DateTimeField(default=now)
-    #
-    #     class Meta:
-    #         apps = Apps()
-    #         name = 'sys.migrations'
-    #         app_label = "migrations"
-    #
-    #     def __str__(self):
-    #         return "Migration %s for %s" % (self.name, self.app)
-    #
     def __init__(self, connection):
         self.connection = connection
 
@@ -62,13 +49,14 @@ class MigrationRecorder(object):
         insp = sa.inspect(self.connection)
         if self.Migration.name in insp.get_table_names():
             return
+        insp.info_cache['migration created'] = True
         #if self.Migration._meta.db_table in self.connection.introspection.table_names(self.connection.cursor()):
         #    return
         # Make the table
         try:
             self.Migration.create(self.connection)
         except DatabaseError as exc:
-            raise MigrationSchemaMissing("Unable to create the orun_migrations table (%s)" % exc)
+            pass
 
     def applied_migrations(self):
         """
