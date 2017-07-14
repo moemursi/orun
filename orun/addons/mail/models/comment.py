@@ -1,6 +1,6 @@
 from sqlalchemy.orm import foreign, remote
 from sqlalchemy.sql import and_
-from orun import app
+from orun import app, env
 from orun.db import models
 from orun import api
 
@@ -21,11 +21,10 @@ class Comments(models.Model):
         r = []
         for id in ids:
             msg = Message.create(
-                subject='teste',
+                author=env.user.pk,
                 content=content,
                 model_name=cls._meta.name,
                 object_id=id,
-                object_name='teste name',
                 message_type='comment',
             )
             r.append(msg)

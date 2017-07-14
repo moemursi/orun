@@ -63,7 +63,8 @@ Katrid.uiKatrid.directive 'mailComments', ->
 <div>
       <h3>#{Katrid.i18n.gettext 'Comments'}</h3>
       <div class="form-group">
-      <button class="btn btn-default" ng-click="showEditor();">#{Katrid.i18n.gettext 'New message'}</button> <button class="btn">#{Katrid.i18n.gettext 'Log an internal note'}</button>
+      <button class="btn btn-default" ng-click="showEditor();">#{Katrid.i18n.gettext 'New message'}</button>
+      <button class="btn">#{Katrid.i18n.gettext 'Log an internal note'}</button>
       </div>
       <div id="mail-editor" style="display: none;">
         <div class="form-group">
@@ -82,7 +83,7 @@ Katrid.uiKatrid.directive 'mailComments', ->
           <img src="/static/web/static/assets/img/avatar.png" class="avatar img-circle">
         </div>
         <div class="media-body">
-          <strong>Author Name</strong> - <span title="${comment.date_time|moment:'LLLL'}"> ${comment.date_time|moment}</span>
+          <strong>${ comment.author[1] }</strong> - <span title="${comment.date_time|moment:'LLLL'}"> ${comment.date_time|moment}</span>
           <div class="clearfix"></div>
           <div>
             ${comment.content}

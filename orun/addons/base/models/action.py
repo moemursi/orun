@@ -14,6 +14,9 @@ class Action(models.Model):
 
     class Meta:
         name = 'sys.action'
+        field_groups = {
+            'list_fields': ['name', 'action_type', 'usage']
+        }
 
     def save(self, *args, **kwargs):
         if not self.action_type:
@@ -53,6 +56,9 @@ class WindowAction(Action):
 
     class Meta:
         name = 'sys.action.window'
+        field_groups = {
+            'list_fields': ['name', 'action_type', 'usage', 'view', 'model', 'view_mode', 'limit', 'auto_search']
+        }
 
     def _get_views(self):
         modes = self.view_mode.split(',')
