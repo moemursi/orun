@@ -7,24 +7,6 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/../../freelancer/tuaseguros/db.sqlite3</jdbc-url>
     </data-source>
-    <data-source source="LOCAL" name="SQL Server (Microsoft) - cm-araci@192.168.0.101" uuid="3c7950c9-08bc-48f6-831f-fcdb819fbfa0">
-      <driver-ref>sqlserver.ms</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</jdbc-driver>
-      <jdbc-url>jdbc:sqlserver://192.168.0.101:1433;databaseName=cm-araci</jdbc-url>
-    </data-source>
-    <data-source source="LOCAL" name="Oracle - @localhost" uuid="988bf957-2fdc-4214-a6c2-66916bc42a66">
-      <driver-ref>oracle</driver-ref>
-      <auto-commit>false</auto-commit>
-      <jdbc-driver>oracle.jdbc.OracleDriver</jdbc-driver>
-      <jdbc-url>jdbc:oracle:thin:@//localhost:1521/XE</jdbc-url>
-    </data-source>
-    <data-source source="LOCAL" name="Oracle - @localhost [2]" uuid="5032f9f7-b013-4cce-acd3-96a6c32ee3f6">
-      <driver-ref>oracle</driver-ref>
-      <auto-commit>false</auto-commit>
-      <jdbc-driver>oracle.jdbc.OracleDriver</jdbc-driver>
-      <jdbc-url>jdbc:oracle:thin:@//localhost:1521/XE</jdbc-url>
-    </data-source>
     <data-source source="LOCAL" name="db" uuid="90a0ef8b-3cfd-4567-bd80-54d2b591e0ed">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
@@ -43,6 +25,20 @@
           <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/sqlite-jdbc-3.8.11.2.jar</url>
         </library>
       </libraries>
+    </data-source>
+    <data-source source="LOCAL" name="MySQL - test001@localhost" uuid="4f32e5cf-0ffd-44bc-a2bd-d2221b9221df">
+      <driver-ref>mysql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://localhost:3306/test001</jdbc-url>
+      <driver-properties>
+        <property name="autoReconnect" value="true" />
+        <property name="zeroDateTimeBehavior" value="convertToNull" />
+        <property name="tinyInt1isBit" value="false" />
+        <property name="characterEncoding" value="utf8" />
+        <property name="characterSetResults" value="utf8" />
+        <property name="yearIsDateType" value="false" />
+      </driver-properties>
     </data-source>
   </component>
 </project>

@@ -241,6 +241,9 @@ class BaseDatabaseSchemaEditor(object):
     def create_schema(self, schema):
         self.execute(self.sql_create_schema % {'schema': self.quote_name(schema)})
 
+    def _create_sa_table(self, model, cols):
+        return sa.Table(model._meta.db_table, self.meta_data, *cols, schema=model._meta.db_schema)
+
     def create_model(self, model):
         """
         Takes a model and creates a table for it in the database.
@@ -263,7 +266,7 @@ class BaseDatabaseSchemaEditor(object):
                         constraints.append(sa.UniqueConstraint(field.db_column, name=self._create_index_name(model, [field.db_column], prefix='uq_')))
 
         cols.extend(constraints)
-        table = sa.Table(model._meta.db_table, self.meta_data, *cols, schema=model._meta.db_schema)
+        table = self._create_sa_table(model, cols)
         if cols:
             if model._meta.extension:
                 sql = self.sql_alter_table % {
@@ -880,7 +883,8 @@ class BaseDatabaseSchemaEditor(object):
         """
         # If there is just one column in the index, use a default algorithm from Orun
         if len(column_names) == 1 and not suffix:
-            name = model._meta.db_table.replace('"', '')
+            name = model._meta.table_name
+            name = name.replace('"', '')
             if '.' in name:
                 name = name.split('.')[1]
             ix_name = column_names[0]
@@ -889,8 +893,7 @@ class BaseDatabaseSchemaEditor(object):
                 name = '%s%s_%s"' % (prefix, name[:-1], ix_name)
             else:
                 name = '%s%s_%s' % (prefix, name, ix_name)
-            return truncate_name(name, self.connection.conn_info.ops.max_name_length()
-                                 )
+            return truncate_name(name, self.connection.conn_info.ops.max_name_length())
         # Else generate the name for the index using a different algorithm
         table_name = model._meta.db_table.replace('"', '').replace('.', '_')
         index_unique_name = '_%s' % self._digest(table_name, *column_names)

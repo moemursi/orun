@@ -27,6 +27,8 @@ def _create_connection(db):
         database = 'postgres'
     elif db_engine == 'mssql':
         database = 'master'
+    elif db_engine == 'mysql':
+        database = None
     elif db_engine == 'oracle':
         database = connections.databases[DEFAULT_DB_ALIAS].get('SYSTEM_DB', 'SYSTEM')
 
@@ -51,9 +53,11 @@ def create(db):
     db_engine = conn.engine.name
     db_name = url.database
 
-    if 'postgres' in db_engine:
+    if 'postgres' == db_engine:
         conn.connection.set_isolation_level(0)
         conn.execute("""CREATE DATABASE "%s" ENCODING='UTF-8'""" % db_name)
+    elif 'mysql' == db_engine:
+        conn.execute("""CREATE DATABASE %s""" % db_name)
     elif db_engine == 'mssql':
         conn.autocommit = True
         conn.execute("""CREATE DATABASE [%s]""" % db_name)

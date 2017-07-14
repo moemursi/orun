@@ -441,7 +441,7 @@ class Field(object):
 class CharField(Field):
 
     def __init__(self, *args, **kwargs):
-        max_length = kwargs.pop('max_lengtth', 1024)
+        max_length = kwargs.pop('max_lengtth', 512)
         args = list(args)
         if args:
             arg = args.pop(0)

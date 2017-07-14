@@ -13,8 +13,8 @@ Orun could be even used to build API and WebServices.
 
 Highlights:
 * Modularity and Module inheritance
-* Full ORM Layer (Model Inheritance)
-* Ajax or WebSocket Based
+* ORM Layer (with model inheritance support)
+* Ajax or WebSocket Communication
 * Incremental Migrations
 * Row level based permission control
 * Direct SqlAlchemy and Raw Sql
@@ -23,5 +23,8 @@ Highlights:
 So far, tested on following databases:
 * MSSQL - using PyODBC
 * Postgresql - using Psycopg2
+* Sqlite3 - _no schema support_
+* MySql - _no schema support_
+* Oracle 12c - cx_Oracle _no schema support_
 
-_more databases soon..._
+_MongoDB soon..._

@@ -1,6 +1,7 @@
 import sqlalchemy as sa
 from sqlalchemy.orm import mapper, relationship, deferred, backref, synonym
 
+from orun import app
 from orun.db import connections
 from orun.utils.text import camel_case_to_spaces
 from orun.utils.functional import cached_property
@@ -100,7 +101,7 @@ class Options(object):
 
     @property
     def table_name(self):
-        if self.app and self.app.config['DATABASE_SCHEMA_SUPPORT']:
+        if app and app.config['DATABASE_SCHEMA_SUPPORT']:
             if self.db_schema:
                 return '"%s"."%s"' % (self.db_schema, self.db_table)
         if self.db_schema:
