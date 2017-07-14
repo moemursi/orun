@@ -34,6 +34,16 @@
       return html;
     };
 
+    BaseTemplate.prototype.getSettingsDropdown = function(viewType) {
+      if (viewType === 'form') {
+        return "<ul class=\"dropdown-menu pull-right\">\n  <li>\n    <a href=\"javascript:void(0);\" ng-click=\"action.showDefaultValueDialog()\">" + (Katrid.i18n.gettext('Set Default')) + "</a>\n  </li>\n</ul>";
+      }
+    };
+
+    BaseTemplate.prototype.getSetDefaultValueDialog = function() {
+      return "<div class=\"modal fade\" id=\"set-default-value-dialog\" tabindex=\"-1\" role=\"dialog\">\n  <div class=\"modal-dialog\" role=\"document\">\n    <div class=\"modal-content\">\n      <div class=\"modal-header\">\n        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"" + (Katrid.i18n.gettext('Close')) + "\"><span aria-hidden=\"true\">&times;</span></button>\n        <h4 class=\"modal-title\">" + (Katrid.i18n.gettext('Set Default')) + "</h4>\n      </div>\n      <div class=\"modal-body\">\n        <select class=\"form-control\" id=\"id-set-default-value\">\n          <option ng-repeat=\"field in view.fields\">${field.caption} = ${record[field.name]}</option>\n        </select>\n        <div class=\"radio\">\n          <label><input type=\"radio\" name=\"public\">" + (Katrid.i18n.gettext('Only me')) + "</label>\n        </div>\n        <div class=\"radio\">\n          <label><input type=\"radio\" name=\"public\">" + (Katrid.i18n.gettext('All users')) + "</label>\n        </div>\n      </div>\n      <div class=\"modal-footer\">\n        <button type=\"button\" class=\"btn btn-primary\">" + (Katrid.i18n.gettext('Save')) + "</button>\n        <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">" + (Katrid.i18n.gettext('Cancel')) + "</button>\n      </div>\n    </div>\n  </div>\n</div>";
+    };
+
     BaseTemplate.prototype.getViewRenderer = function(viewType) {
       return this["render_" + viewType];
     };
@@ -116,7 +126,6 @@
         toolbar = '';
       }
       return "<div ng-form=\"form\">\n" + toolbar + "\n<div class=\"content container animated fadeIn\"><div class=\"panel panel-default data-panel browsing\" ng-class=\"{ browsing: dataSource.browsing, editing: dataSource.changing }\">\n<div class=\"panel-body\"><div class=\"row\">" + html + "</div></div></div></div></div>";
-      return html;
     };
 
     BaseTemplate.prototype.preRender_list = function(scope, html) {

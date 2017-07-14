@@ -21,6 +21,44 @@ class BaseTemplate
     html += '</ol>'
     return html
 
+  getSettingsDropdown: (viewType) ->
+    if viewType is 'form'
+      """<ul class="dropdown-menu pull-right">
+        <li>
+          <a href="javascript:void(0);" ng-click="action.showDefaultValueDialog()">#{ Katrid.i18n.gettext 'Set Default' }</a>
+        </li>
+      </ul>"""
+
+
+  getSetDefaultValueDialog: ->
+    """
+<div class="modal fade" id="set-default-value-dialog" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="#{ Katrid.i18n.gettext 'Close' }"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">#{ Katrid.i18n.gettext 'Set Default' }</h4>
+      </div>
+      <div class="modal-body">
+        <select class="form-control" id="id-set-default-value">
+          <option ng-repeat="field in view.fields">${field.caption} = ${record[field.name]}</option>
+        </select>
+        <div class="radio">
+          <label><input type="radio" name="public">#{ Katrid.i18n.gettext 'Only me' }</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="public">#{ Katrid.i18n.gettext 'All users' }</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary">#{ Katrid.i18n.gettext 'Save' }</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">#{ Katrid.i18n.gettext 'Cancel' }</button>
+      </div>
+    </div>
+  </div>
+</div>
+"""
+
   getViewRenderer: (viewType) ->
     return @["render_" + viewType]
 
@@ -220,7 +258,6 @@ class BaseTemplate
 #{ toolbar }
 <div class=\"content container animated fadeIn\"><div class="panel panel-default data-panel browsing" ng-class="{ browsing: dataSource.browsing, editing: dataSource.changing }">
 <div class=\"panel-body\"><div class="row">#{html}</div></div></div></div></div>"""
-    return html
 
   preRender_list: (scope, html) ->
     reports = """

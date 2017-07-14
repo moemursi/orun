@@ -344,6 +344,16 @@
       });
     };
 
+    WindowAction.prototype.showDefaultValueDialog = function() {
+      var html, modal;
+      html = Katrid.UI.Utils.Templates.getSetDefaultValueDialog();
+      modal = $(this.scope.compile(html)(this.scope)).modal();
+      modal.on('hidden.bs.modal', function() {
+        $(this).data('bs.modal', null);
+        return $(this).remove();
+      });
+    };
+
     return WindowAction;
 
   })(Action);

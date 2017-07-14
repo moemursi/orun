@@ -176,3 +176,12 @@ msgstr "Criando..."
 
 msgid "Create and Edit..."
 msgstr "Criar e Editar..."
+
+msgid "Set Default"
+msgstr "Valor Padrão"
+
+msgid "Only me"
+msgstr "Somente eu"
+
+msgid "All users"
+msgstr "Todos usuários"

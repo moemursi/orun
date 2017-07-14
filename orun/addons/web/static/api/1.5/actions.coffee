@@ -246,6 +246,14 @@ class WindowAction extends Action
       if res.ok and res.result.open
         window.open(res.result.open)
 
+  showDefaultValueDialog: ->
+    html = Katrid.UI.Utils.Templates.getSetDefaultValueDialog()
+    modal = $(@scope.compile(html)(@scope)).modal()
+    modal.on 'hidden.bs.modal', ->
+      $(@).data 'bs.modal', null
+      $(@).remove()
+    return
+
 
 class ReportAction extends Action
   @actionType: 'sys.action.report'
