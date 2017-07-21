@@ -6,6 +6,7 @@ from .utils import (ConnectionHandler, DEFAULT_DB_ALIAS, DatabaseError, DataErro
 
 class Connections:
     def __getitem__(self, item):
+        print('APP NAME', app.name)
         return app.connections[item]
 
     def __getattr__(self, item):
