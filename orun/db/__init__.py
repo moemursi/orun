@@ -6,7 +6,7 @@ from .utils import (ConnectionHandler, DEFAULT_DB_ALIAS, DatabaseError, DataErro
 
 class Connections:
     def __getitem__(self, item):
-        print('APP NAME', app.name)
+        print('APP NAME', app.name, app.connections[item])
         return app.connections[item]
 
     def __getattr__(self, item):
@@ -86,7 +86,6 @@ signals.request_started.connect(reset_queries)
 def close_old_connections(*args, **kwargs):
     for conn in connections.all():
         if conn.session.dirty:
-            print('session dirty')
             conn.dispose()
 signals.request_started.connect(close_old_connections)
 signals.request_finished.connect(close_old_connections)
