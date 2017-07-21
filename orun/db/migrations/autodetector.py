@@ -665,11 +665,13 @@ class MigrationAutodetector(object):
                     if (getattr(field.rel_field, "through", None)
                             and not field.rel_field.through._meta.auto_created):
                         related_fields[field.name] = field
-            for field in model._meta.local_many_to_many:
-                if field.rel_field.model:
-                    related_fields[field.name] = field
-                if getattr(field.rel_field, "through", None) and not field.rel_field.through._meta.auto_created:
-                    related_fields[field.name] = field
+            # TODO REMOVE MANY TO MANY FIELDS
+            # for field in model._meta.local_many_to_many:
+            #     if field.rel_field.model:
+            #         related_fields[field.name] = field
+            #     if getattr(field.rel_field, "through", None) and not field.rel_field.through._meta.auto_created:
+            #         related_fields[field.name] = field
+
             # Generate option removal first
             unique_together = model_state.options.pop('unique_together', None)
             index_together = model_state.options.pop('index_together', None)
@@ -702,6 +704,7 @@ class MigrationAutodetector(object):
             # This depends on both the removal/alteration of all incoming fields
             # and the removal of all its own related fields, and if it's
             # a through model the field that references it.
+            return
             dependencies = []
             for related_object in model._meta.related_objects:
                 related_object_app_label = related_object.related_model._meta.app_label

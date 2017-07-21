@@ -59,9 +59,8 @@ class AppConfig(flask.Blueprint):
                 # Load models
                 try:
                     self.models_module = import_module('%s.models' % self.schema)
-                except ImportError:
-                    if self.app_label == 'sopando':
-                        raise
+                except ImportError as e:
+                    print('Error loading', self.schema)
                     pass
 
                 # Register views
