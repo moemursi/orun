@@ -22,11 +22,10 @@ class Menu(models.Model):
         return self.get_full_name()
 
     def get_absolute_url(self):
-        if self.parent:
-            if self.action_id:
-                return '#/action/%s/' % self.action_id
-            else:
-                return '#'
+        if self.action_id:
+            return '#/action/%s/' % self.action_id
+        elif self.parent:
+            return '#'
         return '/web/menu/%s/' % self.pk
 
     def get_full_name(self):
