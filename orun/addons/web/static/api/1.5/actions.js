@@ -433,7 +433,8 @@
     Action: Action,
     WindowAction: WindowAction,
     ReportAction: ReportAction,
-    ViewAction: ViewAction
+    ViewAction: ViewAction,
+    UrlAction: UrlAction
   };
 
   this.Katrid.Actions[WindowAction.actionType] = WindowAction;
@@ -441,6 +442,8 @@
   this.Katrid.Actions[ReportAction.actionType] = ReportAction;
 
   this.Katrid.Actions[ViewAction.actionType] = ViewAction;
+
+  this.Katrid.Actions[UrlAction.actionType] = UrlAction;
 
 }).call(this);
 
