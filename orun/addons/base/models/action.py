@@ -11,6 +11,7 @@ class Action(models.Model):
     action_type = models.CharField(32, _('Action Type'), null=False)
     usage = models.TextField(verbose_name=_('Usage'))
     description = models.TextField(verbose_name=_('Description'))
+    groups = models.ManyToManyField('auth.group')
 
     class Meta:
         name = 'sys.action'
@@ -82,7 +83,38 @@ class WindowActionView(models.Model):
         title_field = 'view'
 
 
+class UrlAction(Action):
+    url = models.TextField()
+    target = models.SelectionField(
+        (
+            ('new', 'New Window'),
+            ('self', 'Current Window'),
+        ), default='new', null=False,
+    )
+
+    class Meta:
+        name = 'sys.action.url'
+
+
 class ServerAction(Action):
 
     class Meta:
         name = 'sys.action.server'
+
+
+class ClientAction(Action):
+    tag = models.CharField(512)
+    target = models.SelectionField(
+        (
+            ('current', 'Current Window'),
+            ('new', 'New Window'),
+            ('fullscreen', 'Full Screen'),
+            ('main', 'Main Action of Current Window'),
+        ), default='current',
+    )
+    model = models.ForeignKey('sys.model', null=False, label=_('Model'))
+    context = models.TextField()
+    params = models.TextField()
+
+    class Meta:
+        name = 'sys.action.client'

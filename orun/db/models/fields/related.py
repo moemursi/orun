@@ -288,7 +288,12 @@ class ManyToManyField(RelatedField):
         from_ = 'from_%s' % self.model._meta.name.replace('.', '_')
         to_ = 'to_%s' % rel_model._meta.name.replace('.', '_')
 
+        class Meta:
+            name = self.model._meta.name + '.' + self.name + '.rel'
+            log_changes = False
+
         new_model = type('%s_%s' % (self.model.__name__, self.name), (models.Model,), {
+            'Meta': Meta,
             '__module__': self.model._meta.app_label,
             # '__app__': self.model._meta.app,
             from_: ForeignKey(self.model, null=False),

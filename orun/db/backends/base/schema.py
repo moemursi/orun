@@ -462,8 +462,10 @@ class BaseDatabaseSchemaEditor(object):
         table instead (for M2M fields)
         """
         # Special-case implicit M2M tables
-        if field.many_to_many and field.rel_field.through._meta.auto_created:
-            return self.create_model(field.rel_field.through)
+        # if field.many_to_many and field.rel_field.through._meta.auto_created:
+        #     return self.create_model(field.rel_field.through)
+        if field.many_to_many:
+            return
         # Get the column's definition
         definition, params = self.column_sql(model, field, include_default=True)
         # It might not actually have a column behind it
