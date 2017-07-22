@@ -289,8 +289,7 @@ class UrlAction extends Action
   @actionType = 'sys.action.url'
 
   constructor: (info, scope, location) ->
-    console.log('url action')
-    super info, scope, location
+    window.location.href = info.url
 
 
 @Katrid.Actions =

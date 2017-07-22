@@ -421,8 +421,7 @@
     UrlAction.actionType = 'sys.action.url';
 
     function UrlAction(info, scope, location) {
-      console.log('url action');
-      UrlAction.__super__.constructor.call(this, info, scope, location);
+      window.location.href = info.url;
     }
 
     return UrlAction;

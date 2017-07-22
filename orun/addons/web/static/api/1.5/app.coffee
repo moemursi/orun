@@ -114,18 +114,21 @@ ngApp.controller 'ActionController', ($scope, $compile, $location, $route, actio
     else
       location = $location
 
+    $scope.action = act = new Katrid.Actions[action.action_type](action, $scope, location)
     if action.model
       $scope.model = new Katrid.Services.Model(action.model[1])
-      $scope.action = act = new Katrid.Actions[action.action_type](action, $scope, location)
-    if action._back and action._back.views
-      act.views = action._back.views
-      $scope.views = act.views
-      delete action._back
-    else
-      act.views = $scope.views
-    act.isDialog = $scope.isDialog
-    act.parentAction = $scope.parentAction
-    if act.isDialog
+      if action._back and action._back.views
+        act.views = action._back.views
+        $scope.views = act.views
+        delete action._back
+      else
+        act.views = $scope.views
+
+    if $scope.isDialog
+      act.isDialog = $scope.isDialog
+    if $scope.parentAction
+      act.parentAction = $scope.parentAction
+    if act and act.isDialog
       act.routeUpdate({ view_type: action.view_type })
       act.createNew()
     else
