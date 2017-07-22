@@ -40,8 +40,7 @@ class WebClient(BaseView):
         }
         if action_id:
             action = Action.objects.get(action_id).get_action()
-            if action.action_type == 'sys.action.window':
-                action = app['sys.action.window'].objects.get(action.id)
+            action = app['action.action_type'].objects.get(action.id)
             cur_menu = None
             context['current_menu'] = cur_menu
             return jsonify(action)
