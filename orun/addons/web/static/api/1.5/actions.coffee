@@ -298,7 +298,9 @@ class UrlAction extends Action
   WindowAction: WindowAction
   ReportAction: ReportAction
   ViewAction: ViewAction
+  UrlAction: UrlAction
 
 @Katrid.Actions[WindowAction.actionType] = WindowAction
 @Katrid.Actions[ReportAction.actionType] = ReportAction
 @Katrid.Actions[ViewAction.actionType] = ViewAction
+@Katrid.Actions[UrlAction.actionType] = UrlAction
