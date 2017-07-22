@@ -285,6 +285,14 @@ class ViewAction extends Action
     @scope.setContent(@info.content)
 
 
+class UrlAction extends Action
+  @actionType = 'sys.action.url'
+
+  constructor: (info, scope, location) ->
+    console.log('url action')
+    super info, scope, location
+
+
 @Katrid.Actions =
   Action: Action
   WindowAction: WindowAction
