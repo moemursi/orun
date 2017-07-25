@@ -198,7 +198,7 @@
     BaseTemplate.prototype.renderGrid = function(scope, element, attrs, rowClick) {
       var tbl;
       tbl = this.renderList(scope, element, attrs, rowClick, true);
-      return "<div><div><button class=\"btn btn-xs btn-info\" ng-click=\"addItem()\" ng-show=\"parent.dataSource.changing\" type=\"button\">" + (Katrid.i18n.gettext('Add')) + "</button></div>" + tbl + "</div>";
+      return "<div><div ng-show=\"!dataSource.readonly\">\n<button class=\"btn btn-xs btn-info\" ng-click=\"addItem()\" ng-show=\"parent.dataSource.changing && !dataSource.changing\" type=\"button\">" + (Katrid.i18n.gettext('Add')) + "</button>\n<button class=\"btn btn-xs btn-info\" ng-click=\"addItem()\" ng-show=\"dataSource.changing\" type=\"button\">" + (Katrid.i18n.gettext('Save')) + "</button>\n<button class=\"btn btn-xs btn-info\" ng-click=\"cancelChanges()\" ng-show=\"dataSource.changing\" type=\"button\">" + (Katrid.i18n.gettext('Cancel')) + "</button>\n</div><div class=\"row inline-input-dialog\" ng-show=\"dataSource.changing\"/>" + tbl + "</div>";
     };
 
     BaseTemplate.prototype.windowDialog = function(scope) {

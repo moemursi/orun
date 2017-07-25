@@ -184,7 +184,7 @@
       replace: true,
       scope: {},
       link: function(scope, element, attrs) {
-        var field, masterChanged, p, renderDialog;
+        var field, gridEl, masterChanged, p, renderDialog;
         field = scope.$parent.view.fields[attrs.name];
         scope.action = scope.$parent.action;
         scope.fieldName = attrs.name;
@@ -197,6 +197,7 @@
         scope.parent = scope.$parent;
         scope.model = new Katrid.Services.Model(field.model);
         scope.dataSource = new Katrid.Data.DataSource(scope);
+        scope.dataSource.readonly = attrs.readonly;
         p = scope.$parent;
         while (p) {
           if (p.dataSource) {
@@ -207,6 +208,7 @@
         }
         scope.dataSource.fieldName = scope.fieldName;
         scope.gridDialog = null;
+        gridEl = null;
         scope.model.loadViews().done(function(res) {
           return scope.$apply(function() {
             var html;
@@ -214,24 +216,35 @@
             console.log(res.result);
             scope.view = scope._cachedViews.list;
             html = Katrid.UI.Utils.Templates.renderGrid(scope, $(scope.view.content), attrs, 'openItem($index)');
-            return element.replaceWith($compile(html)(scope));
+            gridEl = $compile(html)(scope);
+            element.replaceWith(gridEl);
+            if (attrs.inline) {
+              return renderDialog();
+            }
           });
         });
         renderDialog = function() {
           var el, html;
           html = scope._cachedViews.form.content;
-          html = $(Katrid.UI.Utils.Templates.gridDialog().replace('<!-- view content -->', html));
-          el = $compile(html)(scope);
+          if (attrs.inline) {
+            el = $compile(html)(scope);
+            gridEl.find('.inline-input-dialog').append(el);
+          } else {
+            html = $(Katrid.UI.Utils.Templates.gridDialog().replace('<!-- view content -->', html));
+            el = $compile(html)(scope);
+          }
           scope.formElement = el.find('form').first();
           scope.form = scope.formElement.controller('form');
           scope.gridDialog = el;
-          el.modal('show');
-          el.on('hidden.bs.modal', function() {
-            scope.dataSource.setState(Katrid.Data.DataSourceState.browsing);
-            el.remove();
-            scope.gridDialog = null;
-            return scope.recordIndex = -1;
-          });
+          if (!attrs.inline) {
+            el.modal('show');
+            el.on('hidden.bs.modal', function() {
+              scope.dataSource.setState(Katrid.Data.DataSourceState.browsing);
+              el.remove();
+              scope.gridDialog = null;
+              return scope.recordIndex = -1;
+            });
+          }
           return false;
         };
         scope.doViewAction = function(viewAction, target, confirmation) {
@@ -243,11 +256,16 @@
         };
         scope.addItem = function() {
           scope.dataSource.newRecord();
-          return scope.showDialog();
+          if (!attrs.inline) {
+            return scope.showDialog();
+          }
+        };
+        scope.cancelChanges = function() {
+          return scope.dataSource.setState(Katrid.Data.DataSourceState.browsing);
         };
         scope.openItem = function(index) {
           scope.showDialog(index);
-          if (scope.parent.dataSource.changing) {
+          if (scope.parent.dataSource.changing && !scope.dataSource.readonly) {
             return scope.dataSource.editRecord();
           }
         };
@@ -279,7 +297,9 @@
           } else if (scope.recordIndex === -1) {
             scope.records.push(scope.record);
           }
-          scope.gridDialog.modal('toggle');
+          if (!attrs.inline) {
+            scope.gridDialog.modal('toggle');
+          }
           scope._incChanges();
         };
         scope.showDialog = function(index) {

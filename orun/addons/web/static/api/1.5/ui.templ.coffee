@@ -394,7 +394,11 @@ class BaseTemplate
 
   renderGrid: (scope, element, attrs, rowClick) ->
     tbl = @renderList(scope, element, attrs, rowClick, true)
-    return """<div><div><button class="btn btn-xs btn-info" ng-click="addItem()" ng-show="parent.dataSource.changing" type="button">#{Katrid.i18n.gettext 'Add'}</button></div>#{tbl}</div>"""
+    return """<div><div ng-show="!dataSource.readonly">
+<button class="btn btn-xs btn-info" ng-click="addItem()" ng-show="parent.dataSource.changing && !dataSource.changing" type="button">#{Katrid.i18n.gettext 'Add'}</button>
+<button class="btn btn-xs btn-info" ng-click="addItem()" ng-show="dataSource.changing" type="button">#{Katrid.i18n.gettext 'Save'}</button>
+<button class="btn btn-xs btn-info" ng-click="cancelChanges()" ng-show="dataSource.changing" type="button">#{Katrid.i18n.gettext 'Cancel'}</button>
+</div><div class="row inline-input-dialog" ng-show="dataSource.changing"/>#{tbl}</div>"""
 
   windowDialog: (scope) ->
     """

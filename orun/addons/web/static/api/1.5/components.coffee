@@ -174,6 +174,7 @@ uiKatrid.directive 'grid', ($compile) ->
 
     # Set parent/master data source
     scope.dataSource = new Katrid.Data.DataSource(scope)
+    scope.dataSource.readonly = attrs.readonly
     p = scope.$parent
     while p
       if p.dataSource
@@ -183,6 +184,7 @@ uiKatrid.directive 'grid', ($compile) ->
 
     scope.dataSource.fieldName = scope.fieldName
     scope.gridDialog = null
+    gridEl = null
     scope.model.loadViews()
     .done (res) ->
       scope.$apply ->
@@ -190,24 +192,32 @@ uiKatrid.directive 'grid', ($compile) ->
         console.log(res.result)
         scope.view = scope._cachedViews.list
         html = Katrid.UI.Utils.Templates.renderGrid(scope, $(scope.view.content), attrs, 'openItem($index)')
-        element.replaceWith($compile(html)(scope))
+        gridEl = $compile(html)(scope)
+        element.replaceWith(gridEl)
+        if attrs.inline
+          renderDialog()
 
     renderDialog = ->
       html = scope._cachedViews.form.content
-      html = $(Katrid.UI.Utils.Templates.gridDialog().replace('<!-- view content -->', html))
-      el = $compile(html)(scope)
+      if attrs.inline
+        el = $compile(html)(scope)
+        gridEl.find('.inline-input-dialog').append(el)
+      else
+        html = $(Katrid.UI.Utils.Templates.gridDialog().replace('<!-- view content -->', html))
+        el = $compile(html)(scope)
 
       # Get the first form controller
       scope.formElement = el.find('form').first()
       scope.form = scope.formElement.controller('form')
-
       scope.gridDialog = el
-      el.modal('show')
-      el.on 'hidden.bs.modal', ->
-        scope.dataSource.setState(Katrid.Data.DataSourceState.browsing)
-        el.remove()
-        scope.gridDialog = null
-        scope.recordIndex = -1
+
+      if not attrs.inline
+        el.modal('show')
+        el.on 'hidden.bs.modal', ->
+          scope.dataSource.setState(Katrid.Data.DataSourceState.browsing)
+          el.remove()
+          scope.gridDialog = null
+          scope.recordIndex = -1
       return false
 
     scope.doViewAction = (viewAction, target, confirmation) ->
@@ -219,11 +229,15 @@ uiKatrid.directive 'grid', ($compile) ->
 
     scope.addItem = ->
       scope.dataSource.newRecord()
-      scope.showDialog()
+      if not attrs.inline
+        scope.showDialog()
+
+    scope.cancelChanges = ->
+      scope.dataSource.setState(Katrid.Data.DataSourceState.browsing)
 
     scope.openItem = (index) ->
       scope.showDialog(index)
-      if scope.parent.dataSource.changing
+      if scope.parent.dataSource.changing && !scope.dataSource.readonly
         scope.dataSource.editRecord()
 
     scope.removeItem = (idx) ->
@@ -247,7 +261,8 @@ uiKatrid.directive 'grid', ($compile) ->
           rec[attr] = v
       else if scope.recordIndex is -1
         scope.records.push(scope.record)
-      scope.gridDialog.modal('toggle')
+      if not attrs.inline
+        scope.gridDialog.modal('toggle')
       scope._incChanges()
       return
 
