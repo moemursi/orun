@@ -80,6 +80,19 @@ class View(models.Model):
         if pos == 'append':
             for child in element:
                 target.append(etree.fromstring(etree.tostring(child)))
+        elif pos == 'before':
+            parent = target.getparent()
+            idx = parent.index(target)
+            for child in reversed(element):
+                parent.insert(idx, etree.fromstring(etree.tostring(child)))
+        elif pos == 'after':
+            parent = target.getparent()
+            idx = parent.index(target) + 1
+            for child in reversed(element):
+                parent.insert(idx, etree.fromstring(etree.tostring(child)))
+        elif pos == 'attributes':
+            for child in element:
+                target.attrib[child.attrib['name']] = child.text
 
     def merge(self, source, dest):
         for child in dest:
