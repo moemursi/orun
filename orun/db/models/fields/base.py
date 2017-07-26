@@ -459,6 +459,8 @@ class CharField(Field):
         # Force serialized value to string
         if value is not None:
             value = str(value)
+        if value == '':
+            value = None
         super(CharField, self).deserialize(value, instance)
 
     def serialize(self, value, instance=None):
