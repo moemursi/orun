@@ -61,7 +61,7 @@ class Widget
     return """<label for="#{attrs._id}" class="form-label">#{label}</label>"""
 
   spanTemplate: (scope, el, attrs, field) ->
-    return """<span class="form-field-readonly" ng-show="!dataSource.changing">${ record.#{attrs.name}.toString() || '--' }</span>"""
+    return """<span class="form-field-readonly" ng-show="!dataSource.changing || #{attrs.readonly}">${ record.#{attrs.name}.toString() || '--' }</span>"""
 
   widgetTemplate: (scope, el, attrs, field, type) ->
     if @tag.startsWith('input')

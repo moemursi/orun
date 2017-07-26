@@ -99,7 +99,7 @@
     };
 
     Widget.prototype.spanTemplate = function(scope, el, attrs, field) {
-      return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing\">${ record." + attrs.name + ".toString() || '--' }</span>";
+      return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing || " + attrs.readonly + "\">${ record." + attrs.name + ".toString() || '--' }</span>";
     };
 
     Widget.prototype.widgetTemplate = function(scope, el, attrs, field, type) {
