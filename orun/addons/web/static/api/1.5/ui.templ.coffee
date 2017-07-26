@@ -555,7 +555,7 @@ class BaseTemplate
 
   renderStatusField: (fieldName) ->
     return """
-<div class="status-field status-field-sm pull-right hidden-xs">
+<div class="status-field status-field-sm pull-right">
   <input type="hidden" ng-model="record.#{fieldName}"/>
   <ul class="steps">
     <li ng-class="{active: $parent.$parent.record.#{fieldName} === item[0]}" ng-repeat="item in choices">

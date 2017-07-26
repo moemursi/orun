@@ -210,7 +210,7 @@
     };
 
     BaseTemplate.prototype.renderStatusField = function(fieldName) {
-      return "<div class=\"status-field status-field-sm pull-right hidden-xs\">\n  <input type=\"hidden\" ng-model=\"record." + fieldName + "\"/>\n  <ul class=\"steps\">\n    <li ng-class=\"{active: $parent.$parent.record." + fieldName + " === item[0]}\" ng-repeat=\"item in choices\">\n      ${ item[1] }\n      <span class=\"arrow\"></span>\n    </li>\n  </ul>\n</div>";
+      return "<div class=\"status-field status-field-sm pull-right\">\n  <input type=\"hidden\" ng-model=\"record." + fieldName + "\"/>\n  <ul class=\"steps\">\n    <li ng-class=\"{active: $parent.$parent.record." + fieldName + " === item[0]}\" ng-repeat=\"item in choices\">\n      ${ item[1] }\n      <span class=\"arrow\"></span>\n    </li>\n  </ul>\n</div>";
     };
 
     return BaseTemplate;
