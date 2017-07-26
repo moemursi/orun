@@ -26,11 +26,11 @@ uiKatrid.directive 'field', ($compile) ->
     if element.parent('list').length is 0
       element.removeAttr('name')
       widget = attrs.widget
-      if widget
-        console.log(widget)
       if not widget
         tp = field.type
-        if tp is 'ForeignKey'
+        if field.name is 'status'
+          widget = 'StatusField'
+        else if tp is 'ForeignKey'
           widget = tp
         else if field.choices
           widget = 'SelectField'
@@ -80,7 +80,6 @@ uiKatrid.directive 'field', ($compile) ->
       if field.attrs
         for k, v of field.attrs when k.startsWith('container') or (k is 'ng-show' and not attrs.ngShow)
           templAttrs.push(k + '="' + v + '"')
-          console.log(templAttrs)
       templAttrs = templAttrs.join(' ')
 
       templTag = 'section'
@@ -189,7 +188,6 @@ uiKatrid.directive 'grid', ($compile) ->
     .done (res) ->
       scope.$apply ->
         scope._cachedViews = res.result
-        console.log(res.result)
         scope.view = scope._cachedViews.list
         html = Katrid.UI.Utils.Templates.renderGrid(scope, $(scope.view.content), attrs, 'openItem($index)')
         gridEl = $compile(html)(scope)
@@ -917,7 +915,6 @@ uiKatrid.directive 'fileReader', ->
   link: (scope, element, attrs, controller) ->
 
     if attrs.accept is 'image/*'
-      console.log('test')
       element.tag is 'INPUT'
 
     element.bind 'change', ->
@@ -925,3 +922,23 @@ uiKatrid.directive 'fileReader', ->
       reader.onload = (event) ->
         controller.$setViewValue event.target.result
       reader.readAsDataURL(event.target.files[0])
+
+
+uiKatrid.directive 'statusField', ['$compile', '$timeout', ($compile, $timeout) ->
+  restrict: 'A'
+  require: 'ngModel'
+  scope: {}
+  link: (scope, element, attrs, controller) ->
+    field = scope.$parent.view.fields[attrs.name]
+    html = $compile(Katrid.UI.Utils.Templates.renderStatusField(field.name))(scope)
+    scope.choices = field.choices
+    $timeout ->
+      # append element into status bar
+      element.closest('.content.jarviswidget').find('header').append(html)
+      # remove old element
+      $(element).closest('section').remove()
+
+    if not attrs.readonly
+      scope.itemClick = ->
+        console.log('status field item click')
+]

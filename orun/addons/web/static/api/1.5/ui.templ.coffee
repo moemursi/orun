@@ -553,6 +553,19 @@ class BaseTemplate
 </div>
 """
 
+  renderStatusField: (fieldName) ->
+    return """
+<div class="status-field status-field-sm pull-right hidden-xs">
+  <input type="hidden" ng-model="record.#{fieldName}"/>
+  <ul class="steps">
+    <li ng-class="{active: $parent.$parent.record.#{fieldName} === item[0]}" ng-repeat="item in choices">
+      ${ item[1] }
+      <span class="arrow"></span>
+    </li>
+  </ul>
+</div>
+"""
+
 
 @Katrid.UI.Utils =
   BaseTemplate: BaseTemplate

@@ -23,12 +23,11 @@
         if (element.parent('list').length === 0) {
           element.removeAttr('name');
           widget = attrs.widget;
-          if (widget) {
-            console.log(widget);
-          }
           if (!widget) {
             tp = field.type;
-            if (tp === 'ForeignKey') {
+            if (field.name === 'status') {
+              widget = 'StatusField';
+            } else if (tp === 'ForeignKey') {
               widget = tp;
             } else if (field.choices) {
               widget = 'SelectField';
@@ -80,11 +79,9 @@
             ref = field.attrs;
             for (k in ref) {
               v = ref[k];
-              if (!(k.startsWith('container') || (k === 'ng-show' && !attrs.ngShow))) {
-                continue;
+              if (k.startsWith('container') || (k === 'ng-show' && !attrs.ngShow)) {
+                templAttrs.push(k + '="' + v + '"');
               }
-              templAttrs.push(k + '="' + v + '"');
-              console.log(templAttrs);
             }
           }
           templAttrs = templAttrs.join(' ');
@@ -213,7 +210,6 @@
           return scope.$apply(function() {
             var html;
             scope._cachedViews = res.result;
-            console.log(res.result);
             scope.view = scope._cachedViews.list;
             html = Katrid.UI.Utils.Templates.renderGrid(scope, $(scope.view.content), attrs, 'openItem($index)');
             gridEl = $compile(html)(scope);
@@ -1174,7 +1170,6 @@
       scope: {},
       link: function(scope, element, attrs, controller) {
         if (attrs.accept === 'image/*') {
-          console.log('test');
           element.tag === 'INPUT';
         }
         return element.bind('change', function() {
@@ -1188,6 +1183,31 @@
       }
     };
   });
+
+  uiKatrid.directive('statusField', [
+    '$compile', '$timeout', function($compile, $timeout) {
+      return {
+        restrict: 'A',
+        require: 'ngModel',
+        scope: {},
+        link: function(scope, element, attrs, controller) {
+          var field, html;
+          field = scope.$parent.view.fields[attrs.name];
+          html = $compile(Katrid.UI.Utils.Templates.renderStatusField(field.name))(scope);
+          scope.choices = field.choices;
+          $timeout(function() {
+            element.closest('.content.jarviswidget').find('header').append(html);
+            return $(element).closest('section').remove();
+          });
+          if (!attrs.readonly) {
+            return scope.itemClick = function() {
+              return console.log('status field item click');
+            };
+          }
+        }
+      };
+    }
+  ]);
 
 }).call(this);
 

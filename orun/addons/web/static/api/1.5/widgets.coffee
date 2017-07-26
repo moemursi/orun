@@ -236,12 +236,20 @@ class ImageField extends FileField
     #{html}</div>"""
     return html
 
+
 class PasswordField extends InputWidget
   template: (scope, el, attrs, field, type='password') ->
     return super(scope, el, attrs, field, type)
 
   spanTemplate: (scope, el, attrs, field) ->
     return """<span class="form-field-readonly" ng-show="!dataSource.changing">*******************</span>"""
+
+
+class StatusField extends InputWidget
+  tag: 'input status-field'
+
+  template: (scope, el, attrs, field) ->
+    return super(scope, el, attrs, field, 'hidden')
 
 
 @Katrid.UI.Widgets =
@@ -259,3 +267,4 @@ class PasswordField extends InputWidget
   FileField: FileField
   PasswordField: PasswordField
   ImageField: ImageField
+  StatusField: StatusField
