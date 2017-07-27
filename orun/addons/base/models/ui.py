@@ -57,7 +57,7 @@ class View(models.Model):
         ordering = ('name', 'priority')
 
     def save(self, *args, **kwargs):
-        if self.parent and self.mode is None:
+        if self.parent_id and self.mode is None:
             self.mode = 'extension'
         if self.view_type is None:
             xml = etree.fromstring(self.render({}))

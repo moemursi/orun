@@ -17,3 +17,6 @@ msgstr "Nova mensagem"
 
 msgid "Send"
 msgstr "Enviar"
+
+msgid "Log an internal note"
+msgstr "Deixar uma nota interna"
