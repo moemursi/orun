@@ -8,11 +8,11 @@ from orun import api
 class Comments(models.Model):
     message_followers = models.OneToManyField(
        'mail.followers', 'object_id',
-       primary_join=lambda model, fk_model: and_(remote(model.pk) == foreign(fk_model.c.object_id), fk_model.c.model_name == model._meta.name),
+        primary_join=lambda model, fk_model: and_(remote(model._meta.pk.column) == foreign(fk_model._meta.fields_dict['object_id'].column), fk_model._meta.fields_dict['model_name'].column == model._meta.name),
     )
     messages = models.OneToManyField(
        'mail.message', 'object_id',
-       primary_join=lambda model, fk_model: and_(foreign(fk_model.c.object_id) == model._meta.pk.column, fk_model.c.model_name == model._meta.name),
+        primary_join=lambda model, fk_model: and_(remote(model._meta.pk.column) == foreign(fk_model._meta.fields_dict['object_id'].column), fk_model._meta.fields_dict['model_name'].column == model._meta.name),
     )
 
     @api.method

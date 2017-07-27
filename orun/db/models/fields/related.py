@@ -177,13 +177,15 @@ class OneToManyField(RelatedField):
             self.to_field = get_first_rel_field(to, self.model).name
         return self.to._meta.fields_dict[self.to_field]
 
-    @property
+    @cached_property
     def related(self):
         self.to = app[self.to]
         _app = app
         if self.primary_join:
             return relationship(
-                self.to, lazy=self.lazy, primaryjoin=lambda self=self, app=_app: self.primary_join(app[self.model], app[self.to])
+                self.to,
+                lazy=self.lazy,
+                primaryjoin=self.primary_join(self.model, self.to),
             )
         return relationship(app[self.to], foreign_keys=[self.rel_field.column], lazy=self.lazy)
 
