@@ -17,7 +17,7 @@
       link: function(scope, element, attrs, ctrl, transclude) {
         var att, cols, fcontrol, field, fieldAttrs, form, k, ref, templ, templAttrs, templTag, tp, v;
         field = scope.view.fields[attrs.name];
-        if (field.depends && field.depends.length) {
+        if ((field.depends != null) && field.depends.length) {
           scope.action.addNotifyField(field);
         }
         if (element.parent('list').length === 0) {

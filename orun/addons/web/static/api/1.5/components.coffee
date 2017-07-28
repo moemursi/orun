@@ -20,7 +20,7 @@ uiKatrid.directive 'field', ($compile) ->
     field = scope.view.fields[attrs.name]
 
     # Check if field depends from another
-    if field.depends and field.depends.length
+    if field.depends? and field.depends.length
       scope.action.addNotifyField(field)
 
     if element.parent('list').length is 0
