@@ -18,6 +18,7 @@ uiKatrid.directive 'field', ($compile) ->
 
   link: (scope, element, attrs, ctrl, transclude) ->
     field = scope.view.fields[attrs.name]
+    console.log('field depends', field, field.depends)
 
     # Check if field depends from another
     if field.depends? and field.depends.length
