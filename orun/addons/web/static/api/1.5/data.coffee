@@ -337,10 +337,10 @@ class DataSource
 
   newRecord: ->
     @setState(DataSourceState.inserting)
-    @scope.record = {}
-    @scope.record.display_name = Katrid.i18n.gettext '(New)'
     @scope.model.getDefaults(@scope.getContext())
     .done (res) =>
+      @scope.record = {}
+      @scope.record.display_name = Katrid.i18n.gettext '(New)'
       if res.result
         @scope.$apply =>
           @setFields(res.result)

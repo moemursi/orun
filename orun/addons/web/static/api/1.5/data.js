@@ -480,10 +480,10 @@
 
     DataSource.prototype.newRecord = function() {
       this.setState(DataSourceState.inserting);
-      this.scope.record = {};
-      this.scope.record.display_name = Katrid.i18n.gettext('(New)');
       return this.scope.model.getDefaults(this.scope.getContext()).done((function(_this) {
         return function(res) {
+          _this.scope.record = {};
+          _this.scope.record.display_name = Katrid.i18n.gettext('(New)');
           if (res.result) {
             return _this.scope.$apply(function() {
               return _this.setFields(res.result);

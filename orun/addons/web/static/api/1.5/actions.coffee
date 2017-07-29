@@ -136,14 +136,13 @@ class WindowAction extends Action
 
   setViewType: (viewType) ->
     if @viewType is 'form' and not viewType and @backUrl
-      @location.path(@backUrl.path, false, @)
-      .search(@backUrl.search)
+      return @location.path(@backUrl.path, false, @).search(@backUrl.search)
     else
       search = @location.$$search
       if viewType isnt 'form'
         delete search.id
       search.view_type = viewType
-      @location.search(search)
+      return @location.search(search)
 
   apply: ->
     @render(@scope, @scope.view.content, @viewType)
