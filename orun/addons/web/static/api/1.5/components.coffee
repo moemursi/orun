@@ -18,7 +18,6 @@ uiKatrid.directive 'field', ($compile) ->
 
   link: (scope, element, attrs, ctrl, transclude) ->
     field = scope.view.fields[attrs.name]
-    console.log('field depends', field)
 
     # Check if field depends from another
     if field.depends? and field.depends.length
@@ -511,8 +510,6 @@ Katrid.uiKatrid.directive 'foreignkey', ($compile, $controller) ->
     newItem = ->
     newEditItem = ->
     _timeout = null
-
-    console.log('name fields', attrs)
 
     config =
       allowClear: true

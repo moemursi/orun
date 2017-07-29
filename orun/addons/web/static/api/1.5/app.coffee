@@ -100,12 +100,43 @@ ngApp.controller 'ActionController', ($scope, $compile, $location, $route, actio
 
   $scope.setContent = (content) ->
     $('html, body').animate({ scrollTop: 0 }, 'fast')
-    $scope.content = $(content)
+    content = $scope.content = $(content)
+
+    ## Prepare form special elements
+    # Prepare form header
+    header = content.find('form header').first()
+
     el = root.html($compile($scope.content)($scope))
 
     # Get the first form controller
     $scope.formElement = el.find('form').first()
     $scope.form = $scope.formElement.controller('form')
+
+    # Add form header
+    if header
+      newHeader = el.find('header').first()
+      newHeader.replaceWith($compile(header)($scope))
+      for child in header.children()
+        child = $(child)
+        #newHeader.append(child)
+        if not child.attr('class')
+          child.addClass('btn btn-default')
+        if child.prop('tagName') is 'BUTTON' and child.attr('type') is 'object'
+          child.attr('type', 'button')
+          child.attr('button-type', 'object')
+          child.click(doButtonClick)
+        else if child.prop('tagName') is 'BUTTON' and not child.attr('type')
+          child.attr('type', 'button')
+
+  doButtonClick = ->
+    btn = $(this)
+    meth = btn.prop('name')
+    $scope.model.post(meth, { id: $scope.record.id })
+    .done (res) ->
+      console.log('do button click', res)
+
+  $scope.getContext = ->
+    JSON.parse($scope.action.info.context)
 
   init = (action) ->
     # Check if there's a history/back information

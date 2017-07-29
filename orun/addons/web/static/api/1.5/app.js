@@ -102,7 +102,7 @@
   })();
 
   ngApp.controller('ActionController', function($scope, $compile, $location, $route, action) {
-    var init, root;
+    var doButtonClick, init, root;
     $scope.Katrid = Katrid;
     $scope.data = null;
     $scope.location = $location;
@@ -125,14 +125,51 @@
       }
     };
     $scope.setContent = function(content) {
-      var el;
+      var child, el, header, i, len, newHeader, ref, results;
       $('html, body').animate({
         scrollTop: 0
       }, 'fast');
-      $scope.content = $(content);
+      content = $scope.content = $(content);
+      header = content.find('form header').first();
       el = root.html($compile($scope.content)($scope));
       $scope.formElement = el.find('form').first();
-      return $scope.form = $scope.formElement.controller('form');
+      $scope.form = $scope.formElement.controller('form');
+      if (header) {
+        newHeader = el.find('header').first();
+        newHeader.replaceWith($compile(header)($scope));
+        ref = header.children();
+        results = [];
+        for (i = 0, len = ref.length; i < len; i++) {
+          child = ref[i];
+          child = $(child);
+          if (!child.attr('class')) {
+            child.addClass('btn btn-default');
+          }
+          if (child.prop('tagName') === 'BUTTON' && child.attr('type') === 'object') {
+            child.attr('type', 'button');
+            child.attr('button-type', 'object');
+            results.push(child.click(doButtonClick));
+          } else if (child.prop('tagName') === 'BUTTON' && !child.attr('type')) {
+            results.push(child.attr('type', 'button'));
+          } else {
+            results.push(void 0);
+          }
+        }
+        return results;
+      }
+    };
+    doButtonClick = function() {
+      var btn, meth;
+      btn = $(this);
+      meth = btn.prop('name');
+      return $scope.model.post(meth, {
+        id: $scope.record.id
+      }).done(function(res) {
+        return console.log('do button click', res);
+      });
+    };
+    $scope.getContext = function() {
+      return JSON.parse($scope.action.info.context);
     };
     init = function(action) {
       var act, location;

@@ -236,7 +236,6 @@
       if (((attrs.allowOpen != null) && attrs.allowOpen === 'false') || ((attrs.allowOpen == null) && field.attrs && field.attrs['allow-open'] === false)) {
         allowOpen = false;
       }
-      console.log('allow open', allowOpen);
       return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing && (!record." + attrs.name + " || " + (!allowOpen) + ")\">${ record." + attrs.name + "[1] || '--' }</span>\n<a href=\"#/action/" + field.model + "/view/?id=${ record." + attrs.name + "[0] }&title=" + field.caption + "\" ng-click=\"action.openObject('" + field.model + "', record." + attrs.name + "[0], $event, '" + field.caption + "')\" class=\"form-field-readonly\" ng-show=\"!dataSource.changing && record." + attrs.name + " && " + allowOpen + "\">${ record." + attrs.name + "[1] }</a>";
     };
 

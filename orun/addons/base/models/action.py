@@ -54,6 +54,7 @@ class WindowAction(Action):
     auto_search = models.BooleanField(default=True, verbose_name=_('Auto Search'))
     views = models.TextField(getter='_get_views', editable=False, serializable=True)
     view_list = models.OneToManyField('sys.action.window.view')
+    view_type = models.SelectionField(VIEW_MODE, default='form')
 
     class Meta:
         name = 'sys.action.window'
@@ -65,6 +66,8 @@ class WindowAction(Action):
         modes = self.view_mode.split(',')
         views = self.view_list.all()
         modes = {mode: None for mode in modes}
+        if self.view_id:
+            modes[self.view_type] = self.view_id
         for v in views:
             modes[v.view_mode] = v.view_id
         if 'search' not in modes:

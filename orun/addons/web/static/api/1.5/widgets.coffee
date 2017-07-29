@@ -135,7 +135,6 @@ class ForeignKey extends Widget
     allowOpen = true
     if (attrs.allowOpen? and attrs.allowOpen is 'false') or (not attrs.allowOpen? and field.attrs and field.attrs['allow-open'] is false)
       allowOpen = false
-    console.log('allow open', allowOpen)
     return """
 <span class="form-field-readonly" ng-show="!dataSource.changing && (!record.#{attrs.name} || #{ !allowOpen })">${ record.#{attrs.name}[1] || '--' }</span>
 <a href="#/action/#{ field.model }/view/?id=${ record.#{attrs.name}[0] }&title=#{ field.caption }" ng-click="action.openObject('#{ field.model }', record.#{attrs.name}[0], $event, '#{ field.caption }')" class="form-field-readonly" ng-show="!dataSource.changing && record.#{attrs.name} && #{ allowOpen }">${ record.#{attrs.name}[1] }</a>

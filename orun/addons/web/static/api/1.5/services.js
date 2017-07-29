@@ -138,8 +138,12 @@
       });
     };
 
-    Model.prototype.getDefaults = function() {
-      return this.post('get_defaults');
+    Model.prototype.getDefaults = function(context) {
+      return this.post('get_defaults', null, {
+        kwargs: {
+          context: context
+        }
+      });
     };
 
     Model.prototype.copy = function(id) {

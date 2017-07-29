@@ -17,7 +17,6 @@
       link: function(scope, element, attrs, ctrl, transclude) {
         var att, cols, fcontrol, field, fieldAttrs, form, k, ref, templ, templAttrs, templTag, tp, v;
         field = scope.view.fields[attrs.name];
-        console.log('field depends', field);
         if ((field.depends != null) && field.depends.length) {
           scope.action.addNotifyField(field);
         }
@@ -629,7 +628,6 @@
         newItem = function() {};
         newEditItem = function() {};
         _timeout = null;
-        console.log('name fields', attrs);
         config = {
           allowClear: true,
           query: function(query) {

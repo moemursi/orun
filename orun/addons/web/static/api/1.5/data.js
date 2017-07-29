@@ -105,11 +105,9 @@
         data = this.getModifiedData(this.scope.form, el, this.scope.record);
         this.scope.form.data = data;
         beforeSubmit = el.attr('before-submit');
-        console.log('before submit', beforeSubmit);
         if (beforeSubmit) {
           beforeSubmit = this.scope.$eval(beforeSubmit);
         }
-        console.log(this.scope.form.data);
         if (data) {
           this.uploading++;
           return this.scope.model.write([data]).done((function(_this) {
@@ -167,7 +165,6 @@
     DataSource.prototype.copy = function(id) {
       return this.scope.model.copy(id).done((function(_this) {
         return function(res) {
-          console.log(res);
           _this.setState(DataSourceState.inserting);
           _this.scope.record = {};
           return _this.scope.$apply(function() {
@@ -241,7 +238,7 @@
     };
 
     DataSource.prototype.search = function(params, page, fields) {
-      var def;
+      var def, domain;
       this._params = params;
       this._page = page;
       this._clearTimeout();
@@ -249,11 +246,16 @@
       this.loading = true;
       page = page || 1;
       this.pageIndex = page;
+      domain = this.scope.action.info.domain;
+      if (domain) {
+        domain = JSON.parse(domain);
+      }
       params = {
         count: true,
         page: page,
         params: params,
         fields: fields,
+        domain: domain,
         limit: this.limit
       };
       def = new $.Deferred();
@@ -381,7 +383,7 @@
     };
 
     DataSource.prototype.getModifiedData = function(form, element, record) {
-      var attr, child, data, el, i, j, len, len1, nm, obj, ref, ref1, ref2, subData;
+      var attr, child, data, el, f, i, j, k, len, len1, len2, nm, obj, ref, ref1, ref2, ref3, subData;
       if (record.$deleted) {
         if (record.id) {
           return {
@@ -391,13 +393,15 @@
         }
         return;
       }
-      if (form.$dirty) {
+      if (form.$dirty || this._modifiedFields.length) {
         data = {};
         ref = $(element).find('.form-field.ng-dirty');
         for (i = 0, len = ref.length; i < len; i++) {
           el = ref[i];
           nm = el.name;
-          data[nm] = record[nm];
+          if (nm) {
+            data[nm] = record[nm];
+          }
         }
         ref1 = this.children;
         for (j = 0, len1 = ref1.length; j < len1; j++) {
@@ -427,6 +431,11 @@
           if (subData) {
             data[child.fieldName] = subData;
           }
+        }
+        ref3 = this._modifiedFields;
+        for (k = 0, len2 = ref3.length; k < len2; k++) {
+          f = ref3[k];
+          data[f] = record[f];
         }
         if (data) {
           if (record.id) {
@@ -473,7 +482,7 @@
       this.setState(DataSourceState.inserting);
       this.scope.record = {};
       this.scope.record.display_name = Katrid.i18n.gettext('(New)');
-      return this.scope.model.getDefaults().done((function(_this) {
+      return this.scope.model.getDefaults(this.scope.getContext()).done((function(_this) {
         return function(res) {
           if (res.result) {
             return _this.scope.$apply(function() {
@@ -503,6 +512,7 @@
             results.push(void 0);
           }
         } else {
+          this._modifiedFields.push(attr);
           results.push(this.scope.record[attr] = v);
         }
       }
@@ -527,6 +537,7 @@
 
     DataSource.prototype.setState = function(state) {
       var ref;
+      this._modifiedFields = [];
       this.state = state;
       return this.changing = (ref = this.state) === DataSourceState.editing || ref === DataSourceState.inserting;
     };

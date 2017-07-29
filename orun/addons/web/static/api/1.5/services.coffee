@@ -83,8 +83,8 @@ class Model extends Service
   getById: (id) ->
     @post('get', null, { kwargs: { id: id } })
 
-  getDefaults: ->
-    @post('get_defaults')
+  getDefaults: (context) ->
+    @post('get_defaults', null, { kwargs: { context: context } })
 
   copy: (id) ->
     @post('copy', null, { args: [id] })

@@ -67,11 +67,8 @@ class DataSource
       @scope.form.data = data
 
       beforeSubmit = el.attr('before-submit')
-      console.log('before submit', beforeSubmit)
       if beforeSubmit
         beforeSubmit = @scope.$eval(beforeSubmit)
-
-      console.log(@scope.form.data)
 
       #@scope.form.data = null
 
@@ -115,7 +112,6 @@ class DataSource
   copy: (id) ->
     @scope.model.copy(id)
     .done (res) =>
-      console.log(res)
       @setState(DataSourceState.inserting)
       @scope.record = {}
       @scope.$apply =>
@@ -166,11 +162,15 @@ class DataSource
     @loading = true
     page = page or 1
     @pageIndex = page
+    domain = @scope.action.info.domain
+    if domain
+      domain = JSON.parse(domain)
     params =
       count: true
       page: page
       params: params
       fields: fields
+      domain: domain
       limit: @limit
 
     def = new $.Deferred()
@@ -272,11 +272,12 @@ class DataSource
           $deleted: true
         }
       return
-    if form.$dirty
+    if form.$dirty or @_modifiedFields.length
       data = {}
       for el in $(element).find('.form-field.ng-dirty')
         nm = el.name
-        data[nm] = record[nm]
+        if nm
+          data[nm] = record[nm]
 
       for child in @children
         subData = data[child.fieldName] or []
@@ -296,10 +297,16 @@ class DataSource
           subData.push(obj)
         if subData
           data[child.fieldName] = subData
+
+      # Check invisible fields
+      for f in @_modifiedFields
+        data[f] = record[f]
+
       if data
         if record.id
           data.id = record.id
         return data
+
     return
 
   get: (id, timeout) ->
@@ -332,7 +339,7 @@ class DataSource
     @setState(DataSourceState.inserting)
     @scope.record = {}
     @scope.record.display_name = Katrid.i18n.gettext '(New)'
-    @scope.model.getDefaults()
+    @scope.model.getDefaults(@scope.getContext())
     .done (res) =>
       if res.result
         @scope.$apply =>
@@ -351,6 +358,7 @@ class DataSource
           @scope.record[attr] = v
           control.$setDirty()
       else
+        @_modifiedFields.push(attr)
         @scope.record[attr] = v
 
   editRecord: ->
@@ -365,6 +373,8 @@ class DataSource
     return value
 
   setState: (state) ->
+    # Clear modified fields information
+    @_modifiedFields = []
     @state = state
     @changing =  @state in [DataSourceState.editing, DataSourceState.inserting]
 

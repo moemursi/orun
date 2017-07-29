@@ -359,9 +359,13 @@ class Model(metaclass=ModelBase):
         }
 
     @api.method
-    def get_defaults(self, *args, **kwargs):
+    def get_defaults(self, context=None, *args, **kwargs):
         r = {}
+        defaults = context or {}
         for f in self._meta.fields:
+            if 'default_' + f.name in defaults:
+                r[f.name] = defaults['default_' + f.name]
+                continue
             if f.editable:
                 if f.default is not NOT_PROVIDED:
                     if callable(f.default):
@@ -619,9 +623,11 @@ class Model(metaclass=ModelBase):
                 yield row
 
     @classmethod
-    def _search(cls, params=None, fields=None, *args, **kwargs):
+    def _search(cls, params=None, fields=None, domain=None, *args, **kwargs):
         qs = cls.objects
         if isinstance(params, dict):
+            if isinstance(domain, dict):
+                params.update(domain)
             qs = qs.filter(params)
         elif isinstance(params, (list, tuple)):
             qs = qs.filter(*params)
