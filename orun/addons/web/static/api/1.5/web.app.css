@@ -379,3 +379,6 @@ label.prepend-icon {
   margin-top: 0;
   font-size: 1.5em;
 }
+.ng-form.form-data-changing .form-field-readonly {
+  display: none;
+}

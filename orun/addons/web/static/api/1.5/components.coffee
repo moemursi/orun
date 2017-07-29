@@ -77,6 +77,8 @@ uiKatrid.directive 'field', ($compile) ->
       templAttrs = []
       if attrs.ngShow
         templAttrs.push(' ng-show="' + attrs.ngShow + '"')
+      if attrs.ngReadonly or field.readonly
+        templAttrs.push(' ng-readonly="' + (attrs.ngReadonly or field.readonly) + '"')
       if field.attrs
         for k, v of field.attrs when k.startsWith('container') or (k is 'ng-show' and not attrs.ngShow)
           templAttrs.push(k + '="' + v + '"')

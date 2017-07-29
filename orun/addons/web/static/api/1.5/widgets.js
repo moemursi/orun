@@ -29,12 +29,11 @@
         r['required'] = null;
       }
       r['ng-model'] = this.ngModel(attrs);
-      r['ng-show'] = 'dataSource.changing';
       if (field.attrs) {
         ref = field.attrs;
         for (attr in ref) {
           v = ref[attr];
-          if (!attr.startsWith('container-') && attr !== 'ng-show') {
+          if (!attr.startsWith('container-') && attr !== 'ng-show' && attr !== 'ng-readonly') {
             r[attr] = v;
           }
         }
@@ -42,7 +41,7 @@
       ref1 = attrs.$attr;
       for (attr in ref1) {
         attrName = ref1[attr];
-        if (!(!attrName.startsWith('container-') && attr !== 'ngShow')) {
+        if (!(!attrName.startsWith('container-') && attr !== 'ngShow' && attr !== 'ngReadonly')) {
           continue;
         }
         v = attrs[attr];
@@ -99,7 +98,7 @@
     };
 
     Widget.prototype.spanTemplate = function(scope, el, attrs, field) {
-      return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing || " + attrs.readonly + "\">${ record." + attrs.name + ".toString() || '--' }</span>";
+      return "<span class=\"form-field-readonly\">${ record." + attrs.name + ".toString() || '--' }</span>";
     };
 
     Widget.prototype.widgetTemplate = function(scope, el, attrs, field, type) {
@@ -171,7 +170,7 @@
       prependIcon = attrs.icon;
       html = InputWidget.__super__.widgetTemplate.call(this, scope, el, attrs, field, type);
       if (prependIcon) {
-        return "<label class=\"prepend-icon\" ng-show=\"dataSource.changing\"><i class=\"icon " + prependIcon + "\"></i>" + html + "</label>";
+        return "<label class=\"prepend-icon\"><i class=\"icon " + prependIcon + "\"></i>" + html + "</label>";
       }
       return html;
     };
@@ -210,7 +209,7 @@
     SelectField.prototype.tag = 'select';
 
     SelectField.prototype.spanTemplate = function(scope, el, attrs, field) {
-      return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing\">${ view.fields." + attrs.name + ".displayChoices[record." + attrs.name + "] || '--' }</span>";
+      return "<span class=\"form-field-readonly\">${ view.fields." + attrs.name + ".displayChoices[record." + attrs.name + "] || '--' }</span>";
     };
 
     SelectField.prototype.innerHtml = function(scope, el, attrs, field) {
@@ -236,7 +235,11 @@
       if (((attrs.allowOpen != null) && attrs.allowOpen === 'false') || ((attrs.allowOpen == null) && field.attrs && field.attrs['allow-open'] === false)) {
         allowOpen = false;
       }
-      return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing && (!record." + attrs.name + " || " + (!allowOpen) + ")\">${ record." + attrs.name + "[1] || '--' }</span>\n<a href=\"#/action/" + field.model + "/view/?id=${ record." + attrs.name + "[0] }&title=" + field.caption + "\" ng-click=\"action.openObject('" + field.model + "', record." + attrs.name + "[0], $event, '" + field.caption + "')\" class=\"form-field-readonly\" ng-show=\"!dataSource.changing && record." + attrs.name + " && " + allowOpen + "\">${ record." + attrs.name + "[1] }</a>";
+      if (!allowOpen) {
+        return "<span class=\"form-field-readonly\">${ record." + attrs.name + "[1] || '--' }</span>";
+      } else {
+        return "<span class=\"form-field-readonly\"><a href=\"#/action/" + field.model + "/view/?id=${ record." + attrs.name + "[0] }&title=" + field.caption + "\" ng-click=\"action.openObject('" + field.model + "', record." + attrs.name + "[0], $event, '" + field.caption + "')\">${ record." + attrs.name + "[1] }</a><span ng-if=\"!record." + attrs.name + "[1]\">--</span></span>";
+      }
     };
 
     ForeignKey.prototype.template = function(scope, el, attrs, field) {
@@ -270,7 +273,7 @@
     DecimalField.prototype.tag = 'input decimal';
 
     DecimalField.prototype.spanTemplate = function(scope, el, attrs, field) {
-      return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing\">${ (record." + attrs.name + "|number:2) || '--' }</span>";
+      return "<span class=\"form-field-readonly\">${ (record." + attrs.name + "|number:2) || '--' }</span>";
     };
 
     return DecimalField;
@@ -287,7 +290,7 @@
     DateField.prototype.tag = 'input datepicker';
 
     DateField.prototype.spanTemplate = function(scope, el, attrs, field) {
-      return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing\">${ (record." + attrs.name + "|date:'" + (Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')) + "') || '--' }</span>";
+      return "<span class=\"form-field-readonly\">${ (record." + attrs.name + "|date:'" + (Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')) + "') || '--' }</span>";
     };
 
     DateField.prototype.widgetTemplate = function(scope, el, attrs, field, type) {
@@ -333,7 +336,7 @@
     ManyToManyField.prototype.tag = 'input foreignkey multiple';
 
     ManyToManyField.prototype.spanTemplate = function(scope, el, attrs, field) {
-      return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing\">${ record." + attrs.name + "|m2m }</span>";
+      return "<span class=\"form-field-readonly\">${ record." + attrs.name + "|m2m }</span>";
     };
 
     ManyToManyField.prototype.template = function(scope, el, attrs, field) {
@@ -352,7 +355,7 @@
     }
 
     CheckBox.prototype.spanTemplate = function(scope, el, attrs, field) {
-      return "<span class=\"form-field-readonly bool-text\" ng-show=\"!dataSource.changing\">\n${ (record." + attrs.name + " && Katrid.i18n.gettext('yes')) || ((record." + attrs.name + " === false) && Katrid.i18n.gettext('no')) || (!record." + attrs.name + " && '--') }\n</span>";
+      return "<span class=\"form-field-readonly bool-text\">\n${ (record." + attrs.name + " && Katrid.i18n.gettext('yes')) || ((record." + attrs.name + " === false) && Katrid.i18n.gettext('no')) || (!record." + attrs.name + " && '--') }\n</span>";
     };
 
     CheckBox.prototype.widgetTemplate = function(scope, el, attrs, field) {
@@ -445,7 +448,7 @@
     };
 
     PasswordField.prototype.spanTemplate = function(scope, el, attrs, field) {
-      return "<span class=\"form-field-readonly\" ng-show=\"!dataSource.changing\">*******************</span>";
+      return "<span class=\"form-field-readonly\">*******************</span>";
     };
 
     return PasswordField;

@@ -75,6 +75,9 @@
           if (attrs.ngShow) {
             templAttrs.push(' ng-show="' + attrs.ngShow + '"');
           }
+          if (attrs.ngReadonly || field.readonly) {
+            templAttrs.push(' ng-readonly="' + (attrs.ngReadonly || field.readonly) + '"');
+          }
           if (field.attrs) {
             ref = field.attrs;
             for (k in ref) {

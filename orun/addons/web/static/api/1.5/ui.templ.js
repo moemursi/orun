@@ -125,7 +125,7 @@
       } else {
         toolbar = '';
       }
-      return "<div ng-form=\"form\">\n" + toolbar + "\n<div class=\"content container animated fadeIn\"><div class=\"panel panel-default data-panel browsing\" ng-class=\"{ browsing: dataSource.browsing, editing: dataSource.changing }\">\n<div class=\"panel-body\"><div class=\"row\">" + html + "</div></div></div></div></div>";
+      return "<div ng-form=\"form\" ng-class=\"{'form-data-changing': dataSource.changing}\">\n" + toolbar + "\n<div class=\"content container animated fadeIn\"><div class=\"panel panel-default data-panel browsing\" ng-class=\"{ browsing: dataSource.browsing, editing: dataSource.changing }\">\n<div class=\"panel-body\"><div class=\"row\">" + html + "</div></div></div></div></div>";
     };
 
     BaseTemplate.prototype.preRender_list = function(scope, html) {

@@ -254,7 +254,7 @@ class BaseTemplate
       toolbar = ''
 
     return """
-<div ng-form="form">
+<div ng-form="form" ng-class="{'form-data-changing': dataSource.changing}">
 #{ toolbar }
 <div class=\"content container animated fadeIn\"><div class="panel panel-default data-panel browsing" ng-class="{ browsing: dataSource.browsing, editing: dataSource.changing }">
 <div class=\"panel-body\"><div class="row">#{html}</div></div></div></div></div>"""
