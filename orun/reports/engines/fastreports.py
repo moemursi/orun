@@ -145,7 +145,7 @@ class FastReports(ReportEngine):
             #     sel_cmd = pattern.sub(' WHERE ' + sql, sel_cmd)
             datasource.attrib['SelectCommand'] = sel_cmd
 
-        open('d:/rep.frx', 'wb').write(etree.tostring(rep.document, encoding='utf-8', xml_declaration=True))
+        open('d:/temp/rep.frx', 'wb').write(etree.tostring(rep.document, encoding='utf-8', xml_declaration=True))
 
         return rep
 
