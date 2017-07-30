@@ -334,3 +334,6 @@ msgstr "Data Ingresso"
 
 msgid "Is staff"
 msgstr "Membro da Equipe"
+
+msgid "Invalid username and password."
+msgstr "Usuário e senha inválidos."
