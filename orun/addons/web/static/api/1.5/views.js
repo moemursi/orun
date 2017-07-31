@@ -12,8 +12,9 @@
       this.parent = parent1;
       this.options = options1;
       this.input = this.parent.find('.search-view-input');
-      this.input.on('keyup', (function(_this) {
+      this.input.on('input', (function(_this) {
         return function(evt) {
+          console.log('change val');
           if (_this.input.val().length) {
             return _this.show();
           } else {
@@ -45,7 +46,8 @@
     };
 
     SearchMenu.prototype.show = function() {
-      return this.element.show();
+      this.element.show();
+      return this.searchView.first();
     };
 
     SearchMenu.prototype.close = function() {
@@ -583,6 +585,11 @@
           return _this.scope.search.viewMoreButtons = _this.viewMore;
         };
       })(this));
+    };
+
+    SearchView.prototype.first = function() {
+      this.element.find('.search-view-menu > li.active').removeClass('active');
+      return this.element.find('.search-view-menu > li').first().addClass('active');
     };
 
     SearchView.prototype.onSelectItem = function(evt, obj) {

@@ -2,7 +2,8 @@
 class SearchMenu
   constructor: (@element, @parent, @options) ->
     @input = @parent.find('.search-view-input')
-    @input.on 'keyup', (evt) =>
+    @input.on 'input', (evt) =>
+      console.log('change val')
       if @input.val().length
         @show()
       else
@@ -23,6 +24,7 @@ class SearchMenu
 
   show: ->
     @element.show()
+    @searchView.first()
 
   close: ->
     @element.hide()
@@ -375,6 +377,10 @@ class SearchView
     @scope.$apply =>
       console.log(@viewMore)
       @scope.search.viewMoreButtons = @viewMore
+
+  first: ->
+    @element.find('.search-view-menu > li.active').removeClass('active')
+    @element.find('.search-view-menu > li').first().addClass('active')
 
   onSelectItem: (evt, obj) =>
     @query.add(obj)
