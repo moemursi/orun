@@ -205,7 +205,7 @@ ${ (record.#{attrs.name} && Katrid.i18n.gettext('yes')) || ((record.#{attrs.name
   labelTemplate: (scope, el, attrs, field) ->
     if field.help_text
       return super(scope, el, attrs, field)
-    return """<label for="#{attrs._id}" class="form-label"><span ng-show="!dataSource.changing">#{field.caption}</span>&nbsp;</label>"""
+    return """<label for="#{attrs._id}" class="form-label"><span>#{field.caption}</span>&nbsp;</label>"""
 
 
 class FileField extends InputWidget

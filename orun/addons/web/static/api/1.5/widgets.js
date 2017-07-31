@@ -375,7 +375,7 @@
       if (field.help_text) {
         return CheckBox.__super__.labelTemplate.call(this, scope, el, attrs, field);
       }
-      return "<label for=\"" + attrs._id + "\" class=\"form-label\"><span ng-show=\"!dataSource.changing\">" + field.caption + "</span>&nbsp;</label>";
+      return "<label for=\"" + attrs._id + "\" class=\"form-label\"><span>" + field.caption + "</span>&nbsp;</label>";
     };
 
     return CheckBox;
