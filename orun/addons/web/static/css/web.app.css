@@ -43,6 +43,12 @@ div.form-data-changing section[readonly] .form-field-readonly {
 div.form-data-changing section[readonly] .form-field {
   display: none;
 }
+div.form-data-changing section[readonly] label.prepend-icon {
+  display: none;
+}
 div.form-data-readonly .form-field {
+  display: none;
+}
+div.form-data-readonly label.prepend-icon {
   display: none;
 }
