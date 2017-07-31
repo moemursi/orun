@@ -40,13 +40,15 @@ div.form-data-changing section[readonly] .form-field-readonly {
   min-height: 32px;
   display: block;
 }
-div.form-data-changing section[readonly] .form-field {
+div.form-data-changing section[readonly] .form-field,
+div.form-data-changing section[readonly] .input-group {
   display: none;
 }
 div.form-data-changing section[readonly] label.prepend-icon {
   display: none;
 }
-div.form-data-readonly .form-field {
+div.form-data-readonly .form-field,
+div.form-data-readonly .input-group {
   display: none;
 }
 div.form-data-readonly label.prepend-icon {
