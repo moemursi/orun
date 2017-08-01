@@ -11,6 +11,7 @@ BUILTIN_SERIALIZERS = {
     "csv": "orun.core.serializers.csv",
     "python": "orun.core.serializers.python",
     "json": "orun.core.serializers.json",
+    "sql": "orun.core.serializers.sql",
     #"yaml": "orun.core.serializers.pyyaml",
 }
 

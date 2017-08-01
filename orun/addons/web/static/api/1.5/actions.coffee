@@ -37,7 +37,7 @@ class Action
     params = location.search
     @location.path(path, false, h)
     .search(params)
-  execute: (scope) ->
+  execute: ->
   getCurrentTitle: ->
     @info.display_name
   search: ->
@@ -291,14 +291,31 @@ class UrlAction extends Action
     window.location.href = info.url
 
 
+class ClientAction extends Action
+  @actionType = 'sys.action.client'
+
+  constructor: (@info, @scope, @location) ->
+    console.log('set scope', @scope)
+  tag_refresh: ->
+    @scope.dataSource.refresh()
+    return
+
+  execute: ->
+    if @info.tag
+      @['tag_' + @info.tag]()
+    return
+
+
 @Katrid.Actions =
   Action: Action
   WindowAction: WindowAction
   ReportAction: ReportAction
   ViewAction: ViewAction
   UrlAction: UrlAction
+  ClientAction: ClientAction
 
 @Katrid.Actions[WindowAction.actionType] = WindowAction
 @Katrid.Actions[ReportAction.actionType] = ReportAction
 @Katrid.Actions[ViewAction.actionType] = ViewAction
 @Katrid.Actions[UrlAction.actionType] = UrlAction
+@Katrid.Actions[ClientAction.actionType] = ClientAction

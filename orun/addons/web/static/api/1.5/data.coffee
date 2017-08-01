@@ -131,6 +131,8 @@ class DataSource
     if data
       # Refresh current record
       @scope.action.location.search 'id', data[0]
+    else if @scope.record.id
+      return @get @scope.record.id
     else
       return @search @_params, @_page
 
@@ -339,11 +341,12 @@ class DataSource
     @setState(DataSourceState.inserting)
     @scope.model.getDefaults(@scope.getContext())
     .done (res) =>
-      @scope.record = {}
-      @scope.record.display_name = Katrid.i18n.gettext '(New)'
-      if res.result
-        @scope.$apply =>
+      @scope.$apply =>
+        @scope.record = {}
+        @scope.record.display_name = Katrid.i18n.gettext '(New)'
+        if res.result
           @setFields(res.result)
+    return
 
   setFields: (values) ->
     for attr, v of values
@@ -351,21 +354,20 @@ class DataSource
       if control
         if v
           v = @toClientValue(attr, v)
-        control.$setViewValue v
-        control.$render()
+        control.$setDirty()
         # Force dirty (bug fix for boolean (false) value
         if v is false
           @scope.record[attr] = v
           control.$setDirty()
       else
         @_modifiedFields.push(attr)
-        @scope.record[attr] = v
+      @scope.record[attr] = v
+    return
 
   editRecord: ->
     @setState(DataSourceState.editing)
 
   toClientValue: (attr, value) ->
-    console.log(attr, value)
     field = @scope.view.fields[attr]
     if field
       if field.type is 'DateTimeField'

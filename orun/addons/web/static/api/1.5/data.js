@@ -203,6 +203,8 @@
     DataSource.prototype.refresh = function(data) {
       if (data) {
         return this.scope.action.location.search('id', data[0]);
+      } else if (this.scope.record.id) {
+        return this.get(this.scope.record.id);
       } else {
         return this.search(this._params, this._page);
       }
@@ -480,22 +482,21 @@
 
     DataSource.prototype.newRecord = function() {
       this.setState(DataSourceState.inserting);
-      return this.scope.model.getDefaults(this.scope.getContext()).done((function(_this) {
+      this.scope.model.getDefaults(this.scope.getContext()).done((function(_this) {
         return function(res) {
-          _this.scope.record = {};
-          _this.scope.record.display_name = Katrid.i18n.gettext('(New)');
-          if (res.result) {
-            return _this.scope.$apply(function() {
+          return _this.scope.$apply(function() {
+            _this.scope.record = {};
+            _this.scope.record.display_name = Katrid.i18n.gettext('(New)');
+            if (res.result) {
               return _this.setFields(res.result);
-            });
-          }
+            }
+          });
         };
       })(this));
     };
 
     DataSource.prototype.setFields = function(values) {
-      var attr, control, results, v;
-      results = [];
+      var attr, control, v;
       for (attr in values) {
         v = values[attr];
         control = this.scope.form[attr];
@@ -503,20 +504,16 @@
           if (v) {
             v = this.toClientValue(attr, v);
           }
-          control.$setViewValue(v);
-          control.$render();
+          control.$setDirty();
           if (v === false) {
             this.scope.record[attr] = v;
-            results.push(control.$setDirty());
-          } else {
-            results.push(void 0);
+            control.$setDirty();
           }
         } else {
           this._modifiedFields.push(attr);
-          results.push(this.scope.record[attr] = v);
         }
+        this.scope.record[attr] = v;
       }
-      return results;
     };
 
     DataSource.prototype.editRecord = function() {
@@ -525,7 +522,6 @@
 
     DataSource.prototype.toClientValue = function(attr, value) {
       var field;
-      console.log(attr, value);
       field = this.scope.view.fields[attr];
       if (field) {
         if (field.type === 'DateTimeField') {

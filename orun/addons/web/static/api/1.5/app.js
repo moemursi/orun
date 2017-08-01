@@ -162,10 +162,18 @@
       var btn, meth;
       btn = $(this);
       meth = btn.prop('name');
-      return $scope.model.post(meth, {
-        id: $scope.record.id
+      return $scope.model.post(meth, null, {
+        kwargs: {
+          id: $scope.record.id
+        }
       }).done(function(res) {
-        return console.log('do button click', res);
+        var act;
+        if (res.ok) {
+          if (res.result.type) {
+            act = new Katrid.Actions[res.result.type](res.result, $scope, $location);
+            return act.execute();
+          }
+        }
       });
     };
     $scope.getContext = function() {

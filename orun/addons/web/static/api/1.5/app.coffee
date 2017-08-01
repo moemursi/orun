@@ -131,9 +131,12 @@ ngApp.controller 'ActionController', ($scope, $compile, $location, $route, actio
   doButtonClick = ->
     btn = $(this)
     meth = btn.prop('name')
-    $scope.model.post(meth, { id: $scope.record.id })
+    $scope.model.post(meth, null, { kwargs: { id: $scope.record.id } })
     .done (res) ->
-      console.log('do button click', res)
+      if res.ok
+        if res.result.type
+          act = new Katrid.Actions[res.result.type](res.result, $scope, $location)
+          act.execute()
 
   $scope.getContext = ->
     JSON.parse($scope.action.info.context)
