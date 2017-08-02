@@ -263,7 +263,6 @@
         arg[k] = v;
         params.push(arg);
       }
-      console.log(params);
       return this.scope.dataSource.search(params);
     };
 

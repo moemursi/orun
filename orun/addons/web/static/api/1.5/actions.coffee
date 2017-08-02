@@ -194,7 +194,6 @@ class WindowAction extends Action
       arg = {}
       arg[k] = v
       params.push(arg)
-    console.log(params)
     @scope.dataSource.search(params)
 
   applyGroups: (groups) ->
