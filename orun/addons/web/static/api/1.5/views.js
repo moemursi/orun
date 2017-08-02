@@ -397,6 +397,13 @@
       return SearchFilter.__super__.constructor.apply(this, arguments);
     }
 
+    SearchFilter.prototype.link = function(scope, $compile, parent) {
+      var el, ul;
+      ul = this.searchView.toolbar.find('.search-view-filter-menu');
+      el = $("<li><a href=\"javascript:void(0)\">" + this.label + "</a></li>");
+      return ul.append(el);
+    };
+
     return SearchFilter;
 
   })(SearchItem);
@@ -408,7 +415,6 @@
       var ctx;
       SearchGroup.__super__.constructor.call(this, name, item, parent, ref, menu);
       ctx = item.attr('context');
-      console.log(item);
       if (typeof ctx === 'string') {
         this.context = JSON.parse(ctx);
       } else {
@@ -442,6 +448,7 @@
       this.inputKeyDown = bind(this.inputKeyDown, this);
       this.query = new SearchQuery(this);
       this.items = [];
+      this.filters = [];
     }
 
     SearchView.prototype.createMenu = function(scope, el, parent) {
@@ -512,6 +519,7 @@
       this.view = scope.views.search;
       this.viewContent = $(this.view.content);
       this.element = html;
+      this.toolbar = this.element.closest('.data-heading').find('.toolbar').first();
       this.searchView = html.find('.search-view');
       this.searchView.find('.search-view-input').keydown(this.inputKeyDown);
       html.find('.search-view-more').click((function(_this) {
@@ -540,7 +548,6 @@
         } else if (tag === 'FILTER') {
           cls = SearchFilter;
         } else if (tag === 'GROUP') {
-          console.log('group', item);
           ref1 = item.children();
           for (j = 0, len = ref1.length; j < len; j++) {
             grouping = ref1[j];
@@ -581,7 +588,6 @@
       this.viewMore = !this.viewMore;
       return this.scope.$apply((function(_this) {
         return function() {
-          console.log(_this.viewMore);
           return _this.scope.search.viewMoreButtons = _this.viewMore;
         };
       })(this));

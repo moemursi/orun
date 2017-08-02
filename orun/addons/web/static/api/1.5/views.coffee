@@ -230,13 +230,16 @@ class SearchField extends SearchItem
 
 
 class SearchFilter extends SearchItem
+  link: (scope, $compile, parent) ->
+    ul = @searchView.toolbar.find('.search-view-filter-menu')
+    el = $("""<li><a href="javascript:void(0)">#{@label}</a></li>""")
+    ul.append(el)
 
 
 class SearchGroup extends SearchItem
   constructor: (name, item, parent, ref, menu) ->
     super name, item, parent, ref, menu
     ctx = item.attr('context')
-    console.log(item)
     if typeof ctx is 'string'
       @context = JSON.parse(ctx)
     else
@@ -257,6 +260,7 @@ class SearchView
   constructor: (@scope, options) ->
     @query = new SearchQuery(@)
     @items = []
+    @filters = []
 
   createMenu: (scope, el, parent) ->
     menu = new SearchMenu(el, parent, {select: @onSelectItem})
@@ -323,9 +327,9 @@ class SearchView
     @view = scope.views.search
     @viewContent = $(@view.content)
     @element = html
+    @toolbar = @element.closest('.data-heading').find('.toolbar').first()
     @searchView = html.find('.search-view')
     @searchView.find('.search-view-input').keydown @inputKeyDown
-
 
     html.find('.search-view-more').click (evt) =>
       $(evt.target).toggleClass('fa-search-plus fa-search-minus')
@@ -350,7 +354,6 @@ class SearchView
       else if tag is 'FILTER'
         cls = SearchFilter
       else if tag is 'GROUP'
-        console.log('group', item)
         for grouping in item.children()
           @loadItem($(grouping), null, null, SearchGroup)
         return
@@ -375,7 +378,6 @@ class SearchView
   viewMoreToggle: ->
     @viewMore = not @viewMore
     @scope.$apply =>
-      console.log(@viewMore)
       @scope.search.viewMoreButtons = @viewMore
 
   first: ->

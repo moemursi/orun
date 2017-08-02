@@ -1,0 +1,5 @@
+<search>
+  <field name="name"/>
+  <filter label="{{ _('Customers') }}" domain="{'is_customer': 1}"/>
+  <filter label="{{ _('Vendors') }}" domain="{'is_supplier': 1}"/>
+</search>

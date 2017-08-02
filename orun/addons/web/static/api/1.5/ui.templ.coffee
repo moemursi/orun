@@ -106,6 +106,23 @@ class BaseTemplate
   </div>
   """
 
+  getFilterButtons: ->
+    """
+  <div class="btn-group animated fadeIn search-view-more-area" ng-show="search.viewMoreButtons">
+    <div class="btn-group">
+      <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" type="button" aria-expanded="false"><span class="fa fa-filter"></span> #{Katrid.i18n.gettext('Filters')} <span class="caret"></span></button>
+      <ul class="dropdown-menu animated flipInX search-view-filter-menu">
+      </ul>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" type="button"><span class="fa fa-bars"></span> #{Katrid.i18n.gettext('Group By')} <span class="caret"></span></button>
+      <ul class="dropdown-menu animated flipInX search-view-groups-menu">
+      </ul>
+    </div>
+    <button class="btn btn-default"><span class="fa fa-star"></span> #{Katrid.i18n.gettext('Favorites')} <span class="caret"></span></button>
+  </div>
+"""
+
   preRender_card: (scope, html) ->
     buttons = @getViewButtons(scope)
     html = $(html)
@@ -145,14 +162,7 @@ class BaseTemplate
 
 </div>
 <div class="col-sm-6">
-  <div class="btn-group animated fadeIn search-view-more-area" ng-show="search.viewMoreButtons">
-    <button class="btn btn-default"><span class="fa fa-filter"></span> #{Katrid.i18n.gettext('Filters')} <span class="caret"></span></button>
-    <button class="btn btn-default"><span class="fa fa-bars"></span> #{Katrid.i18n.gettext('Group By')} <span class="caret"></span></button>
-    <ul class="dropdown-menu animated flipInX search-view-groups-menu">
-    </ul>
-    <button class="btn btn-default"><span class="fa fa-star"></span> #{Katrid.i18n.gettext('Favorites')} <span class="caret"></span></button>
-  </div>
-
+#{@getFilterButtons()}
   <div class=\"pull-right\">
             <div class="btn-group pagination-area">
               <span class="paginator">${dataSource.offset|number} - ${dataSource.offsetLimit|number}</span> / <span class="total-pages">${dataSource.recordCount|number}</span>
@@ -298,13 +308,7 @@ class BaseTemplate
 
 </div>
 <div class="col-sm-6">
-  <div class="btn-group animated fadeIn search-view-more-area" ng-show="search.viewMoreButtons">
-    <button class="btn btn-default"><span class="fa fa-filter"></span> #{Katrid.i18n.gettext('Filters')} <span class="caret"></span></button>
-    <button class="btn btn-default"><span class="fa fa-bars"></span> #{Katrid.i18n.gettext('Group By')} <span class="caret"></span></button>
-    <ul class="dropdown-menu animated flipInX search-view-groups-menu">
-    </ul>
-    <button class="btn btn-default"><span class="fa fa-star"></span> #{Katrid.i18n.gettext('Favorites')} <span class="caret"></span></button>
-  </div>
+#{@getFilterButtons()}
 
   <div class=\"pull-right\">
             <div class="btn-group pagination-area">
