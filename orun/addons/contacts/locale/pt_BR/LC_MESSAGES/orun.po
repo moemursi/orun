@@ -16,3 +16,9 @@ msgstr ""
 
 msgid "Contacts"
 msgstr "Contatos"
+
+msgid "Customers"
+msgstr "Clientes"
+
+msgid "Vendors"
+msgstr "Fornecedores"

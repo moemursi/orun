@@ -254,14 +254,14 @@ msgstr "Nascimento"
 msgid "Company Type"
 msgstr "Tipo Empresa"
 
-msgid "Is Customer"
-msgstr "É Cliente"
+msgid "Is a Customer"
+msgstr "É um cliente"
 
-msgid "Is Supplier"
-msgstr "É Fornecedor"
+msgid "Is a Supplier"
+msgstr "É um fornecedor"
 
-msgid "Is Employee"
-msgstr "É Funcionário"
+msgid "Is a Employee"
+msgstr "É um funcionário"
 
 msgid "User"
 msgstr "Usuário"
@@ -337,3 +337,12 @@ msgstr "Membro da Equipe"
 
 msgid "Invalid username and password."
 msgstr "Usuário e senha inválidos."
+
+msgid "Sales & Purchases"
+msgstr "Vendas & Compras"
+
+msgid "Purchases"
+msgstr "Compras"
+
+msgid "Is a Company"
+msgstr "É uma empresa"

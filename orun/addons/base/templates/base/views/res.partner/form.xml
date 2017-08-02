@@ -43,6 +43,21 @@
       <field name="color"/>
     </tab>
     <tab>
+      <tab-heading>{{ _('Sales & Purchases') }}</tab-heading>
+      <fieldset class="col-sm-6">
+        <legend>{{ _('Sales') }}</legend>
+        <div class="row">
+          <field name="is_customer"/>
+        </div>
+      </fieldset>
+      <fieldset class="col-sm-6">
+        <legend>{{ _('Purchases') }}</legend>
+        <div class="row">
+          <field name="is_supplier"/>
+        </div>
+      </fieldset>
+    </tab>
+    <tab>
       <tab-heading>{{ _('Notes') }}</tab-heading>
       <field name="comments" nolabel="true"/>
     </tab>

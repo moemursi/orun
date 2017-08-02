@@ -17,6 +17,9 @@
       link: function(scope, element, attrs, ctrl, transclude) {
         var att, cols, fcontrol, field, fieldAttrs, form, k, ref, templ, templAttrs, templTag, tp, v;
         field = scope.view.fields[attrs.name];
+        if (attrs.label) {
+          field.caption = attrs.label;
+        }
         if ((field.depends != null) && field.depends.length) {
           scope.action.addNotifyField(field);
         }
@@ -755,7 +758,7 @@
         sel.on('change', function(e) {
           var obj, service, v;
           v = sel.select2('data');
-          if (v.id === newItem) {
+          if (v && v.id === newItem) {
             service = new Katrid.Services.Model(field.model);
             return service.createName(v.str).done(function(res) {
               controller.$setDirty();
@@ -765,7 +768,7 @@
                 text: res.result[1]
               });
             });
-          } else if (v.id === newEditItem) {
+          } else if (v && v.id === newEditItem) {
             service = new Katrid.Services.Model(field.model);
             return service.loadViews({
               views: {
@@ -832,6 +835,7 @@
             })();
             return controller.$setViewValue(v);
           } else {
+            console.log('change fk', v);
             controller.$setDirty();
             if (v) {
               return controller.$setViewValue([v.id, v.text]);

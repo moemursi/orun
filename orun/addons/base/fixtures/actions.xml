@@ -27,4 +27,14 @@
   <action id="action.sys.view.res.company" type="sys.action.window" name="Companies" model="res.company">
     <field name="view_mode">list,form</field>
   </action>
+  <action id="action.base.view.customer" type="sys.action.window" name="Customers" model="res.partner">
+    <field name="view_mode">card,list,form</field>
+    <field name="context">{"default_is_customer": 1}</field>
+    <field name="domain">{"is_customer": 1}</field>
+  </action>
+  <action id="action.base.view.vendor" type="sys.action.window" name="Vendors" model="res.partner">
+    <field name="view_mode">card,list,form</field>
+    <field name="context">{"default_is_supplier": 1}</field>
+    <field name="domain">{"is_supplier": 1}</field>
+  </action>
 </data>

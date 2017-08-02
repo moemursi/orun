@@ -2,6 +2,10 @@
 globals = @
 
 @Katrid =
+  ready: (fn) ->
+    script = $('script').first()
+    fn(angular.element($(script).parent()).scope())
+
   Settings:
     server: ''
     servicesProtocol: if io? and io.connect then 'io' else 'http'

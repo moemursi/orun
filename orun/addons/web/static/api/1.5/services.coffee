@@ -95,6 +95,9 @@ class Model extends Service
       if v.choices
         v.displayChoices = _.object(v.choices)
 
+  fieldChange: (methName, values) ->
+    @post(methName, null, )
+
   getViewInfo: (data) ->
     @post('get_view_info', null, { kwargs: data })
     .done (res) =>
@@ -128,9 +131,6 @@ class Model extends Service
 
   autoReport: ->
     @post 'auto_report', null, { kwargs: {} }
-
-  onFieldChange: (field, record) ->
-    @post('field_change', null, { kwargs: { field: field, record: record } })
 
 
 @Katrid.Services =

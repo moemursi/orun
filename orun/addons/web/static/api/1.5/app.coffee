@@ -150,7 +150,7 @@ ngApp.controller 'ActionController', ($scope, $compile, $location, $route, actio
 
     $scope.action = act = new Katrid.Actions[action.action_type](action, $scope, location)
     if action.model
-      $scope.model = new Katrid.Services.Model(action.model[1])
+      $scope.model = new Katrid.Services.Model(action.model[1], $scope)
       if action._back and action._back.views
         act.views = action._back.views
         $scope.views = act.views

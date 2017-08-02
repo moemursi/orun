@@ -5,6 +5,11 @@
   globals = this;
 
   this.Katrid = {
+    ready: function(fn) {
+      var script;
+      script = $('script').first();
+      return fn(angular.element($(script).parent()).scope());
+    },
     Settings: {
       server: '',
       servicesProtocol: (typeof io !== "undefined" && io !== null) && io.connect ? 'io' : 'http',

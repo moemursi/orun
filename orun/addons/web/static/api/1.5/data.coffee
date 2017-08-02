@@ -146,7 +146,6 @@ class DataSource
           elfield.addClass('ng-touched')
           field = @scope.view.fields[child.$name]
           s += "<span>#{field.caption}</span><ul><li>#{Katrid.i18n.gettext 'This field cannot be empty.'}</li></ul>"
-      console.log(elfield)
       elfield.focus()
       Katrid.Dialogs.Alerts.error s
       return false
@@ -410,6 +409,15 @@ class DataSource
       @scope.$apply =>
         for f, v of res.result.fields
           @scope.$set(f, v)
+
+  fieldChange: (meth, params) ->
+    @scope.model.post(meth, null, { kwargs: params })
+    .done (res) =>
+      @scope.$apply =>
+        if res.ok
+          if res.result.values
+            console.log(res.result)
+            @setFields(res.result.values)
 
   expandGroup: (index, row) ->
     rg = row._group

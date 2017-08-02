@@ -225,7 +225,6 @@
             s += "<span>" + field.caption + "</span><ul><li>" + (Katrid.i18n.gettext('This field cannot be empty.')) + "</li></ul>";
           }
         }
-        console.log(elfield);
         elfield.focus();
         Katrid.Dialogs.Alerts.error(s);
         return false;
@@ -588,6 +587,23 @@
           };
         })(this));
       }
+    };
+
+    DataSource.prototype.fieldChange = function(meth, params) {
+      return this.scope.model.post(meth, null, {
+        kwargs: params
+      }).done((function(_this) {
+        return function(res) {
+          return _this.scope.$apply(function() {
+            if (res.ok) {
+              if (res.result.values) {
+                console.log(res.result);
+                return _this.setFields(res.result.values);
+              }
+            }
+          });
+        };
+      })(this));
     };
 
     DataSource.prototype.expandGroup = function(index, row) {

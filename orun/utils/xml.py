@@ -1,4 +1,4 @@
-from lxml import etree
+from lxml import html as etree
 
 
 def _get_xml_field(parent):

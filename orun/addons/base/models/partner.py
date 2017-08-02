@@ -34,9 +34,9 @@ class Partner(models.Model):
     email = models.EmailField(label=_('Email'))
     website = models.URLField()
     barcode = models.CharField(label=_('Barcode'))
-    is_customer = models.BooleanField(default=False, label=_('Is Customer'))
-    is_supplier = models.BooleanField(default=False, label=_('Is Supplier'))
-    is_employee = models.BooleanField(default=False, label=_('Is Employee'))
+    is_customer = models.BooleanField(default=False, label=_('Is a Customer'))
+    is_supplier = models.BooleanField(default=False, label=_('Is a Supplier'))
+    is_employee = models.BooleanField(default=False, label=_('Is a Employee'))
     address = models.CharField(256, label=_('Address'))
     address_2 = models.CharField(256, label=_('Address 2'))
     zip = models.CharField(32, label=_('Zip'))
@@ -47,7 +47,7 @@ class Partner(models.Model):
     fax = models.CharField(64, 'Fax')
     mobile = models.CharField(64, label=_('Mobile'))
     birthdate = models.CharField(64, label=_('Birthdate'))
-    is_company = models.BooleanField(default=False, label=_('Is Company'))
+    is_company = models.BooleanField(default=False, label=_('Is a Company'))
     company_type = models.CharField(16, label=_('Company Type'), choices=(
         ('individual', 'Individual'),
         ('company', 'Company'),

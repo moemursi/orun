@@ -18,6 +18,9 @@ uiKatrid.directive 'field', ($compile) ->
 
   link: (scope, element, attrs, ctrl, transclude) ->
     field = scope.view.fields[attrs.name]
+    # Override the field label
+    if attrs.label
+      field.caption = attrs.label
 
     # Check if field depends from another
     if field.depends? and field.depends.length
@@ -593,14 +596,14 @@ Katrid.uiKatrid.directive 'foreignkey', ($compile, $controller) ->
 
     sel.on 'change', (e) ->
       v = sel.select2('data')
-      if v.id is newItem
+      if v and v.id is newItem
         service = new Katrid.Services.Model(field.model)
         service.createName(v.str)
         .done (res) ->
           controller.$setDirty()
           controller.$setViewValue res.result
           sel.select2('val', { id: res.result[0], text: res.result[1] })
-      else if v.id is newEditItem
+      else if v and v.id is newEditItem
         service = new Katrid.Services.Model(field.model)
         service.loadViews({ views: { form: null } })
         .done (res) ->
@@ -643,6 +646,7 @@ Katrid.uiKatrid.directive 'foreignkey', ($compile, $controller) ->
         v = (obj.id for obj in v)
         controller.$setViewValue v
       else
+        console.log('change fk', v)
         controller.$setDirty()
         if v
           controller.$setViewValue [v.id, v.text]

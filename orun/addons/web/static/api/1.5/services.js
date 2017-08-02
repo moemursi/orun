@@ -167,6 +167,10 @@
       return results;
     };
 
+    Model.prototype.fieldChange = function(methName, values) {
+      return this.post(methName, null);
+    };
+
     Model.prototype.getViewInfo = function(data) {
       return this.post('get_view_info', null, {
         kwargs: data
@@ -233,15 +237,6 @@
     Model.prototype.autoReport = function() {
       return this.post('auto_report', null, {
         kwargs: {}
-      });
-    };
-
-    Model.prototype.onFieldChange = function(field, record) {
-      return this.post('field_change', null, {
-        kwargs: {
-          field: field,
-          record: record
-        }
       });
     };
 
