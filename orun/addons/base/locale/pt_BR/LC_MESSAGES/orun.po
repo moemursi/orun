@@ -346,3 +346,6 @@ msgstr "Compras"
 
 msgid "Is a Company"
 msgstr "É uma empresa"
+
+msgid "Persons"
+msgstr "Pessoas"

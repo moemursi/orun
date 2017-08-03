@@ -33,6 +33,15 @@
   color: #fff;
   background-color: #3276b1;
 }
+.search-view-filter-menu li.selected a {
+  font-weight: bold;
+}
+.search-view-filter-menu li.selected a:before {
+  font-family: FontAwesome;
+  position: absolute;
+  left: 6px;
+  content: "\f00c";
+}
 div.form-data-changing .form-field-readonly {
   display: none;
 }
