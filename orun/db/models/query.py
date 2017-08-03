@@ -277,7 +277,7 @@ class Query(orm.Query):
             criterion.append(kwargs)
         for i, crit in enumerate(criterion):
             if isinstance(crit, dict):
-                args.extend(convert_params(self.selectable._froms[0].__model__, crit))
+                args.extend(convert_params(self._entities[0].entities[0], crit))
             else:
                 args.append(crit)
 
