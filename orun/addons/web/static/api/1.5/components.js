@@ -9,8 +9,9 @@
     return {
       restrict: 'E',
       replace: true,
+      priority: -1,
 
-      link(scope, element, attrs, ctrl, transclude) {
+      link(scope, element, attrs, ctrl) {
         let field = scope.view.fields[attrs.name];
         // Override the field label
         if (attrs.label) {
@@ -102,6 +103,7 @@
           templ = $compile(templ)(scope);
           element.replaceWith(templ);
           templ.addClass(`col-md-${attrs.cols || cols || 6}`);
+          element.removeAttr('ngChange').removeAttr('ng-change');
 
           // Add input field for tracking on FormController
           let fcontrol = templ.find('.form-field');

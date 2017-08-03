@@ -515,7 +515,6 @@
     }
 
     _setRecord(rec) {
-      let me = this;
       // Track field changes
       this.scope.record = createRecord(rec, this.scope);
       this.scope.recordId = rec.id;

@@ -1,58 +1,62 @@
-settings = {}
-settings.setdefault('INSTALLED_APPS', [])
-settings.setdefault('DEFAULT_INDEX_TABLESPACE', None)
-settings.setdefault('DEBUG', True)
-settings.setdefault('LOCALE_PATHS', [])
-settings.setdefault('LANGUAGE_CODE', 'pt-br')
-settings.setdefault('USE_I18N', True)
-settings.setdefault('USE_L10N', True)
-settings.setdefault('USE_TZ', False)
-settings.setdefault('DATABASES', {})
-settings.setdefault('DATABASE_ROUTERS', [])
-settings.setdefault('MIGRATION_MODULES', {})
-settings.setdefault('MEDIA_ROOT', None)
-settings.setdefault('STATIC_ROOT', None)
-settings.setdefault('MAX_NAME_LENGTH', 30)
-settings.setdefault('TIME_ZONE', None)
-settings.setdefault('SERIALIZATION_MODULES', {})
-settings.setdefault('DEFAULT_CHARSET', 'utf-8')
-settings.setdefault('DATABASE_SCHEMA_SUPPORT', False)
+settings = {
+    'INSTALLED_APPS': [],
+    'DEFAULT_INDEX_TABLESPACE': None,
+    'DEBUG': True,
 
-settings.setdefault('FORMAT_MODULE_PATH', None)
-settings.setdefault('DATE_INPUT_FORMATS', [
-    '%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y',  # '2006-10-25', '10/25/2006', '10/25/06'
-    '%b %d %Y', '%b %d, %Y',  # 'Oct 25 2006', 'Oct 25, 2006'
-    '%d %b %Y', '%d %b, %Y',  # '25 Oct 2006', '25 Oct, 2006'
-    '%B %d %Y', '%B %d, %Y',  # 'October 25 2006', 'October 25, 2006'
-    '%d %B %Y', '%d %B, %Y',  # '25 October 2006', '25 October, 2006'
-])
-settings.setdefault('TIME_INPUT_FORMATS', [
-    '%H:%M:%S',  # '14:30:59'
-    '%H:%M:%S.%f',  # '14:30:59.000200'
-    '%H:%M',  # '14:30'
-])
-settings.setdefault('TIME_INPUT_FORMATS', [
-    '%Y-%m-%d %H:%M:%S',     # '2006-10-25 14:30:59'
-    '%Y-%m-%d %H:%M:%S.%f',  # '2006-10-25 14:30:59.000200'
-    '%Y-%m-%d %H:%M',        # '2006-10-25 14:30'
-    '%Y-%m-%d',              # '2006-10-25'
-    '%m/%d/%Y %H:%M:%S',     # '10/25/2006 14:30:59'
-    '%m/%d/%Y %H:%M:%S.%f',  # '10/25/2006 14:30:59.000200'
-    '%m/%d/%Y %H:%M',        # '10/25/2006 14:30'
-    '%m/%d/%Y',              # '10/25/2006'
-    '%m/%d/%y %H:%M:%S',     # '10/25/06 14:30:59'
-    '%m/%d/%y %H:%M:%S.%f',  # '10/25/06 14:30:59.000200'
-    '%m/%d/%y %H:%M',        # '10/25/06 14:30'
-    '%m/%d/%y',              # '10/25/06'
-])
-settings.setdefault('PASSWORD_HASHERS', [
-    'orun.auth.hashers.PBKDF2PasswordHasher',
-    'orun.auth.hashers.PBKDF2SHA1PasswordHasher',
-    'orun.auth.hashers.Argon2PasswordHasher',
-    'orun.auth.hashers.BCryptSHA256PasswordHasher',
-    'orun.auth.hashers.BCryptPasswordHasher',
-])
+    'LOCALE_PATHS': [],
+    'LANGUAGE_CODE': 'en-us',
+    'USE_I18N': True,
+    'USE_L10N': True,
+    'USE_THOUSAND_SEPARATOR': False,
 
-settings.setdefault('SUPERUSER_ID', 1)
-settings.setdefault('SUPERUSER', 'admin')
-settings.setdefault('PASSWORD', 'admin')
+    'USE_TZ': False,
+    'DATABASES': {},
+    'DATABASE_ROUTERS': [],
+    'MIGRATION_MODULES': {},
+    'MEDIA_ROOT': None,
+    'STATIC_ROOT': None,
+    'MAX_NAME_LENGTH': 30,
+    'TIME_ZONE': None,
+    'SERIALIZATION_MODULES': {},
+    'DEFAULT_CHARSET': 'utf-8',
+    'DATABASE_SCHEMA_SUPPORT': False,
+
+    'FORMAT_MODULE_PATH': None,
+    'DATE_INPUT_FORMATS': [
+        '%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y',  # '2006-10-25', '10/25/2006', '10/25/06'
+        '%b %d %Y', '%b %d, %Y',  # 'Oct 25 2006', 'Oct 25, 2006'
+        '%d %b %Y', '%d %b, %Y',  # '25 Oct 2006', '25 Oct, 2006'
+        '%B %d %Y', '%B %d, %Y',  # 'October 25 2006', 'October 25, 2006'
+        '%d %B %Y', '%d %B, %Y',  # '25 October 2006', '25 October, 2006'
+    ],
+    'TIME_INPUT_FORMATS': [
+        '%H:%M:%S',  # '14:30:59'
+        '%H:%M:%S.%f',  # '14:30:59.000200'
+        '%H:%M',  # '14:30'
+    ],
+    'DATETIME_INPUT_FORMATS': [
+        '%Y-%m-%d %H:%M:%S',     # '2006-10-25 14:30:59'
+        '%Y-%m-%d %H:%M:%S.%f',  # '2006-10-25 14:30:59.000200'
+        '%Y-%m-%d %H:%M',        # '2006-10-25 14:30'
+        '%Y-%m-%d',              # '2006-10-25'
+        '%m/%d/%Y %H:%M:%S',     # '10/25/2006 14:30:59'
+        '%m/%d/%Y %H:%M:%S.%f',  # '10/25/2006 14:30:59.000200'
+        '%m/%d/%Y %H:%M',        # '10/25/2006 14:30'
+        '%m/%d/%Y',              # '10/25/2006'
+        '%m/%d/%y %H:%M:%S',     # '10/25/06 14:30:59'
+        '%m/%d/%y %H:%M:%S.%f',  # '10/25/06 14:30:59.000200'
+        '%m/%d/%y %H:%M',        # '10/25/06 14:30'
+        '%m/%d/%y',              # '10/25/06'
+    ],
+    'PASSWORD_HASHERS': [
+        'orun.auth.hashers.PBKDF2PasswordHasher',
+        'orun.auth.hashers.PBKDF2SHA1PasswordHasher',
+        'orun.auth.hashers.Argon2PasswordHasher',
+        'orun.auth.hashers.BCryptSHA256PasswordHasher',
+        'orun.auth.hashers.BCryptPasswordHasher',
+    ],
+
+    'SUPERUSER_ID': 1,
+    'SUPERUSER': 'admin',
+    'PASSWORD': 'admin',
+}
