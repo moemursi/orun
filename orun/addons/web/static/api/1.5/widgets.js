@@ -224,6 +224,7 @@
       this.prototype.tag = 'textarea';
     }
   }
+  
   TextareaField.initClass();
 
 
