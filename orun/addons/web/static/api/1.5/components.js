@@ -10,7 +10,6 @@
       restrict: 'E',
       replace: true,
       priority: -1,
-
       link(scope, element, attrs, ctrl) {
         let field = scope.view.fields[attrs.name];
         // Override the field label

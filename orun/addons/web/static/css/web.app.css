@@ -53,7 +53,7 @@ div.form-data-changing section[readonly] .form-field-readonly {
   display: block;
   border: 1px solid #bbbbbb;
   background-color: #f5f5f5;
-  padding: 4px 5px 0 5px;
+  padding: 6px 5px 0 12px;
 }
 div.form-data-changing section[readonly] .form-field,
 div.form-data-changing section[readonly] .input-group,

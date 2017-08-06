@@ -130,8 +130,10 @@
       //# Prepare form special elements
       // Prepare form header
       const header = content.find('form header').first();
+      const newScope = $scope.$new(false);
+      console.log(newScope);
 
-      const el = root.html($compile($scope.content)($scope));
+      const el = root.html($compile($scope.content)(newScope));
 
       // Get the first form controller
       $scope.formElement = el.find('form').first();

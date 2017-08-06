@@ -1,8 +1,8 @@
 (function () {
 
   let widgetCount = 0;
-  
-  
+
+
   class Widget {
     static initClass() {
       this.prototype.tag = 'div';
@@ -10,15 +10,15 @@
     constructor() {
       this.classes = ['form-field'];
     }
-  
+
     ngModel(attrs) {
       return `record.${attrs.name}`;
     }
-  
+
     getId(id) {
       return `katrid-input-${id.toString()}`;
     }
-  
+
     widgetAttrs(scope, el, attrs, field) {
       let attr, v;
       const r = {};
@@ -34,7 +34,7 @@
           }
         }
       }
-  
+
       for (attr in attrs.$attr) {
         let attrName = attrs.$attr[attr];
         if (!attrName.startsWith('container-') && (attr !== 'ngShow') && (attr !== 'ngReadonly')) {
@@ -53,7 +53,7 @@
       }
       return r;
     }
-  
+
     _getWidgetAttrs(scope, el, attrs, field) {
       let html = '';
       const attributes = this.widgetAttrs(scope, el, attrs, field);
@@ -73,11 +73,11 @@
       }
       return html;
     }
-  
+
     innerHtml(scope, el, attrs, field) {
       return '';
     }
-  
+
     labelTemplate(scope, el, attrs, field) {
       const placeholder = '';
       const label = field.caption;
@@ -89,11 +89,11 @@
       }
       return `<label for="${attrs._id}" class="form-label">${label}</label>`;
     }
-  
+
     spanTemplate(scope, el, attrs, field) {
       return `<span class="form-field-readonly">\${ record.${attrs.name}.toString() || '--' }</span>`;
     }
-  
+
     widgetTemplate(scope, el, attrs, field, type) {
       let html;
       if (this.tag.startsWith('input')) {
@@ -107,7 +107,7 @@
       }
       return html;
     }
-  
+
     template(scope, el, attrs, field, type) {
       if (type == null) { type = 'text'; }
       widgetCount++;
@@ -120,7 +120,7 @@
         '</div>';
       return html;
     }
-  
+
     link(scope, el, attrs, $compile, field) {
       // Add watcher for field dependencies
       if (field.depends) {
@@ -144,8 +144,8 @@
     }
   }
   Widget.initClass();
-  
-  
+
+
   class InputWidget extends Widget {
     static initClass() {
       this.prototype.tag = 'input';
@@ -154,7 +154,7 @@
       super(...arguments);
       this.classes.push('form-control');
     }
-  
+
     widgetTemplate(scope, el, attrs, field, type) {
       if (type == null) { type = 'text'; }
       const prependIcon = attrs.icon;
@@ -166,8 +166,8 @@
     }
   }
   InputWidget.initClass();
-  
-  
+
+
   class TextField extends InputWidget {
     widgetAttrs(scope, el, attrs, field) {
       const attributes = super.widgetAttrs(scope, el, attrs, field);
@@ -177,29 +177,29 @@
       return attributes;
     }
   }
-  
-  
+
+
   class SelectField extends InputWidget {
     static initClass() {
       this.prototype.tag = 'select';
     }
-  
+
     spanTemplate(scope, el, attrs, field) {
       return `<span class="form-field-readonly">\${ view.fields.${attrs.name}.displayChoices[record.${attrs.name}] || '--' }</span>`;
     }
-  
+
     innerHtml(scope, el, attrs, field) {
       return `<option ng-repeat="choice in view.fields.${attrs.name}.choices" value="\${choice[0]}">\${choice[1]}</option>`;
     }
   }
   SelectField.initClass();
-  
-  
+
+
   class ForeignKey extends Widget {
     static initClass() {
       this.prototype.tag = 'input foreignkey';
     }
-  
+
     spanTemplate(scope, el, attrs, field) {
       let allowOpen = true;
       if (((attrs.allowOpen != null) && (attrs.allowOpen === 'false')) || ((attrs.allowOpen == null) && field.attrs && (field.attrs['allow-open'] === false))) {
@@ -211,91 +211,97 @@
         return `<span class="form-field-readonly"><a href="#/action/${ field.model }/view/?id=\${ record.${attrs.name}[0] }&title=${ field.caption }" ng-click="action.openObject('${ field.model }', record.${attrs.name}[0], $event, '${ field.caption }')">\${ record.${attrs.name}[1] }</a><span ng-if="!record.${attrs.name}[1]">--</span></span>`;
       }
     }
-  
+
     template(scope, el, attrs, field) {
       return super.template(scope, el, attrs, field, 'hidden');
     }
   }
   ForeignKey.initClass();
-  
-  
+
+
   class TextareaField extends TextField {
     static initClass() {
       this.prototype.tag = 'textarea';
     }
   }
   TextareaField.initClass();
-  
-  
+
+
   class DecimalField extends TextField {
     static initClass() {
-      this.prototype.tag = 'input decimal';
+      if (Katrid.UI.isMobile) this.prototype.tag = 'input';
+      else this.prototype.tag = 'input decimal';
     }
-  
+
+    template(scope, el, attrs, field) {
+      if (Katrid.UI.isMobile) return super.template(scope, el, attrs, field, 'number');
+      else return super.template(scope, el, attrs, field, 'text');
+    }
+
     spanTemplate(scope, el, attrs, field) {
       return `<span class="form-field-readonly">\${ (record.${attrs.name}|number:2) || '--' }</span>`;
     }
   }
   DecimalField.initClass();
-  
-  
+
+
   class DateField extends TextField {
     static initClass() {
       this.prototype.tag = 'input datepicker';
     }
-  
+
     spanTemplate(scope, el, attrs, field) {
       return `<span class="form-field-readonly">\${ (record.${attrs.name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}') || '--' }</span>`;
     }
-  
+
     widgetTemplate(scope, el, attrs, field, type) {
       const html = super.widgetTemplate(scope, el, attrs, field, type);
       return `<div class="input-group date" ng-show="dataSource.changing">${html}<div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div></div>`;
     }
   }
   DateField.initClass();
-  
-  
+
+
   class OneToManyField extends Widget {
     static initClass() {
       this.prototype.tag = 'grid';
     }
-  
+
     spanTemplate(scope, el, attrs, field) {
       return '';
     }
-  
+
     template(scope, el, attrs, field) {
       const html = super.template(scope, el, attrs, field, 'grid');
       return html;
     }
   }
   OneToManyField.initClass();
-  
-  
+
+
   class ManyToManyField extends Widget {
     static initClass() {
       this.prototype.tag = 'input foreignkey multiple';
     }
-  
+
     spanTemplate(scope, el, attrs, field) {
       return `<span class="form-field-readonly">\${ record.${attrs.name}|m2m }</span>`;
     }
-  
+
     template(scope, el, attrs, field) {
       return super.template(scope, el, attrs, field, 'hidden');
     }
   }
   ManyToManyField.initClass();
-  
-  
+
+
   class CheckBox extends InputWidget {
     spanTemplate(scope, el, attrs, field) {
       return `<span class="form-field-readonly bool-text">
   \${ (record.${attrs.name} && Katrid.i18n.gettext('yes')) || ((record.${attrs.name} === false) && Katrid.i18n.gettext('no')) || (!record.${attrs.name} && '--') }
   </span>`;
     }
-  
+
     widgetTemplate(scope, el, attrs, field) {
       let html = super.widgetTemplate(scope, el, attrs, field, 'checkbox');
       html = `<label class="checkbox" ng-show="dataSource.changing">${html}`;
@@ -307,7 +313,7 @@
       html += '<i></i></label>';
       return html;
     }
-  
+
     labelTemplate(scope, el, attrs, field) {
       if (field.help_text) {
         return super.labelTemplate(scope, el, attrs, field);
@@ -315,33 +321,33 @@
       return `<label for="${attrs._id}" class="form-label form-label-checkbox"><span>${field.caption}</span>&nbsp;</label>`;
     }
   }
-  
-  
+
+
   class FileField extends InputWidget {
     static initClass() {
       this.prototype.tag = 'input file-reader';
     }
-  
+
     template(scope, el, attrs, field, type) {
       if (type == null) { type = 'file'; }
       return super.template(scope, el, attrs, field, type);
     }
   }
   FileField.initClass();
-  
-  
+
+
   class ImageField extends FileField {
     static initClass() {
       this.prototype.tag = 'input file-reader accept="image/*"';
     }
-  
+
     template(scope, el, attrs, field, type) {
       if (type == null) { type = 'file'; }
       return super.template(scope, el, attrs, field, type);
     }
-  
+
     spanTemplate() { return ''; }
-  
+
     widgetTemplate(scope, el, attrs, field, type) {
       let html = super.widgetTemplate(scope, el, attrs, field, type);
       html = `<div class="image-box image-field">
@@ -355,32 +361,32 @@
     }
   }
   ImageField.initClass();
-  
-  
+
+
   class PasswordField extends InputWidget {
     template(scope, el, attrs, field, type) {
       if (type == null) { type = 'password'; }
       return super.template(scope, el, attrs, field, type);
     }
-  
+
     spanTemplate(scope, el, attrs, field) {
       return "<span class=\"form-field-readonly\">*******************</span>";
     }
   }
-  
-  
+
+
   class StatusField extends InputWidget {
     static initClass() {
       this.prototype.tag = 'input status-field';
     }
-  
+
     template(scope, el, attrs, field) {
       return super.template(scope, el, attrs, field, 'hidden');
     }
   }
   StatusField.initClass();
-  
-  
+
+
   this.Katrid.UI.Widgets = {
     Widget,
     InputWidget,
