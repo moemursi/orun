@@ -224,18 +224,18 @@
       this.prototype.tag = 'textarea';
     }
   }
-  
+
   TextareaField.initClass();
 
 
   class DecimalField extends TextField {
     static initClass() {
-      if (Katrid.UI.isMobile) this.prototype.tag = 'input';
+      if (Katrid.Settings.UI.isMobile) this.prototype.tag = 'input';
       else this.prototype.tag = 'input decimal';
     }
 
     template(scope, el, attrs, field) {
-      if (Katrid.UI.isMobile) return super.template(scope, el, attrs, field, 'number');
+      if (Katrid.Settings.UI.isMobile) return super.template(scope, el, attrs, field, 'number');
       else return super.template(scope, el, attrs, field, 'text');
     }
 
