@@ -229,7 +229,6 @@
 
   class DecimalField extends TextField {
     static initClass() {
-      console.log('is mobile', Katrid.UI.isMobile);
       if (Katrid.UI.isMobile) this.prototype.tag = 'input';
       else this.prototype.tag = 'input decimal';
     }
