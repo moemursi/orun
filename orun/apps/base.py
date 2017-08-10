@@ -16,10 +16,6 @@ from .registry import registry
 from .utils import adjust_dependencies
 
 
-def create_app(name, settings):
-    return Application(name, settings=settings)
-
-
 def _current_user_env():
     from orun.auth import get_user, AUTH_SESSION_KEY, SITE_SESSION_KEY
     env.user = SimpleLazyObject(lambda: get_user(AUTH_SESSION_KEY))

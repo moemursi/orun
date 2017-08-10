@@ -52,7 +52,7 @@ class Field(object):
 
     def __init__(self, label=None, db_column=None, db_index=False, primary_key=False,
                  concrete=None, readonly=False, null=True, required=None, widget_attrs=None,
-                 auto_created=False, default=NOT_PROVIDED, on_update=NOT_PROVIDED, choices=None,
+                 auto_created=False, default=NOT_PROVIDED, choices=None,
                  deferred=False, copy=None, serializable=True, editable=True, help_text=None, validators=[],
                  error_messages=None,
                  unique=False, db_tablespace=None, getter=None, setter=None, proxy=None, *args, **kwargs):
@@ -77,7 +77,6 @@ class Field(object):
         if copy is None:
             self.copy = not self.primary_key and self.concrete and not auto_created
         self.default = default
-        self.on_update = on_update
         self.required = required
         self.null = null
         self.choices = choices
@@ -159,8 +158,6 @@ class Field(object):
             kwargs['nullable'] = False
         if self.default is not NOT_PROVIDED:
             kwargs['default'] = self.default
-        if self.on_update is not NOT_PROVIDED:
-            kwargs['onupdate'] = self.on_update
         tp = self.db_type(bind=bind)
         if not isinstance(tp, tuple):
             tp = (tp,)

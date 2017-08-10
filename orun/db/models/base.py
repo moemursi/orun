@@ -229,11 +229,8 @@ class ModelState(object):
 
 
 class Model(metaclass=ModelBase):
-    _cache = None
-
     def __new__(cls, *args, **kwargs):
         new_obj = super(Model, cls).__new__(cls)
-        new_obj.__dict__['_cache'] = {}
         return new_obj
 
     def __init__(self, *args, **kwargs):

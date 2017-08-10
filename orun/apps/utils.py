@@ -32,4 +32,3 @@ def adjust_dependencies(addons):
             else:
                 addons.insert(i + 1, entry)
     return addons
-

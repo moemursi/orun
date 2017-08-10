@@ -1,3 +1,3 @@
-from .base import Application, create_app
+from .base import Application
 from .registry import (apps, Registry)
 from .config import AppConfig

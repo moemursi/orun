@@ -8,3 +8,22 @@ class Config(models.Model):
 
     class Meta:
         name = 'sys.config'
+
+
+class SingleLineSettings(models.Model):
+    """
+    Single line settings object.
+    """
+
+    class Meta:
+        abstract = True
+
+
+class VirtualSettings(models.Model):
+    """
+    Single line settings object.
+    """
+
+    class Meta:
+        name = 'sys.config.settings'
+        virtual = True

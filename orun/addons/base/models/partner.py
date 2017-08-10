@@ -76,7 +76,7 @@ class Partner(models.Model):
         Sends an email to this User.
         """
 
-        from flask_mail import Message
+        from orun.core.mail import Message
         msg = Message(
             subject,
             recipients=[self.email],
@@ -84,8 +84,8 @@ class Partner(models.Model):
         )
         if from_:
             msg.sender = from_
-        msg.body = message
-        msg.html = message
+        msg.body = message.encode('utf-8')
+        msg.html = message.encode('utf-8')
         app.mail.send(msg)
 
     def set_password(self, password):

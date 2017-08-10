@@ -16,6 +16,6 @@ from orun import apps
 )
 def command(app_label, module, **kwargs):
     app_config = apps.apps.app_configs[app_label]
-    loader = unittest.TestLoader()
-    suite = loader.discover(os.path.join(app_config.root_path, 'tests'))
-    unittest.TextTestRunner().run(suite)
+    from orun.test import DiscoverRunner
+    runner = DiscoverRunner(os.path.join(app_config.root_path, 'tests'))
+    runner.run()

@@ -10,12 +10,10 @@ from .base import Field
 __all__ = ['ForeignKey', 'OneToManyField', 'ManyToManyField', 'OneToOneField', 'CASCADE', 'SET_NULL']
 
 
-class CASCADE:
-    pass
+CASCADE = 'CASCADE'
 
 
-class SET_NULL:
-    pass
+SET_NULL = 'SET NULL'
 
 
 class RelatedField(Field):
@@ -49,9 +47,11 @@ class RelatedField(Field):
 
 class ForeignKey(RelatedField):
     def __init__(self, to, related_name=None, to_field=None, db_constraint=True, parent_link=False,
-                 cascade=None, on_delete=SET_NULL, label_from_instance=None, name_fields=None, *args, **kwargs):
+                 cascade=None, on_delete=None, on_update=None, label_from_instance=None, name_fields=None,
+                 *args, **kwargs):
         self.cascade = cascade
         self.on_delete = on_delete
+        self.on_update = on_update
         self.to = to
         self.db_constraint = db_constraint
         self.parent_link = parent_link
@@ -124,8 +124,10 @@ class ForeignKey(RelatedField):
             del kwargs['db_index']
         else:
             kwargs['db_index'] = False
-        #if self.db_constraint is not True:
-        #    kwargs['db_constraint'] = self.db_constraint
+        if self.db_constraint is not True:
+           kwargs['db_constraint'] = self.db_constraint
+        if self.on_delete is not None:
+           kwargs['on_delete'] = self.on_delete
         # Rel needs more work.
         #to_meta = getattr(self.remote_field.model, "_meta", None)
         #if self.remote_field.field_name and (

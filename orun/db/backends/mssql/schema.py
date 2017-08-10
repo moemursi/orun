@@ -11,3 +11,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     sql_set_sequence_max = "DBCC CHECKIDENT ('%(table)s')"
     sql_rename_table = "SP_RENAME '%(old_table)s', '%(new_table)s'"
     sql_rename_column = "SP_RENAME '%(table)s.%(old_column)s', %(new_column)s, 'COLUMN'"
+
+    def _create_fk_sql(self, model, field, suffix):
+        sql = super(DatabaseSchemaEditor, self)._create_fk_sql(model, field, suffix)
+        return sql

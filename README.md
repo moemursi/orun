@@ -7,7 +7,7 @@ This is a Django derivative project, using Flask as webserver and inspired on Op
 The ORM is built on top of sqlalchemy, although follows Django ORM patterns.
 
 Orun should work with all sqlalchemy compatible database, however, the project goal
-is add support for advanced database features, like schemas and other enterprise database resource.
+is add support for advanced database features, like schemas and other enterprise database resources.
 
 Orun could be even used to build API and WebServices.
 

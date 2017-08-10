@@ -36,6 +36,7 @@ class Options(object):
     index_together = ()
     proxy = None
     fixtures = None
+    virtual = False
 
     def __init__(self, attrs, app_config=None, bases=None):
         self.meta_attrs = attrs
@@ -49,6 +50,8 @@ class Options(object):
         self.parents = {}
         self.mapped = None
         self.bases = bases
+        if self.virtual:
+            self.managed = False
 
     def __str__(self):
         return self.name or (self.model.app_label + '.' + self.object_name)

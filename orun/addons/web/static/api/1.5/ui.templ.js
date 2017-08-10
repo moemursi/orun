@@ -4,7 +4,7 @@
       if (click == null) { click = "action.setViewType()"; }
       return `<h2><a href="javascript:void(0)" ng-click="${ click }">${ title }</a></h2>`;
     }
-  
+
     getBreadcrumb(scope, viewType) {
       let html;
       if (scope.action.history.length) {
@@ -22,14 +22,14 @@
     ${ (scope.action.info.display_name && `<li>${ this.getActionTitle(scope.action.info.display_name) }</li>`) || '' }\
   `;
       }
-  
+
       if (viewType === 'form') {
         html += "<li>${ (dataSource.loadingRecord && Katrid.i18n.gettext('Loading...')) || record.display_name }</li>";
       }
       html += '</ol>';
       return html;
     }
-  
+
     getSettingsDropdown(viewType) {
       if (viewType === 'form') {
         return `<ul class="dropdown-menu pull-right">
@@ -39,8 +39,8 @@
   </ul>`;
       }
     }
-  
-  
+
+
     getSetDefaultValueDialog() {
       return `\
   <div class="modal fade" id="set-default-value-dialog" tabindex="-1" role="dialog">
@@ -70,11 +70,11 @@
   </div>\
   `;
     }
-  
+
     getViewRenderer(viewType) {
       return this[`render_${viewType}`];
     }
-  
+
     getViewModesButtons(scope) {
       const act = scope.action;
       const buttons = {
@@ -86,7 +86,7 @@
       };
       return buttons;
     }
-  
+
     // buttons group include
     getViewButtons(scope) {
       const act = scope.action;
@@ -97,7 +97,7 @@
       }
       return `<div class="btn-group">${r.join('')}</div>`;
     }
-  
+
     gridDialog() {
       return `\
   <div class="modal fade" tabindex="-1" role="dialog">
@@ -123,7 +123,7 @@
   </div>\
   `;
     }
-  
+
     getFilterButtons() {
       return `\
   <div class="btn-group animated fadeIn search-view-more-area" ng-show="search.viewMoreButtons">
@@ -141,7 +141,7 @@
   </div>\
   `;
     }
-  
+
     preRender_card(scope, html) {
       const buttons = this.getViewButtons(scope);
       html = $(html);
@@ -149,7 +149,7 @@
       for (let field of Array.from(html.find('field'))) {
         field = $(field);
         const name = $(field).attr('name');
-        field.replaceWith(`\${ record.${name} }`);
+        field.replaceWith(`\${ ::record.${name} }`);
       }
       html = html.html();
       return `\
@@ -224,7 +224,7 @@
   </div>\
   `;
     }
-  
+
     preRender_toolbar(scope, viewType) {
       const buttons = this.getViewButtons(scope);
       let actions = '';
@@ -283,7 +283,7 @@
     </div>\
   `;
     }
-  
+
     preRender_form(scope, html, toolbar) {
       if (toolbar == null) { toolbar = true; }
       if (toolbar) {
@@ -291,14 +291,14 @@
       } else {
         toolbar = '';
       }
-  
+
       return `\
   <div ng-form="form" ng-class="{'form-data-changing': dataSource.changing}">
   ${ toolbar }
   <div class=\"content container animated fadeIn\"><div class="panel panel-default data-panel browsing" ng-class="{ browsing: dataSource.browsing, editing: dataSource.changing }">
   <div class=\"panel-body\"><div class="row">${html}</div></div></div></div></div>`;
     }
-  
+
     preRender_list(scope, html) {
       const reports = `\
   <div class="btn-group">
@@ -361,15 +361,19 @@
   <div class=\"panel-body no-padding\">
   <div class=\"dataTables_wrapper form-inline dt-bootstrap no-footer\">${html}</div></div></div></div>`;
     }
-  
+
+    static get cssListClass() {
+      return 'table table-striped table-bordered table-condensed table-hover display responsive nowrap dataTable no-footer dtr-column';
+    }
+
     renderList(scope, element, attrs, rowClick, parentDataSource) {
       let ths = '<th ng-show="dataSource.groups.length"></th>';
       let cols = `<td ng-show="dataSource.groups.length" class="group-header">
   <div ng-show="row._group">
   <span class="fa fa-fw fa-caret-right"
     ng-class="{'fa-caret-down': row._group.expanded, 'fa-caret-right': row._group.collapsed}"></span>
-    \${row._group.__str__} (\${row._group.count})</div></td>`;
-  
+    \${::row._group.__str__} (\${::row._group.count})</div></td>`;
+
       for (let col of Array.from(element.children())) {
         col = $(col);
         let name = col.attr('name');
@@ -378,44 +382,44 @@
           ths += "<th><span>${col.attr('caption')}</span></th>";
           continue;
         }
-  
+
         if (col.attr('visible') === 'False') {
           continue;
         }
-  
-  
+
+
         name = col.attr('name');
         const fieldInfo = scope.view.fields[name];
-  
+
         if (fieldInfo.choices) {
           fieldInfo._listChoices = {};
           for (let choice of Array.from(fieldInfo.choices)) {
             fieldInfo._listChoices[choice[0]] = choice[1];
           }
         }
-  
+
         let cls = `${fieldInfo.type} list-column`;
-        ths += `<th class="${cls}" name="${name}"><span>\${view.fields.${name}.caption}</span></th>`;
+        ths += `<th class="${cls}" name="${name}"><span>\${::view.fields.${name}.caption}</span></th>`;
         cls = `${fieldInfo.type} field-${name}`;
-  
+
         const colHtml = col.html();
-  
+
         if (colHtml) {
-          cols += `<td><a data-id="\${row.${name}[0]}">${colHtml}</a></td>`;
+          cols += `<td><a data-id="\${::row.${name}[0]}">${colHtml}</a></td>`;
         } else if (fieldInfo.type === 'ForeignKey') {
-          cols += `<td><a data-id="\${row.${name}[0]}">\${row.${name}[1]}</a></td>`;
+          cols += `<td><a data-id="\${::row.${name}[0]}">\${row.${name}[1]}</a></td>`;
         } else if  (fieldInfo._listChoices) {
-          cols += `<td class="${cls}">\${view.fields.${name}._listChoices[row.${name}]}</td>`;
+          cols += `<td class="${cls}">\${::view.fields.${name}._listChoices[row.${name}]}</td>`;
         } else if (fieldInfo.type === 'BooleanField') {
-          cols += `<td class="bool-text ${cls}">\${row.${name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}</td>`;
+          cols += `<td class="bool-text ${cls}">\${::row.${name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}</td>`;
         } else if (fieldInfo.type === 'DecimalField') {
-          cols += `<td class="${cls}">\${row.${name}|number:2}</td>`;
+          cols += `<td class="${cls}">\${::row.${name}|number:2}</td>`;
         } else if (fieldInfo.type === 'DateField') {
-          cols += `<td class="${cls}">\${row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}</td>`;
+          cols += `<td class="${cls}">\${::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}</td>`;
         } else if (fieldInfo.type === 'DateTimeField') {
-          cols += `<td class="${cls}">\${row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}</td>`;
+          cols += `<td class="${cls}">\${::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}</td>`;
         } else {
-          cols += `<td>\${row.${name}}</td>`;
+          cols += `<td>\${::row.${name}}</td>`;
         }
       }
       if (parentDataSource) {
@@ -425,7 +429,7 @@
       if ((rowClick == null)) {
         rowClick = 'action.listRowClick($index, row, $event)';
       }
-      const s = `<table ng-show="!dataSource.loading" class="table table-striped table-bordered table-condensed table-hover display responsive nowrap dataTable no-footer dtr-column">
+      const s = `<table ng-hide="dataSource.loading" class="${this.constructor.cssListClass}">
   <thead><tr>${ths}</tr></thead>
   <tbody>
   <tr ng-repeat="row in records" ng-click="${rowClick}" ng-class="{'group-header': row._hasGroup}">${cols}</tr>
@@ -435,7 +439,7 @@
   `;
       return s;
     }
-  
+
     renderGrid(scope, element, attrs, rowClick) {
       const tbl = this.renderList(scope, element, attrs, rowClick, true);
       return `<div><div ng-show="!dataSource.readonly">
@@ -444,7 +448,7 @@
   <button class="btn btn-xs btn-info" ng-click="cancelChanges()" ng-show="dataSource.changing" type="button">${Katrid.i18n.gettext('Cancel')}</button>
   </div><div class="row inline-input-dialog" ng-show="dataSource.changing"/>${tbl}</div>`;
     }
-  
+
     windowDialog(scope) {
       return `\
   <div class="modal fade" tabindex="-1" role="dialog">
@@ -472,7 +476,7 @@
   </div>\
   `;
     }
-  
+
     renderReportDialog(scope) {
       return `<div ng-controller="ReportController">
   <form id="report-form" method="get" action="/web/reports/report/">
@@ -599,7 +603,7 @@
   </div>\
   `;
     }
-  
+
     renderStatusField(fieldName) {
       return `\
   <div class="status-field status-field-sm pull-right">
@@ -614,8 +618,8 @@
   `;
     }
   }
-  
-  
+
+
   this.Katrid.UI.Utils = {
     BaseTemplate,
     Templates: new BaseTemplate()

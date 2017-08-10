@@ -988,7 +988,7 @@ class BaseDatabaseSchemaEditor(object):
             "to_column": to_column,
         }
 
-        return self.sql_create_fk % {
+        sql = self.sql_create_fk % {
             "table": self.quote_name(from_table),
             "name": self.quote_name(self._create_index_name(model, [from_column], prefix='fk_')),
             "column": self.quote_name(from_column),
@@ -996,6 +996,12 @@ class BaseDatabaseSchemaEditor(object):
             "to_column": self.quote_name(to_column),
             "deferrable": self.connection.conn_info.ops.deferrable_sql(),
         }
+
+        if field.on_delete is not None:
+            sql += ' ON DELETE ' + field.on_delete
+        if field.on_update is not None:
+            sql += ' ON UPDATE ' + field.on_update
+        return sql
 
     def _create_unique_sql(self, model, columns):
         return self.sql_create_unique % {
