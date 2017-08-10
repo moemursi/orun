@@ -1,44 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml">
-    <data-source source="LOCAL" name="Sqlite (Xerial) - db.sqlite3" uuid="579f2736-918a-4e32-a292-3165ad12bc00">
-      <driver-ref>sqlite.xerial</driver-ref>
+    <data-source source="LOCAL" name="rh1@localhost" uuid="b869bd7d-fb52-4e67-bc42-19c1a150744b">
+      <driver-ref>sqlserver.ms</driver-ref>
       <synchronize>true</synchronize>
-      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/../../freelancer/tuaseguros/db.sqlite3</jdbc-url>
+      <jdbc-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</jdbc-driver>
+      <jdbc-url>jdbc:sqlserver://localhost\dev:1433;databaseName=rh1</jdbc-url>
     </data-source>
-    <data-source source="LOCAL" name="db" uuid="90a0ef8b-3cfd-4567-bd80-54d2b591e0ed">
-      <driver-ref>sqlite.xerial</driver-ref>
+    <data-source source="LOCAL" name="contabil@localhost [2]" uuid="75b562c3-adc2-4b38-b8af-1a1a60887c60">
+      <driver-ref>sqlserver.ms</driver-ref>
       <synchronize>true</synchronize>
-      <imported>true</imported>
-      <remarks>SQLite</remarks>
-      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:d:\db.sqlite3</jdbc-url>
-      <explain-plan-config>
-        <provider>com.intellij.database.plan.ExplainPlanProvider.NullExplainPlanProvider</provider>
-      </explain-plan-config>
-      <libraries>
-        <library>
-          <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/xerial-sqlite-license.txt</url>
-        </library>
-        <library>
-          <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/sqlite-jdbc-3.8.11.2.jar</url>
-        </library>
-      </libraries>
-    </data-source>
-    <data-source source="LOCAL" name="MySQL - test001@localhost" uuid="4f32e5cf-0ffd-44bc-a2bd-d2221b9221df">
-      <driver-ref>mysql</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>com.mysql.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://localhost:3306/test001</jdbc-url>
-      <driver-properties>
-        <property name="autoReconnect" value="true" />
-        <property name="zeroDateTimeBehavior" value="convertToNull" />
-        <property name="tinyInt1isBit" value="false" />
-        <property name="characterEncoding" value="utf8" />
-        <property name="characterSetResults" value="utf8" />
-        <property name="yearIsDateType" value="false" />
-      </driver-properties>
+      <jdbc-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</jdbc-driver>
+      <jdbc-url>jdbc:sqlserver://localhost\dev:1433;databaseName=test_test001</jdbc-url>
     </data-source>
   </component>
 </project>
