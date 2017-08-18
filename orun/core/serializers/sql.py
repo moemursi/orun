@@ -26,6 +26,10 @@ def Deserializer(stream_or_string, app, **options):
                 (user_name, pwd, host, db_name, stream_or_string.name,)
             )
         else:
+            print(
+                'sqlcmd -E -H %s -d %s -i "%s" -f 65001' %
+                (host, db_name, stream_or_string.name,)
+            )
             os.system(
                 'sqlcmd -E -H %s -d %s -i "%s" -f 65001' %
                 (host, db_name, stream_or_string.name,)
