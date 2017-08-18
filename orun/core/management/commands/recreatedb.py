@@ -2,7 +2,6 @@ from orun.db import DEFAULT_DB_ALIAS
 from orun.core.management import commands
 from orun.core.management.commands import createdb
 from orun.core.management.commands import dropdb
-#from orun.core.management.commands import migrate
 
 
 @commands.command('recreatedb')

@@ -4,6 +4,7 @@ from subprocess import PIPE, Popen
 
 from orun.utils import reraise
 from orun.utils.encoding import DEFAULT_LOCALE_ENCODING, force_text
+from orun.utils.crypto import get_random_string
 
 from .base import CommandError
 
@@ -75,3 +76,11 @@ def find_command(cmd, path=None, pathext=None):
             if os.path.isfile(fext):
                 return fext
     return None
+
+
+def get_random_secret_key():
+    """
+    Return a 50 character random string usable as a SECRET_KEY setting value.
+    """
+    chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+    return get_random_string(50, chars)

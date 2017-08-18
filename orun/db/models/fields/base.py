@@ -65,7 +65,7 @@ class Field(object):
         if isinstance(proxy, str):
             proxy = proxy.split('.')
             if getter is None:
-                getter = 'get_proxy_field_value'
+                getter = self.get_proxy_field_value
         self.proxy_field = proxy
         if concrete is None and getter:
             concrete = False
@@ -147,7 +147,7 @@ class Field(object):
         # Initialize the primary key sqlalchemy column
         if self.primary_key and self.model._meta.app:
             self._prepare()
-        if self.getter:
+        if isinstance(self.getter, str):
             fn = getattr(cls, self.getter, None)
             self.depends = getattr(fn, 'depends', None)
 
@@ -511,8 +511,8 @@ class DateTimeField(Field):
     _db_type = sa.DateTime()
 
     def __init__(self, *args, **kwargs):
-        auto_now = kwargs.pop('auto_now', None)
-        if auto_now:
+        auto_now_add = kwargs.pop('auto_now_add', None)
+        if auto_now_add:
             kwargs.setdefault('default', datetime.datetime.now)
         super(DateTimeField, self).__init__(*args, **kwargs)
 
@@ -547,7 +547,7 @@ class PositiveSmallIntegerField(SmallIntegerField):
 
 
 class DecimalField(Field):
-    def __init__(self, digits=18, decimal_places=2, *args, **kwargs):
+    def __init__(self, digits=29, decimal_places=6, *args, **kwargs):
         self.digits = digits
         self.decimal_places = decimal_places
         super(DecimalField, self).__init__(*args, **kwargs)

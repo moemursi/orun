@@ -13,5 +13,11 @@
       <jdbc-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</jdbc-driver>
       <jdbc-url>jdbc:sqlserver://localhost\dev:1433;databaseName=test_test001</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="confinamento@localhost" uuid="4678ab9c-32ee-4e82-bd79-b7f802ec17c7">
+      <driver-ref>sqlserver.ms</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</jdbc-driver>
+      <jdbc-url>jdbc:sqlserver://localhost\dev:1433;databaseName=test_confinamento</jdbc-url>
+    </data-source>
   </component>
 </project>

@@ -106,7 +106,7 @@ class Application(Flask):
         for model in list(self.models.values()):
             model._meta._build_mapper()
 
-    def _create_all(self):
+    def create_all(self):
         self._create_schemas()
         self.meta.create_all(self.db_engine)
         self._register_models()

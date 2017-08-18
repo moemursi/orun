@@ -10,7 +10,7 @@ class ModelsTestCase(TestCase):
     def test_recreate(self):
         from orun.core.management.commands import recreatedb
         recreatedb.recreate()
-        app._create_all()
+        app.create_all()
         app.load_fixtures()
 
         obj = app['sys.object'].get_by_natural_key('sys.module.category.accounting')
@@ -101,7 +101,7 @@ class ModelsTestCase(TestCase):
         for model in models:
             model._meta._build_mapper()
 
-        app._create_all()
+        app.create_all()
 
         self.assertIsNotNone(Author._meta.db_table)
         self.assertIsNotNone(Book._meta.db_table)

@@ -42,7 +42,7 @@ def create(db):
 
     # sqlite create database bug fix
     if url.drivername == 'sqlite':
-        if url.database != ':memory:':
+        if url.database != ':memory:' and url.database is not None:
             import sqlite3
             sqlite3.connect(url.database)
         return
