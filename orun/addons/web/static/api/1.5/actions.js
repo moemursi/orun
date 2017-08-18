@@ -392,13 +392,7 @@
     }
 
     constructor(info, scope, location) {
-      {
-        // Hack: trick Babel/TypeScript into allowing this before super.
-        if (false) { super(); }
-        let thisFn = (() => { this; }).toString();
-        let thisName = thisFn.slice(thisFn.indexOf('{') + 1, thisFn.indexOf(';')).trim();
-        eval(`${thisName} = this;`);
-      }
+      super(info, scope, location);
       window.location.href = info.url;
     }
   }
@@ -411,17 +405,10 @@
     }
 
     constructor(info, scope, location) {
-      {
-        // Hack: trick Babel/TypeScript into allowing this before super.
-        if (false) { super(); }
-        let thisFn = (() => { this; }).toString();
-        let thisName = thisFn.slice(thisFn.indexOf('{') + 1, thisFn.indexOf(';')).trim();
-        eval(`${thisName} = this;`);
-      }
+      super(info, scope, location);
       this.info = info;
       this.scope = scope;
       this.location = location;
-      console.log('set scope', this.scope);
     }
     tag_refresh() {
       this.scope.dataSource.refresh();

@@ -371,10 +371,12 @@
         const masterChanged = function(key) {
           // Ajax load nested data
           const data = {};
-          data[field.field] = key;
           scope._changeCount = 0;
           scope.records = [];
-          return scope.dataSource.search(data);
+          data[field.field] = key;
+          if (key !== null) {
+            scope.dataSource.search(data);
+          }
         };
 
         return scope.$parent.$watch('recordId', key => masterChanged(key));

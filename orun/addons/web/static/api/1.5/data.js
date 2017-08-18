@@ -330,7 +330,7 @@
 
     setMasterSource(master) {
       this.masterSource = master;
-      return master.children.push(this);
+      master.children.push(this);
     }
 
     applyModifiedData(form, element, record) {
@@ -454,6 +454,7 @@
 
     newRecord() {
       this.setState(DataSourceState.inserting);
+      this.scope.recordId = null;
       this.scope.model.getDefaults(this.scope.getContext())
       .done(res => {
         return this.scope.$apply(() => {
