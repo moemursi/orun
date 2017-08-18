@@ -185,3 +185,6 @@ msgstr "Somente eu"
 
 msgid "All users"
 msgstr "Todos usuários"
+
+msgid "You still have pending changes, are you sure you want to leave this page?"
+msgstr "Existem alterações pendentes, tem certeza que deseja sair desta página?"

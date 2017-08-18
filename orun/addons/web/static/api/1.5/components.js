@@ -370,11 +370,11 @@
 
         const masterChanged = function(key) {
           // Ajax load nested data
-          const data = {};
           scope._changeCount = 0;
           scope.records = [];
-          data[field.field] = key;
           if (key !== null) {
+            const data = {};
+            data[field.field] = key;
             scope.dataSource.search(data);
           }
         };

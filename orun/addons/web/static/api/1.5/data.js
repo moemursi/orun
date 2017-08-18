@@ -4,6 +4,7 @@
     return new Proxy(rec, {
       set(target, propKey, value, receiver) {
         scope.$setDirty(propKey);
+        scope.dataSource._pendingChanges = true;
         return Reflect.set(target, propKey, value, receiver);
       }
     })
@@ -52,6 +53,7 @@
       this.uploading = 0;
       this.state = null;
       this.fieldChangeWatchers = [];
+      this._pendingChanges = false;
     }
 
     cancelChanges() {
@@ -519,6 +521,7 @@
       // Track field changes
       this.scope.record = createRecord(rec, this.scope);
       this.scope.recordId = rec.id;
+      this._pendingChanges = false;
       return this.state = DataSourceState.browsing;
     }
 

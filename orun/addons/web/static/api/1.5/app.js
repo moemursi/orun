@@ -8,6 +8,7 @@
   });
 
   ngApp.run(['$route', '$rootScope', '$location', function($route, $rootScope, $location) {
+
     const original = $location.path;
     return $location.path = function(path, currentAction, back) {
       let reload;
@@ -110,6 +111,15 @@
     $scope.recordCount = 0;
     $scope.dataSource = new Katrid.Data.DataSource($scope);
     $scope.compile = $compile;
+
+    $scope.$on('$locationChangeStart', function(event) {
+      if ($scope.dataSource && $scope.dataSource._pendingChanges) {
+        let answer = confirm(Katrid.i18n.gettext("You still have pending changes, are you sure to leave this page?"));
+        if (!answer) {
+          event.preventDefault();
+        }
+      }
+    });
 
     $scope.$set = function(field, value) {
       $scope.record[field] = value;
