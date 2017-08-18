@@ -211,6 +211,14 @@
         scope.parent = scope.$parent;
         scope.model = new Katrid.Services.Model(field.model);
 
+        scope.getContext = function() {
+          return {}
+        };
+
+        scope.$setDirty = function () {
+          return {}
+        };
+
         // Set parent/master data source
         scope.dataSource = new Katrid.Data.DataSource(scope);
         scope.dataSource.readonly = attrs.readonly;
