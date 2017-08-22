@@ -1,8 +1,10 @@
 import os
 import tempfile
 import uuid
-
+from orun import app
+from orun.db import connection
 from orun.conf import settings
+
 from .base import ReportEngine, Report, etree
 
 
@@ -34,6 +36,24 @@ class FastReport(Report):
 class FastReports(ReportEngine):
     portrait_template = 'reports/templates/portrait.frx'
     report_class = FastReport
+
+    def make_conn_str(self):
+        url = connection.url
+        if url.drivername.startswith('mssql'):
+            if url.password:
+                return 'Data Source=%s;Initial Catalog=%s;Integrated Security=True;Persist Security Info=False;User ID=;Password='
+            else:
+                return 'Data Source=%s;Initial Catalog=%s;Integrated Security=True' % (url.host, url.database)
+
+    def export(self, report, format='pdf'):
+        import fastreport
+
+        if isinstance(report, str):
+            # load by filename
+            report = app.jinja_env.get_or_select_template(report).filename
+            out_file = os.path.join(app.config['REPORT_PATH'], uuid.uuid4().hex) + '.' + format
+            fastreport.show_report(report, out_file, format, self.make_conn_str())
+            return out_file
 
     def _load_xml(self, xml, rep):
         field_templ = '''<TextObject Name="Text_{0}" Width="{2}" CanGrow="true" Height="18.9" Left="{1}" VertAlign="Center" Text="[master.{0}]" Font="Arial, 8pt" {3}/>'''
@@ -145,7 +165,7 @@ class FastReports(ReportEngine):
             #     sel_cmd = pattern.sub(' WHERE ' + sql, sel_cmd)
             datasource.attrib['SelectCommand'] = sel_cmd
 
-        open('/tmp/rep.frx', 'wb').write(etree.tostring(rep.document, encoding='utf-8', xml_declaration=True))
+        #open('/tmp/rep.frx', 'wb').write(etree.tostring(rep.document, encoding='utf-8', xml_declaration=True))
 
         return rep
 

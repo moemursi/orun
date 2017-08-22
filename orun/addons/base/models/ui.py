@@ -68,7 +68,7 @@ class View(models.Model):
         return etree.tostring(self.get_xml(model))
 
     def get_xml(self, model):
-        context = {'opts': model._meta}
+        context = {'opts': model._meta if model else None}
         return self.compile(context)
 
     def xpath(self, source, element):

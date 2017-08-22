@@ -91,20 +91,23 @@ class ReportEngine(object):
     def auto_report(self, xml, model, query, **kwargs):
         if isinstance(xml, str):
             xml = etree.fromstring(xml)
-        fields = []
-        for field in xml.findall('./fields/field'):
-            lbl = field.attrib.get('label')
-            field_name = field.attrib['name']
-            if lbl is None:
-                field.attrib['label'] = str(model._meta.fields_dict[field_name].label)
-            fields.append(field_name)
-        data_file = self.query_to_xml(query, fields=fields)
-        if 'report_title' not in kwargs:
-            kwargs['report_title'] = str(model._meta.verbose_name_plural)
-        return self.load_xml(
-            xml, model=model, fields=fields, query=str(query), data=data_file,
-            **kwargs
-        )
+        if 'file' in xml.attrib:
+            return self.export(xml.attrib['file'])
+        else:
+            fields = []
+            for field in xml.findall('./fields/field'):
+                lbl = field.attrib.get('label')
+                field_name = field.attrib['name']
+                if lbl is None:
+                    field.attrib['label'] = str(model._meta.fields_dict[field_name].label)
+                fields.append(field_name)
+            data_file = self.query_to_xml(query, fields=fields)
+            if 'report_title' not in kwargs:
+                kwargs['report_title'] = str(model._meta.verbose_name_plural)
+            return self.load_xml(
+                xml, model=model, fields=fields, query=str(query), data=data_file,
+                **kwargs
+            )
 
     def _format_field(self, instance, field):
         v = getattr(instance, field)
@@ -136,5 +139,5 @@ class ReportEngine(object):
         rep.report_title = report_title
         return self._load_xml(xml, rep)
 
-    def export(self, format='pdf'):
+    def export(self, report, format='pdf'):
         raise NotImplementedError

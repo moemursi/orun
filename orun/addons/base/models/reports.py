@@ -29,18 +29,24 @@ class ReportAction(Action):
 
     def _export_report(self, format='pdf', params=None):
         engine = get_engine()
-        model = app[self.model]
+        qs = model = None
+        if self.model:
+            model = app[self.model]
+            qs = model.objects.all()
         xml = self.view.get_xml(model)
-        qs = model.objects.all()
         if params:
             criterion = params.pop('data', [])
             for crit in criterion:
                 print(crit)
+
         rep = engine.auto_report(xml, model=model, query=qs, report_title=self.name)
-        out_file = '/web/reports/' + os.path.basename(rep.export(format=format))
-        return {
-            'open': out_file,
-        }
+        if rep:
+            if not isinstance(rep, str):
+                rep = rep.export(format=format)
+            out_file = '/web/reports/' + os.path.basename(rep)
+            return {
+                'open': out_file,
+            }
 
     @api.method
     def export_report(cls, id, format='pdf', params=None):

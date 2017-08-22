@@ -114,7 +114,7 @@
 
     $scope.$on('$locationChangeStart', function(event) {
       if ($scope.dataSource && $scope.dataSource._pendingChanges) {
-        let answer = confirm(Katrid.i18n.gettext("You still have pending changes, are you sure to leave this page?"));
+        let answer = confirm(Katrid.i18n.gettext("You still have pending changes, are you sure you want to leave this page?"));
         if (!answer) {
           event.preventDefault();
         }
