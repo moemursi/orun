@@ -111,6 +111,9 @@
     $scope.recordCount = 0;
     $scope.dataSource = new Katrid.Data.DataSource($scope);
     $scope.compile = $compile;
+    Katrid.core = {
+      compile: $compile
+    };
 
     $scope.$on('$locationChangeStart', function(event) {
       if ($scope.dataSource && $scope.dataSource._pendingChanges) {

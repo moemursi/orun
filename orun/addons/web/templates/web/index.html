@@ -4,38 +4,20 @@
   <div id="page-content">
 
   <!-- Fixed navbar -->
-  <nav id="header" class="navbar navbar-default">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="#" role="button">
-        Nome da Empresa
-      </a>
-    </div>
-    <div class="header-link hide-left-menu">
+  <nav id="header" class="navbar navbar-inverse">
+    <a class="header-link hide-left-menu" href="javascript:void(0)">
       <i class="fa fa-bars"></i>
-    </div>
+    </a>
     <div class="small-logo">
       <span id="current-menu-name">{{ current_menu.name }}</span>
     </div>
     <div id="navbar" class="navbar-collapse">
-      <ul class="nav navbar-nav hidden-xs">
-        <li class="navbar-search">
-          <label class="append-icon">
-            <input id="navbar-search" type="text" class="navbar-search-control" placeholder="{{ _('Find resources here...') }}">
-            <i class="icon fa fa-search"></i>
-          </label>
-        </li>
-        <li class="dropdown">
-          <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-             aria-expanded="false">{{ _('Shortcuts') }} <span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu" aria-haspopup="true" aria-expanded="true">
-          </ul>
-        </li>
+      <ul class="nav navbar-nav">
+        {% for menu in root_menu %}
         <li>
-          <a class="btn-voice-command" href="javascript:void(0);" onclick="$(this).toggleClass('active');Katrid.Speech.voiceCommand.toggle();" data-action="voiceCommand" title="Execute command voice">
-            <i class="fa fa-microphone"></i>
-          </a>
+          <a class="module-selector" href="/web/menu/{{ menu.pk }}/">{% if menu.icon %}{{ menu.icon }}{% endif %} {{ menu.name }}</a>
         </li>
+        {% endfor %}
       </ul>
       <ul id="static-nav" class="nav navbar-nav navbar-right">
         <li>
@@ -57,6 +39,26 @@
         </li>
         <li><a href="/web/logout/" title="Logout"><i class="fa fa-lg fa-sign-out"></i></a></li>
       </ul>
+      <ul class="nav navbar-nav navbar-right hidden-xs">
+        <li class="navbar-search">
+          <label class="append-icon">
+            <input id="navbar-search" type="text" class="navbar-search-control" placeholder="{{ _('Find resources here...') }}">
+            <i class="icon fa fa-search"></i>
+          </label>
+        </li>
+        <li class="dropdown">
+          <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">{{ _('Shortcuts') }} <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" aria-haspopup="true" aria-expanded="true">
+          </ul>
+        </li>
+        <li>
+          <a class="btn-voice-command" href="javascript:void(0);" onclick="$(this).toggleClass('active');Katrid.Speech.voiceCommand.toggle();" data-action="voiceCommand" title="Execute command voice">
+            <i class="fa fa-microphone"></i>
+          </a>
+        </li>
+      </ul>
     </div><!--/.nav-collapse -->
   </nav>
 
@@ -66,7 +68,7 @@
   <aside id="left-menu" class="sidebar skin">
     <div class="logo-area">
       <a href="index.html" class="avatar">
-        <img id="avatar" src="/static/web/static/assets/img/user-avatar.jpg" alt="avatar" class="img-circle">
+        <img id="avatar" src="/static/web/static/assets/img/user-avatar.jpg" alt="avatar">
       </a>
       <div class="user-info">
         <small>{CONFIG DASHBOARD}</small><br>
@@ -81,7 +83,7 @@
         <li><a href="/web/logout/"><i class="fa fa-fw fa-sign-out"></i> Sign out</a></li>
       </ul>
     </div>
-    <div class="module-menu">
+    <div class="module-menu visible-xs">
       <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ current_menu.name }} <i class="pe pe-7s-right-arrow pull-right"></i></a>
       <ul class="dropdown-menu">
         {% for menu in root_menu %}
@@ -107,11 +109,7 @@
 
   <!-- End Left Menu -->
 
-  <div id="main-content" role="main" style="min-height: 1000px;">
-
-    <div ng-view>
-
-    </div>
+  <div id="main-content" role="main" ng-view>
 
   </div> <!-- /container -->
   <footer id="footer" class="page-footer">
@@ -133,8 +131,15 @@
   <script src="/static/web/static/api/1.5/speech.js"></script>
   <script>
     $(document).ready(function () {
-      // start metisMenu
-      $('#left-side-menu').metisMenu({toggle: false});
+      $.each($('a.module-selector'), function (idx, el) {
+        var href = $(el).attr('href');
+        if (window.location.pathname === href) $(el).addClass('active');
+      });
+
+      $.each($('.menu-item>a'), function (idx, el) {
+        el = $(el);
+        if (el.attr('href') === "#") el.attr('href', 'javascript:void(0)');
+      });
 
       // navbar search
       var items = [];
@@ -167,7 +172,8 @@
       if (!window.location.hash) {
         var href = $('a.menu-item-action').first().attr('href');
         if (href) window.location.href = href;
-      }
+      };
+
     });
   </script>
 

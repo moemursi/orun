@@ -145,6 +145,7 @@
     preRender_card(scope, html) {
       const buttons = this.getViewButtons(scope);
       html = $(html);
+      let el = html;
       html.children('field').remove();
       for (let field of Array.from(html.find('field'))) {
         field = $(field);
@@ -152,7 +153,7 @@
         field.replaceWith(`\${ ::record.${name} }`);
       }
       html = html.html();
-      return `\
+      return `<div class="data-form">
   <div class="data-heading panel panel-default">
       <div class=\"panel-body\">
         <div class='row'>
@@ -169,7 +170,6 @@
   <div class="col-sm-6">
           <button class=\"btn btn-primary\" type=\"button\" ng-click=\"action.createNew()\">${Katrid.i18n.gettext('Create')}</button>
           <span ng-show="dataSource.loading" class="badge page-badge-ref fadeIn animated">\${dataSource.pageIndex}</span>
-  
     <div class=\"btn-group\">
       <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\">
         ${Katrid.i18n.gettext('Action')} <span class=\"caret\"></span></button>
@@ -200,29 +200,133 @@
   </div>
       </div>
   </div>
-  <div class="content no-padding">
-  <div class="data-panel">
-  <div class="card-view animated fadeIn">
-    <div ng-repeat="record in records" class="panel panel-default card-item card-link" ng-click="action.listRowClick($index, record, $event)">
+  <div class="content-scroll">
+  <div class="content">
+  ${this.getCardView(scope, html, el)}
+  </div>
+  </div>
+  </div>
+  `;
+    }
+
+    getCardView(scope, html, el) {
+      scope.defaultGrouping = $(el).data('grouping');
+      scope.dataSource.autoLoadGrouping = true;
+
+      if (_.isUndefined(scope.kanbanAddGroupItem)) {
+        scope.kanbanHideAddGroupItemDlg = (event) => {
+          event.target.closest('#kanban-add-group-item-dlg').remove();
+        };
+
+        scope.kanbanShowAddGroupDlg = (event) => {
+          angular.element(event.target).scope().kanbanAddGroupDlg = true;
+          setTimeout(() => {
+            $(event.target).closest('.kanban-add-group').find('input').focus();
+          }, 10)
+        };
+
+        scope.kanbanAddGroup = (event, name) => {
+          let gname = $(event.target).closest('.kanban-add-group').data('group-name');
+          let field = scope.view.fields[gname];
+          let svc = new Katrid.Services.Model(field.model);
+          console.log('the name is', name);
+          svc.createName(name)
+          .done((res) => {
+            console.log(res);
+          });
+        };
+
+        scope.kanbanAddItem = (event, name) => {
+          if (name) {
+            let ctx = {};
+            let g = $(event.target).closest('.kanban-group');
+            ctx['default_' + g.data('group-name')] = g.data('sequence-id');
+            scope.model.createName(name, ctx)
+            .done((res) => {
+              if (res.ok) {
+                let id = res.result[0];
+                scope.model.getById(id)
+                .done((res) => {
+                  if (res.ok) {
+                    let s = angular.element(event.target).scope();
+                    let g = s.group;
+                    s.$apply(() => {
+                      g.records.push(res.result.data[0]);
+                    });
+                  }
+                })
+              }
+            });
+          }
+          scope.kanbanHideAddGroupItemDlg(event);
+        };
+        scope.kanbanShowAddGroupItemDlg = (event) => {
+          const templ = `
+          <form id="kanban-add-group-item-dlg" ng-submit="kanbanAddItem($event, kanbanNewName)">
+            <div class="form-group">
+              <input ng-model="kanbanNewName" ng-init="kanbanNewName = ''" class="form-control" ng-esc="kanbanHideAddGroupItemDlg($event)" placeholder="${Katrid.i18n.gettext('Add')}" ng-blur="kanbanHideAddGroupItemDlg($event)">
+            </div>
+            <button type="submit" class="btn btn-primary" onmousedown="event.preventDefault();event.stopPropagation();">${Katrid.i18n.gettext('Add')}</button>
+            <button class="btn btn-default">${Katrid.i18n.gettext('Cancel')}</button>
+          </form>
+          `;
+          let s = angular.element(event.target).scope();
+          let el = Katrid.core.compile(templ)(s);
+          el = $(event.target).closest('.kanban-header').append(el);
+          el.find('input').focus();
+        };
+      }
+
+      let s = '<div class="card-view animated fadeIn kanban" ng-if="groupings.length" kanban-draggable=".kanban-group" kanban-group>';
+      s += `
+<div ng-repeat="group in groupings" class="kanban-group sortable-item" data-id="\${group._paramValue}" data-group-name="\${group._paramName}">
+  <div class="kanban-header margin-bottom-8">
+    <div class="pull-right">
+      <button class="btn" ng-click="kanbanShowAddGroupItemDlg($event)"><i class="fa fa-plus"></i></button>
+    </div>
+    <h4 ng-bind="group.__str__"></h4>
+    <div class="clearfix"></div>
+  </div>
+  <div class="kanban-items" kanban-draggable=".kanban-items" kanban-item>
+    <div ng-repeat="record in group.records" class="kanban-item sortable-item ui-sortable-handle" ng-click="action.listRowClick($index, record, $event)">
       ${html}
     </div>
-  
-    <div class="card-item card-ghost"></div>
-    <div class="card-item card-ghost"></div>
-    <div class="card-item card-ghost"></div>
-    <div class="card-item card-ghost"></div>
-    <div class="card-item card-ghost"></div>
-    <div class="card-item card-ghost"></div>
-    <div class="card-item card-ghost"></div>
-    <div class="card-item card-ghost"></div>
-    <div class="card-item card-ghost"></div>
-    <div class="card-item card-ghost"></div>
-    <div class="card-item card-ghost"></div>
-  
   </div>
-  </div>
-  </div>\
-  `;
+</div>
+<div class="kanban-add-group" title="${Katrid.i18n.gettext('Click here to add new column')}" ng-click="kanbanNewName='';kanbanShowAddGroupDlg($event);" data-group-name="\${groupings[0]._paramName}">
+<div ng-hide="kanbanAddGroupDlg">
+  <i class="fa fa-fw fa-chevron-right fa-2x"></i>
+  <div class="clearfix"></div>
+  <span class="title">${Katrid.i18n.gettext('Add New Column')}</span>
+</div>
+<form ng-show="kanbanAddGroupDlg" ng-submit="kanbanAddGroup($event, kanbanNewName)">
+<div class="form-group">
+  <input class="form-control" ng-blur="kanbanAddGroupDlg=false" ng-esc="kanbanAddGroupDlg=false" placeholder="${Katrid.i18n.gettext('Add')}" ng-model="kanbanNewName">
+</div>
+  <button type="submit" class="btn btn-primary">${Katrid.i18n.gettext('Add')}</button>
+  <button type="button" class="btn btn-default">${Katrid.i18n.gettext('Cancel')}</button>
+</form>
+</div>
+
+</div><div class="card-view animated fadeIn kanban" ng-if="!groupings.length">`;
+      s += `<div ng-repeat="record in records" class="panel panel-default card-item card-link" ng-click="action.listRowClick($index, record, $event)">
+        ${html}
+      </div>`;
+      s += `\      <div class="card-item card-ghost"></div>
+            <div class="card-item card-ghost"></div>
+            <div class="card-item card-ghost"></div>
+            <div class="card-item card-ghost"></div>
+            <div class="card-item card-ghost"></div>
+            <div class="card-item card-ghost"></div>
+            <div class="card-item card-ghost"></div>
+            <div class="card-item card-ghost"></div>
+            <div class="card-item card-ghost"></div>
+            <div class="card-item card-ghost"></div>
+            <div class="card-item card-ghost"></div>
+            </div>
+            \
+      `;
+      return s;
     }
 
     preRender_toolbar(scope, viewType) {
@@ -293,10 +397,11 @@
       }
 
       return `\
-  <div ng-form="form" ng-class="{'form-data-changing': dataSource.changing}">
+  <div ng-form="form" class="data-form" ng-class="{'form-data-changing': dataSource.changing, 'form-data-readonly': !dataSource.changing}">
   ${ toolbar }
+  <div class="content-scroll"><div class="content">
   <div class=\"content container animated fadeIn\"><div class="panel panel-default data-panel browsing" ng-class="{ browsing: dataSource.browsing, editing: dataSource.changing }">
-  <div class=\"panel-body\"><div class="row">${html}</div></div></div></div></div>`;
+  <div class=\"panel-body\"><div class="row">${html}</div></div></div></div></div></div></div>`;
     }
 
     preRender_list(scope, html) {
@@ -310,8 +415,8 @@
   </div>\
   `;
       const buttons = this.getViewButtons(scope);
-      return `<div class=\"data-heading panel panel-default\">
-    <div class=\"panel-body\">
+      return `<div class="data-heading panel panel-default">
+    <div class="panel-body">
       <div class='row'>
         <div class="col-sm-6">
           <h2>\${ action.info.display_name }</h2>
@@ -356,10 +461,12 @@
   </div>
   </div>
     </div>
-  </div><div class=\"content no-padding\">
-  <div class=\"panel panel-default data-panel\">
+  </div>
+  <div class="content-scroll">
+  <div class="content no-padding">
+  <div class="panel-default data-panel">
   <div class=\"panel-body no-padding\">
-  <div class=\"dataTables_wrapper form-inline dt-bootstrap no-footer\">${html}</div></div></div></div>`;
+  <div class=\"dataTables_wrapper form-inline dt-bootstrap no-footer\">${html}</div></div></div></div></div>`;
     }
 
     static get cssListClass() {

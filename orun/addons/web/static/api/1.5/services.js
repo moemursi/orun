@@ -34,6 +34,8 @@
 
 
   class Service {
+    static get url() { return '/api/rpc/' };
+
     constructor(name, scope) {
       this.name = name;
       var me = this;
@@ -70,7 +72,8 @@
         return Katrid.socketio.emit('api', {channel: 'rpc', service: this.name, method: name, data, args: params});
       } else {
         // Using http/https protocol
-        const rpcName = Katrid.Settings.server + '/api/rpc/' + this.name + '/' + name + '/';
+        const methName = this.name ? this.name + '/': '';
+        const rpcName = Katrid.Settings.server + this.constructor.url + methName + name + '/';
         return $.get(rpcName, params);
       }
     }
@@ -92,7 +95,8 @@
 
         // Else, using ajax
       } else {
-        let rpcName = Katrid.Settings.server + '/api/rpc/' + this.name + '/' + name + '/';
+        const methName = this.name ? this.name + '/': '';
+        let rpcName = Katrid.Settings.server + this.constructor.url + methName + name + '/';
         if (params) {
           rpcName += `?${$.param(params)}`;
         }
@@ -113,8 +117,10 @@
       return this.post('search_name', {name});
     }
 
-    createName(name) {
-      return this.post('create_name', null, {kwargs: {name}});
+    createName(name, context) {
+      let kwargs = {name};
+      if (!_.isUndefined(context)) kwargs.context = context;
+      return this.post('create_name', null, { kwargs: kwargs });
     }
 
     search(data, params) {
@@ -208,8 +214,20 @@
     }
   }
 
+  class Data extends Service {
+    static get url() { return '/web-data/' };
+
+    reorder(model, ids, field='sequence', offset=0) {
+      return this.post('reorder', null, { args: [ model, ids, field, offset ] });
+    }
+  }
+
+  let data = new Data('', );
+
 
   this.Katrid.Services = {
+    Data,
+    data,
     Service,
     Model
   };

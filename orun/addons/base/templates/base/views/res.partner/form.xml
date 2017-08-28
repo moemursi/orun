@@ -1,10 +1,12 @@
 <form>
   <div class="media">
     <div class="media-left">
-      <field name="image"/>
+      <field name="image" nolabel/>
     </div>
     <div class="media-body">
-      <field name="name" cols="12"/>
+      <h3>
+      <field name="name" cols="12" class="input-lg" nolabel="placeholder"/>
+      </h3>
     </div>
   </div>
 
@@ -47,13 +49,13 @@
       <fieldset class="col-sm-6">
         <legend>{{ _('Sales') }}</legend>
         <div class="row">
-          <field name="is_customer"/>
+          <field name="is_customer" cols="12"/>
         </div>
       </fieldset>
       <fieldset class="col-sm-6">
         <legend>{{ _('Purchases') }}</legend>
         <div class="row">
-          <field name="is_supplier"/>
+          <field name="is_supplier" cols="12"/>
         </div>
       </fieldset>
     </tab>

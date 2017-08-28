@@ -41,7 +41,8 @@
           v = attrs[attr];
           if (attrName.startsWith('field-')) {
             attrName = attrName.substr(6, attrName.length - 6);
-          }
+          } else if (attrName === 'class')
+            this.classes.push(v);
           r[attrName] = v;
         }
       }
@@ -84,7 +85,7 @@
       if (attrs.nolabel === 'placeholder') {
         this.placeholder = field.caption;
         return '';
-      } else if (attrs.nolabel) {
+      } else if (!_.isUndefined(attrs.nolabel)) {
         return '';
       }
       return `<label for="${attrs._id}" class="form-label">${label}</label>`;

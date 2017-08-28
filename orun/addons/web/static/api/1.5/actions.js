@@ -149,7 +149,6 @@
 
           const fields = _.keys(this.scope.view.fields);
 
-          console.log(filter);
           if (['list', 'card'].includes(search.view_type) && (search.page !== this.scope.dataSource.pageIndex)) {
             this.scope.dataSource.pageIndex = parseInt(search.page);
             this.scope.dataSource.limit = parseInt(search.limit);

@@ -26,21 +26,21 @@
         return this.close();
       });
     }
-  
+
     link() {
       return this.element.hide();
     }
-  
+
     show() {
       this.element.show();
       return this.searchView.first();
     }
-  
+
     close() {
       this.element.hide();
       return this.reset();
     }
-  
+
     expand(item) {
       const { scope } = this.searchView;
       return scope.model.getFieldChoices(item.ref.name, scope.search.text)
@@ -51,14 +51,14 @@
         }
       });
     }
-  
+
     collapse(item) {
       for (let i of Array.from(item.children)) {
         i.destroy();
       }
       return item.children = [];
     }
-  
+
     reset() {
       return (() => {
         const result = [];
@@ -73,7 +73,7 @@
         return result;
       })();
     }
-  
+
     select(evt, item) {
       if (this.options.select) {
         if (item.parentItem) {
@@ -86,15 +86,15 @@
       }
     }
   }
-  
-  
+
+
   class SearchQuery {
     constructor(searchView) {
       this.searchView = searchView;
       this.items = [];
       this.groups = [];
     }
-  
+
     add(item) {
       if (Array.from(this.items).includes(item)) {
         item.facet.addValue(item);
@@ -109,7 +109,7 @@
       this.searchView.change();
       item.onSelect();
     }
-  
+
     remove(item) {
       this.items.splice(this.items.indexOf(item), 1);
       if (item instanceof SearchGroup) {
@@ -119,7 +119,7 @@
       console.log('item remove', item);
       this.searchView.change();
     }
-  
+
     getParams() {
       let r = [];
       for (let i of Array.from(this.items)) {
@@ -128,25 +128,25 @@
       return r;
     }
   }
-  
-  
+
+
   // TODO remove this class
   class FacetView {
     constructor(item) {
       this.item = item;
       this.values = [{searchString: this.item.getDisplayValue(), value: this.item.value}];
     }
-  
+
     addValue(item) {
       this.item = item;
       return this.values.push({searchString: this.item.getDisplayValue(), value: this.item.value});
     }
-  
+
     templateValue() {
       const sep = ` <span class="facet-values-separator">${Katrid.i18n.gettext('or')}</span> `;
       return (Array.from(this.values).map((s) => s.searchString)).join(sep);
     }
-  
+
     template() {
       const s = `<span class="facet-label">${this.item.getFacetLabel()}</span>`;
       return `<div class="facet-view">
@@ -155,7 +155,7 @@
   <span class="fa fa-sm fa-remove facet-remove"></span>
   </div>`;
     }
-  
+
     link(searchView) {
       const html = $(this.template());
       this.item.facet = this;
@@ -166,13 +166,13 @@
       });
       return html;
     }
-  
+
     refresh() {
       return this.element.find('.facet-value').html(this.templateValue());
     }
   }
-  
-  
+
+
   class SearchItem {
     constructor(name, item, parent, ref, menu) {
       this.name = name;
@@ -182,11 +182,11 @@
       this.menu = menu;
       this.label = this.item.attr('label') || (this.ref && this.ref['caption']) || this.name;
     }
-  
+
     templateLabel() {
       return ` Pesquisar <i>${this.label}</i> por: <strong>\${search.text}</strong>`;
     }
-  
+
     template() {
       let s = '';
       if (this.expandable) {
@@ -199,7 +199,7 @@
       }
       return `<li>${s}</li>`;
     }
-  
+
     link(scope, $compile, parent) {
       const html = $compile(this.template())(scope);
       if (parent != null) {
@@ -209,9 +209,9 @@
       } else {
         html.appendTo(this.parent);
       }
-  
+
       this.element = html;
-  
+
       this.itemEl = html.find('.search-menu-item').click(evt => evt.preventDefault()).mousedown(evt => {
         return this.select(evt);
       }).mouseover(function(evt) {
@@ -221,9 +221,9 @@
           return html.addClass('active');
         }
       });
-  
+
       this.element.data('searchItem', this);
-  
+
       this.expand = html.find('.expandable').on('mousedown', evt => {
         this.expanded = !this.expanded;
         evt.stopPropagation();
@@ -237,7 +237,7 @@
     }).click(evt => evt.preventDefault());
       return false;
     }
-  
+
     select(evt) {
       if (evt) {
         evt.stopPropagation();
@@ -246,22 +246,22 @@
       this.menu.select(evt, this);
       return this.menu.close();
     }
-  
+
     getFacetLabel() {
       return this.label;
     }
-  
+
     getDisplayValue() {
       if (this.value) {
         return this.value[1];
       }
       return this.searchString;
     }
-  
+
     getValue() {
       return (Array.from(this.facet.values).map((s) => s.value || s.searchString));
     }
-  
+
     getParamValue(name, value) {
       const r = {};
       if ($.isArray(value)) {
@@ -271,7 +271,7 @@
       }
       return r;
     }
-  
+
     getParamValues() {
       const r = [];
       for (let v of Array.from(this.getValue())) {
@@ -282,32 +282,32 @@
       }
       return r;
     }
-  
+
     destroy() {
       return this.element.remove();
     }
-  
+
     remove() {
       this.searchView.removeItem(this);
     }
-  
+
     reset() {
       this.expanded = false;
       this.expand.removeClass('expanded');
       return this.expand.addClass('expandable');
     }
-  
+
     onSelect() {
       // do nothing
     }
-  
+
     onRemove() {
       this.facet.element.remove();
       delete this.facet;
     }
   }
-  
-  
+
+
   class SearchField extends SearchItem {
     constructor(name, item, parent, ref, menu) {
       super(name, item, parent, ref, menu);
@@ -319,8 +319,8 @@
       }
     }
   }
-  
-  
+
+
   class SearchFilter extends SearchItem {
     link(scope, $compile, parent) {
       const ul = this.searchView.toolbar.find('.search-view-filter-menu');
@@ -335,32 +335,32 @@
       });
       return ul.append(el);
     }
-  
+
     select(el) {
       super.select(null);
     }
-  
+
     getFacetLabel() {
       console.log('get facet label');
       return '<span class="fa fa-filter"></span>';
     }
-  
+
     getDisplayValue() {
       return this.label;
     }
-  
+
     onSelect() {
       this._toggleMenuEl.addClass('selected');
     }
-  
+
     onRemove() {
       this._toggleMenuEl.removeClass('selected');
       super.onRemove();
     }
-  
+
   }
-  
-  
+
+
   class SearchGroup extends SearchItem {
     constructor(name, item, parent, ref, menu) {
       super(name, item, parent, ref, menu);
@@ -372,21 +372,21 @@
           {grouping: [name]};
       }
     }
-  
+
     getFacetLabel() {
       return '<span class="fa fa-bars"></span>';
     }
-  
+
     templateLabel() {
       return Katrid.i18n.gettext('Group by:') + ' ' + this.label;
     }
-  
+
     getDisplayValue() {
       return this.label;
     }
   }
-  
-  
+
+
   class SearchView {
     constructor(scope, options) {
       this.inputKeyDown = this.inputKeyDown.bind(this);
@@ -397,13 +397,13 @@
       this.items = [];
       this.filters = [];
     }
-  
+
     createMenu(scope, el, parent) {
       const menu = new SearchMenu(el, parent, {select: this.onSelectItem});
       menu.searchView = this;
       return menu;
     }
-  
+
     template() {
       let html;
       return html = `\
@@ -419,7 +419,7 @@
   </div>\
   `;
     }
-  
+
     inputKeyDown(ev) {
       switch (ev.keyCode) {
         case Katrid.UI.keyCode.DOWN:
@@ -435,7 +435,7 @@
           break;
       }
     }
-  
+
     move(distance) {
       const fw = distance > 0;
       distance = Math.abs(distance);
@@ -460,16 +460,16 @@
         }
       }
     }
-  
+
     selectItem(ev, el) {
       el.data('searchItem').select(ev);
     }
-  
+
     link(scope, el, attrs, controller, $compile) {
       const html = $compile(this.template())(scope);
       el.replaceWith(html);
       html.addClass(attrs.class);
-  
+
       this.$compile = $compile;
       this.view = scope.views.search;
       this.viewContent = $(this.view.content);
@@ -477,7 +477,7 @@
       this.toolbar = this.element.closest('.data-heading').find('.toolbar').first();
       this.searchView = html.find('.search-view');
       this.searchView.find('.search-view-input').keydown(this.inputKeyDown);
-  
+
       html.find('.search-view-more').click(evt => {
         $(evt.target).toggleClass('fa-search-plus fa-search-minus');
         return this.viewMoreToggle();
@@ -485,16 +485,16 @@
       this.menu = this.createMenu(scope, $(html.find('.search-dropdown-menu.search-view-menu')), html);
       this.menu.searchView = this;
       this.menu.link();
-  
+
       // input key control events
       this.menu.input.on('keydown', function(evt) {});
-  
+
       // add items to menu
       for (let item of Array.from(this.viewContent.children())) {
         this.loadItem($(item));
       }
     }
-  
+
     loadItem(item, value, parent, cls) {
       const tag = item.prop('tagName');
       if ((cls == null)) {
@@ -509,7 +509,7 @@
           return;
         }
       }
-  
+
       const name = item.attr('name');
       item = new cls(name, item, this.menu.element, this.view.fields[name], this.menu);
       item.searchView = this;
@@ -518,10 +518,10 @@
         item.value = value;
       }
       item.link(this.scope, this.$compile, parent);
-  
+
       return this.items.push(item);
     }
-  
+
     renderFacets() {
       return (() => {
         const result = [];
@@ -537,31 +537,31 @@
         return result;
       })();
     }
-  
+
     viewMoreToggle() {
       this.viewMore = !this.viewMore;
       return this.scope.$apply(() => {
         return this.scope.search.viewMoreButtons = this.viewMore;
       });
     }
-  
+
     first() {
       this.element.find('.search-view-menu > li.active').removeClass('active');
       return this.element.find('.search-view-menu > li').first().addClass('active');
     }
-  
+
     onSelectItem(evt, obj) {
       return this.query.add(obj);
     }
-  
+
     onRemoveItem(evt, obj) {
       return this.query.remove(obj);
     }
-  
+
     removeItem(obj) {
       this.query.remove(obj);
     }
-  
+
     change() {
       if (this.query.groups.length || (this.scope.dataSource.groups && this.scope.dataSource.groups.length)) {
         this.scope.action.applyGroups(this.query.groups);
@@ -571,8 +571,8 @@
       }
     }
   }
-  
-  
+
+
   Katrid.UI.Views = {
     SearchView,
     SearchMenu

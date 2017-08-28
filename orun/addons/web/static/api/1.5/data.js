@@ -57,6 +57,7 @@
     }
 
     cancelChanges() {
+      this._pendingChanges = false;
       if ((this.state === DataSourceState.inserting) && Katrid.Settings.UI.goToDefaultViewAfterCancelInsert) {
         this.scope.record = this._new();
         this.scope.action.setViewType('list');
@@ -115,6 +116,7 @@
               for (let child of Array.from(this.children)) {
                 delete child.modifiedData;
               }
+              this._pendingChanges = false;
               this.setState(DataSourceState.browsing);
               if (autoRefresh) {
                 return this.refresh(res.result);
@@ -190,7 +192,7 @@
     refresh(data) {
       if (data) {
         // Refresh current record
-        return this.scope.action.location.search('id', data[0]);
+        return this.get(data[0]);
       } else if (this.scope.record.id) {
         return this.get(this.scope.record.id);
       } else {
@@ -224,6 +226,15 @@
     }
 
     search(params, page, fields) {
+      if (!this.groups.length && this.scope.defaultGrouping) {
+        let g = {
+          context: {
+            grouping: [this.scope.defaultGrouping]
+          }
+        };
+        this.groupBy(g);
+        return;
+      }
       this._params = params;
       this._page = page;
       this._clearTimeout();
@@ -270,9 +281,7 @@
           return def.resolve(res);
         }).always(() => {
           this.pendingRequest = false;
-          return this.scope.$apply(() => {
-            return this.loading = false;
-          });
+          this.scope.$apply(() => { return this.loading = false; });
         });
       }
       , this.requestInterval);
@@ -285,13 +294,14 @@
         this.groups = [];
         return;
       }
+      this.scope.groupings = [];
       this.groups = [group];
       return this.scope.model.groupBy(group.context)
       .then(res => {
         this.scope.records = [];
-        const grouping = group.context.grouping[0];
+        const groupName = group.context.grouping[0];
         for (let r of Array.from(res.result)) {
-          let s = r[grouping];
+          let s = r[groupName];
           if ($.isArray(s)) {
             r._paramValue = s[0];
             s = s[1];
@@ -302,8 +312,24 @@
           r.expanded = false;
           r.collapsed = true;
           r._searchGroup = group;
-          r._paramName = grouping;
+          r._paramName = groupName;
+          r._domain = {};
+          r._domain[r._paramName] = r._paramValue;
           const row = {_group: r, _hasGroup: true};
+
+          // load groupings info
+          var grouping = r;
+          this.scope.groupings.push(grouping);
+
+          // auto load records
+          if (this.autoLoadGrouping) {
+            ((grouping) => {
+            this.scope.model.search({params: r._domain})
+            .then(res => {
+              if (res.ok) this.scope.$apply(() => {grouping.records = res.result.data});
+            })})(grouping);
+          }
+
           this.scope.records.push(row);
         }
         return this.scope.$apply();
@@ -522,6 +548,7 @@
       this.scope.record = createRecord(rec, this.scope);
       this.scope.recordId = rec.id;
       this._pendingChanges = false;
+      this.scope.form.$setPristine();
       return this.state = DataSourceState.browsing;
     }
 

@@ -387,11 +387,21 @@
 
   uiKatrid.directive('ngEnter', () =>
     (scope, element, attrs) =>
-      element.bind("keydown keypress", function(event) {
+      element.bind("keydown keypress", (event) => {
         if (event.which === 13) {
-          scope.$apply(() => scope.$eval(attrs.ngEnter));
+          scope.$apply(() => scope.$eval(attrs.ngEnter, { $event: event }));
+          event.preventDefault();
+        }
+      })
 
-          return event.preventDefault();
+  );
+
+  uiKatrid.directive('ngEsc', () =>
+    (scope, element, attrs) =>
+      element.bind("keydown keypress", (event) => {
+        if (event.which === 27) {
+          scope.$apply(() => scope.$eval(attrs.ngEsc, {$event: event }));
+          event.preventDefault();
         }
       })
 
@@ -415,7 +425,7 @@
           autoClose: true,
           showOnFocus: false}).on('changeDate', function(e) {
           const dp = calendar.data('datepicker');
-          if (dp.picker.is(':visible')) {
+          if (dp.picker && dp.picker.is(':visible')) {
             el.val($filter('date')(dp._utc_to_local(dp.viewDate), shortDate));
             return dp.hide();
           }
@@ -1183,5 +1193,47 @@
     })
 
   ]);
+
+  uiKatrid.directive('kanbanDraggable', () => {
+    return {
+      restrict: 'A',
+      link(scope, element, attrs, controller) {
+        let cfg = {
+          connectWith: attrs.kanbanDraggable,
+          items: '> .sortable-item'
+        };
+        // Draggable write expression
+        if (!_.isUndefined(attrs.kanbanItem))
+          cfg['receive']  = (event, ui) => {
+            let parent = angular.element(ui.item.parent()).scope();
+            let scope = angular.element(ui.item).scope();
+            console.log(scope);
+            console.log(parent);
+            let data = {};
+            data['id'] = scope.record.id;
+            $.extend(data, parent.group._domain);
+            parent.model.write([data])
+            .then(res => {
+              console.log('write ok', res);
+            });
+          };
+        // Group reorder
+        if (!_.isUndefined(attrs.kanbanGroup))
+          cfg['update'] = (event, ui) => {
+            let ids = [];
+            $.each(ui.item.parent().find('.kanban-group'), (idx, el) => {
+              ids.push($(el).data('id'));
+            });
+            let groupName = element.find('.kanban-group').first().data('group-name');
+            let modelName = scope.$parent.$parent.view.fields[groupName].model;
+            Katrid.Services.data.reorder(modelName, ids)
+            .done(res => {
+              console.log(res);
+            });
+          };
+        element.sortable(cfg).disableSelection();
+      }
+    };
+  });
 
 }).call(this);

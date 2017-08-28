@@ -256,11 +256,16 @@ class Model(metaclass=ModelBase):
         return obj
 
     @api.method
-    def create_name(cls, *args, **kwargs):
-        name = kwargs['name']
+    def create_name(cls, name, *args, **kwargs):
+        context = kwargs.get('context')
         opts = cls._meta
         assert opts.title_field
-        return cls.create(**{opts.title_field: name})._get_instance_label()
+        data = {opts.title_field: name}
+        if context:
+            for k, v in context.items():
+                if k.startswith('default_'):
+                    data[k[8:]] = v
+        return cls.create(**data)._get_instance_label()
 
     @classmethod
     def get_by_natural_key(cls, *args, **kwargs):
@@ -612,7 +617,7 @@ class Model(metaclass=ModelBase):
         col = field.column
         if col.foreign_keys:
             qs = session.query(col.label('fk'), func.count(col).label('group_count')).group_by(col).subquery()
-            qs = session.query(field.related_model, qs.c.group_count).join(qs, qs.c.fk == field.remote_field.column)
+            qs = session.query(field.related_model, qs.c.group_count).outerjoin(qs, qs.c.fk == field.rel_field.column)
             for row in qs:
                 yield {grouping[0]: row[0]._get_instance_label(), 'count': row[1]}
         else:

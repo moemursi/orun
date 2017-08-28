@@ -5,8 +5,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,700" rel="stylesheet"
-        type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
   <!-- extra head -->
 
   <link href="/static/web/static/assets/plugins/toastr/toastr.min.css" rel="stylesheet">
@@ -32,28 +31,22 @@
 
   <!-- animate.css -->
   <link href="/static/web/static/assets/css/animate.css" type="text/css" rel="stylesheet">
-
   <link href="/static/web/static/libs/plugins/select2/select2.css" type="text/css" rel="stylesheet">
 
   <!-- Katrid style -->
   <link href="/static/web/static/assets/css/style.css" rel="stylesheet" type="text/css">
-  <link href="/static/web/static/assets/css/skins.css" rel="stylesheet" type="text/css">
-
-  <!-- demo.css -->
-  <link href="/static/web/static/assets/css/demo.css" rel="stylesheet" type="text/css">
-
+  <link href="/static/web/static/assets/css/skins/gray-skin.css" rel="stylesheet" type="text/css">
 
   <link href="/static/web/static/api/1.5/web.app.css" rel="stylesheet">
   <link href="/static/web/static/css/web.app.css" rel="stylesheet">
 </head>
-<!-- 3. Display the application -->
-<body class="gray-skin bg-skin skin">
+<body>
 {% block content %}{% endblock %}
 
 <script src="/static/web/static/assets/js/jquery.min.js"></script>
+<script src="/static/web/static/libs/plugins/jquery-ui.min.js"></script>
 <script src="/static/web/static/assets/plugins/moment/moment.js"></script>
 
-<script src="/static/web/static/assets/js/metisMenu.js"></script>
 <script src="/static/web/static/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
 <script src="/static/web/static/assets/plugins/bootstrap-datepicker/locales/bootstrap-datepicker.pt-BR.min.js"></script>
 
@@ -65,7 +58,6 @@
 
 <script src="/static/web/static/libs/plugins/jquery.maskedinput/jquery.maskedinput.min.js"></script>
 <script src="/static/web/static/libs/plugins/masked-money/jquery.maskMoney.min.js"></script>
-<script src="/static/web/static/libs/plugins/jquery-ui.min.js"></script>
 <script src="/static/web/static/assets/plugins/jquery.scrollbox/jquery.scrollbox.min.js"></script>
 
 <script src="/static/web/static/assets/js/bootstrap.min.js"></script>
@@ -132,7 +124,7 @@
 
     $('ul.nav a[href="' + url + '"]').addClass('active').parent().parent().addClass('in').parent().addClass('active');
 
-    // Will also work for relative and absolute hrefs
+    // It will also work for relative and absolute hrefs
     $('ul.nav a').filter(function () {
       return this.href == url;
     }).addClass('active').parent().parent().addClass('in').parent().addClass('active');

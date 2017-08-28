@@ -127,8 +127,10 @@ class Deserializer(base.Deserializer):
             s = action.name
         elif attrs.get('translate'):
             s = _(s)
+        if 'parent' in obj.attrib:
+            parent = Object.get_object(obj.attrib['parent']).object_id
         fields = {
-            'parent_id': obj.attrib.get('parent', parent),
+            'parent_id': parent,
             'action_id': action_id,
             'name': s,
         }

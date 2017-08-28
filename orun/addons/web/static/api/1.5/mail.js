@@ -4,7 +4,7 @@
     constructor(scope) {
       this.scope = scope;
       this.model = this.scope.$parent.model;
-  
+
       this.scope.$parent.$watch('recordId', key => {
         this.scope.loading = Katrid.i18n.gettext('Loading...');
         return setTimeout(() => {
@@ -15,10 +15,10 @@
         }
         , 1000);
       });
-  
+
       this.items = [];
     }
-  
+
     masterChanged(key) {
       if (key) {
         const svc = new Katrid.Services.Model('mail.message');
@@ -30,7 +30,7 @@
         });
       }
     }
-  
+
     postMessage(msg) {
       return this.model.post('post_message', null, { args: [[this.scope.$parent.recordId]], kwargs: { content: msg, content_subtype: 'html', format: true } })
       .done(res => {
@@ -42,21 +42,21 @@
       });
     }
   }
-  
-  
+
+
   Katrid.uiKatrid.directive('comments', () =>
     ({
       restrict: 'E',
       scope: {},
       replace: true,
       link(scope, element, attrs) {
-        const form = $(element).closest('div[ng-form=form]');
+        const form = $(element).closest('div[ng-form=form]').find('.content-scroll>.content');
         return form.append(element);
       },
-  
+
       template() {
         return `\
-  <div class="content panel panel-default">
+  <div class="content">
       <div class="container comments">
         <mail-comments/>
       </div>
@@ -65,7 +65,7 @@
       }
     })
   );
-  
+
   Katrid.uiKatrid.directive('mailComments', () =>
     ({
       restrict: 'E',
@@ -78,7 +78,7 @@
           return true;
         };
       },
-  
+
       template() {
         return `\
   <div>
@@ -116,23 +116,23 @@
       }
     })
   );
-  
-  
+
+
   class MailFollowers {}
-  
-  
+
+
   class MailComments extends Katrid.UI.Widgets.Widget {
     static initClass() {
       this.prototype.tag = 'mail-comments';
     }
-  
+
     spanTemplate(scope, el, attrs, field) {
       return '';
     }
   }
   MailComments.initClass();
-  
-  
+
+
   Katrid.UI.Widgets.MailComments = MailComments;
 
 }).call(this);

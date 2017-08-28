@@ -5,11 +5,11 @@ from orun.utils.translation import gettext_lazy as _
 class Country(models.Model):
     name = models.CharField(128, _('name'), null=False)
     code = models.CharField(2, _('Country Code'))
-    address_format = models.TextField(_('Address Format'))
     phone_code = models.PositiveSmallIntegerField()
     image_flag = models.CharField(256)
     currency = models.ForeignKey('res.currency')
     language = models.ForeignKey('res.language')
+    address_format = models.TextField(_('Address Format'))
 
     class Meta:
         name = 'res.country'

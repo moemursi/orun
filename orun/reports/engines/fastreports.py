@@ -15,7 +15,7 @@ class FastReport(Report):
                 """<Column Name="%s" DataType="System.String"/>""" % (f.name)
                 for f in self.model._meta.fields
                 if f.name in self.selected_fields
-                ]
+            ]
         )
 
     def export(self, format='pdf'):
@@ -43,6 +43,7 @@ class FastReports(ReportEngine):
             if url.password:
                 return 'Data Source=%s;Initial Catalog=%s;Integrated Security=True;Persist Security Info=False;User ID=;Password='
             else:
+                # Windows integrated security
                 return 'Data Source=%s;Initial Catalog=%s;Integrated Security=True' % (url.host, url.database)
 
     def export(self, report, format='pdf'):
