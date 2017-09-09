@@ -554,6 +554,7 @@ class Migration(migrations.Migration):
                 ('address_2', models.CharField(max_length=256)),
                 ('zip', models.CharField(max_length=32)),
                 ('phone', models.CharField(max_length=64)),
+                ('city', models.CharField(max_length=64)),
                 ('fax', models.CharField(max_length=64)),
                 ('mobile', models.CharField(max_length=64)),
                 ('birthdate', models.CharField(max_length=64)),
@@ -957,11 +958,6 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
             bases=('base.action',),
-        ),
-        migrations.AddField(
-            model_name='partner',
-            name='city',
-            field=models.ForeignKey(to='res.city'),
         ),
         migrations.AddField(
             model_name='partner',

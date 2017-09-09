@@ -42,7 +42,7 @@ class Partner(models.Model):
     zip = models.CharField(32, label=_('Zip'))
     country = models.ForeignKey('res.country', label=_('Country'), on_delete=models.SET_NULL)
     state = models.ForeignKey('res.country.state', label=_('State'), on_delete=models.SET_NULL)
-    city = models.ForeignKey('res.city', label=_('City'))
+    city = models.CharField(64, label=_('City'))
     phone = models.CharField(64, _('Phone'))
     fax = models.CharField(64, 'Fax')
     mobile = models.CharField(64, label=_('Mobile'))
