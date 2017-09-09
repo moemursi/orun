@@ -241,23 +241,29 @@ class Insert(object):
         return session.execute(self.model._meta.table.insert().values(*args, **kwargs))
 
 
-def convert_params(model, params):
+def convert_params(model, params, tables=None):
+    from orun.db.models.fields.related import ForeignKey
+
     if not isinstance(params, (tuple, list)):
         params = [params]
     for param in params:
         for k, v in param.items():
             if k == 'OR':
-                yield or_(*convert_params(model, v))
+                yield or_(*convert_params(model, v, tables))
             else:
                 args = k.split('__')
                 col = args[0]
-                col = model._meta.fields_dict[col].column
+                fld = model._meta.fields_dict[col]
+                col = fld.column
                 attr = None
                 if len(args) > 1:
                     for arg in args[1:]:
                         if arg == 'icontains':
                             arg = 'ilike'
                             v = '%' + v + '%'
+                        # TODO check related/joined field
+                        # if isinstance(fld, ForeignKey):
+                        #
                         attr = getattr(col, arg, None)
                         if attr is None:
                             attr = getattr(col, arg + '_', None)
@@ -271,13 +277,14 @@ class Query(orm.Query):
     def filter(self, *criterion, **kwargs):
         # prepare django-styled params
         args = []
+        tables = []
         if not criterion:
             criterion = []
         if kwargs:
             criterion.append(kwargs)
         for i, crit in enumerate(criterion):
             if isinstance(crit, dict):
-                args.extend(convert_params(self._entities[0].entities[0], crit))
+                args.extend(convert_params(self._entities[0].entities[0], crit, tables))
             else:
                 args.append(crit)
 

@@ -1,5 +1,6 @@
 #from orun.core.mail import send_mail
-from orun.db import models
+from orun import app, env
+from orun.db import models, session
 from orun.utils.translation import gettext_lazy as _
 from orun.auth.hashers import check_password
 
@@ -29,6 +30,28 @@ class ModelAccess(models.Model):
 
     class Meta:
         name = 'auth.model.access'
+
+    @classmethod
+    def has_permission(cls, model, operation, user=None):
+        if user is None:
+            if env.user.is_superuser:
+                return True
+            user = env.user_id
+        args = []
+        if operation == 'read':
+            args.append(cls.c.perm_read == True)
+        elif operation == 'create':
+            args.append(cls.c.perm_create == True)
+        elif operation == 'change':
+            args.append(cls.c.perm_change == True)
+        elif operation == 'delete':
+            args.append(cls.c.perm_delete == True)
+        else:
+            args.append(cls.c.perm_full == True)
+        User = app['auth.user']
+        Model = app['sys.model']
+        qs = session.query(cls.pk).join(Model).filter(Model.c.name == model, User.groups.any(id=cls.c.group_id))
+        return qs.filter(*args).first()
 
 
 class User(Partner):

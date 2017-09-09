@@ -1,7 +1,7 @@
 import os
 import inspect
 import flask
-from flask import Flask
+from flask import Flask, session
 from flask_mail import Mail
 import sqlalchemy as sa
 from sqlalchemy.schema import CreateSchema
@@ -19,6 +19,7 @@ from .utils import adjust_dependencies
 def _current_user_env():
     from orun.auth import get_user, AUTH_SESSION_KEY, SITE_SESSION_KEY
     env.user = SimpleLazyObject(lambda: get_user(AUTH_SESSION_KEY))
+    env.site_user_id = session.get(SITE_SESSION_KEY)
     env.site_user = SimpleLazyObject(lambda: get_user(SITE_SESSION_KEY, 'res.partner'))
 
 

@@ -10,7 +10,7 @@ from orun.utils.xml import etree
 from orun import api, render_template
 from orun.db import session
 from orun.db.models import signals
-from orun.core.exceptions import ObjectDoesNotExist, ValidationError, NON_FIELD_ERRORS
+from orun.core.exceptions import ObjectDoesNotExist, ValidationError, PermissionDenied, NON_FIELD_ERRORS
 from orun import app, env
 from orun.apps import apps
 from orun.utils.translation import gettext
@@ -268,6 +268,13 @@ class Model(metaclass=ModelBase):
         return cls.create(**data)._get_instance_label()
 
     @classmethod
+    def check_permission(cls, operation, raise_exception=True):
+        perm = app['auth.model.access'].has_permission(cls._meta.name, operation)
+        if raise_exception and not perm:
+            raise PermissionDenied(gettext('Permission denied!'))
+        return True
+
+    @classmethod
     def get_by_natural_key(cls, *args, **kwargs):
         raise NotImplementedError
 
@@ -485,7 +492,7 @@ class Model(metaclass=ModelBase):
         related_model = field.related_model
         search_params = {}
         if ids is None:
-            search_params['name_fields'] = kwargs.get('name_fieds', (field.name_fields is not None and [related_model._meta.fields_dict[f] for f in field.name_fields]) or None)
+            search_params['name_fields'] = kwargs.get('name_fields', (field.name_fields is not None and [related_model._meta.fields_dict[f] for f in field.name_fields]) or None)
             search_params['name'] = q
             search_params['page'] = page
             search_params['count'] = count
@@ -569,11 +576,14 @@ class Model(metaclass=ModelBase):
     @api.method
     def write(cls, data):
         objs = []
+        _cache_change = _cache_create = None
         for row in data:
             pk = row.pop('id', None)
             if pk:
+                _cache_change = _cache_change or cls.check_permission('change')
                 obj = cls.get(pk)
             else:
+                _cache_create = _cache_create or cls.check_permission('create')
                 obj = cls()
             cls.deserialize(obj, row)
             objs.append(obj.pk)
@@ -581,6 +591,7 @@ class Model(metaclass=ModelBase):
 
     @api.method
     def destroy(cls, ids):
+        cls.check_permission('delete')
         ids = [v for v in cls._search((cls._meta.pk.column.in_(ids),), fields=[cls._meta.pk.name])]
         r = []
         for obj in ids:
@@ -594,7 +605,7 @@ class Model(metaclass=ModelBase):
 
     def _destroy(self):
         session.delete(self)
-
+        
     @api.method
     def copy(cls, id):
         obj = cls.get(id)
@@ -626,6 +637,7 @@ class Model(metaclass=ModelBase):
 
     @classmethod
     def _search(cls, params=None, fields=None, domain=None, *args, **kwargs):
+        cls.check_permission('read')
         qs = cls.objects
         if isinstance(params, dict):
             if isinstance(domain, dict):

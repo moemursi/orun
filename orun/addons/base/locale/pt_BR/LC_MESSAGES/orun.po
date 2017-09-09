@@ -349,3 +349,6 @@ msgstr "É uma empresa"
 
 msgid "Persons"
 msgstr "Pessoas"
+
+msgid "Sign out"
+msgstr "Sair"

@@ -277,6 +277,23 @@
         };
       }
 
+      const itemAttrs = `<div class="btn-group pull-right">
+        <button type="button" class="btn dropdown-toggle" data-toggle="dropdown">
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu animated flipInX">
+          <li>
+            <a href="#">Move to next level</a>
+          </li>
+          <li>
+            <a href="#">Action 2</a>
+          </li>
+          <li>
+            <a href="#">Action 3</a>
+          </li>
+        </ul>
+      </div>`;
+
       let s = '<div class="card-view animated fadeIn kanban" ng-if="groupings.length" kanban-draggable=".kanban-group" kanban-group>';
       s += `
 <div ng-repeat="group in groupings" class="kanban-group sortable-item" data-id="\${group._paramValue}" data-group-name="\${group._paramName}">

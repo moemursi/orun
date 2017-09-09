@@ -3,7 +3,7 @@ from importlib import import_module
 import unittest
 
 from orun.core.management import commands
-from orun import apps
+from orun import apps, app
 
 
 
@@ -18,4 +18,5 @@ def command(app_label, module, **kwargs):
     app_config = apps.apps.app_configs[app_label]
     from orun.test import DiscoverRunner
     runner = DiscoverRunner(os.path.join(app_config.root_path, 'tests'))
+    app.testing = True
     runner.run()
