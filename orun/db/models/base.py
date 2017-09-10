@@ -605,7 +605,7 @@ class Model(metaclass=ModelBase):
 
     def _destroy(self):
         session.delete(self)
-        
+
     @api.method
     def copy(cls, id):
         obj = cls.get(id)
@@ -702,6 +702,8 @@ class Model(metaclass=ModelBase):
         f = self._meta.fields_dict.get(key)
         if isinstance(f, ForeignKey) and not isinstance(value, Model):
             key = f.attname
+        elif isinstance(f, ForeignKey) and isinstance(value, Model):
+            super(Model, self).__setattr__(f.attname, value.pk)
         super(Model, self).__setattr__(key, value)
 
     def save(self, update_fields=None, force_insert=False):
