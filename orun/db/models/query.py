@@ -242,7 +242,7 @@ class Insert(object):
 
 
 def convert_params(model, params, tables=None):
-    from orun.db.models.fields.related import ForeignKey
+    from orun.db import models
 
     if not isinstance(params, (tuple, list)):
         params = [params]
@@ -251,6 +251,8 @@ def convert_params(model, params, tables=None):
             if k == 'OR':
                 yield or_(*convert_params(model, v, tables))
             else:
+                if isinstance(v, models.Model):
+                    v = v.pk
                 args = k.split('__')
                 col = args[0]
                 fld = model._meta.fields_dict[col]

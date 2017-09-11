@@ -421,6 +421,7 @@ class ModelState(object):
         if model._meta.extension:
             options['extension'] = model._meta.extension
         options['abstract'] = model._meta.abstract
+        options['managed'] = model._meta.managed
 
         def flatten_bases(model):
             bases = []

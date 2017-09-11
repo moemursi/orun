@@ -143,7 +143,8 @@ class MigrationAutodetector(object):
             if model._meta.abstract:
                 continue
             if not model._meta.managed:
-                self.new_unmanaged_keys.append((al, mn))
+                #self.new_unmanaged_keys.append((al, mn))
+                continue
             elif (
                 al not in self.from_state.real_apps or
                 (convert_apps and al in convert_apps)
