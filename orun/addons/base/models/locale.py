@@ -64,6 +64,10 @@ class Currency(models.Model):
     name = models.CharField(3, _('currency'), null=False)
     symbol = models.CharField(4, _('symbol'))
     rounding = models.FloatField(_('Rounding Factor'))
+    active = models.BooleanField(default=True)
+    decimal_places = models.SmallIntegerField()
+    is_crypto = models.BooleanField(default=False)
+    description = models.CharField(64)
 
     class Meta:
         name = 'res.currency'
