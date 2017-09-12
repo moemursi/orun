@@ -10,4 +10,4 @@ class BaseBackend(object):
 
     @classmethod
     def create_engine(cls, db, url):
-        return sa.create_engine(str(url), echo=settings.DEBUG)
+        return sa.create_engine(str(url), echo=settings.SQL_DEBUG)

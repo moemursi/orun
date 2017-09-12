@@ -114,8 +114,7 @@ class View(models.Model):
 
     def render(self, context):
         context['_'] = gettext
-        # IMPORTANT TODO DEBUG OPTION
-        if self.template_name:
+        if settings.DEBUG and self.template_name:
             return render_template(self.template_name.split(':')[-1], **context)
         return render_template_string(self.content, **context)
 
