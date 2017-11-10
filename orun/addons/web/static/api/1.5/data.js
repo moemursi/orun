@@ -226,7 +226,7 @@
     }
 
     search(params, page, fields) {
-      if (!this.groups.length && this.scope.defaultGrouping) {
+      if (this.groups && !this.groups.length && this.scope.defaultGrouping) {
         let g = {
           context: {
             grouping: [this.scope.defaultGrouping]

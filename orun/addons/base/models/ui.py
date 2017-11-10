@@ -1,15 +1,15 @@
 import os
+
 from jinja2 import Environment, FunctionLoader
-import base64
 
 from orun import env
-from orun.utils.xml import etree
-from orun.conf import settings
-from orun import app, render_template
+from orun import render_template
 from orun import render_template_string
 from orun.apps import registry
+from orun.conf import settings
 from orun.db import models
 from orun.utils.translation import gettext, gettext_lazy as _
+from orun.utils.xml import etree
 
 
 def get_template(template):
@@ -93,6 +93,8 @@ class View(models.Model):
         elif pos == 'attributes':
             for child in element:
                 target.attrib[child.attrib['name']] = child.text
+        elif pos == 'replace':
+            target.getparent().remove(target)
 
     def merge(self, source, dest):
         for child in dest:

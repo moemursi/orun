@@ -432,7 +432,7 @@
   </div>\
   `;
       const buttons = this.getViewButtons(scope);
-      return `<div class="data-heading panel panel-default">
+      let ret = `<div class="data-heading panel panel-default">
     <div class="panel-body">
       <div class='row'>
         <div class="col-sm-6">
@@ -484,6 +484,7 @@
   <div class="panel-default data-panel">
   <div class=\"panel-body no-padding\">
   <div class=\"dataTables_wrapper form-inline dt-bootstrap no-footer\">${html}</div></div></div></div></div>`;
+      return ret;
     }
 
     static get cssListClass() {
@@ -511,7 +512,6 @@
           continue;
         }
 
-
         name = col.attr('name');
         const fieldInfo = scope.view.fields[name];
 
@@ -522,29 +522,13 @@
           }
         }
 
-        let cls = `${fieldInfo.type} list-column`;
-        ths += `<th class="${cls}" name="${name}"><span>\${::view.fields.${name}.caption}</span></th>`;
-        cls = `${fieldInfo.type} field-${name}`;
+        let _widget = Katrid.UI.Widgets.Widget.fromField(fieldInfo, col.attr('widget'));
+        _widget = new _widget(scope, {}, fieldInfo, col);
+        ths += _widget.th();
 
-        const colHtml = col.html();
+        const colHtml = _widget.td(col);
 
-        if (colHtml) {
-          cols += `<td><a data-id="\${::row.${name}[0]}">${colHtml}</a></td>`;
-        } else if (fieldInfo.type === 'ForeignKey') {
-          cols += `<td><a data-id="\${::row.${name}[0]}">\${row.${name}[1]}</a></td>`;
-        } else if  (fieldInfo._listChoices) {
-          cols += `<td class="${cls}">\${::view.fields.${name}._listChoices[row.${name}]}</td>`;
-        } else if (fieldInfo.type === 'BooleanField') {
-          cols += `<td class="bool-text ${cls}">\${::row.${name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}</td>`;
-        } else if (fieldInfo.type === 'DecimalField') {
-          cols += `<td class="${cls}">\${::row.${name}|number:2}</td>`;
-        } else if (fieldInfo.type === 'DateField') {
-          cols += `<td class="${cls}">\${::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}</td>`;
-        } else if (fieldInfo.type === 'DateTimeField') {
-          cols += `<td class="${cls}">\${::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}</td>`;
-        } else {
-          cols += `<td>\${::row.${name}}</td>`;
-        }
+        cols += colHtml;
       }
       if (parentDataSource) {
         ths += "<th class=\"list-column-delete\" ng-show=\"parent.dataSource.changing\">";
@@ -556,7 +540,7 @@
       const s = `<table ng-hide="dataSource.loading" class="${this.constructor.cssListClass}">
   <thead><tr>${ths}</tr></thead>
   <tbody>
-  <tr ng-repeat="row in records" ng-click="${rowClick}" ng-class="{'group-header': row._hasGroup}">${cols}</tr>
+  <tr ng-repeat="row in records" ng-click="${rowClick}" ng-class="{'group-header': row._hasGroup}" ng-form="grid-row-form">${cols}</tr>
   </tbody>
   </table>
   <div ng-show="dataSource.loading" class="col-sm-12 margin-bottom-16 margin-top-16">${Katrid.i18n.gettext('Loading...')}</div>\

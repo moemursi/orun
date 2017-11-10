@@ -5311,11 +5311,11 @@ label.prepend-icon {
   display: flex;
   flex-flow: column nowrap;
 }
-.data-form .data-heading {
+.data-heading {
   width: 100%;
   border: 1px solid #d6d6d6;
 }
-.data-form .data-heading > .panel-body {
+.data-heading > .panel-body {
   padding: 12px;
 }
 .content {

@@ -1,0 +1,29 @@
+#img-logo {
+  max-width: 200px;
+}
+.left-menu-content {
+  position: absolute;
+  top: 50px;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+.show-left-menu #left-menu {
+  display: inline-block !important;
+}
+.show-left-menu #main-content {
+  margin-left: 220px;
+}
+.hide-left-menu #main-content {
+  margin-left: 0;
+}
+.data-panel label.checkbox {
+  min-height: 26px;
+}
+.data-panel.editing .form-label.form-label-checkbox span {
+  display: none;
+}
+.data-panel.editing section[readonly] .form-label.form-label-checkbox span {
+  display: inline-block;
+}

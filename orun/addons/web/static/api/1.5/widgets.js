@@ -7,8 +7,129 @@
     static initClass() {
       this.prototype.tag = 'div';
     }
-    constructor() {
+    static fromField(field, widget) {
+      let cols;
+      if (!widget) {
+        const tp = field.type;
+        if (field.name === 'status') {
+          widget = 'StatusField';
+        } else if (tp === 'ForeignKey') {
+          widget = tp;
+        } else if (field.choices) {
+          widget = 'SelectField';
+        } else if (tp === 'TextField') {
+          widget = 'TextareaField';
+        } else if (tp === 'BooleanField') {
+          widget = 'CheckBox';
+          cols = 3;
+        } else if (tp === 'DecimalField') {
+          widget = 'DecimalField';
+          cols = 3;
+        } else if (tp === 'DateField') {
+          widget = 'DateField';
+          cols = 3;
+        } else if (tp === 'DateTimeField') {
+          widget = 'DateField';
+          cols = 3;
+        } else if (tp === 'IntegerField') {
+          widget = 'IntegerField';
+          cols = 3;
+        } else if (tp === 'SmallIntegerField') {
+          widget = 'IntegerField';
+          cols = 3;
+        } else if (tp === 'TimeField') {
+          widget = 'TimeField';
+          cols = 3;
+        } else if (tp === 'CharField') {
+          widget = 'TextField';
+          if (field.max_length && (field.max_length < 30)) cols = 3;
+        } else if (tp === 'OneToManyField') {
+          widget = tp;
+          cols = 12;
+        } else if (tp === 'ManyToManyField') {
+          widget = tp;
+        } else if (tp === 'FileField') {
+          widget = tp;
+        } else if (tp === 'ImageField') {
+          widget = tp;
+        } else {
+          widget = 'TextField';
+        }
+      }
+
+      return Katrid.UI.Widgets[widget];
+    }
+    constructor(scope, attrs, field, element) {
+      this.attrs = attrs;
+      this.scope = scope;
+      this.templAttrs = {};
+      this.wAttrs = {};
+      this.field = field;
+      this.element = element;
+
+      // Check if field depends from another
+      if ((field.depends != null) && field.depends.length) {
+        scope.action.addNotifyField(field);
+      }
+
+      if (attrs.ngShow) {
+        this.templAttrs['ng-show'] = attrs.ngShow;
+      }
+      if (attrs.ngReadonly || field.readonly) {
+        this.templAttrs['ng-readonly'] = attrs.ngReadonly || field.readonly;
+      }
+      if (field.attrs) {
+        for (let k in field.attrs) {
+          v = field.attrs[k];
+          if (k.startsWith('container') || ((k === 'ng-show') && !attrs.ngShow)) {
+            this.templAttrs[k] = v;
+          }
+        }
+      }
+
+      if (attrs.ngFieldChange) {
+        this.wAttrs['ng-change'] = attrs.ngFieldChange;
+      }
+
+      let cols = attrs.cols;
+
+      if (!cols) {
+        const tp = field.type;
+        if (tp === 'BooleanField') {
+          cols = 3;
+        } else if (tp === 'DecimalField') {
+          cols = 3;
+        } else if (tp === 'DateField') {
+          cols = 3;
+        } else if (tp === 'DateTimeField') {
+          cols = 3;
+        } else if (tp === 'IntegerField') {
+          cols = 3;
+        } else if (tp === 'SmallIntegerField') {
+          cols = 3;
+        } else if (tp === 'TimeField') {
+          cols = 3;
+        } else if (tp === 'CharField') {
+          if (field.max_length && (field.max_length < 30)) cols = 3;
+        } else if (tp === 'OneToManyField') {
+          cols = 12;
+        }
+      }
+
+      if (!cols) cols = 6;
+      this.cols = cols;
+
       this.classes = ['form-field'];
+    }
+
+    renderTo(templTag) {
+      let templAttrs = [];
+      for (var [k, v] of Object.entries(this.templAttrs)) {
+        templAttrs.push(k + '=' + '"' + v + '"');
+      }
+      return `<${templTag} class="section-field-${this.attrs.name} form-group" ${templAttrs.join('')}>` +
+            this.template(this.scope, this.element, this.attrs, this.field) +
+            `</${templTag}>`
     }
 
     ngModel(attrs) {
@@ -21,7 +142,7 @@
 
     widgetAttrs(scope, el, attrs, field) {
       let attr, v;
-      const r = {};
+      const r = this.wAttrs;
       if (field.required) {
         r['required'] = null;
       }
@@ -143,6 +264,37 @@
         })();
       }
     }
+
+    th() {
+      let cls = `${this.field.type} list-column`;
+      return `<th class="${cls}" name="${name}"><span>\${::view.fields.${this.field.name}.caption}</span></th>`;
+    }
+
+    td() {
+      let colHtml = this.element.html();
+      let s;
+      let fieldInfo = this.field;
+      let name = fieldInfo.name;
+      let cls = `${fieldInfo.type} field-${name}`;
+      if (colHtml) {
+        s = `<td><a data-id="\${::row.${name}[0]}">${colHtml}</a></td>`;
+      } else if (fieldInfo.type === 'ForeignKey') {
+        s = `<td><a data-id="\${::row.${name}[0]}">\${row.${name}[1]}</a></td>`;
+      } else if  (fieldInfo._listChoices) {
+        s += `<td class="${cls}">\${::view.fields.${name}._listChoices[row.${name}]}</td>`;
+      } else if (fieldInfo.type === 'BooleanField') {
+        s += `<td class="bool-text ${cls}">\${::row.${name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}</td>`;
+      } else if (fieldInfo.type === 'DecimalField') {
+        s += `<td class="${cls}">\${::row.${name}|number:2}</td>`;
+      } else if (fieldInfo.type === 'DateField') {
+        s += `<td class="${cls}">\${::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}</td>`;
+      } else if (fieldInfo.type === 'DateTimeField') {
+        s += `<td class="${cls}">\${::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}</td>`;
+      } else {
+        s += `<td>\${::row.${name}}</td>`;
+      }
+      return s;
+    }
   }
   Widget.initClass();
 
@@ -176,6 +328,20 @@
         attributes['maxlength'] = field.max_length.toString();
       }
       return attributes;
+    }
+  }
+
+
+  class IntegerField extends InputWidget {
+    widgetTemplate(scope, el, attrs, field, type) {
+      return super.widgetTemplate(scope, el, attrs, field, 'number');
+    }
+  }
+
+
+  class TimeField extends InputWidget {
+    widgetTemplate(scope, el, attrs, field, type) {
+      return super.widgetTemplate(scope, el, attrs, field, 'time');
     }
   }
 
@@ -262,7 +428,6 @@
     }
   }
   DateField.initClass();
-
 
   class OneToManyField extends Widget {
     static initClass() {
@@ -352,8 +517,9 @@
 
     widgetTemplate(scope, el, attrs, field, type) {
       let html = super.widgetTemplate(scope, el, attrs, field, type);
+      let imgSrc = attrs.ngEmptyImage || (attrs.emptyImage && ("'" + attrs.emptyImage + "'")) || "'/static/web/static/assets/img/no-image.png'";
       html = `<div class="image-box image-field">
-  <img ng-src="\${record.${field.name} || '/static/web/static/assets/img/avatar.png'}" />
+  <img ng-src="\${record.${field.name} || ${imgSrc}}" />
     <div class="text-right image-box-buttons">
     <button class="btn btn-default" type="button" title="${Katrid.i18n.gettext('Change')}" onclick="$(this).closest('.image-box').find('input').trigger('click')"><i class="fa fa-pencil"></i></button>
     <button class="btn btn-default" type="button" title="${Katrid.i18n.gettext('Clear')}" ng-click="$set('${field.name}', null)"><i class="fa fa-trash"></i></button>
@@ -393,11 +559,13 @@
     Widget,
     InputWidget,
     TextField,
+    IntegerField,
     SelectField,
     ForeignKey,
     TextareaField,
     DecimalField,
     DateField,
+    TimeField,
     CheckBox,
     OneToManyField,
     ManyToManyField,

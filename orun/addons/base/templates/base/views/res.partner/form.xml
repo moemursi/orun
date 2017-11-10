@@ -1,7 +1,7 @@
 <form>
   <div class="media">
     <div class="media-left">
-      <field name="image" nolabel/>
+      <field name="image" nolabel ng-empty-image="(record.company_type === 'individual' && '/static/web/static/assets/img/avatar.png') || ('/static/web/static/assets/img/no-image.png')"/>
     </div>
     <div class="media-body">
       <h3>

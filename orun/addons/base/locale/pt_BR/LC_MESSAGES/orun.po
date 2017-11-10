@@ -352,3 +352,6 @@ msgstr "Pessoas"
 
 msgid "Sign out"
 msgstr "Sair"
+
+msgid "Details"
+msgstr "Detalhes"
