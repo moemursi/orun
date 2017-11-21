@@ -355,3 +355,21 @@ msgstr "Sair"
 
 msgid "Details"
 msgstr "Detalhes"
+
+msgid "Country Code"
+msgstr "Cód. País"
+
+msgid "Phone Code"
+msgstr "Cód. Fone"
+
+msgid "Image Flag"
+msgstr "Bandeira"
+
+msgid "Currency"
+msgstr "Moeda"
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "Address Format"
+msgstr "Formato Endereço"

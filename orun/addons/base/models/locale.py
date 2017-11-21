@@ -3,7 +3,7 @@ from orun.utils.translation import gettext_lazy as _
 
 
 class Country(models.Model):
-    name = models.CharField(128, _('name'), null=False)
+    name = models.CharField(128, _('Name'), null=False)
     code = models.CharField(2, _('Country Code'))
     phone_code = models.PositiveSmallIntegerField()
     image_flag = models.CharField(256)

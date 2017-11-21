@@ -192,7 +192,10 @@
       });
     };
 
-    $scope.getContext = () => JSON.parse($scope.action.info.context);
+    $scope.getContext = () => {
+      if (_.isString($scope.action.info.context)) return JSON.parse($scope.action.info.context);
+      return {};
+    };
 
     const init = function(action) {
       // Check if there's a history/back information

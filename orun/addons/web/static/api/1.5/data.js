@@ -97,6 +97,7 @@
       const el = this.scope.formElement;
       if (this.validate()) {
         const data = this.getModifiedData(this.scope.form, el, this.scope.record);
+        console.log('save changes', data);
         this.scope.form.data = data;
 
         let beforeSubmit = el.attr('before-submit');
@@ -200,20 +201,33 @@
       }
     }
 
+    _validateForm(elForm, form, errorMsgs) {
+      let elfield;
+      for (let errorType in form.$error) {
+        for (let child of Array.from(form.$error[errorType])) {
+          if (child.$name.startsWith('grid-row-form')) elfield = this._validateForm(elForm.find('#' + child.$name), child, errorMsgs);
+          else {
+            elfield = elForm.find(`.form-field[name="${child.$name}"]`);
+            elfield.addClass('ng-touched');
+            let scope = angular.element(elForm).scope();
+            const field = scope.view.fields[child.$name];
+            errorMsgs.push(`<span>${field.caption}</span><ul><li>${Katrid.i18n.gettext('This field cannot be empty.')}</li></ul>`);
+          }
+        }
+      }
+
+      return elfield;
+    }
+
     validate() {
       if (this.scope.form.$invalid) {
         let elfield;
+        let errors = [];
         let s = `<span>${Katrid.i18n.gettext('The following fields are invalid:')}</span><hr>`;
         const el = this.scope.formElement;
-        for (let errorType in this.scope.form.$error) {
-          for (let child of Array.from(this.scope.form.$error[errorType])) {
-            elfield = el.find(`.form-field[name="${child.$name}"]`);
-            elfield.addClass('ng-touched');
-            const field = this.scope.view.fields[child.$name];
-            s += `<span>${field.caption}</span><ul><li>${Katrid.i18n.gettext('This field cannot be empty.')}</li></ul>`;
-          }
-        }
-        elfield.focus();
+        elfield = this._validateForm(el, this.scope.form, errors);
+        Katrid.uiKatrid.setFocus(elfield);
+        s += errors.join('');
         Katrid.Dialogs.Alerts.error(s);
         return false;
       }

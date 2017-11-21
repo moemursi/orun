@@ -500,6 +500,7 @@
     \${::row._group.__str__} (\${::row._group.count})</div></td>`;
 
       for (let col of Array.from(element.children())) {
+        let colHtml = col.outerHTML;
         col = $(col);
         let name = col.attr('name');
         if (!name) {
@@ -508,12 +509,12 @@
           continue;
         }
 
-        if (col.attr('visible') === 'False') {
-          continue;
-        }
-
         name = col.attr('name');
         const fieldInfo = scope.view.fields[name];
+
+        if ((col.attr('visible') === 'False') || (fieldInfo.visible === false)) {
+          continue;
+        }
 
         if (fieldInfo.choices) {
           fieldInfo._listChoices = {};
@@ -524,15 +525,14 @@
 
         let _widget = Katrid.UI.Widgets.Widget.fromField(fieldInfo, col.attr('widget'));
         _widget = new _widget(scope, {}, fieldInfo, col);
+        _widget.inplaceEditor = true;
         ths += _widget.th();
 
-        const colHtml = _widget.td(col);
-
-        cols += colHtml;
+        cols += _widget.td(attrs.inline, colHtml);
       }
       if (parentDataSource) {
-        ths += "<th class=\"list-column-delete\" ng-show=\"parent.dataSource.changing\">";
-        cols += "<td class=\"list-column-delete\" ng-show=\"parent.dataSource.changing\" ng-click=\"removeItem($index);$event.stopPropagation();\"><i class=\"fa fa-trash\"></i></td>";
+        ths += '<th class="list-column-delete" ng-show="parent.dataSource.changing">';
+        cols += '<td class="list-column-delete" ng-show="parent.dataSource.changing" ng-click="removeItem($index);$event.stopPropagation();"><i class="fa fa-trash"></i></td>';
       }
       if ((rowClick == null)) {
         rowClick = 'action.listRowClick($index, row, $event)';
@@ -540,7 +540,7 @@
       const s = `<table ng-hide="dataSource.loading" class="${this.constructor.cssListClass}">
   <thead><tr>${ths}</tr></thead>
   <tbody>
-  <tr ng-repeat="row in records" ng-click="${rowClick}" ng-class="{'group-header': row._hasGroup}" ng-form="grid-row-form">${cols}</tr>
+  <tr ng-repeat="row in records" ng-init="record = {}" ng-click="${rowClick}" ng-class="{'group-header': row._hasGroup}" ng-form="grid-row-form-\${$index}" id="grid-row-form-\${$index}">${cols}</tr>
   </tbody>
   </table>
   <div ng-show="dataSource.loading" class="col-sm-12 margin-bottom-16 margin-top-16">${Katrid.i18n.gettext('Loading...')}</div>\
@@ -551,7 +551,7 @@
     renderGrid(scope, element, attrs, rowClick) {
       const tbl = this.renderList(scope, element, attrs, rowClick, true);
       let buttons;
-      if (attrs.inline)
+      if (attrs.inline == 'inline')
         buttons = `<button class="btn btn-xs btn-info" ng-click="addItem()" ng-show="parent.dataSource.changing && !dataSource.changing" type="button">${Katrid.i18n.gettext('Add')}</button><button class="btn btn-xs btn-info" ng-click="addItem()" ng-show="dataSource.changing" type="button">${Katrid.i18n.gettext('Save')}</button><button class="btn btn-xs btn-info" ng-click="cancelChanges()" ng-show="dataSource.changing" type="button">${Katrid.i18n.gettext('Cancel')}</button>`;
       else
         buttons = `<button class="btn btn-xs btn-info" ng-click="addItem()" ng-show="parent.dataSource.changing" type="button">${Katrid.i18n.gettext('Add')}</button>`;
@@ -573,7 +573,7 @@
         </div>
         <div class="modal-body">
   <div class="row">
-    <div class="modal-dialog-body"></div>
+    <div class="modal-dialog-body" ng-class="{'form-data-changing': dataSource.changing}"></div>
   </div>
   <div class="clearfix"></div>
         </div>

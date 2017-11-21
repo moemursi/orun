@@ -185,6 +185,13 @@
       });
     }
 
+    getFieldsInfo(data) {
+      return this.post('get_fields_info', null, {kwargs: data})
+      .done(res => {
+        return this._prepareFields(res.result);
+      })
+    }
+
     getFieldChoices(field, term) {
       console.log('get field choices', field, term);
       return this.get('get_field_choices', {args: field, q: term});

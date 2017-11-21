@@ -5251,7 +5251,9 @@ input[type=text].form-field:required {
 input[type=text].form-field.ng-dirty {
   background-color: #fffdf1;
 }
-input[type=text].form-field.ng-touched.ng-invalid {
+input[type=text].form-field.ng-touched.ng-invalid,
+select.form-field.ng-touched.ng-invalid,
+.select2-container.form-field.ng-touched.ng-invalid > a.select2-choice {
   border-color: #c64b49;
   background-color: #fff5f5;
 }

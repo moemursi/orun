@@ -56,7 +56,6 @@
           widget = 'TextField';
         }
       }
-
       return Katrid.UI.Widgets[widget];
     }
     constructor(scope, attrs, field, element) {
@@ -122,11 +121,12 @@
       this.classes = ['form-field'];
     }
 
-    renderTo(templTag) {
+    renderTo(templTag, inplaceEditor = false) {
       let templAttrs = [];
       for (var [k, v] of Object.entries(this.templAttrs)) {
         templAttrs.push(k + '=' + '"' + v + '"');
       }
+      if (inplaceEditor) return this.template(this.scope, this.element, this.attrs, this.field);
       return `<${templTag} class="section-field-${this.attrs.name} form-group" ${templAttrs.join('')}>` +
             this.template(this.scope, this.element, this.attrs, this.field) +
             `</${templTag}>`
@@ -235,9 +235,15 @@
       widgetCount++;
       const id = this.getId(widgetCount);
       attrs._id = id;
+      let label = '';
+      let span = '';
+      if (!this.inplaceEditor) {
+        label = this.labelTemplate(scope, el, attrs, field);
+        span = this.spanTemplate(scope, el, attrs, field);
+      }
       const html = '<div>' +
-        this.labelTemplate(scope, el, attrs, field) +
-        this.spanTemplate(scope, el, attrs, field) +
+        label +
+        span +
         this.widgetTemplate(scope, el, attrs, field, type) +
         '</div>';
       return html;
@@ -270,28 +276,30 @@
       return `<th class="${cls}" name="${name}"><span>\${::view.fields.${this.field.name}.caption}</span></th>`;
     }
 
-    td() {
+    td(gridEditor = null, html = null) {
       let colHtml = this.element.html();
       let s;
       let fieldInfo = this.field;
       let name = fieldInfo.name;
       let cls = `${fieldInfo.type} field-${name}`;
+      let editor = '';
+      if ((gridEditor === 'tabular') && html) editor = html;
       if (colHtml) {
-        s = `<td><a data-id="\${::row.${name}[0]}">${colHtml}</a></td>`;
+        s = `<td><a data-id="\${::row.${name}[0]}">${colHtml}</a>${editor}</td>`;
       } else if (fieldInfo.type === 'ForeignKey') {
-        s = `<td><a data-id="\${::row.${name}[0]}">\${row.${name}[1]}</a></td>`;
+        s = `<td><a data-id="\${::row.${name}[0]}" ui-tooltip data-title="<h1>Click here to show form</h1>" data-html="true" data-placement="bottom">\${row.${name}[1]}</a>${editor}</td>`;
       } else if  (fieldInfo._listChoices) {
-        s += `<td class="${cls}">\${::view.fields.${name}._listChoices[row.${name}]}</td>`;
+        s = `<td class="${cls}">\${::view.fields.${name}._listChoices[row.${name}]}${editor}</td>`;
       } else if (fieldInfo.type === 'BooleanField') {
-        s += `<td class="bool-text ${cls}">\${::row.${name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}</td>`;
+        s = `<td class="bool-text ${cls}">\${::row.${name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}${editor}</td>`;
       } else if (fieldInfo.type === 'DecimalField') {
-        s += `<td class="${cls}">\${::row.${name}|number:2}</td>`;
+        s = `<td class="${cls}">\${::row.${name}|number:2}${editor}</td>`;
       } else if (fieldInfo.type === 'DateField') {
-        s += `<td class="${cls}">\${::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}</td>`;
+        s = `<td class="${cls}">\${::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}${editor}</td>`;
       } else if (fieldInfo.type === 'DateTimeField') {
-        s += `<td class="${cls}">\${::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}</td>`;
+        s = `<td class="${cls}">\${::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}${editor}</td>`;
       } else {
-        s += `<td>\${::row.${name}}</td>`;
+        s = `<td>\${::row.${name}}</td>`;
       }
       return s;
     }
@@ -438,8 +446,15 @@
       return '';
     }
 
+    innerHtml(scope, el, attrs, field) {
+      let html = el.html();
+      if (html) return html;
+      return '';
+    }
+
     template(scope, el, attrs, field) {
       const html = super.template(scope, el, attrs, field, 'grid');
+      console.log('grid', html);
       return html;
     }
   }

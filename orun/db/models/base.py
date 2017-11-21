@@ -295,7 +295,7 @@ class Model(metaclass=ModelBase):
     def get_field_info(cls, field, view_type=None):
         return field.info
 
-    @classmethod
+    @api.method
     def get_fields_info(cls, view_id=None, view_type='form', toolbar=False, context=None, xml=None):
         opts = cls._meta
         if xml is not None:
@@ -341,7 +341,7 @@ class Model(metaclass=ModelBase):
         if id:
             return self._search().get(id)
 
-    @classmethod
+    @api.method
     def get_view_info(cls, view_type, view=None):
         View = app['ui.view']
         model = app['sys.model']

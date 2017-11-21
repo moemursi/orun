@@ -1,6 +1,11 @@
 (function () {
   let uiKatrid = Katrid.uiKatrid;
 
+  uiKatrid.directive('inlineForm', $compile => ({
+    restrict: 'A',
+    scope: {}
+  }));
+
   uiKatrid.directive('grid', $compile =>
     ({
       restrict: 'E',
@@ -43,21 +48,25 @@
         scope.dataSource.fieldName = scope.fieldName;
         scope.gridDialog = null;
         let gridEl = null;
-        scope.model.loadViews()
-        .done(res =>
-          scope.$apply(function() {
-            scope._cachedViews = res.result;
-            scope.view = scope._cachedViews.list;
-            let onclick = 'openItem($index)';
-            if (attrs.inline === 'tabular') onclick = '';
-            const html = Katrid.UI.Utils.Templates.renderGrid(scope, $(scope.view.content), attrs, onclick);
-            gridEl = $compile(html)(scope);
-            element.replaceWith(gridEl);
-            if (attrs.inline === 'inline') {
-              return renderDialog();
+        // check if element already has the list view template
+        let lst = element.find('list');
+        if (lst.length) scope.model.getFieldsInfo({ view_type: 'list' }).done(res => {
+          loadViews({
+            list: {
+              content: lst,
+              fields: res.result
             }
           })
-        );
+        });
+        else scope.model.loadViews()
+          .done(res =>
+            scope.$apply(function() {
+              // detects the relational field
+              let fld = res.result.list.fields[scope.field.field];
+              if (fld) fld.visible = false;
+              loadViews(res.result);
+            })
+          );
 
         var renderDialog = function() {
           let el;
@@ -85,6 +94,20 @@
             });
           }
           return false;
+        };
+
+        var loadViews = (obj) => {
+          scope._cachedViews = obj;
+          scope.view = scope._cachedViews.list;
+          let onclick = 'openItem($index)';
+          if (attrs.inline === 'tabular') onclick = '';
+          const html = Katrid.UI.Utils.Templates.renderGrid(scope, $(scope.view.content), attrs, onclick);
+          gridEl = $compile(html)(scope);
+          element.replaceWith(gridEl);
+          // if (attrs.inline === 'inline') {
+          //   return renderDialog();
+          // }
+          return gridEl;
         };
 
         scope.doViewAction = (viewAction, target, confirmation) => scope.action._doViewAction(scope, viewAction, target, confirmation);
