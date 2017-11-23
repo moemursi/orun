@@ -379,7 +379,7 @@
     <div class=\"btn-group\">
       <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\">
         ${Katrid.i18n.gettext('Action')} <span class=\"caret\"></span></button>
-      <ul class=\"dropdown-menu animated flipInX\">
+      <ul class="dropdown-menu animated flipInX dropdown-menu-actions">
         <li><a href='javascript:void(0)' ng-click=\"action.deleteSelection()\"><i class=\"fa fa-fw fa-trash\"></i> ${Katrid.i18n.gettext('Delete')}</a></li>
         <li><a href='javascript:void(0)' ng-click=\"action.copy()\"><i class=\"fa fa-fw fa-files-o\"></i> ${Katrid.i18n.gettext('Duplicate')}</a></li>
         ${actions}

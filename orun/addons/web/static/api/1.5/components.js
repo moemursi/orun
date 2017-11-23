@@ -989,6 +989,27 @@
     else el.focus();
   };
 
+  uiKatrid.directive('action', ($compile) => ({
+    restrict: 'E',
+    priority: 99,
+    link: (scope, el, attrs) => {
+      console.log('define action', attrs.ngClick);
+      let div = el.closest('div.data-form');
+      let actions = div.find('.dropdown-menu-actions');
+      let name = attrs.name;
+      let label = el.html();
+      scope.doTest = () => console.log(scope.model);
+      let html = `<li><a href="javascript:void(0)">${label}</a></li>`;
+      let newItem = $(html);
+      newItem.click(() => {
+        if (attrs.object) scope.model.rpc(attrs.object, [scope.$parent.record.id]);
+        //scope.$eval(attrs.ngClick);
+      });
+      actions.append(newItem);
+      el.remove();
+    }
+  }))
+
 }).call(this);
 
 $(document).ready(() => {

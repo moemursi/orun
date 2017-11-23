@@ -39,28 +39,28 @@
     constructor(name, scope) {
       this.name = name;
       var me = this;
-      return new Proxy(this, {
-        get(target, name, receiver) {
-          if (Reflect.has(target, name)) return Reflect.get(target, name, receiver);
-          if (name !== 'toJSON') {
-            // RPC
-            return function (...args) {
-              let data = {};
-              if (_.isObject(args[0])) data['kwargs'] = args[0];
-              me.post(name, null, data)
-              .done((res) => {
-                scope.$apply(() => {
-                  if (res.ok && res.result) {
-                    if (res.result.values) {
-                      for (let attr of Object.keys(res.result.values)) scope.$set(attr, res.result.values[attr]);
-                    }
-                  }
-                });
-              });
-            };
-          }
-        }
-      });
+      // return new Proxy(this, {
+      //   get(target, name, receiver) {
+      //     if (Reflect.has(target, name)) return Reflect.get(target, name, receiver);
+      //     if (name !== 'toJSON') {
+      //       // RPC
+      //       return function (...args) {
+      //         let data = {};
+      //         if (_.isObject(args[0])) data['kwargs'] = args[0];
+      //         me.post(name, null, data)
+      //         .done((res) => {
+      //           scope.$apply(() => {
+      //             if (res.ok && res.result) {
+      //               if (res.result.values) {
+      //                 for (let attr of Object.keys(res.result.values)) scope.$set(attr, res.result.values[attr]);
+      //               }
+      //             }
+      //           });
+      //         });
+      //       };
+      //     }
+      //   }
+      // });
     }
 
     delete(name, params, data) {
@@ -218,6 +218,10 @@
 
     autoReport() {
       return this.post('auto_report', null, {kwargs: {}});
+    }
+
+    rpc(meth, ...args) {
+      return this.post(meth, null, {args: args});
     }
   }
 
