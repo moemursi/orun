@@ -55,7 +55,11 @@ class Deserializer(base.Deserializer):
         for child in values:
             if child.tag == 'field':
                 if 'ref' in child.attrib:
-                    obj['fields'][child.attrib['name']] = ref(self.app, child.attrib['ref'])
+                    try:
+                        obj['fields'][child.attrib['name']] = ref(self.app, child.attrib['ref'])
+                    except:
+                        print('Error reading xml file file: ref:', child.attrib['ref'])
+                        raise
                 elif 'eval' in child.attrib:
                     obj['fields'][child.attrib['name']] = eval(child.attrib['eval'], {'ref': functools.partial(ref, self.app)})
                 elif 'model' in child.attrib:
