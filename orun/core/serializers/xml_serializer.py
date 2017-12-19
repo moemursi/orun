@@ -22,7 +22,6 @@ def ref(app, xml_id):
 class Deserializer(base.Deserializer):
     def __init__(self, stream_or_string, app, app_config=None, **kwargs):
         super(Deserializer, self).__init__(stream_or_string, app, app_config=app_config, **kwargs)
-        print('READING FILE', self.options)
         self.deserialize()
 
     def deserialize(self):

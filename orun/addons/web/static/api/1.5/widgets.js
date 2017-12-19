@@ -333,6 +333,7 @@
     widgetAttrs(scope, el, attrs, field) {
       const attributes = super.widgetAttrs(scope, el, attrs, field);
       if (field.max_length) {
+        console.log('max length', field);
         attributes['maxlength'] = field.max_length.toString();
       }
       return attributes;

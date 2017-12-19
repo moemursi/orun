@@ -7,6 +7,10 @@
     return $interpolateProvider.endSymbol('}');
   });
 
+  ngApp.config(['$locationProvider', function($locationProvider) {
+    $locationProvider.hashPrefix('');
+  }]);
+
   ngApp.run(['$route', '$rootScope', '$location', function($route, $rootScope, $location) {
 
     const original = $location.path;
