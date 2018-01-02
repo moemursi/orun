@@ -556,8 +556,7 @@
             });
 
           } else if (v && multiple) {
-            v = (Array.from(v).map((obj) => obj.id));
-            return controller.$setViewValue(v);
+            return controller.$setViewValue(v.map((obj) => [obj.id, obj.text]));
           } else {
             controller.$setDirty();
             if (v) {
@@ -568,7 +567,9 @@
           }
         });
 
-        scope.$watch(attrs.ngModel, (newValue, oldValue) => sel.select2('val', newValue));
+        controller.$parsers.push((value) => value.map((obj) => obj[0]));
+
+        if (!multiple) scope.$watch(attrs.ngModel, (newValue, oldValue) => sel.select2('val', newValue));
 
         return controller.$render = function () {
           if (multiple) {
@@ -867,7 +868,7 @@
   uiKatrid.filter('m2m', () =>
     function (input) {
       if (_.isArray(input)) {
-        return (Array.from(input).map((obj) => obj[1])).join(', ');
+        return input.map((obj) => obj[1]).join(', ');
       }
     }
   );

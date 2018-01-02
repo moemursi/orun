@@ -243,6 +243,8 @@ class ManyToManyField(RelatedField):
         self.to = to
         self.through = through
         self.through_fields = through_fields
+        self._rel_model = None
+        self.through_model = None
         super(ManyToManyField, self).__init__(lazy=lazy, *args, **kwargs)
 
     def get_attname(self):
@@ -259,6 +261,8 @@ class ManyToManyField(RelatedField):
         else:
             rel_model = app[self.to]
 
+        self._rel_model = rel_model
+
         if isinstance(self.through, models.Model):
             try:
                 new_model = app[self.through]
@@ -269,24 +273,44 @@ class ManyToManyField(RelatedField):
             if self.through_fields:
                 from_field, to_field = self.through_fields
                 from_field = new_model._meta.fields_dict[from_field].db_column
-                to_field = new_model._meta.fields_dict[to_field].db_column
+                self.rel_field = new_model._meta.fields_dict[to_field]
+                to_field = self.rel_field.db_column
             else:
                 from_field = get_first_rel_field(new_model, self.model).db_column
-                to_field = get_first_rel_field(new_model, rel_model).db_column
+                self.rel_field = to_field = get_first_rel_field(new_model, rel_model)
+                to_field = self.rel_field.db_column
         else:
             new_model, from_, to_ = self._build_model(rel_model)
+            self.rel_field = new_model._meta.fields_dict[to_]
             from_field = from_ + '_id'
             to_field = to_ + '_id'
             self.through_fields = (from_, to_)
             self.through = new_model
 
+        self.through_model = new_model
+
         return relationship(
             lambda: rel_model._meta.mapped,
             secondary=new_model._meta.table,
-            lazy=None,
+            #lazy=None,
             primaryjoin=self.model._meta.pk.column == new_model._meta.table.c[from_field],
             secondaryjoin=rel_model._meta.pk.column == new_model._meta.table.c[to_field],
         )
+
+    @property
+    def related_model(self):
+        # Can't cache this property until all the models are loaded.
+        #apps.check_models_ready()
+        return self._rel_model
+
+    @property
+    def name_fields(self):
+        return self.rel_field.name_fields
+
+
+    @property
+    def label_from_instance(self):
+        return self.rel_field.label_from_instance
 
     def _build_model(self, rel_model):
         from orun.db import models
@@ -325,6 +349,16 @@ class ManyToManyField(RelatedField):
             )
 
         return name, path, args, kwargs
+
+    def serialize(self, value, instance=None):
+        return [obj._get_instance_label() for obj in value]
+
+    def deserialize(self, value, instance=None):
+        v = getattr(instance, self.name)
+        v.clear()
+        if value:
+            for pk in value:
+                v.append(self.related_model.objects.only('pk').get(pk))
 
 
 def get_first_rel_field(model, rel_model):

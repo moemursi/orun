@@ -1611,9 +1611,6 @@ body.page .login-logo {
   border-bottom: 0;
   border-top: 6px solid #ffffff;
 }
-.datepicker > div {
-  display: none;
-}
 .datepicker table {
   margin: 0;
   -webkit-touch-callout: none;
@@ -3877,7 +3874,7 @@ label.radio {
   position: relative;
   font-weight: 400;
   box-sizing: content-box;
-  min-height: 25px;
+  min-height: 26px;
   margin-top: 4px;
 }
 label.checkbox.checkbox-inline {
