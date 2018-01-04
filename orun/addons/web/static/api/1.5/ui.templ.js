@@ -154,7 +154,7 @@
       }
       html = html.html();
       return `<div class="data-form">
-  <div class="data-heading panel panel-default">
+  <header class="data-heading panel panel-default">
       <div class=\"panel-body\">
         <div class='row'>
           <div class="col-sm-6">
@@ -198,7 +198,7 @@
   </div>
   </div>
   </div>
-      </div>
+      </header>
   </div>
   <div class="content-scroll">
   <div class="content">

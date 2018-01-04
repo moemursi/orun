@@ -495,7 +495,7 @@
             if (multiple) {
               v = (Array.from(v).map((obj) => ({id: obj[0], text: obj[1]})));
               return cb(v);
-            } else if (v) {
+            } else if (_.isArray(v)) {
               return cb({id: v[0], text: v[1]});
             }
           }
@@ -567,7 +567,7 @@
           }
         });
 
-        controller.$parsers.push((value) => value.map((obj) => obj[0]));
+        controller.$parsers.push((value) => value[0]);
 
         if (!multiple) scope.$watch(attrs.ngModel, (newValue, oldValue) => sel.select2('val', newValue));
 
@@ -916,7 +916,8 @@
         scope.choices = field.choices;
         $timeout(function () {
           // append element into status bar
-          element.closest('.content.jarviswidget').find('header').append(html);
+          let hEl = element.closest('#katrid-action-view .data-form:first-child').find('.data-heading .panel-body');
+          hEl.append(html);
           // remove old element
           return $(element).closest('section').remove();
         });
