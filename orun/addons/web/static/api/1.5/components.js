@@ -916,8 +916,8 @@
         scope.choices = field.choices;
         $timeout(function () {
           // append element into status bar
-          let hEl = element.closest('#katrid-action-view .data-form:first-child').find('.data-heading .panel-body');
-          hEl.append(html);
+          let hEl = element.closest('.content.container').find('header').first();
+          hEl.prepend(html);
           // remove old element
           return $(element).closest('section').remove();
         });

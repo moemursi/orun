@@ -417,7 +417,9 @@
   <div ng-form="form" class="data-form" ng-class="{'form-data-changing': dataSource.changing, 'form-data-readonly': !dataSource.changing}">
   ${ toolbar }
   <div class="content-scroll"><div class="content">
-  <div class=\"content container animated fadeIn\"><div class="panel panel-default data-panel browsing" ng-class="{ browsing: dataSource.browsing, editing: dataSource.changing }">
+  <div class=\"content container animated fadeIn\">
+  <div class="clearfix"></div><header class="content-container-heading"></header><div class="clearfix"></div>
+  <div class="panel panel-default data-panel browsing" ng-class="{ browsing: dataSource.browsing, editing: dataSource.changing }">
   <div class=\"panel-body\"><div class="row">${html}</div></div></div></div></div></div></div>`;
     }
 
@@ -719,12 +721,11 @@
       return `\
   <div class="status-field status-field-sm pull-right">
     <input type="hidden" ng-model="record.${fieldName}"/>
-    <ul class="steps">
-      <li ng-class="{active: $parent.$parent.record.${fieldName} === item[0]}" ng-repeat="item in choices">
-        \${ item[1] }
-        <span class="arrow"></span>
-      </li>
-    </ul>
+    <div class="steps">
+      <a ng-class="{active: $parent.$parent.record.${fieldName} === item[0]}" ng-repeat="item in choices">
+        <span ng-bind="item[1]"/>
+      </a>
+    </div>
   </div>\
   `;
     }

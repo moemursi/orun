@@ -156,12 +156,13 @@
       $scope.form = $scope.formElement.controller('form');
 
       // Add form header
-      if (header) {
-        const newHeader = el.find('header').first();
-        newHeader.replaceWith($compile(header)($scope));
-        return (() => {
+      if (header.length) {
+        let newHeader = $compile(header)($scope);
+        el.find('header').first().replaceWith(newHeader);
+        newHeader.addClass('content-container-heading');
+        (() => {
           const result = [];
-          for (let child of Array.from(header.children())) {
+          for (let child of header.children()) {
             child = $(child);
             //newHeader.append(child)
             if (!child.attr('class')) {
