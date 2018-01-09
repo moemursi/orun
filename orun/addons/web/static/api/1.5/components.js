@@ -916,7 +916,8 @@
         scope.choices = field.choices;
         $timeout(function () {
           // append element into status bar
-          let hEl = element.closest('.content.container').find('header').first();
+          let hEl = element.closest('.content-scroll').find('header.content-container-heading').first();
+          console.log('set status field', hEl);
           hEl.prepend(html);
           // remove old element
           return $(element).closest('section').remove();

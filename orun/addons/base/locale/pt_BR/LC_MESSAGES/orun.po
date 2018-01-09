@@ -368,8 +368,5 @@ msgstr "Bandeira"
 msgid "Currency"
 msgstr "Moeda"
 
-msgid "Language"
-msgstr "Idioma"
-
 msgid "Address Format"
 msgstr "Formato Endereço"

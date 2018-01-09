@@ -24,9 +24,10 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             return output
 
         for field in model._meta.local_fields:
-            like_index_statement = self._create_like_index_sql(model, field)
-            if like_index_statement is not None:
-                output.append(like_index_statement)
+            if not field.inherited:
+                like_index_statement = self._create_like_index_sql(model, field)
+                if like_index_statement is not None:
+                    output.append(like_index_statement)
         return output
 
     def _create_like_index_sql(self, model, field):

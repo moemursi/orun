@@ -278,7 +278,7 @@ class Model(metaclass=ModelBase):
         raise NotImplementedError
 
     @api.method
-    def load_views(self, views=None, **kwargs):
+    def load_views(cls, views=None, **kwargs):
         if views is None and 'action' in kwargs:
             Action = app['sys.action.window']
             action = Action.objects.get(kwargs.get('action'))
@@ -287,8 +287,11 @@ class Model(metaclass=ModelBase):
             views = {'form': None, 'list': None, 'search': None}
 
         return {
-            mode: self.get_view_info(view_type=mode, view=v)
-            for mode, v in views.items()
+            'fields': cls.get_fields_info(),
+            'views': {
+                mode: cls.get_view_info(view_type=mode, view=v)
+                for mode, v in views.items()
+            }
         }
 
     @classmethod

@@ -178,7 +178,7 @@
       </ul>
     </div>
   
-    <button class="btn btn-default" ng-click="dataSource.refresh()"><i class="fa fa-refresh"></i> ${ Katrid.i18n.gettext('Refresh') }</button>
+    <!--button class="btn btn-default" ng-click="dataSource.refresh()"><i class="fa fa-refresh"></i> ${ Katrid.i18n.gettext('Refresh') }</button-->
   
   </div>
   <div class="col-sm-6">
@@ -365,36 +365,47 @@
       }
       return `\
   <div class="data-heading panel panel-default">
-      <div class=\"panel-body\">
+      <div class="panel-body">
         <div>
-          <a href=\"javascript:void(0)\" title=\"Add to favorite\"><i class=\"fa star fa-star-o pull-right\"></i></a>
+          <a href="javascript:void(0)" title="Add to favorite"><i class="fa star fa-star-o pull-right"></i></a>
           ${ this.getBreadcrumb(scope) }
-          <p class=\"help-block\">\${ action.info.usage }</p>
+          <p class="help-block">\${ ::action.info.usage }</p>
         </div>
-        <div class=\"toolbar\">
-    <button class=\"btn btn-primary\" type=\"button\" ng-disabled="dataSource.uploading" ng-click=\"dataSource.saveChanges()\" ng-show="dataSource.changing">${Katrid.i18n.gettext('Save')}</button>
-    <button class=\"btn btn-primary\" type=\"button\" ng-disabled="dataSource.uploading" ng-click=\"dataSource.editRecord()\" ng-show="!dataSource.changing">${Katrid.i18n.gettext('Edit')}</button>
-    <button class=\"btn btn-default\" type=\"button\" ng-disabled="dataSource.uploading" ng-click=\"dataSource.newRecord()\" ng-show="!dataSource.changing">${Katrid.i18n.gettext('Create')}</button>
-    <button class=\"btn btn-default\" type=\"button\" ng-click=\"dataSource.cancelChanges()\" ng-show="dataSource.changing">${Katrid.i18n.gettext('Cancel')}</button>
-    <div class=\"btn-group\">
-      <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\">
-        ${Katrid.i18n.gettext('Action')} <span class=\"caret\"></span></button>
-      <ul class="dropdown-menu animated flipInX dropdown-menu-actions">
-        <li><a href='javascript:void(0)' ng-click=\"action.deleteSelection()\"><i class=\"fa fa-fw fa-trash\"></i> ${Katrid.i18n.gettext('Delete')}</a></li>
-        <li><a href='javascript:void(0)' ng-click=\"action.copy()\"><i class=\"fa fa-fw fa-files-o\"></i> ${Katrid.i18n.gettext('Duplicate')}</a></li>
-        ${actions}
-      </ul>
+        <div class="toolbar">
+    <button class="btn btn-primary" type="button" ng-disabled="dataSource.uploading" ng-click="dataSource.saveChanges()" ng-show="dataSource.changing">${Katrid.i18n.gettext('Save')}</button>
+    <button class="btn btn-primary" type="button" ng-disabled="dataSource.uploading" ng-click="dataSource.editRecord()" ng-show="!dataSource.changing">${Katrid.i18n.gettext('Edit')}</button>
+    <button class="btn btn-default" type="button" ng-disabled="dataSource.uploading" ng-click="dataSource.newRecord()" ng-show="!dataSource.changing">${Katrid.i18n.gettext('Create')}</button>
+    <button class="btn btn-default" type="button" ng-click="dataSource.cancelChanges()" ng-show="dataSource.changing">${Katrid.i18n.gettext('Cancel')}</button>
+    <div class="btn-group">    
+      <div class="btn-group">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true">
+        ${Katrid.i18n.gettext('Attachments')}
+        <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu animated flipInX">
+          <li><a href="javascript:void(0)">${Katrid.i18n.gettext('Add...')}</a></li>
+        </ul>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true">
+          ${Katrid.i18n.gettext('Action')} <span class="caret"></span></button>
+        <ul class="dropdown-menu animated flipInX dropdown-menu-actions">
+          <li><a href='javascript:void(0)' ng-click="action.deleteSelection(true)"><i class="fa fa-fw fa-trash"></i> ${Katrid.i18n.gettext('Delete')}</a></li>
+          <li><a href='javascript:void(0)' ng-click="action.copy()"><i class=\"fa fa-fw fa-files-o\"></i> ${Katrid.i18n.gettext('Duplicate')}</a></li>
+          ${actions}
+        </ul>
+      </div>
     </div>
-    <div class=\"pull-right\">
+    <div class="pull-right">
       <div class="btn-group pagination-area">
           <span ng-show="records.length">
             \${dataSource.recordIndex} / \${records.length}
           </span>
       </div>
-      <div class=\"btn-group\" role=\"group\">
-        <button class=\"btn btn-default\" type=\"button\" ng-click=\"dataSource.prior(\'form\')\"><i class=\"fa fa-chevron-left\"></i>
+      <div class="btn-group" role="group">
+        <button class="btn btn-default" type="button" ng-click="dataSource.prior('form')"><i class="fa fa-chevron-left"></i>
         </button>
-        <button class=\"btn btn-default\" type=\"button\" ng-click=\"dataSource.next(\'form\')\"><i class=\"fa fa-chevron-right\"></i>
+        <button class="btn btn-default" type="button" ng-click="dataSource.next('form')"><i class="fa fa-chevron-right"></i>
         </button>
       </div>\n
       ${buttons}
@@ -417,10 +428,10 @@
   <div ng-form="form" class="data-form" ng-class="{'form-data-changing': dataSource.changing, 'form-data-readonly': !dataSource.changing}">
   ${ toolbar }
   <div class="content-scroll"><div class="content">
-  <div class=\"content container animated fadeIn\">
-  <div class="clearfix"></div><header class="content-container-heading"></header><div class="clearfix"></div>
+    <div class="clearfix"></div><header class="content-container-heading"></header><div class="clearfix"></div>  
+  <div class="content container animated fadeIn">
   <div class="panel panel-default data-panel browsing" ng-class="{ browsing: dataSource.browsing, editing: dataSource.changing }">
-  <div class=\"panel-body\"><div class="row">${html}</div></div></div></div></div></div></div>`;
+  <div class="panel-body"><div class="row">${html}</div></div></div></div></div></div></div>`;
     }
 
     preRender_list(scope, html) {
@@ -450,7 +461,7 @@
         <span ng-show="dataSource.loading" class="badge page-badge-ref fadeIn animated">\${dataSource.pageIndex}</span>
   
   ${reports}
-  <div class="btn-group">
+  <div class="btn-group" ng-show="action.selectionLength">
     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true">
       ${Katrid.i18n.gettext('Action')} <span class=\"caret\"></span></button>
     <ul class="dropdown-menu animated flipInX">
@@ -458,7 +469,7 @@
     </ul>
   </div>
   
-  <button class="btn btn-default" ng-click="dataSource.refresh()"><i class="fa fa-refresh"></i> ${ Katrid.i18n.gettext('Refresh') }</button>
+  <!--button class="btn btn-default" ng-click="dataSource.refresh()"><i class="fa fa-refresh"></i> ${ Katrid.i18n.gettext('Refresh') }</button-->
   
   </div>
   <div class="col-sm-6">
@@ -494,12 +505,17 @@
     }
 
     renderList(scope, element, attrs, rowClick, parentDataSource) {
+      const showSelector = true;
       let ths = '<th ng-show="dataSource.groups.length"></th>';
       let cols = `<td ng-show="dataSource.groups.length" class="group-header">
   <div ng-show="row._group">
   <span class="fa fa-fw fa-caret-right"
     ng-class="{'fa-caret-down': row._group.expanded, 'fa-caret-right': row._group.collapsed}"></span>
     \${::row._group.__str__} (\${::row._group.count})</div></td>`;
+      if (showSelector) {
+        ths += `<th class="list-record-selector"><input type="checkbox" ng-click="action.selectToggle($event.currentTarget)" onclick="$(this).closest('table').find('td.list-record-selector input').prop('checked', $(this).prop('checked'))"></th>`;
+        cols += `<td class="list-record-selector" onclick="event.stopPropagation();"><input type="checkbox" ng-click="action.selectToggle($event.currentTarget)" onclick="if (!$(this).prop('checked')) $(this).closest('table').find('th.list-record-selector input').prop('checked', false)"></td>`;
+      }
 
       for (let col of Array.from(element.children())) {
         let colHtml = col.outerHTML;

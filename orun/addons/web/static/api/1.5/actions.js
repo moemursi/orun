@@ -77,6 +77,7 @@
       this.viewMode = info.view_mode;
       this.viewModes = this.viewMode.split(',');
       this.viewType = null;
+      this.selectionLength = 0;
     }
 
     registerFieldNotify(field) {
@@ -203,7 +204,8 @@
           action: this.info.id
         });
         r.done(res => {
-          const views = res.result;
+          this.fields = res.result.fields;
+          const views = res.result.views;
           this.views = views;
           return this.scope.$apply(() => {
             this.scope.views = views;
@@ -337,6 +339,11 @@
         $(this).data('bs.modal', null);
         return $(this).remove();
       });
+    }
+
+    selectToggle(el) {
+      this.selectionLength = $(el).closest('table').find('td.list-record-selector :checkbox').filter(':checked').length;
+      console.log('selection length', this.selectionLength);
     }
   }
   WindowAction.initClass();

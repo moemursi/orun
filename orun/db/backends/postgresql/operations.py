@@ -55,7 +55,8 @@ class DatabaseOperations(BaseDatabaseOperations):
         return sql, params
 
     def deferrable_sql(self):
-        return " DEFERRABLE INITIALLY DEFERRED"
+        return " "
+        #return " DEFERRABLE INITIALLY DEFERRED"
 
     def fetch_returned_insert_ids(self, cursor):
         """

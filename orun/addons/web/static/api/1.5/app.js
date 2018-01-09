@@ -160,14 +160,16 @@
         let newHeader = $compile(header)($scope);
         el.find('header').first().replaceWith(newHeader);
         newHeader.addClass('content-container-heading');
+        let headerButtons = $('<div class="header-buttons"></div>');
+        newHeader.prepend(headerButtons);
         (() => {
           const result = [];
           for (let child of header.children()) {
             child = $(child);
-            //newHeader.append(child)
             if (!child.attr('class')) {
               child.addClass('btn btn-default');
             }
+            if (child.prop('tagName') === 'BUTTON') headerButtons.append(child);
             if ((child.prop('tagName') === 'BUTTON') && (child.attr('type') === 'object')) {
               child.attr('type', 'button');
               child.attr('button-type', 'object');

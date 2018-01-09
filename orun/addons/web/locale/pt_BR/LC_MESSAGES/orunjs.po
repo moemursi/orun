@@ -194,3 +194,15 @@ msgstr "Adicionar Nova Coluna"
 
 msgid "Click here to add new column"
 msgstr "Clique aqui para adicionar nova coluna"
+
+msgid "No pending changes"
+msgstr "Nenhuma alteração pendente"
+
+msgid "Attachments"
+msgstr "Anexos"
+
+msgid "%(count) Attachment(s)"
+msgstr "%(count) Anexo(s)"
+
+msgid "Add..."
+msgstr "Adicionar..."

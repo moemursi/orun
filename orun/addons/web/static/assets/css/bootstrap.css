@@ -2491,7 +2491,6 @@ legend {
   line-height: inherit;
   color: #333333;
   border: 0;
-  border-bottom: 1px solid #e5e5e5;
 }
 label {
   display: inline-block;
@@ -2994,7 +2993,6 @@ select[multiple].input-lg {
 .btn {
   display: inline-block;
   margin-bottom: 0;
-  text-transform: uppercase;
   text-align: center;
   vertical-align: middle;
   touch-action: manipulation;
