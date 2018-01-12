@@ -36,3 +36,38 @@
   text-transform: uppercase;
   font-size: 11px;
 }
+.input-file-hidden {
+  position: absolute;
+  top: -99999px;
+  left: -99999px;
+  opacity: 0;
+}
+.dropdown-menu.attachments-menu > li > a {
+  padding-right: 8px;
+}
+.dropdown-menu.attachments-menu > li > a:first-child {
+  padding-right: 28px;
+}
+.dropdown-menu.attachments-menu > li > a > span {
+  position: absolute;
+  right: 9px;
+  padding: 3px;
+}
+#footer.page-footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  height: 24px;
+  width: 100%;
+  font-family: monospace;
+  padding: 4px 8px;
+}
+.breadcrumb li {
+  font-size: 14px;
+}
+.content-scroll > .content {
+  padding-bottom: 30px;
+}
+.attachments-area li {
+  cursor: pointer;
+}

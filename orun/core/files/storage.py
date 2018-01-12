@@ -29,6 +29,8 @@ class Storage(object):
     # The following methods represent a public interface to private methods.
     # These shouldn't be overridden by subclasses unless absolutely necessary.
 
+    store_file_name = False
+
     def open(self, name, mode='rb'):
         """
         Retrieves the specified file from storage.
@@ -184,6 +186,8 @@ class FileSystemStorage(Storage):
     """
     Standard filesystem storage
     """
+    public = False
+    store_file_name = True
 
     def __init__(self, location=None, base_url=None, file_permissions_mode=None,
                  directory_permissions_mode=None):

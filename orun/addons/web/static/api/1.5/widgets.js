@@ -213,7 +213,7 @@
     }
 
     spanTemplate(scope, el, attrs, field) {
-      return `<span class="form-field-readonly">\${ record.${attrs.name}.toString() || '--' }</span>`;
+      return `<span class="form-field-readonly">{{ record.${attrs.name}.toString() || '--' }}</span>`;
     }
 
     widgetTemplate(scope, el, attrs, field, type) {
@@ -273,7 +273,7 @@
 
     th() {
       let cls = `${this.field.type} list-column`;
-      return `<th class="${cls}" name="${name}"><span>\${::view.fields.${this.field.name}.caption}</span></th>`;
+      return `<th class="${cls}" name="${name}"><span>{{::view.fields.${this.field.name}.caption}}</span></th>`;
     }
 
     td(gridEditor = null, html = null) {
@@ -285,21 +285,21 @@
       let editor = '';
       if ((gridEditor === 'tabular') && html) editor = html;
       if (colHtml) {
-        s = `<td><a data-id="\${::row.${name}[0]}">${colHtml}</a>${editor}</td>`;
+        s = `<td><a data-id="{{::row.${name}[0]}}">${colHtml}</a>${editor}</td>`;
       } else if (fieldInfo.type === 'ForeignKey') {
-        s = `<td><a data-id="\${::row.${name}[0]}" ui-tooltip data-title="<h1>Click here to show form</h1>" data-html="true" data-placement="bottom">\${row.${name}[1]}</a>${editor}</td>`;
+        s = `<td><a data-id="{{::row.${name}[0]}}" ui-tooltip data-title="<h1>Click here to show form</h1>" data-html="true" data-placement="bottom">{{row.${name}[1]}}</a>${editor}</td>`;
       } else if  (fieldInfo._listChoices) {
-        s = `<td class="${cls}">\${::view.fields.${name}._listChoices[row.${name}]}${editor}</td>`;
+        s = `<td class="${cls}">{{::view.fields.${name}._listChoices[row.${name}]}}${editor}</td>`;
       } else if (fieldInfo.type === 'BooleanField') {
-        s = `<td class="bool-text ${cls}">\${::row.${name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}${editor}</td>`;
+        s = `<td class="bool-text ${cls}">{{::row.${name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}}${editor}</td>`;
       } else if (fieldInfo.type === 'DecimalField') {
-        s = `<td class="${cls}">\${::row.${name}|number:2}${editor}</td>`;
+        s = `<td class="${cls}">{{::row.${name}|number:2}}${editor}</td>`;
       } else if (fieldInfo.type === 'DateField') {
-        s = `<td class="${cls}">\${::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}${editor}</td>`;
+        s = `<td class="${cls}">{{::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}}${editor}</td>`;
       } else if (fieldInfo.type === 'DateTimeField') {
-        s = `<td class="${cls}">\${::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}${editor}</td>`;
+        s = `<td class="${cls}">{{::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}}${editor}</td>`;
       } else {
-        s = `<td>\${::row.${name}}</td>`;
+        s = `<td>{{ ::row.${name} }}</td>`;
       }
       return s;
     }
@@ -333,7 +333,6 @@
     widgetAttrs(scope, el, attrs, field) {
       const attributes = super.widgetAttrs(scope, el, attrs, field);
       if (field.max_length) {
-        console.log('max length', field);
         attributes['maxlength'] = field.max_length.toString();
       }
       return attributes;
@@ -361,11 +360,11 @@
     }
 
     spanTemplate(scope, el, attrs, field) {
-      return `<span class="form-field-readonly">\${ view.fields.${attrs.name}.displayChoices[record.${attrs.name}] || '--' }</span>`;
+      return `<span class="form-field-readonly">{{ view.fields.${attrs.name}.displayChoices[record.${attrs.name}] || '--' }}</span>`;
     }
 
     innerHtml(scope, el, attrs, field) {
-      return `<option ng-repeat="choice in view.fields.${attrs.name}.choices" value="\${choice[0]}">\${choice[1]}</option>`;
+      return `<option ng-repeat="choice in view.fields.${attrs.name}.choices" value="{{choice[0]}}">{{choice[1]}}</option>`;
     }
   }
   SelectField.initClass();
@@ -382,9 +381,9 @@
         allowOpen = false;
       }
       if (!allowOpen) {
-        return `<span class="form-field-readonly">\${ record.${attrs.name}[1] || '--' }</span>`;
+        return `<span class="form-field-readonly">{{ record.${attrs.name}[1] || '--' }}</span>`;
       } else {
-        return `<span class="form-field-readonly"><a href="#/action/${ field.model }/view/?id=\${ record.${attrs.name}[0] }&title=${ field.caption }" ng-click="action.openObject('${ field.model }', record.${attrs.name}[0], $event, '${ field.caption }')">\${ record.${attrs.name}[1] }</a><span ng-if="!record.${attrs.name}[1]">--</span></span>`;
+        return `<span class="form-field-readonly"><a href="#/action/${ field.model }/view/?id={{ record.${attrs.name}[0] }}" ng-click="action.openObject('${ field.model }', record.${attrs.name}[0], $event, '${ field.caption }')">{{ record.${attrs.name}[1] }}</a><span ng-if="!record.${attrs.name}[1]">--</span></span>`;
       }
     }
 
@@ -416,7 +415,7 @@
     }
 
     spanTemplate(scope, el, attrs, field) {
-      return `<span class="form-field-readonly">\${ (record.${attrs.name}|number:2) || '--' }</span>`;
+      return `<span class="form-field-readonly">{{ (record.${attrs.name}|number:2) || '--' }}</span>`;
     }
   }
   DecimalField.initClass();
@@ -428,7 +427,7 @@
     }
 
     spanTemplate(scope, el, attrs, field) {
-      return `<span class="form-field-readonly">\${ (record.${attrs.name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}') || '--' }</span>`;
+      return `<span class="form-field-readonly">{{ (record.${attrs.name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}') || '--' }}</span>`;
     }
 
     widgetTemplate(scope, el, attrs, field, type) {
@@ -468,7 +467,7 @@
     }
 
     spanTemplate(scope, el, attrs, field) {
-      return `<span class="form-field-readonly">\${ record.${attrs.name}|m2m }</span>`;
+      return `<span class="form-field-readonly">{{ record.${attrs.name}|m2m }}</span>`;
     }
 
     template(scope, el, attrs, field) {
@@ -481,7 +480,7 @@
   class CheckBox extends InputWidget {
     spanTemplate(scope, el, attrs, field) {
       return `<span class="form-field-readonly bool-text">
-  \${ (record.${attrs.name} && Katrid.i18n.gettext('yes')) || ((record.${attrs.name} === false) && Katrid.i18n.gettext('no')) || (!record.${attrs.name} && '--') }
+  {{ (record.${attrs.name} && Katrid.i18n.gettext('yes')) || ((record.${attrs.name} === false) && Katrid.i18n.gettext('no')) || (!record.${attrs.name} && '--') }}
   </span>`;
     }
 
@@ -535,7 +534,7 @@
       let html = super.widgetTemplate(scope, el, attrs, field, type);
       let imgSrc = attrs.ngEmptyImage || (attrs.emptyImage && ("'" + attrs.emptyImage + "'")) || "'/static/web/static/assets/img/no-image.png'";
       html = `<div class="image-box image-field">
-  <img ng-src="\${record.${field.name} || ${imgSrc}}" />
+  <img ng-src="{{ record.${field.name} || ${imgSrc} }}" />
     <div class="text-right image-box-buttons">
     <button class="btn btn-default" type="button" title="${Katrid.i18n.gettext('Change')}" onclick="$(this).closest('.image-box').find('input').trigger('click')"><i class="fa fa-pencil"></i></button>
     <button class="btn btn-default" type="button" title="${Katrid.i18n.gettext('Clear')}" ng-click="$set('${field.name}', null)"><i class="fa fa-trash"></i></button>

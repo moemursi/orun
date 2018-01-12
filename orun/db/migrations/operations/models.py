@@ -259,7 +259,7 @@ class RenameModel(Operation):
                     new_m2m_model._meta.get_field(new_model._meta.model_name),
                 )
 
-            ContentType = app['sys.model']
+            ContentType = app['ir.model']
             model = ContentType.objects.get(old_model._meta.name)
             model.name = new_model._meta.name
             model.object_name = new_model._meta.object_name

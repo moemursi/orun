@@ -18,7 +18,11 @@
       }
     }
 
-    openObject(service, id, evt, title) {
+    _invalidate() {
+
+    }
+
+    openObject(service, id, evt) {
       evt.preventDefault();
       evt.stopPropagation();
       if (evt.ctrlKey) {
@@ -28,8 +32,7 @@
       const url = `action/${ service }/view/`;
       this.location.path(url, this).search({
         view_type: 'form',
-        id,
-        title
+        id
       });
       return false;
     }
@@ -38,20 +41,21 @@
     backTo(index) {
       let h, location;
       if (index === -1) {
-        h = this.history[0];
+        h = Action.history[0];
         if (h.backUrl) {
           location = h.backUrl;
         } else {
           location = h.currentUrl;
         }
       } else {
-        h = this.history[index];
+        h = Action.history[index];
         location = h.currentUrl;
+        Action.history.splice(index + 1);
       }
       const { path } = location;
       const params = location.search;
-      return this.location.path(path, false, h)
-      .search(params);
+      h.info.__cached = true;
+      return this.location.path(path, true, h.info).search(params);
     }
     execute() {}
     getCurrentTitle() {
@@ -65,11 +69,12 @@
     }
   }
   Action.initClass();
+  Action.history = [];
 
 
   class WindowAction extends Action {
     static initClass() {
-      this.actionType = 'sys.action.window';
+      this.actionType = 'ir.action.window';
     }
     constructor(info, scope, location) {
       super(info, scope, location);
@@ -78,6 +83,10 @@
       this.viewModes = this.viewMode.split(',');
       this.viewType = null;
       this.selectionLength = 0;
+    }
+
+    _invalidate() {
+      this.execute();
     }
 
     registerFieldNotify(field) {
@@ -351,7 +360,7 @@
 
   class ReportAction extends Action {
     static initClass() {
-      this.actionType = 'sys.action.report';
+      this.actionType = 'ir.action.report';
     }
 
     constructor(info, scope, location) {
@@ -367,7 +376,7 @@
     routeUpdate(search) {
       this.userReport.id = search.user_report;
       if (this.userReport.id) {
-        const svc = new Katrid.Services.Model('sys.action.report');
+        const svc = new Katrid.Services.Model('ir.action.report');
         svc.post('load_user_report', null, { kwargs: { user_report: this.userReport.id } })
         .done(res => {
           this.userReport.params = res.result;
@@ -383,7 +392,7 @@
 
   class ViewAction extends Action {
     static initClass() {
-      this.actionType = 'sys.action.view';
+      this.actionType = 'ir.action.view';
     }
     routeUpdate(search) {
       return this.scope.setContent(this.info.content);
@@ -394,7 +403,7 @@
 
   class UrlAction extends Action {
     static initClass() {
-      this.actionType = 'sys.action.url';
+      this.actionType = 'ir.action.url';
     }
 
     constructor(info, scope, location) {
@@ -407,7 +416,7 @@
 
   class ClientAction extends Action {
     static initClass() {
-      this.actionType = 'sys.action.client';
+      this.actionType = 'ir.action.client';
     }
 
     constructor(info, scope, location) {

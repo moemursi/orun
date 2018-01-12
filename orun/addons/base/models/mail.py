@@ -20,4 +20,4 @@ class MailServer(models.Model):
     smtp_debug = models.BooleanField(default=False)
 
     class Meta:
-        name = 'sys.mail.server'
+        name = 'ir.mail.server'

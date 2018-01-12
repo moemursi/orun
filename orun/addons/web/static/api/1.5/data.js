@@ -45,7 +45,7 @@
       this.pageLimit = 100;
       this.offset = 0;
       this.offsetLimit = 0;
-      this.requestInterval = 300;
+      this.requestInterval = 0;
       this.pendingRequest = null;
       this.fieldName = null;
       this.children = [];
@@ -271,34 +271,35 @@
 
       const def = new $.Deferred();
 
-      this.pendingRequest = setTimeout(() => {
-        return this.scope.model.search(params, {count: true})
-        .fail(res => {
-          return def.reject(res);
+      let req = this.scope.model.search(params, {count: true})
+      .fail(res => {
+        return def.reject(res);
       }).done(res => {
-          if (this.pageIndex > 1) {
-            this.offset = ((this.pageIndex - 1) * this.pageLimit) + 1;
-          } else {
-            this.offset = 1;
+        if (this.pageIndex > 1) {
+          this.offset = ((this.pageIndex - 1) * this.pageLimit) + 1;
+        } else {
+          this.offset = 1;
+        }
+        this.scope.$apply(() => {
+          if (res.result.count != null) {
+            this.recordCount = res.result.count;
           }
-          this.scope.$apply(() => {
-            if (res.result.count != null) {
-              this.recordCount = res.result.count;
-            }
-            this.scope.records = res.result.data;
-            if (this.pageIndex === 1) {
-              return this.offsetLimit = this.scope.records.length;
-            } else {
-              return this.offsetLimit = (this.offset + this.scope.records.length) - 1;
-            }
-          });
-          return def.resolve(res);
-        }).always(() => {
-          this.pendingRequest = false;
-          this.scope.$apply(() => { return this.loading = false; });
+          this.scope.records = res.result.data;
+          if (this.pageIndex === 1) {
+            return this.offsetLimit = this.scope.records.length;
+          } else {
+            return this.offsetLimit = (this.offset + this.scope.records.length) - 1;
+          }
         });
-      }
-      , this.requestInterval);
+        return def.resolve(res);
+      }).always(() => {
+        this.pendingRequest = false;
+        this.scope.$apply(() => { return this.loading = false; });
+      });
+
+      if (this.requestInterval > 0)
+        this.pendingRequest = setTimeout(req, this.requestInterval);
+      else req();
 
       return def.promise();
     }
@@ -484,12 +485,8 @@
         });
       };
 
-      if (timeout === 0) {
-        return _get();
-      }
-      if (this.requestInterval || timeout) {
-        this.pendingRequest = setTimeout(_get, timeout || this.requestInterval);
-      }
+      if (!timeout && !this.requestInterval) return _get();
+      else this.pendingRequest = setTimeout(_get, timeout || this.requestInterval);
 
       return def.promise();
     }

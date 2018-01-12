@@ -26,7 +26,7 @@
         $scope: elScope,
         action: {
           model: [null, field.model],
-          action_type: "sys.action.window",
+          action_type: "ir.action.window",
           view_mode: 'form',
           view_type: 'form',
           display_name: field.caption

@@ -62,9 +62,9 @@
           .done(res =>
             scope.$apply(function() {
               // detects the relational field
-              let fld = res.result.list.fields[scope.field.field];
+              let fld = res.result.views.list.fields[scope.field.field];
               if (fld) fld.visible = false;
-              loadViews(res.result);
+              loadViews(res.result.views);
             })
           );
 

@@ -1,5 +1,10 @@
-from orun.db import models
+import os
+import hashlib
+from orun import app, g
+from orun.conf import settings
+from orun.db import models, connection
 from orun.utils.translation import gettext_lazy as _
+from orun.core.files.storage import get_storage_class
 
 
 class Attachment(models.Model):
@@ -10,7 +15,7 @@ class Attachment(models.Model):
     name = models.CharField(label=_('Attachment Name'), null=False)
     file_name = models.CharField(label=_('File Name'))
     description = models.TextField(label=_('Description'))
-    model = models.CharField(128, label=_('Model'))
+    model_name = models.CharField(128, label=_('Model'))
     field = models.CharField(128)
     object_name = models.CharField()
     object_id = models.BigIntegerField()
@@ -24,20 +29,47 @@ class Attachment(models.Model):
     file_size = models.BigIntegerField()
     checksum = models.CharField(40, db_index=True)
     mimetype = models.CharField(128, 'Mime Type', readonly=True)
-    indexed_content = models.TextField(deferred=True)
+    indexed_content = models.TextField(deferred=True, readonly=True)
+    download_url = models.CharField(getter='get_download_url')
 
     class Meta:
-        name = 'sys.attachment'
+        name = 'ir.attachment'
         index_together = (('model_name', 'obj_name'),)
 
+    @property
+    def storage(self):
+        storage_cls = app['ir.config.parameter'].get_param('ir.attachment.storage')
+        if storage_cls == 'db':
+            return None
+        return get_storage_class(storage_cls)(
+            os.path.join(settings.MEDIA_ROOT, 'files', g.DEFAULT_DB_ALIAS, self.prefix)
+        )
+
     def get_content(self):
-        pass
+        storage = self.storage
+        if storage is None:
+            return self.db_content
+        else:
+            return storage.open(self.stored_file_name)
 
     def set_content(self, value):
-        pass
+        v = value.read()
+        checksum = hashlib.sha1(v or b'').hexdigest()
+        self.checksum = checksum
+        storage = self.storage
+        self.file_size = len(v)
+        if storage is None:
+            # store directly on db_content field
+            self.stored_file_name = None
+            self.db_content = value.read()
+        else:
+            self.stored_file_name = (storage.store_file_name and checksum) or None
+            if not storage.exists(checksum):
+                storage.save(checksum, value)
 
-    def get_storage(self):
-        return 'fs'
+    def get_download_url(self):
+        return '/web/content/%s/?download' % self.pk
 
-    def get_file_store(self):
-        return 'd:/home/orun'
+    @property
+    def prefix(self):
+        return self.checksum[:2]

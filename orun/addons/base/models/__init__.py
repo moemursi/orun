@@ -12,3 +12,6 @@ from .menu import *
 from .sequence import *
 from .mail import *
 from .reports import *
+from .config import *
+from .attachment import *
+from .http import *

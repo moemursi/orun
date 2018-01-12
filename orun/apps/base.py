@@ -1,5 +1,6 @@
 import os
 import inspect
+from contextlib import contextmanager
 import flask
 from flask import Flask, session
 from flask_mail import Mail
@@ -7,20 +8,14 @@ import sqlalchemy as sa
 from sqlalchemy.schema import CreateSchema
 from sqlalchemy.engine.url import URL, make_url
 
-from orun import env
+from orun import g, SUPERUSER
 from orun.utils.translation import activate
 from orun.conf import global_settings
 from orun.db import (connection, DEFAULT_DB_ALIAS)
 from orun.utils.functional import SimpleLazyObject
 from .registry import registry
 from .utils import adjust_dependencies
-
-
-def _current_user_env():
-    from orun.auth import get_user, AUTH_SESSION_KEY, SITE_SESSION_KEY
-    env.user = SimpleLazyObject(lambda: get_user(AUTH_SESSION_KEY))
-    env.site_user_id = session.get(SITE_SESSION_KEY)
-    env.site_user = SimpleLazyObject(lambda: get_user(SITE_SESSION_KEY, 'res.partner'))
+from orun.auth.request import auth_before_request
 
 
 class Application(Flask):
@@ -34,7 +29,7 @@ class Application(Flask):
         self.models = {}
 
         # Site user definition request handler
-        self.before_request(_current_user_env)
+        self.before_request(auth_before_request)
 
         # Load connections
         from orun.db import ConnectionHandler
@@ -136,13 +131,15 @@ class Application(Flask):
     def _register_models(self):
         from base.registry import register_model
         for model in self.models.values():
-            print('building mappers', model)
             register_model(model)
 
-    def __getitem__(self, item):
+    def get_model(self, item):
         if inspect.isclass(item):
             item = item._meta.name
         return self.models[item]
+
+    def __getitem__(self, item):
+        return g.env[item]
 
     def __setitem__(self, key, value):
         self.models[key] = value
@@ -170,7 +167,7 @@ class Application(Flask):
         for view in registry.module_views[addon.schema]:
             view.register(self)
 
-    def app_context(self, **kwargs):
+    def app_context(self, user_id=SUPERUSER, **kwargs):
         old_state = {}
         ctx = AppContext(self)
         try:
@@ -182,14 +179,32 @@ class Application(Flask):
         if database:
             self.register_db(database)
         ctx.g.DEFAULT_DB_ALIAS = database or self.config.get('DEFAULT_DB_ALIAS', DEFAULT_DB_ALIAS)
-        ctx.g.user_id = 1  # Replace by the current user
         for k, v in kwargs.items():
             setattr(ctx.g, k, v)
         ctx.g.LANGUAGE_CODE = kwargs.pop('LANGUAGE_CODE', old_state.get('LANGUAGE_CODE', self.config['LANGUAGE_CODE']))
+        ctx.g.user_id = user_id
+        ctx.g.user = SimpleLazyObject(lambda: self['auth.user'].objects.get(user_id))
+        context = {
+            'lang': ctx.g.LANGUAGE_CODE,
+            'user_id': user_id,
+        }
+        ctx.g.env = Environment(user_id, context)
+        ctx.g.context = context
         return ctx
 
     def iter_blueprints(self):
         return reversed(self._blueprint_order)
+
+    def sudo(self, user_id=SUPERUSER):
+        return self.with_context(user_id)
+
+    @contextmanager
+    def with_context(self, user_id=SUPERUSER, context=None):
+        old_env = g.env
+        new_env = g.env(user_id, context)
+        g.env = new_env
+        yield
+        g.env = old_env
 
 
 class AppContext(flask.app.AppContext):
@@ -206,3 +221,6 @@ class AppContext(flask.app.AppContext):
         if self._old_lang:
             activate(self._old_lang)
         super(AppContext, self).__exit__(exc_type, exc_val, exc_tb)
+
+
+from orun.api import Environment

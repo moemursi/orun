@@ -2,7 +2,7 @@ import os
 
 from jinja2 import Environment, FunctionLoader
 
-from orun import env
+from orun import g
 from orun import render_template
 from orun import render_template_string
 from orun.apps import registry
@@ -47,7 +47,7 @@ class View(models.Model):
         ('primary', _('Primary')),
         ('extension', _('Extension'))
     ), default='primary', null=False)
-    model = models.ForeignKey('sys.model')
+    model = models.ForeignKey('ir.model')
     priority = models.IntegerField(_('Priority'), default=99, null=False)
     template_name = models.CharField(max_length=255)
     content = models.TextField()
@@ -141,12 +141,12 @@ class CustomView(models.Model):
 
 class Filter(models.Model):
     name = models.CharField(256, null=False)
-    user = models.ForeignKey('auth.user', default=lambda x: env.user, on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.user', default=lambda x: g.user, on_delete=models.CASCADE)
     domain = models.TextField()
     context = models.TextField()
     sort = models.TextField()
     is_default = models.BooleanField(default=False)
-    action = models.ForeignKey('sys.action')
+    action = models.ForeignKey('ir.action')
     active = models.BooleanField(default=True)
 
     class Meta:

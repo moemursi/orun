@@ -140,7 +140,7 @@
       }
     }
   };
-
+  
   if (Katrid.Settings.servicesProtocol === 'io') {
     Katrid.socketio = io.connect(`//${document.domain}:${location.port}/rpc`);
   }

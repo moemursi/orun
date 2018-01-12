@@ -14,7 +14,7 @@ class ReportAction(Action):
     view = models.ForeignKey('ui.view')
 
     class Meta:
-        name = 'sys.action.report'
+        name = 'ir.action.report'
 
     def serialize(self, *args, **kwargs):
         data = super(ReportAction, self).serialize(*args, **kwargs)
@@ -66,7 +66,7 @@ class UserReport(models.Model):
 
 class AutoReport(models.Model):
     name = models.CharField(128, null=False)
-    model = models.ForeignKey('sys.model', null=False, db_index=True)
+    model = models.ForeignKey('ir.model', null=False, db_index=True)
     content = models.TextField()
 
     class Meta:

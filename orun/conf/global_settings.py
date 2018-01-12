@@ -20,6 +20,9 @@ settings = {
     'SERIALIZATION_MODULES': {},
     'DEFAULT_CHARSET': 'utf-8',
     'DATABASE_SCHEMA_SUPPORT': False,
+    'DEFAULT_FILE_STORAGE': 'orun.core.files.storage.FileSystemStorage',
+    'FILE_UPLOAD_PERMISSIONS': None,
+    'FILE_UPLOAD_DIRECTORY_PERMISSIONS': None,
 
     'FORMAT_MODULE_PATH': None,
     'DATE_INPUT_FORMATS': [
@@ -55,8 +58,4 @@ settings = {
         'orun.auth.hashers.BCryptSHA256PasswordHasher',
         'orun.auth.hashers.BCryptPasswordHasher',
     ],
-
-    'SUPERUSER_ID': 1,
-    'SUPERUSER': 'admin',
-    'PASSWORD': 'admin',
 }

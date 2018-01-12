@@ -160,7 +160,7 @@ class Options(object):
                     model.add_to_class('id', auto)
 
     def _build_table(self, meta):
-        if self.abstract or self.table is not None:
+        if self.virtual or self.abstract or self.table is not None:
             return
 
         # Build the table
@@ -176,7 +176,7 @@ class Options(object):
         return self.table
 
     def _build_mapper(self):
-        if self.abstract or self.mapped is not None:
+        if self.virtual or self.abstract or self.mapped is not None:
             return
 
         # Build the orm mapper
@@ -212,7 +212,7 @@ class Options(object):
 
         if self.parents:
             for parent, field in self.parents.items():
-                parent = self.app[parent._meta.name]
+                parent = self.app.models[parent._meta.name]
                 for f in self.fields:
                     if f.inherited:
                         f._prepare()
@@ -224,7 +224,7 @@ class Options(object):
 
         if self.parents:
             for parent, field in self.parents.items():
-                parent = self.app[parent._meta.name]
+                parent = self.app.models[parent._meta.name]
                 if parent._meta.mapped is None:
                     parent._meta._build_mapper()
                 col = self.fields_dict[field.name].column
@@ -233,6 +233,7 @@ class Options(object):
                     inherit_condition=col == list(col.foreign_keys)[0].column, **additional_args).c
         else:
             mapped.c = mapper(mapped, table, properties=props, **additional_args).c
+            mapped.c.pk = self.pk.column
 
         self.mapped = mapped
 
@@ -249,7 +250,7 @@ class Options(object):
         #    model = type(self.object_name, (model, parent_class), {'__register__': False})
 
         #bases += [Model if base is Model else (base._meta.name in registry and registry[base._meta.name]) or base for base in model.mro() if issubclass(base, Model) and base is not model]
-        bases += [Model if base is Model else (base._meta.name in registry and registry[base._meta.name]) or base for base in model._meta.bases if issubclass(base, Model) and base is not model]
+        bases += [Model if base is Model else (base._meta.name in registry and registry.models[base._meta.name]) or base for base in model._meta.bases if issubclass(base, Model) and base is not model]
         cls = type(self.object_name, tuple(bases), {'__app__': registry, '__model__': model, '__module__': self.app_label})
         return cls
 

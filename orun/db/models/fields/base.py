@@ -231,7 +231,12 @@ class Field(object):
             return getter(instance)
 
     def __set__(self, instance, value):
-        instance._state.record[self] = value
+        setter = self.setter
+        if isinstance(setter, str):
+            setter = getattr(instance, setter, None)
+        if callable(setter):
+            setter(value)
+        #instance._state.record[self] = value
 
     @cached_property
     def validators(self):
@@ -392,13 +397,18 @@ class Field(object):
             keywords,
         )
 
-    def deserialize(self, value, instance):
+    def to_python(self, value):
         """
         Converts a serialized value to a python compatible value.
         """
-        setattr(instance, self.name, value)
+        if value == '':
+            value = None
+        return value
 
-    def serialize(self, value, instance=None):
+    def deserialize(self, value, instance):
+        pass
+
+    def serialize(self, value, instance):
         """
         Converts a python value to a serializable value.
         """
@@ -452,15 +462,13 @@ class CharField(Field):
     def db_type(self, bind=None):
         return sa.String(self.max_length)
 
-    def deserialize(self, value, instance):
+    def to_python(self, value):
         # Force serialized value to string
-        if value == '':
-            value = None
-        elif value is not None:
+        if value is not None:
             value = str(value)
-        super(CharField, self).deserialize(value, instance)
+        return super(CharField, self).to_python(value)
 
-    def serialize(self, value, instance=None):
+    def serialize(self, value, instance):
         if value is None:
             value = ''
         value = str(value)
@@ -520,12 +528,12 @@ class DateTimeField(Field):
 class DateField(DateTimeField):
     _db_type = sa.Date()
 
-    def deserialize(self, value, instance):
+    def to_python(self, value):
         # Try the ISO format and then settings.DATE_INPUT_FORMATS
         for format in settings.DATE_INPUT_FORMATS:
             try:
                 value = datetime.datetime.strptime(force_str(value), format).date()
-                return super(DateField, self).deserialize(value, instance)
+                return super(DateField, self).to_python(value)
             except (ValueError, TypeError):
                 continue
 
@@ -555,12 +563,12 @@ class DecimalField(Field):
     def db_type(self, bind=None):
         return sa.Numeric(self.digits, self.decimal_places)
 
-    def deserialize(self, value, instance):
+    def to_python(self, value):
         if isinstance(value, (str, float)):
             value = decimal.Decimal(str(value))
         if value is not None:
             value = round(value, self.decimal_places)
-        super(DecimalField, self).deserialize(value, instance)
+        return super(DecimalField, self).to_python(value)
 
 
 class EmailField(CharField):
@@ -601,9 +609,6 @@ class BinaryField(Field):
         super(BinaryField, self).__init__(*args, **kwargs)
         self.attachment = attachment
         self.storage = storage
-
-    def deserialize(self, value, instance):
-        super(BinaryField, self).deserialize(value.encode('utf-8') if value else None, instance)
 
 
 class FileField(BinaryField):

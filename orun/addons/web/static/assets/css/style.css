@@ -4039,7 +4039,6 @@ label.radio > i:after {
 .data-heading ol.breadcrumb {
   padding: 0;
   margin: 0;
-  font-size: small;
 }
 .data-heading .help-block {
   margin-top: 0;
@@ -5380,6 +5379,7 @@ label.prepend-icon {
 .content .data-panel.panel {
   border: 1px solid #c8c8d3;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 0;
 }
 .content .data-panel .card-view {
   min-height: 100%;

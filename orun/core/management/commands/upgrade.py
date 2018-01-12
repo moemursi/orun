@@ -21,10 +21,17 @@ def command(app_labels, **options):
 def upgrade(app_labels, **options):
     if not app_labels:
         app_labels = app.app_configs.keys()
+    all_models = []
     for app_label in app_labels:
         addon = apps.app_configs[app_label]
         cmd = Command()
         cmd.handle_app_config(addon, **options)
+        all_models.extend(addon.models.keys())
+    all_models = set(all_models)
+    for model in all_models:
+        if model in app.models:
+            model = app[model]
+            model.init()
 
 
 class Command(object):

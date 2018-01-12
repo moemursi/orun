@@ -201,8 +201,11 @@ msgstr "Nenhuma alteração pendente"
 msgid "Attachments"
 msgstr "Anexos"
 
-msgid "%(count) Attachment(s)"
-msgstr "%(count) Anexo(s)"
+msgid "{0} Attachment(s)"
+msgstr "{0} Anexo(s)"
 
 msgid "Add..."
 msgstr "Adicionar..."
+
+msgid "Delete this attachment"
+msgstr "Deletar este anexo"

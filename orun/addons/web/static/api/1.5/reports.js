@@ -190,7 +190,7 @@
     export(format) {
       if (format == null) { format = 'pdf'; }
       const params = this.getUserParams();
-      const svc = new Katrid.Services.Model('sys.action.report');
+      const svc = new Katrid.Services.Model('ir.action.report');
       svc.post('export_report', null, { args: [this.info.id], kwargs: { format, params } })
       .done(function(res) {
         if (res.result.open) {

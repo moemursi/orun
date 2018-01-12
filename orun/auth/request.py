@@ -1,14 +1,11 @@
-from orun import request, env
+from orun import request, g, session
 
 from orun.utils.functional import SimpleLazyObject
 from orun import auth
 
 
-def get_user():
-    if not hasattr(env, '_cached_user'):
-        request._cached_user = auth.get_user()
-    return request._cached_user
-
-
 def auth_before_request():
-    env.user = SimpleLazyObject(lambda: get_user())
+    g.user_id = session[auth.AUTH_SESSION_KEY]
+    g.user = SimpleLazyObject(lambda: auth.get_user(auth.AUTH_SESSION_KEY))
+    g.site_user_id = session.get(auth.SITE_SESSION_KEY)
+    g.site_user = SimpleLazyObject(lambda: auth.get_user(auth.SITE_SESSION_KEY, 'res.partner'))

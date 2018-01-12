@@ -1,9 +1,9 @@
-from functools import reduce
 import sqlalchemy as sa
 from sqlalchemy.sql import select, update, delete, text
 from sqlalchemy import orm, or_, and_
 from sqlalchemy.orm import load_only
 
+from orun.api import RecordsProxy
 from orun.db import session, connection
 
 
@@ -276,6 +276,22 @@ def convert_params(model, params, tables=None):
 
 
 class Query(orm.Query):
+    # def __init__(self, entities, session=None):
+    #     from orun.db.models import Model
+    #     if entities and isinstance(entities[0], Model):
+    #         self.env = entities[0].env
+    #         entities = list(entities)
+    #         entities[0] = entities[0].__class__
+    #     super(Query, self).__init__(entities, session=session)
+
+    def __iter__(self):
+        return RecordsProxy(super(Query, self).__iter__())
+
+    # def _clone(self):
+    #     q = super(Query, self)._clone()
+    #     q.env = self.env
+    #     return q
+
     def filter(self, *criterion, **kwargs):
         # prepare django-styled params
         args = []

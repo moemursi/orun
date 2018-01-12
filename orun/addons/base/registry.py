@@ -2,7 +2,7 @@ from orun.core.exceptions import ObjectDoesNotExist
 
 
 def register_model(model):
-    ContentType = model._meta.app['sys.model']
+    ContentType = model._meta.app['ir.model']
     try:
         ContentType.get_by_natural_key(model._meta.name)
     except ObjectDoesNotExist:
@@ -22,7 +22,7 @@ def register_model(model):
 #         return
 #
 #     try:
-#         Model = app['sys.model']
+#         Model = app['ir.model']
 #     except LookupError:
 #         return
 #

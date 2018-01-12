@@ -31,15 +31,33 @@
       }
     }
 
-    postMessage(msg) {
-      return this.model.post('post_message', null, { args: [[this.scope.$parent.recordId]], kwargs: { content: msg, content_subtype: 'html', format: true } })
+    _sendMesage(msg, attachments) {
+      if (attachments) {
+        let lst = [];
+        for (let f of attachments) lst.push(f.id);
+        attachments = lst;
+      }
+      this.model.post('post_message', null, { args: [[this.scope.$parent.recordId]], kwargs: { content: msg, content_subtype: 'html', format: true, attachments: attachments } })
       .done(res => {
         const msgs = res.result;
         this.scope.message = '';
-        return this.scope.$apply(() => {
-          return this.items = msgs.concat(this.items);
-        });
+        this.scope.$apply(() => this.items = msgs.concat(this.items));
+        this.scope.hideEditor();
       });
+    }
+
+    postMessage(msg) {
+      if (this.scope.files.length) {
+        let files = [];
+        for (let f of this.scope.files) files.push(f.file);
+        var me = this;
+        Katrid.Services.Attachments.upload({files: files}, this.scope.$parent)
+        .done((res) => {
+          console.log('the res', res);
+          me._sendMesage(msg, res);
+        });
+      } else
+        this._sendMesage(msg);
     }
   }
 
@@ -69,14 +87,36 @@
   Katrid.uiKatrid.directive('mailComments', () =>
     ({
       restrict: 'E',
+      controller: ($scope) => {
+        $scope.comments = new Comments($scope);
+        $scope.files = [];
+
+        $scope.showEditor = () => {
+          $($scope.el).find('#mail-editor').show();
+          $($scope.el).find('#mail-msgEditor').focus();
+        };
+
+        $scope.hideEditor = () => {
+          $($scope.el).find('#mail-editor').hide();
+        };
+
+        $scope.attachFile = (file) => {
+          for (let f of file.files)
+            $scope.files.push({
+              name: f.name,
+              type: f.type,
+              file: f
+            });
+          $scope.$apply();
+        };
+
+        $scope.deleteFile = (idx) => {
+          $scope.files.splice(idx, 1);
+        }
+      },
       replace: true,
       link(scope, element, attrs) {
-        scope.comments = new Comments(scope);
-        return scope.showEditor = function() {
-          $('#mail-editor').show();
-          $('#mail-msgEditor').focus();
-          return true;
-        };
+        scope.el = element;
       },
 
       template() {
@@ -91,6 +131,15 @@
             <div class="form-group">
               <textarea id="mail-msgEditor" class="form-control" ng-model="message"></textarea>
             </div>
+            <div class="form-group">
+              <button class="btn btn-default" type="button" onclick="$(this).next().click()"><i class="fa fa-paperclip"></i></button>
+              <input class="input-file-hidden" type="file" multiple onchange="angular.element(this).scope().attachFile(this)">
+            </div>
+            <div class="form-group" ng-show="files.length">
+              <ul class="list-inline attachments-area">
+                <li ng-repeat="file in files" ng-click="deleteFile($index)" title="${ Katrid.i18n.gettext('Delete this attachment') }">{{ file.name }}</li>
+              </ul>
+            </div>
             <div class="from-group">
               <button class="btn btn-primary" ng-click="comments.postMessage(message)">${Katrid.i18n.gettext('Send')}</button>
             </div>
@@ -98,16 +147,16 @@
   
           <hr>
   
-          <div ng-show="loading">\${loading}</div>
+          <div ng-show="loading">{{ loading }}</div>
           <div class="comment media col-sm-12" ng-repeat="comment in comments.items">
             <div class="media-left">
               <img src="/static/web/static/assets/img/avatar.png" class="avatar img-circle">
             </div>
             <div class="media-body">
-              <strong>\${ comment.author[1] }</strong> - <span title="\${comment.date_time|moment:'LLLL'}"> \${comment.date_time|moment}</span>
+              <strong>{{ comment.author[1] }}</strong> - <span title="{{ comment.date_time|moment:'LLLL'}}"> {{comment.date_time|moment}}</span>
               <div class="clearfix"></div>
               <div>
-                \${comment.content}
+                {{comment.content}}
               </div>
             </div>
           </div>

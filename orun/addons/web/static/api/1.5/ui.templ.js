@@ -1,31 +1,16 @@
 (function () {
   class BaseTemplate {
-    getActionTitle(title, click) {
-      if (click == null) { click = "action.setViewType()"; }
-      return `<h2><a href="javascript:void(0)" ng-click="${ click }">${ title }</a></h2>`;
-    }
-
     getBreadcrumb(scope, viewType) {
-      let html;
-      if (scope.action.history.length) {
-        html = "<ol class=\"breadcrumb\">";
-        for (let i = 0; i < scope.action.history.length; i++) {
-          const h = scope.action.history[i];
-          if ((i === 0) && h.info.display_name) {
-            html += `<li>${ this.getActionTitle(h.info.display_name, "action.backTo(-1)") }</li>`;
-          }
-          html += `<li><a href="javascript:void(0)" ng-click="action.backTo(${ i })">${ h.getCurrentTitle() }</a></li>`;
-        }
-      } else {
-        html = `\
-  <ol class="breadcrumb">
-    ${ (scope.action.info.display_name && `<li>${ this.getActionTitle(scope.action.info.display_name) }</li>`) || '' }\
-  `;
+      let html = `<ol class="breadcrumb">`;
+      let i = 0;
+      for (let h of Katrid.Actions.Action.history) {
+        if (i === 0 && h.viewModes.length > 1) html += `<li><a href="javascript:void(0)" ng-click="return false;">${ h.info.display_name }</a></li>`;
+        i++;
+        if (Katrid.Actions.Action.history.length > i && h.viewType === 'form')
+          html += `<li><a href="javascript:void(0)" ng-click="action.backTo(${i-1})">${ h.scope.record.display_name }</a></li>`;
       }
-
-      if (viewType === 'form') {
-        html += "<li>${ (dataSource.loadingRecord && Katrid.i18n.gettext('Loading...')) || record.display_name }</li>";
-      }
+      if (scope.action.viewType === 'form')
+          html += "<li>{{ (dataSource.loadingRecord && Katrid.i18n.gettext('Loading...')) || record.display_name }}</li>";
       html += '</ol>';
       return html;
     }
@@ -52,7 +37,7 @@
         </div>
         <div class="modal-body">
           <select class="form-control" id="id-set-default-value">
-            <option ng-repeat="field in view.fields">\${field.caption} = \${record[field.name]}</option>
+            <option ng-repeat="field in view.fields">{{ field.caption }} = {{ record[field.name] }}</option>
           </select>
           <div class="radio">
             <label><input type="radio" name="public">${ Katrid.i18n.gettext('Only me') }</label>
@@ -105,7 +90,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="myModalLabel">\${field.caption}</h4>
+          <h4 class="modal-title" id="myModalLabel">{{ field.caption }}</h4>
         </div>
         <div class="modal-body">
   <div class="row">
@@ -126,15 +111,15 @@
 
     getFilterButtons() {
       return `\
-  <div class="btn-group animated fadeIn search-view-more-area" ng-show="search.viewMoreButtons">
+  <div class="btn-group search-view-more-area" ng-show="search.viewMoreButtons">
     <div class="btn-group">
       <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" type="button" aria-expanded="false"><span class="fa fa-filter"></span> ${Katrid.i18n.gettext('Filters')} <span class="caret"></span></button>
-      <ul class="dropdown-menu animated flipInX search-view-filter-menu">
+      <ul class="dropdown-menu search-view-filter-menu">
       </ul>
     </div>
     <div class="btn-group">
       <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" type="button"><span class="fa fa-bars"></span> ${Katrid.i18n.gettext('Group By')} <span class="caret"></span></button>
-      <ul class="dropdown-menu animated flipInX search-view-groups-menu">
+      <ul class="dropdown-menu search-view-groups-menu">
       </ul>
     </div>
     <button class="btn btn-default"><span class="fa fa-star"></span> ${Katrid.i18n.gettext('Favorites')} <span class="caret"></span></button>
@@ -150,7 +135,7 @@
       for (let field of Array.from(html.find('field'))) {
         field = $(field);
         const name = $(field).attr('name');
-        field.replaceWith(`\${ ::record.${name} }`);
+        field.replaceWith(`{{ ::record.${name} }}`);
       }
       html = html.html();
       return `<div class="data-form">
@@ -158,23 +143,23 @@
       <div class=\"panel-body\">
         <div class='row'>
           <div class="col-sm-6">
-          <h2>
-            \${ action.info.display_name }
-          </h2>
+          <ol class="breadcrumb">
+            <li>{{ action.info.display_name }}</li>
+          </ol>
           </div>
           <search-view class="col-md-6"/>
-          <!--<p class=\"help-block\">\${ action.info.usage }&nbsp;</p>-->
+          <!--<p class=\"help-block\">{{ action.info.usage }}&nbsp;</p>-->
         </div>
         <div class="row">
         <div class="toolbar">
   <div class="col-sm-6">
           <button class=\"btn btn-primary\" type=\"button\" ng-click=\"action.createNew()\">${Katrid.i18n.gettext('Create')}</button>
-          <span ng-show="dataSource.loading" class="badge page-badge-ref fadeIn animated">\${dataSource.pageIndex}</span>
+          <span ng-show="dataSource.loading" class="badge page-badge-ref">{{dataSource.pageIndex}}</span>
     <div class=\"btn-group\">
       <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\">
         ${Katrid.i18n.gettext('Action')} <span class=\"caret\"></span></button>
-      <ul class=\"dropdown-menu animated flipInX\">
-        <li><a href='javascript:void(0)' ng-click=\"action.deleteSelection()\"><i class="fa fa-fw fa-trash"></i> ${Katrid.i18n.gettext('Delete')}</a></li>
+      <ul class=\"dropdown-menu">
+        <li><a href='javascript:void(0)' ng-click=\"action.deleteSelection()\"><i class="fa fa-fw fa-trash-o"></i> ${Katrid.i18n.gettext('Delete')}</a></li>
       </ul>
     </div>
   
@@ -185,7 +170,7 @@
   ${this.getFilterButtons()}
     <div class=\"pull-right\">
               <div class="btn-group pagination-area">
-                <span class="paginator">\${dataSource.offset|number} - \${dataSource.offsetLimit|number}</span> / <span class="total-pages">\${dataSource.recordCount|number}</span>
+                <span class="paginator">{{dataSource.offset|number}} - {{dataSource.offsetLimit|number}}</span> / <span class="total-pages">{{ dataSource.recordCount|number }}</span>
               </div>
       <div class=\"btn-group\">
         <button class=\"btn btn-default\" type=\"button\" ng-click=\"dataSource.prevPage()\"><i class=\"fa fa-chevron-left\"></i>
@@ -281,7 +266,7 @@
         <button type="button" class="btn dropdown-toggle" data-toggle="dropdown">
           <span class="caret"></span>
         </button>
-        <ul class="dropdown-menu animated flipInX">
+        <ul class="dropdown-menu">
           <li>
             <a href="#">Move to next level</a>
           </li>
@@ -294,9 +279,9 @@
         </ul>
       </div>`;
 
-      let s = '<div class="card-view animated fadeIn kanban" ng-if="groupings.length" kanban-draggable=".kanban-group" kanban-group>';
+      let s = '<div class="card-view kanban" ng-if="groupings.length" kanban-draggable=".kanban-group" kanban-group>';
       s += `
-<div ng-repeat="group in groupings" class="kanban-group sortable-item" data-id="\${group._paramValue}" data-group-name="\${group._paramName}">
+<div ng-repeat="group in groupings" class="kanban-group sortable-item" data-id="{{group._paramValue}}" data-group-name="{{group._paramName}}">
   <div class="kanban-header margin-bottom-8">
     <div class="pull-right">
       <button class="btn" ng-click="kanbanShowAddGroupItemDlg($event)"><i class="fa fa-plus"></i></button>
@@ -310,7 +295,7 @@
     </div>
   </div>
 </div>
-<div class="kanban-add-group" title="${Katrid.i18n.gettext('Click here to add new column')}" ng-click="kanbanNewName='';kanbanShowAddGroupDlg($event);" data-group-name="\${groupings[0]._paramName}">
+<div class="kanban-add-group" title="${Katrid.i18n.gettext('Click here to add new column')}" ng-click="kanbanNewName='';kanbanShowAddGroupDlg($event);" data-group-name="{{groupings[0]._paramName}}">
 <div ng-hide="kanbanAddGroupDlg">
   <i class="fa fa-fw fa-chevron-right fa-2x"></i>
   <div class="clearfix"></div>
@@ -325,7 +310,7 @@
 </form>
 </div>
 
-</div><div class="card-view animated fadeIn kanban" ng-if="!groupings.length">`;
+</div><div class="card-view kanban" ng-if="!groupings.length">`;
       s += `<div ng-repeat="record in records" class="panel panel-default card-item card-link" ng-click="action.listRowClick($index, record, $event)">
         ${html}
       </div>`;
@@ -369,7 +354,7 @@
         <div>
           <a href="javascript:void(0)" title="Add to favorite"><i class="fa star fa-star-o pull-right"></i></a>
           ${ this.getBreadcrumb(scope) }
-          <p class="help-block">\${ ::action.info.usage }</p>
+          <p class="help-block">{{ ::action.info.usage }}</p>
         </div>
         <div class="toolbar">
     <button class="btn btn-primary" type="button" ng-disabled="dataSource.uploading" ng-click="dataSource.saveChanges()" ng-show="dataSource.changing">${Katrid.i18n.gettext('Save')}</button>
@@ -378,19 +363,27 @@
     <button class="btn btn-default" type="button" ng-click="dataSource.cancelChanges()" ng-show="dataSource.changing">${Katrid.i18n.gettext('Cancel')}</button>
     <div class="btn-group">    
       <div class="btn-group">
-        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true">
-        ${Katrid.i18n.gettext('Attachments')}
-        <span class="caret"></span>
+        <button id="attachments-button" attachments-button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true">
+          <span ng-show="!$parent.attachments.length">${ Katrid.i18n.gettext('Attachments') }</span>
+          <span ng-show="$parent.attachments.length">{{ Katrid.i18n.gettext('{0} Attachment(s)').format($parent.attachments.length) }}</span>
+          <span class="caret"></span>
         </button>
-        <ul class="dropdown-menu animated flipInX">
-          <li><a href="javascript:void(0)">${Katrid.i18n.gettext('Add...')}</a></li>
+        <ul class="dropdown-menu attachments-menu">
+          <li ng-repeat="attachment in $parent.attachments">
+            <a href="{{ ::attachment.download_url }}">{{ ::attachment.name }} <span class="fa fa-trash-o pull-right" title="Delete this attachment" onclick="event.preventDefault();" ng-click="action.deleteAttachment($index);"></span></a>
+          </li>
+          <li role="separator" class="divider" ng-show="attachments.length"></li>
+          <li>
+            <a href="javascript:void(0)" onclick="$(this).next().click()">${Katrid.i18n.gettext('Add...')}</a>
+            <input type="file" class="input-file-hidden" multiple onchange="Katrid.Services.Attachments.upload(this)">
+          </li>
         </ul>
       </div>
       <div class="btn-group">
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true">
           ${Katrid.i18n.gettext('Action')} <span class="caret"></span></button>
-        <ul class="dropdown-menu animated flipInX dropdown-menu-actions">
-          <li><a href='javascript:void(0)' ng-click="action.deleteSelection(true)"><i class="fa fa-fw fa-trash"></i> ${Katrid.i18n.gettext('Delete')}</a></li>
+        <ul class="dropdown-menu dropdown-menu-actions">
+          <li><a href='javascript:void(0)' ng-click="action.deleteSelection(true)"><i class="fa fa-fw fa-trash-o"></i> ${Katrid.i18n.gettext('Delete')}</a></li>
           <li><a href='javascript:void(0)' ng-click="action.copy()"><i class=\"fa fa-fw fa-files-o\"></i> ${Katrid.i18n.gettext('Duplicate')}</a></li>
           ${actions}
         </ul>
@@ -399,7 +392,7 @@
     <div class="pull-right">
       <div class="btn-group pagination-area">
           <span ng-show="records.length">
-            \${dataSource.recordIndex} / \${records.length}
+            {{ dataSource.recordIndex }} / {{ records.length }}
           </span>
       </div>
       <div class="btn-group" role="group">
@@ -429,7 +422,7 @@
   ${ toolbar }
   <div class="content-scroll"><div class="content">
     <div class="clearfix"></div><header class="content-container-heading"></header><div class="clearfix"></div>  
-  <div class="content container animated fadeIn">
+  <div class="content container">
   <div class="panel panel-default data-panel browsing" ng-class="{ browsing: dataSource.browsing, editing: dataSource.changing }">
   <div class="panel-body"><div class="row">${html}</div></div></div></div></div></div></div>`;
     }
@@ -439,7 +432,7 @@
   <div class="btn-group">
     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true">
       ${Katrid.i18n.gettext('Print')} <span class="caret"></span></button>
-    <ul class=\"dropdown-menu animated flipInX\">
+    <ul class=\"dropdown-menu">
       <li><a href='javascript:void(0)' ng-click="action.autoReport()"><i class="fa fa-fw fa-file"></i> ${Katrid.i18n.gettext('Auto Report')}</a></li>
     </ul>
   </div>\
@@ -449,23 +442,25 @@
     <div class="panel-body">
       <div class='row'>
         <div class="col-sm-6">
-          <h2>\${ action.info.display_name }</h2>
+          <ol class="breadcrumb">
+            <li>{{ action.info.display_name }}</li>
+          </ol>
         </div>
         <search-view class="col-md-6"/>
-        <!--<p class=\"help-block\">\${ action.info.usage }&nbsp;</p>-->
+        <!--<p class=\"help-block\">{{ action.info.usage }}&nbsp;</p>-->
       </div>
       <div class="row">
       <div class="toolbar">
   <div class="col-sm-6">
         <button class=\"btn btn-primary\" type=\"button\" ng-click=\"action.createNew()\">${Katrid.i18n.gettext('Create')}</button>
-        <span ng-show="dataSource.loading" class="badge page-badge-ref fadeIn animated">\${dataSource.pageIndex}</span>
+        <span ng-show="dataSource.loading" class="badge page-badge-ref">{{dataSource.pageIndex}}</span>
   
   ${reports}
   <div class="btn-group" ng-show="action.selectionLength">
     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true">
       ${Katrid.i18n.gettext('Action')} <span class=\"caret\"></span></button>
-    <ul class="dropdown-menu animated flipInX">
-      <li><a href='javascript:void(0)' ng-click=\"action.deleteSelection()\"><i class="fa fa-fw fa-trash"></i> ${Katrid.i18n.gettext('Delete')}</a></li>
+    <ul class="dropdown-menu">
+      <li><a href='javascript:void(0)' ng-click=\"action.deleteSelection()\"><i class="fa fa-fw fa-trash-o"></i> ${Katrid.i18n.gettext('Delete')}</a></li>
     </ul>
   </div>
   
@@ -477,7 +472,7 @@
   
   <div class=\"pull-right\">
             <div class="btn-group pagination-area">
-              <span class="paginator">\${dataSource.offset|number} - \${dataSource.offsetLimit|number}</span> / <span class="total-pages">\${dataSource.recordCount|number}</span>
+              <span class="paginator">{{dataSource.offset|number}} - {{dataSource.offsetLimit|number}}</span> / <span class="total-pages">{{dataSource.recordCount|number}}</span>
             </div>
     <div class=\"btn-group\">
       <button class=\"btn btn-default\" type=\"button\" ng-click=\"dataSource.prevPage()\"><i class=\"fa fa-chevron-left\"></i>
@@ -511,7 +506,7 @@
   <div ng-show="row._group">
   <span class="fa fa-fw fa-caret-right"
     ng-class="{'fa-caret-down': row._group.expanded, 'fa-caret-right': row._group.collapsed}"></span>
-    \${::row._group.__str__} (\${::row._group.count})</div></td>`;
+    {{::row._group.__str__}} ({{::row._group.count }})</div></td>`;
       if (showSelector) {
         ths += `<th class="list-record-selector"><input type="checkbox" ng-click="action.selectToggle($event.currentTarget)" onclick="$(this).closest('table').find('td.list-record-selector input').prop('checked', $(this).prop('checked'))"></th>`;
         cols += `<td class="list-record-selector" onclick="event.stopPropagation();"><input type="checkbox" ng-click="action.selectToggle($event.currentTarget)" onclick="if (!$(this).prop('checked')) $(this).closest('table').find('th.list-record-selector input').prop('checked', false)"></td>`;
@@ -550,18 +545,17 @@
       }
       if (parentDataSource) {
         ths += '<th class="list-column-delete" ng-show="parent.dataSource.changing">';
-        cols += '<td class="list-column-delete" ng-show="parent.dataSource.changing" ng-click="removeItem($index);$event.stopPropagation();"><i class="fa fa-trash"></i></td>';
+        cols += '<td class="list-column-delete" ng-show="parent.dataSource.changing" ng-click="removeItem($index);$event.stopPropagation();"><i class="fa fa-trash-o"></i></td>';
       }
       if ((rowClick == null)) {
         rowClick = 'action.listRowClick($index, row, $event)';
       }
-      const s = `<table ng-hide="dataSource.loading" class="${this.constructor.cssListClass}">
+      const s = `<table class="${this.constructor.cssListClass}">
   <thead><tr>${ths}</tr></thead>
   <tbody>
-  <tr ng-repeat="row in records" ng-init="record = {}" ng-click="${rowClick}" ng-class="{'group-header': row._hasGroup}" ng-form="grid-row-form-\${$index}" id="grid-row-form-\${$index}">${cols}</tr>
+  <tr ng-repeat="row in records" ng-init="record = {}" ng-click="${rowClick}" ng-class="{'group-header': row._hasGroup}" ng-form="grid-row-form-{{$index}}" id="grid-row-form-{{$index}}">${cols}</tr>
   </tbody>
   </table>
-  <div ng-show="dataSource.loading" class="col-sm-12 margin-bottom-16 margin-top-16">${Katrid.i18n.gettext('Loading...')}</div>\
   `;
       return s;
     }
@@ -586,8 +580,8 @@
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           <h4 class="modal-title" id="myModalLabel">
-          \${dialogTitle}
-          \${action.info.display_name}</h4>
+          {{dialogTitle}}
+          {{action.info.display_name}}</h4>
         </div>
         <div class="modal-body">
   <div class="row">
@@ -611,7 +605,7 @@
   <form id="report-form" method="get" action="/web/reports/report/">
     <div class="data-heading panel panel-default">
       <div class="panel-body">
-      <h2>\${ report.name }</h3>
+      <h2>{{ report.name }}</h3>
       <div class="toolbar">
         <button class="btn btn-primary" type="button" ng-click="report.preview()"><span class="fa fa-print fa-fw"></span> ${ Katrid.i18n.gettext('Preview') }</button>
   
@@ -661,7 +655,7 @@
   
             <select class="form-control" ng-change="action.userReportChanged(action.userReport.id)" ng-model="action.userReport.id">
                 <option value=""></option>
-                <option ng-repeat="rep in userReports" value="\${ rep.id }">\${ rep.name }</option>
+                <option ng-repeat="rep in userReports" value="{{ rep.id }}">{{ rep.name }}</option>
             </select>
           </td>
         </tr>
@@ -701,7 +695,7 @@
           <td class="col-sm-4">
             <select class="form-control" ng-model="newParam">
               <option value="">--- ${ Katrid.i18n.gettext('FILTERS') } ---</option>
-              <option ng-repeat="field in report.fields" value="\${ field.name }">\${ field.label }</option>
+              <option ng-repeat="field in report.fields" value="{{ field.name }}">{{ field.label }}</option>
             </select>
           </td>
           <td class="col-sm-8">
@@ -719,9 +713,9 @@
     <div ng-repeat="param in report.params" ng-controller="ReportParamController" class="row form-group">
       <div class="col-sm-12">
       <div class="col-sm-4">
-        <label class="control-label">\${param.label}</label>
+        <label class="control-label">{{param.label}}</label>
         <select ng-model="param.operation" class="form-control" ng-change="param.setOperation(param.operation)">
-          <option ng-repeat="op in param.operations" value="\${op.id}">\${op.text}</option>
+          <option ng-repeat="op in param.operations" value="{{op.id}}">{{op.text}}</option>
         </select>
       </div>
       <div class="col-sm-8" id="param-widget"></div>

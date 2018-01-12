@@ -2,52 +2,62 @@
 
   const ngApp = angular.module('katridApp', ['ngRoute', 'ngCookies', 'ngSanitize', 'ui-katrid'].concat(Katrid.Bootstrap.additionalModules));
 
-  ngApp.config(function($interpolateProvider) {
-    $interpolateProvider.startSymbol('${');
-    return $interpolateProvider.endSymbol('}');
-  });
-
   ngApp.config(['$locationProvider', function($locationProvider) {
     $locationProvider.hashPrefix('');
   }]);
 
-  ngApp.run(['$route', '$rootScope', '$location', function($route, $rootScope, $location) {
-
-    const original = $location.path;
-    return $location.path = function(path, currentAction, back) {
-      let reload;
-      if (currentAction === false) {
-        reload = false;
-      } else {
-        reload = true;
-      }
-
-      if (currentAction != null) {
-        const lastRoute = $route.current;
-        var un = $rootScope.$on('$locationChangeSuccess', function() {
-          if ($route.current) {
-            $route.current.currentAction = currentAction;
-            $route.current.reload = reload;
-            $route.current.back = back;
+  ngApp.run(['$route', '$rootScope', '$location', function ($route, $rootScope, $location) {
+      var original = $location.path;
+      $location.path = function (path, reload, info) {
+          if (info) {
+              let un = $rootScope.$on('$locationChangeSuccess', function () {
+                  // avoid to reload the action from server
+                  $route.current.actionInfo = info;
+                  un();
+              });
           }
-          return un();
-        });
-      }
-      return original.apply($location, [path]);
-    };
-  }
-  ]);
+          r = original.apply($location, [path]);
+          return r;
+      };
+  }]);
+
+  // ngApp.run(['$route', '$rootScope', '$location', function($route, $rootScope, $location) {
+  //
+  //   const original = $location.path;
+  //   return $location.path = function(path, currentAction, back) {
+  //     let reload;
+  //     if (currentAction === false) {
+  //       reload = false;
+  //     } else {
+  //       reload = true;
+  //     }
+  //
+  //     if (currentAction != null) {
+  //       const lastRoute = $route.current;
+  //       var un = $rootScope.$on('$locationChangeSuccess', function() {
+  //         if ($route.current) {
+  //           $route.current.currentAction = currentAction;
+  //           $route.current.reload = reload;
+  //           $route.current.back = back;
+  //         }
+  //         return un();
+  //       });
+  //     }
+  //     return original.apply($location, [path]);
+  //   };
+  // }
+  // ]);
 
 
-  ngApp.factory('actions', () =>
-    ({
-      get(service, id) {
-        return $.get(`/web/action/${service}/${id}/` );
-      }
-    })
-  );
+  // ngApp.factory('actions', () =>
+  //   ({
+  //     get(service, id) {
+  //       return $.get(`/web/action/${service}/${id}/` );
+  //     }
+  //   })
+  // );
 
-  const actionTempl = "<div id=\"katrid-action-view\"><h1 class=\"ajax-loading-animation margin-left-8\"><i class=\"fa fa-cog fa-spin\"></i> ${ Katrid.i18n.gettext('Loading...') }</h1></div>";
+  const actionTempl = `<div id="katrid-action-view"></div>`;
 
   ngApp.config(function($routeProvider) {
     $routeProvider
@@ -56,13 +66,11 @@
       reloadOnSearch: false,
       resolve: {
         action: ['$route', function($route) {
-          if ($route.current.back) {
-            $route.current.back.info._back = $route.current.back;
-            return $route.current.back.info;
-          }
+          if ($route.current.actionInfo) return $route.current.actionInfo;
           return $.get(`/web/action/${ $route.current.params.actionId }/`);
-        }
-        ]
+          }
+        ],
+        reset: () => true
       },
       template: actionTempl
     })
@@ -70,18 +78,15 @@
       controller: 'ActionController',
       reloadOnSearch: false,
       resolve: {
-        action: ['actions', '$route', function(actions, $route) {
-          const { params } = $route.current;
-          return {
-            model: [null, $route.current.params.service],
-            action_type: "sys.action.window",
-            view_mode: 'form',
-            object_id: params.id,
-            display_name: params.title,
-            _currentAction: $route.current.currentAction
-          };
-        }
-        ]
+        action: ['$route', function($route) {
+          let act = $.post(
+            '/api/rpc/' + $route.current.params.service + '/get_formview_action/', {id: $route.current.params.id}
+          );
+          let defer = $.Deferred();
+          act.done((res) => defer.resolve(res.result));
+          return defer;
+        }],
+        reset: () => false
       },
       template: actionTempl
     });
@@ -102,7 +107,7 @@
   }
 
 
-  ngApp.controller('ActionController', function($scope, $compile, $location, $route, action) {
+  ngApp.controller('ActionController', function($scope, $compile, $location, $route, action, reset) {
     let root;
     $scope.Katrid = Katrid;
     $scope.data = null;
@@ -142,14 +147,16 @@
 
     $scope.setContent = function(content) {
       $('html, body').animate({ scrollTop: 0 }, 'fast');
-      content = ($scope.content = $(content));
+      content = $scope.content = $(content);
 
       //# Prepare form special elements
       // Prepare form header
       const header = content.find('form header').first();
       // Create a new scope for the new form element
       const newScope = $scope.$new(false);
+      console.log('im compiling', $scope.content);
       const el = root.html($compile($scope.content)(newScope));
+      console.log('im compiling', newScope);
 
       // Get the first form controller
       $scope.formElement = el.find('form').first();
@@ -204,26 +211,29 @@
       return {};
     };
 
-    const init = function(action) {
+    $scope._invalidateElement = () => {
+      root = $('<div id="katrid-action-view"></div>');
+      $('#katrid-action-view').replaceWith(root);
+      root = angular.element(root);
+    };
+
+    initAction = function(action) {
       // Check if there's a history/back information
       let act, location;
-      if ($scope.isDialog) {
+      if ($scope.isDialog)
         location = new DialogLocation();
-      } else {
+      else
         location = $location;
-      }
 
-      $scope.action = (act = new (Katrid.Actions[action.action_type])(action, $scope, location));
-      if (action.model) {
-        $scope.model = new Katrid.Services.Model(action.model[1], $scope);
-        if (action._back && action._back.views) {
-          act.views = action._back.views;
-          $scope.views = act.views;
-          delete action._back;
-        } else {
-          act.views = $scope.views;
-        }
-      }
+      $scope.action = act = new (Katrid.Actions[action.action_type])(action, $scope, location);
+
+      if (action.__cached) act.views = Katrid.Actions.Action.history[Katrid.Actions.Action.history.length - 1].views;
+
+      if (reset)
+        Katrid.Actions.Action.history = [];
+      Katrid.Actions.Action.history.push($scope.action);
+
+      if (action.model) $scope.model = new Katrid.Services.Model(action.model[1], $scope);
 
       if ($scope.isDialog) {
         act.isDialog = $scope.isDialog;
@@ -233,9 +243,9 @@
       }
       if (act && act.isDialog) {
         act.routeUpdate({ view_type: action.view_type });
-        return act.createNew();
+        act.createNew();
       } else {
-        return act.routeUpdate($location.$$search);
+        act.routeUpdate($location.$$search);
       }
     };
 
@@ -246,7 +256,7 @@
       root = angular.element('#katrid-action-view');
       $scope.$on('$routeUpdate', () => $scope.action.routeUpdate($location.$$search));
     }
-    return init(action);
+    initAction(action);
   });
 
 

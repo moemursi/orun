@@ -66,7 +66,7 @@ class ForeignKey(RelatedField):
         if model == 'self':
             model = self.model
         if self.model._meta.app:
-            model = self.model._meta.app[model]
+            model = self.model._meta.app.get_model(model)
         # is a migration
         if model and self.model.__module__ == '__fake__' and model._meta.extension:
             model = model._meta.base_model
@@ -135,10 +135,15 @@ class ForeignKey(RelatedField):
         #    kwargs['to_field'] = self.remote_field.field_name
         return name, path, args, kwargs
 
-    def deserialize(self, value, instance):
+    def to_python(self, value):
         if isinstance(value, (list, tuple)):
             value = value[0]
-        super(ForeignKey, self).deserialize(value, instance)
+        return super(ForeignKey, self).to_python(value)
+
+    def deserialize(self, value, instance):
+        if value and not isinstance(value, models.Model):
+            #return self.related_model(pk=value)
+            setattr(instance, self.attname, value)
 
     def serialize(self, value, instance=None):
         if value:
@@ -175,7 +180,7 @@ class OneToManyField(RelatedField):
     @property
     def rel_field(self):
         if self.to_field is None:
-            to = app[self.to]
+            to = app.get_model(self.to)
             f = get_first_rel_field(to, self.model)
             assert f is not None, 'Unable to create OneToManyField "%s", no ForeignKey field found on "%s" for model "%s"' % (self.name, to._meta.name, self.model._meta.name)
             self.to_field = f.name
@@ -183,7 +188,7 @@ class OneToManyField(RelatedField):
 
     @cached_property
     def related(self):
-        self.to = app[self.to]
+        self.to = app.get_model(self.to)
         _app = app
         if self.primary_join:
             return relationship(
@@ -191,7 +196,7 @@ class OneToManyField(RelatedField):
                 lazy=self.lazy,
                 primaryjoin=self.primary_join(self.model, self.to),
             )
-        return relationship(app[self.to], foreign_keys=[self.rel_field.column], lazy=self.lazy)
+        return relationship(app.get_model(self.to), foreign_keys=[self.rel_field.column], lazy=self.lazy)
 
     def serialize(self, value, instance=None):
         value = value.options(load_only('pk'))
@@ -259,7 +264,7 @@ class ManyToManyField(RelatedField):
         #elif isinstance(self.to, models.Model):
         #    rel_model = app[self.to._meta.name]
         else:
-            rel_model = app[self.to]
+            rel_model = app.get_model(self.to)
 
         self._rel_model = rel_model
 
@@ -350,18 +355,23 @@ class ManyToManyField(RelatedField):
 
         return name, path, args, kwargs
 
-    def serialize(self, value, instance=None):
-        return [obj._get_instance_label() for obj in value]
+    def to_python(self, value):
+        return self.related_model.objects.only('pk').filter(self.related_model.c.pk.in_(value)).all() if value else None
 
-    def deserialize(self, value, instance=None):
+    def deserialize(self, value, instance):
+        # clear the current data before apply the new value
         v = getattr(instance, self.name)
         v.clear()
-        if value:
-            for pk in value:
-                v.append(self.related_model.objects.only('pk').get(pk))
+        return value
+
+    def serialize(self, value, instance=None):
+        return [obj._get_instance_label() for obj in value]
 
 
 def get_first_rel_field(model, rel_model):
     for f in model._meta.fields:
         if isinstance(f, ForeignKey) and f.related_model._meta.name == rel_model._meta.name:
             return f
+
+
+from orun.db import models

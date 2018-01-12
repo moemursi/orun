@@ -20,7 +20,7 @@ class Sequence(models.Model):
     use_date_range = models.BooleanField(default=False)
 
     class Meta:
-        name = 'sys.sequence'
+        name = 'ir.sequence'
 
 
 class SequenceDateRange(models.Model):
@@ -31,4 +31,4 @@ class SequenceDateRange(models.Model):
     current_id = models.BigIntegerField()
 
     class Meta:
-        name = 'sys.sequence.date.range'
+        name = 'ir.sequence.date.range'

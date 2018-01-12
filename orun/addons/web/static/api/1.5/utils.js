@@ -1,17 +1,19 @@
 (function () {
-  
+
   if (!String.prototype.format) {
-    String.prototype.format = function() {
-      const args = arguments;
-      return this.replace(/{(\d+)}/g, function(match, number) {
-        if (typeof args[number] !== 'undefined') { return args[number]; } else { return match; }
-      });
-    };
+    String.prototype.format = function(){
+      var args = arguments
+      return this.replace(/\{\{|\}\}|\{(\d+)\}/g, function (m, i) {
+        if (m == "{{") return "{"
+        if (m == "}}") return "}"
+        return args[i]
+      })
+    }
   }
-  
-  
+
+
   Katrid.$hashId = 0;
-  
+
   _.mixin({
     hash(obj) {
       if (!obj.$hashId) {
@@ -20,5 +22,5 @@
       return obj.$hashId;
     }
   });
-  
+
 }).call(this);

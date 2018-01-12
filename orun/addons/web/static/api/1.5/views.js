@@ -184,7 +184,7 @@
     }
 
     templateLabel() {
-      return ` Pesquisar <i>${this.label}</i> por: <strong>\${search.text}</strong>`;
+      return ` Pesquisar <i>${this.label}</i> por: <strong>{{search.text}}</strong>`;
     }
 
     template() {

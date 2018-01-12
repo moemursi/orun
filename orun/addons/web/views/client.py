@@ -4,9 +4,9 @@ from orun import request
 from orun.utils.json import jsonify
 from orun.utils.translation import gettext
 from orun import app, render_template
-from orun.views import BaseView, route
+from orun.views import BaseView, route, json_route
 from orun.auth.decorators import login_required
-from orun import auth
+from orun import app, auth
 
 
 class WebClient(BaseView):
@@ -19,24 +19,24 @@ class WebClient(BaseView):
         menu = app['ui.menu']
         context = {
             'current_menu': menu_id,
-            'root_menu': menu.objects.filter(menu.parent_id == None),
+            'root_menu': menu.objects.filter(menu.c.parent_id == None),
             'settings': settings,
         }
         if menu_id:
             cur_menu = menu.objects.get(menu_id)
             context['current_menu'] = cur_menu
         else:
-            main_menu = menu.objects.filter(menu.parent_id == None).first()
+            main_menu = menu.objects.filter(menu.c.parent_id == None).first()
             return redirect('/web/menu/%s/' % main_menu.id)
         return render_template('web/index.html', _=gettext, **context)
 
     @route('/action/<action_id>/')
     @login_required
     def action(self, action_id=None):
-        Action = app['sys.action']
+        Action = app['ir.action']
         Menu = app['ui.menu']
         context = {
-            'root_menu': Menu.objects.filter(Menu.parent_id == None),
+            'root_menu': Menu.objects.filter(Menu.c.parent_id == None),
         }
         if action_id:
             action = Action.objects.get(action_id).get_action()
@@ -70,3 +70,37 @@ class WebClient(BaseView):
     def logout(self):
         auth.logout()
         return redirect(url_for('WebClient:login'))
+
+    @route('/content/<int:content_id>/')
+    def content(self, content_id=None):
+        http = app['ir.http']
+        return http.get_attachment(content_id)
+
+    @route('/content/upload/', methods=['POST'])
+    def upload_attachment(self):
+        Attachment = app['ir.attachment']
+        res = []
+        for file in request.files.getlist('attachment'):
+            obj = Attachment.create(
+                name=file.filename,
+                model_name=request.form['model'],
+                object_id=request.form['id'],
+                file_name=file.filename,
+                stored_file_name=file.filename,
+                content=file.stream,
+                mimetype=file.mimetype,
+            )
+            res.append({'id': obj.pk, 'name': obj.name})
+        return jsonify(res)
+
+    @json_route('/data/reorder/', methods=['POST'])
+    def reorder(self, model, ids, field='sequence', offset=0):
+        cls = app[model]
+        for i, obj in enumerate(cls._search({'pk__in': ids})):
+            setattr(obj, field, ids.index(obj.pk) + offset)
+            obj.save()
+        return {
+            'status': 'ok',
+            'ok': True,
+            'result': True,
+        }

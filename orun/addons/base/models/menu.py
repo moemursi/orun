@@ -7,7 +7,7 @@ class Menu(models.Model):
     name = models.CharField(null=False)
     sequence = models.IntegerField(default=99)
     parent = models.ForeignKey('self', related_name='children')
-    action = models.ForeignKey('sys.action')
+    action = models.ForeignKey('ir.action')
     groups = models.ManyToManyField('auth.group')
     icon = models.CharField(256)
 

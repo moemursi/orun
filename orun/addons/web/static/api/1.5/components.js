@@ -917,7 +917,6 @@
         $timeout(function () {
           // append element into status bar
           let hEl = element.closest('.content-scroll').find('header.content-container-heading').first();
-          console.log('set status field', hEl);
           hEl.prepend(html);
           // remove old element
           return $(element).closest('section').remove();
@@ -991,6 +990,25 @@
     if (e.data('select2')) e.select2('focus');
     else el.focus();
   };
+
+  uiKatrid.directive('attachmentsButton', () => ({
+    restrict: 'A',
+    scope: false,
+    link: (scope, el) => {
+      scope.$parent.$watch('recordId', (key) => {
+        let attachment = new Katrid.Services.Model('ir.attachment', scope);
+        attachment.search({params: {model_name: scope.$parent.model.name, object_id: key}}, {count: false})
+        .done((res) => {
+          let r = null;
+          if (res.ok && res.result && res.result.data)
+            r = res.result.data;
+          scope.$apply(() => {
+            scope.$parent.attachments = r;
+          });
+        });
+      });
+    }
+  }));
 
   uiKatrid.directive('action', ($compile) => ({
     restrict: 'E',

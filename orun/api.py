@@ -1,14 +1,90 @@
+from collections import Mapping
+import inspect
 from functools import wraps
+from orun import app
+from orun.utils.functional import SimpleLazyObject
+
+
+class RecordsProxy(object):
+    def __init__(self, instance, env=None):
+        self.__dict__['env'] = env
+        self.__dict__['__instance__'] = instance
+
+    def __iter__(self):
+        return iter(self.__instance__)
+
+    def __getitem__(self, item):
+        return self.__instance__[item]
+
+    def __setitem__(self, key, value):
+        self.__instance__[key] = value
+
+    def __getattr__(self, item):
+        return getattr(self.__instance__, item)
+
+    def __setattr__(self, key, value):
+        setattr(self.__instance__, key, value)
+
+    def __call__(self, *args, **kwargs):
+        return self.__instance__.__call__(self.env, *args, **kwargs)
+
+
+class Environment(Mapping):
+    def __init__(self, user_id, context):
+        self.user_id = user_id
+        self.context = context
+
+    def __getitem__(self, item):
+        if inspect.isclass(item):
+            item = item._meta.name
+        model = app.models[item]
+        return model.__new__(model)
+
+    def __iter__(self):
+        return app.models
+
+    def __call__(self, user_id=None, context=None):
+        ctx = self.context.copy()
+        ctx.update(context or {})
+        return self.__class__(user_id, ctx)
+
+    def __len__(self):
+        return len(app.models)
+
+    @property
+    def user(self):
+        return SimpleLazyObject(lambda: self['auth.user'].objects.get(self.context['user_id']))
 
 
 def method(*args, public=False, methods=None):
     def decorator(fn):
         fn.exposed = True
-        fn = classmethod(fn)
-        fn.exposed = True
         fn.public = public
         fn.methods = methods
         return fn
+    if args and callable(args[0]):
+        return decorator(args[0])
+    return decorator
+
+
+def records(*args, **kwargs):
+
+    def decorator(fn):
+        fn.exposed = True
+
+        @wraps(fn)
+        def wrapped(self, *args, **kwargs):
+            ids = None
+            if args:
+                args = list(args)
+                ids = args[0]
+                args = args[1:]
+            assert isinstance(ids, (list, tuple, RecordsProxy))
+            if not isinstance(ids, RecordsProxy):
+                ids = RecordsProxy(self.objects.filter(self.c.pk.in_(kwargs.pop('ids', ids))))
+            return fn(ids, *args, **kwargs)
+        return wrapped
+
     if args and callable(args[0]):
         return decorator(args[0])
     return decorator

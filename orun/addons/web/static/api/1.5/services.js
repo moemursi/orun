@@ -233,13 +233,40 @@
     }
   }
 
+  class Attachments {
+    static upload(file, scope=null) {
+      let data = new FormData();
+      if (scope === null) scope = angular.element(file).scope().$parent;
+      data.append('model', scope.model.name);
+      data.append('id', scope.recordId);
+      for (let f of file.files) data.append('attachment', f, f.name);
+      return $.ajax({
+        url: '/web/content/upload/',
+        type: 'POST',
+        data: data,
+        processData: false,
+        contentType: false
+      })
+      .done((res) => {
+        if (!scope.attachments)
+          scope.attachments = [];
+        if (res)
+          for (let obj of res) scope.attachments.push(obj);
+        scope.$apply();
+      });
+    }
+  }
+
   let data = new Data('', );
 
 
   this.Katrid.Services = {
     Data,
     data,
+    Attachments,
     Service,
     Model
   };
+
+  this.Katrid.Services.upload
 }).call(this);

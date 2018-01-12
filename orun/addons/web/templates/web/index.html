@@ -68,7 +68,7 @@
     <div class="left-menu-content">
     <div class="logo-area">
       <a href="index.html" class="avatar">
-                    <img id="logo" src="/static/porto/static/portocel.png">
+                    <img id="logo" src="/static/web/static/assets/img/katrid-logo-inverse.png">
 
       </a>
 
@@ -113,8 +113,8 @@
 
   <!-- End Left Menu -->
 
-  <div id="main-content" role="main" ng-view>
-
+  <div id="main-content" role="main" ng-view ng-cloak>
+    <div id="katrid-action-view">&nbsp;</div>
   </div> <!-- /container -->
   <footer id="footer" class="page-footer">
     <div class="pull-right">
@@ -176,7 +176,7 @@
       if (!window.location.hash) {
         var href = $('a.menu-item-action').first().attr('href');
         if (href) window.location.href = href;
-      };
+      }
 
     });
   </script>

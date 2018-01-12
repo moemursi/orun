@@ -101,7 +101,7 @@ def Deserializer(object_list, **options):
     val_names_cache = {}
     model_name = options.get('model')
     Model = app[model_name]
-    Object = app['sys.object']
+    Object = Model.env['ir.object']
 
     pk = xml_id = None
 
@@ -225,7 +225,7 @@ def Deserializer(object_list, **options):
 
         obj = base.build_instance(Model, data, db)
         obj.save()
-        sys_object = app['sys.object']
+        sys_object = app['ir.object']
         if 'id' in d and d['id']:
             ref = sys_object.objects.create(
                 name=d['id'],

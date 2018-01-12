@@ -1,5 +1,5 @@
 #from orun.core.mail import send_mail
-from orun import app, env
+from orun import app, g
 from orun.db import models, session
 from orun.utils.translation import gettext_lazy as _
 from orun.auth.hashers import check_password
@@ -20,7 +20,7 @@ class Group(models.Model):
 class ModelAccess(models.Model):
     name = models.CharField(null=False)
     active = models.BooleanField(default=True)
-    model = models.ForeignKey('sys.model', on_delete=models.CASCADE, null=False)
+    model = models.ForeignKey('ir.model', on_delete=models.CASCADE, null=False)
     group = models.ForeignKey('auth.group', on_delete=models.CASCADE, null=False)
     perm_read = models.BooleanField(default=True)
     perm_change = models.BooleanField()
@@ -34,9 +34,9 @@ class ModelAccess(models.Model):
     @classmethod
     def has_permission(cls, model, operation, user=None):
         if user is None:
-            if env.user.is_superuser:
+            if g.user.is_superuser:
                 return True
-            user = env.user_id
+            user = g.user_id
         args = []
         if operation == 'read':
             args.append(cls.c.perm_read == True)
@@ -49,7 +49,7 @@ class ModelAccess(models.Model):
         else:
             args.append(cls.c.perm_full == True)
         User = app['auth.user']
-        Model = app['sys.model']
+        Model = app['ir.model']
         qs = session.query(cls.pk).join(Model).filter(Model.c.name == model, User.groups.any(id=cls.c.group_id))
         return qs.filter(*args).first()
 
@@ -59,7 +59,7 @@ class User(Partner):
     username = models.CharField(255, _('Login Name'))
     signature = models.HtmlField(_('Signature'))
     is_active = models.BooleanField(default=True)
-    action = models.ForeignKey('sys.action', label=_('Action'))
+    action = models.ForeignKey('ir.action', label=_('Action'))
     user_company = models.ForeignKey('res.company')
     is_staff = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
@@ -88,7 +88,7 @@ class User(Partner):
 class Rule(models.Model):
     name = models.CharField()
     active = models.BooleanField(default=True)
-    model = models.ForeignKey('sys.model')
+    model = models.ForeignKey('ir.model')
     groups = models.ManyToManyField('auth.group')
     domain = models.TextField()
     can_read = models.BooleanField(default=True)

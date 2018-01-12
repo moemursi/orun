@@ -13,10 +13,10 @@ class ModelsTestCase(TestCase):
         app.create_all()
         app.load_fixtures()
 
-        obj = app['sys.object'].get_by_natural_key('sys.module.category.accounting')
+        obj = app['ir.object'].get_by_natural_key('ir.module.category.accounting')
         obj.name += ' 1'
         obj.save()
-        obj = app['sys.object'].objects.filter(app['sys.object'].c.name == 'sys.module.category.accounting 1').first()
+        obj = app['ir.object'].objects.filter(app['ir.object'].c.name == 'ir.module.category.accounting 1').first()
         self.assertIsNotNone(obj)
 
     def test_models(self):
@@ -26,10 +26,10 @@ class ModelsTestCase(TestCase):
         app._register_models()
         app.load_fixtures()
         p = app['res.partner']
-        obj = app['sys.object'].get_by_natural_key('sys.module.category.accounting')
+        obj = app['ir.object'].get_by_natural_key('ir.module.category.accounting')
         obj.name += ' 1'
         obj.save()
-        obj = app['sys.object'].objects.filter(app['sys.object'].name == 'sys.module.category.accounting 1').one()
+        obj = app['ir.object'].objects.filter(app['ir.object'].name == 'ir.module.category.accounting 1').one()
 
     def test_design(self):
         from orun.db.models import Model, CharField, ForeignKey, IntegerField, OneToManyField, ManyToManyField

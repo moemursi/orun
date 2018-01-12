@@ -14,7 +14,7 @@ class Action(models.Model):
     groups = models.ManyToManyField('auth.group')
 
     class Meta:
-        name = 'sys.action'
+        name = 'ir.action'
         field_groups = {
             'list_fields': ['name', 'action_type', 'usage']
         }
@@ -42,7 +42,7 @@ class WindowAction(Action):
     view = models.ForeignKey('ui.view', verbose_name=_('View'))
     domain = models.TextField(verbose_name=_('Domain'))
     context = models.TextField(verbose_name=_('Context'))
-    model = models.ForeignKey('sys.model', null=False, label=_('Model'))
+    model = models.ForeignKey('ir.model', null=False, label=_('Model'))
     object_id = models.BigIntegerField(verbose_name=_('Object ID'))
     #content_object = GenericForeignKey()
     view_mode = models.CharField(128, default='list,form', verbose_name=_('View Mode'))
@@ -53,11 +53,11 @@ class WindowAction(Action):
     limit = models.IntegerField(default=100, verbose_name=_('Limit'))
     auto_search = models.BooleanField(default=True, verbose_name=_('Auto Search'))
     views = models.TextField(getter='_get_views', editable=False, serializable=True)
-    view_list = models.OneToManyField('sys.action.window.view')
+    view_list = models.OneToManyField('ir.action.window.view')
     view_type = models.SelectionField(VIEW_MODE, default='form')
 
     class Meta:
-        name = 'sys.action.window'
+        name = 'ir.action.window'
         field_groups = {
             'list_fields': ['name', 'action_type', 'usage', 'view', 'model', 'view_mode', 'limit', 'auto_search']
         }
@@ -82,7 +82,7 @@ class WindowActionView(models.Model):
     view_mode = models.SelectionField(WindowAction.VIEW_MODE, label=_('View Type'))
 
     class Meta:
-        name = 'sys.action.window.view'
+        name = 'ir.action.window.view'
         title_field = 'view'
 
 
@@ -96,13 +96,13 @@ class UrlAction(Action):
     )
 
     class Meta:
-        name = 'sys.action.url'
+        name = 'ir.action.url'
 
 
 class ServerAction(Action):
 
     class Meta:
-        name = 'sys.action.server'
+        name = 'ir.action.server'
 
 
 class ClientAction(Action):
@@ -115,9 +115,9 @@ class ClientAction(Action):
             ('main', 'Main Action of Current Window'),
         ), default='current',
     )
-    model = models.ForeignKey('sys.model', null=False, label=_('Model'))
+    model = models.ForeignKey('ir.model', null=False, label=_('Model'))
     context = models.TextField()
     params = models.TextField()
 
     class Meta:
-        name = 'sys.action.client'
+        name = 'ir.action.client'

@@ -1,8 +1,7 @@
 from sqlalchemy.orm import foreign, remote
 from sqlalchemy.sql import and_
-from orun import app, env
 from orun.db import models
-from orun import api
+from orun import g, api
 
 
 class Comments(models.Model):
@@ -18,19 +17,17 @@ class Comments(models.Model):
     )
 
     @api.method
-    def post_message(cls, ids, content=None, **kwargs):
-        Message = app['mail.message']
-        r = []
+    def post_message(self, ids, content=None, **kwargs):
+        Message = self.env['mail.message']
         for id in ids:
-            msg = Message.create(
-                author=env.user.pk,
+            yield Message.create(
+                author=g.user_id,
                 content=content,
-                model_name=cls._meta.name,
+                model_name=self._meta.name,
                 object_id=id,
                 message_type='comment',
+                attachments=kwargs.get('attachments'),
             )
-            r.append(msg)
-        return r
 
     class Meta:
         abstract = True

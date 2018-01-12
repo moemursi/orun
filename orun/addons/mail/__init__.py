@@ -11,7 +11,6 @@ class AppConfig(orun.AppConfig):
     application = True
     fixtures = ['mail.xml', 'views.xml']
     depends = ['base']
-    db_schema = 'mail'
 
 
 addon = AppConfig()

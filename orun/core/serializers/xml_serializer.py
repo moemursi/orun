@@ -15,7 +15,7 @@ from orun.core.exceptions import ObjectDoesNotExist
 
 
 def ref(app, xml_id):
-    Object = app['sys.object']
+    Object = app['ir.object']
     return Object.get_object(xml_id).object_id
 
 
@@ -42,7 +42,7 @@ class Deserializer(base.Deserializer):
         return lst
 
     def read_object(self, obj, **attrs):
-        ct = self.app['sys.model']
+        ct = self.app['ir.model']
         if not isinstance(obj, dict):
             values = obj.getchildren()
             obj = dict(obj.attrib)
@@ -84,9 +84,9 @@ class Deserializer(base.Deserializer):
         #     with open(template_name, encoding='utf-8') as f:
         #         values['content'] = f.read()
 
-        Object = app['sys.object']
+        Object = app['ir.object']
         try:
-            obj_id = Object.objects.filter(Object.name == obj_name).one()
+            obj_id = Object.objects.filter(Object.c.name == obj_name).one()
             instance = obj_id.object
         except ObjectDoesNotExist:
             instance = Model()
@@ -99,6 +99,7 @@ class Deserializer(base.Deserializer):
             else:
                 setattr(instance, *get_prep_value(Model, k, v))
         instance.save()
+        print(instance.pk)
         if pk is None:
             ct = ct.get_by_natural_key(instance._meta.name)
             obj_id = Object.create(
@@ -115,7 +116,7 @@ class Deserializer(base.Deserializer):
         return instance
 
     def read_menu(self, obj, parent=None, **attrs):
-        Object = self.app['sys.object']
+        Object = self.app['ir.object']
         lst = []
         action = None
         action_id = obj.attrib.get('action')
@@ -154,7 +155,7 @@ class Deserializer(base.Deserializer):
         return lst
 
     def read_action(self, obj, **attrs):
-        ContentType = self.app['sys.model']
+        ContentType = self.app['ir.model']
         act = obj.attrib['type']
         s = obj.attrib['name']
         if obj.attrib.get('name'):
@@ -194,7 +195,7 @@ class Deserializer(base.Deserializer):
     def read_report(self, obj, **attrs):
         model = obj.attrib.get('model')
         if model:
-            ct = self.app['sys.model']
+            ct = self.app['ir.model']
         view = {
             'model': 'ui.view',
             'id': obj.attrib.get('view-id'),
@@ -206,7 +207,7 @@ class Deserializer(base.Deserializer):
         }
         view = self.read_object(view)
         report = {
-            'model': 'sys.action.report',
+            'model': 'ir.action.report',
             'id': obj.attrib.get('id'),
             'fields': {
                 'report_type': obj.attrib.get('type', 'paginated'),

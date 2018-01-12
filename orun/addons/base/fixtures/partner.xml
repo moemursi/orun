@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <data translate="true">
+  <object id="auth.user.root" model="auth.user">
+    <field name="name">Administrator</field>
+    <field name="username">admin</field>
+    <field name="is_superuser">True</field>
+    <field name="active">True</field>
+  </object>
   <object id="sys.res.partner.title.madam" model="res.partner.title">
     <field name="name">Madam</field>
     <field name="abbreviation">Mrs.</field>
@@ -26,7 +32,7 @@
     <field name="email">mycompany@example.com</field>
     <field name="website">www.example.com</field>
   </object>
-  <object id="sys.auth.user.anonymous" model="auth.user">
+  <object id="auth.user.anonymous" model="auth.user">
     <field name="name">Anonymous</field>
     <field name="username">anonymous</field>
     <field name="active">False</field>

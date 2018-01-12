@@ -72,7 +72,7 @@ class GenericForeignKey(object):
         return '%s.%s.%s' % (app, model._meta.object_name, self.name)
 
     def get_content_type(self, obj=None, id=None):
-        Model = self.model._meta.app['sys.model']
+        Model = self.model._meta.app['ir.model']
         if obj is not None:
             return Model.get_for_model(obj)
         elif id is not None:

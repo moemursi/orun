@@ -5,7 +5,7 @@ from sqlalchemy.exc import DatabaseError
 from sqlalchemy.engine.url import URL, make_url
 from sqlalchemy.orm import sessionmaker
 
-from orun import env
+from orun import g
 from orun.core.exceptions import ImproperlyConfigured
 from orun.conf import settings
 from orun.utils.functional import cached_property
@@ -137,7 +137,7 @@ class ConnectionHandler(object):
     def __getitem__(self, alias):
         # Get the current database
         if alias == DEFAULT_DB_ALIAS:
-            alias = env.DEFAULT_DB_ALIAS
+            alias = g.DEFAULT_DB_ALIAS
         from orun.db.models.query import Session
         if hasattr(self._connections, alias):
             return getattr(self._connections, alias)

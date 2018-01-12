@@ -418,7 +418,7 @@ class BaseDatabaseSchemaEditor(object):
             self._delete_composed_index(model, fields, {'index': True}, self.sql_delete_index)
         # Created indexes
         for field_names in news.difference(olds):
-            fields = [model._meta.get_field(field) for field in field_names]
+            fields = [model._meta.fields_dict[field] for field in field_names]
             self.execute(self._create_index_sql(model, fields, prefix="ix_"))
 
     def _delete_composed_index(self, model, fields, constraint_kwargs, sql):

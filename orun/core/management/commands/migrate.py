@@ -192,7 +192,7 @@ class Migrate(object):
         emit_post_migrate_signal(self.verbosity, self.interactive, connection.alias)
 
         # Register models
-        ContentType = main_app['sys.model']
+        ContentType = main_app['ir.model']
         for model in apps.get_models():
             content_types = {
                 ct.name: ct

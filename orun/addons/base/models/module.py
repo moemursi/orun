@@ -8,7 +8,7 @@ class ModuleCategory(models.Model):
     visible = models.BooleanField(default=True)
 
     class Meta:
-        name = 'sys.module.category'
+        name = 'ir.module.category'
         verbose_name = _('Module Category')
         verbose_name_plural = _('Module Categories')
 
@@ -20,6 +20,6 @@ class Module(models.Model):
     installed = models.BooleanField(default=False)
 
     class Meta:
-        name = 'sys.module'
+        name = 'ir.module'
         verbose_name = _('Module')
         verbose_name_plural = _('Modules')

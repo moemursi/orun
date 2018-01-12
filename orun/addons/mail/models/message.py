@@ -37,18 +37,30 @@ class Message(models.Model):
     subtype = models.ForeignKey(Subtype, db_index=True)
     email_from = models.EmailField()
     author = models.ForeignKey('res.partner', db_index=True)
-    recipes = models.ManyToManyField('res.partner')
-    need_action_recipes = models.ManyToManyField('res.partner')
+    partners = models.ManyToManyField('res.partner')
+    need_action_partners = models.ManyToManyField('res.partner')
     channels = models.ManyToManyField('mail.channel')
     notifications = models.OneToManyField('mail.notification', 'mail_message')
     message_id = models.CharField('Message-Id')
     reply_to = models.CharField('Reply-To')
-    mail_server = models.ForeignKey('sys.mail.server')
+    mail_server = models.ForeignKey('ir.mail.server')
+    attachments =  models.ManyToManyField('ir.attachment')
 
     class Meta:
         name = 'mail.message'
         ordering = '-pk'
+        index_together = (('model_name', 'object_id'),)
 
-    @api.method
-    def get_messages(cls, ids, **kwargs):
-        return cls.objects.filter(cls.pk.in_(ids))
+    @api.records
+    def get_messages(self, *args, **kwargs):
+        for r in self:
+            yield {
+                'id': r.pk,
+                'content': r.content,
+                'email_from': r.email_from,
+                'author': r.author,
+                'date_time': r.date_time,
+                'message_type': r.message_type,
+                'object_id': r.object_id,
+                'object_name': r.object_name,
+            }

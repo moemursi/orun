@@ -17,21 +17,18 @@ class Model(models.Model):
     description = models.TextField(verbose_name=_('Description'))
 
     class Meta:
-        name = 'sys.model'
+        name = 'ir.model'
 
-    @classmethod
-    def get_by_natural_key(cls, name):
+    def get_by_natural_key(self, name):
         try:
-            return cls.objects.filter(cls.name == name).one()
+            return self.objects.filter(self.c.name == name).one()
         except ObjectDoesNotExist:
             raise ObjectDoesNotExist('Model not found %s' % name)
 
-    @classmethod
-    def get_for_model(cls, obj):
+    def get_for_model(self, obj):
         obj._meta.name
 
-    @classmethod
-    def get_for_id(cls, id):
+    def get_for_id(self, id):
         """
         Lookup a Model by ID. Uses the same shared cache as get_for_model
         (though Model are obviously not created on-the-fly by get_by_id).
@@ -42,7 +39,7 @@ class Model(models.Model):
         #     ct = cls.get(pk=id)
         #     self._add_to_cache(self.db, ct)
         # return ct
-        ct = cls.objects.filter(cls._meta.pk.column == id).one()
+        ct = self.objects.filter(self._meta.pk.column == id).one()
         return ct
 
     def save(self, *args, **kwargs):
@@ -94,5 +91,5 @@ class Field(models.Model):
     domain = models.TextField()
 
     class Meta:
-        name = 'sys.model.field'
+        name = 'ir.model.field'
 
