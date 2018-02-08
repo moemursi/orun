@@ -103,3 +103,7 @@ a:hover {
 #header {
   padding: 0;
 }
+#logo {
+  background-color: #ffffff;
+  width: 100%;
+}
