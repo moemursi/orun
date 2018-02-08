@@ -1,0 +1,35 @@
+<templates>
+  <script id="view.search" type="text/ng-template">
+    <div class="search-area">
+      <div class="search-view">
+        <div class="search-view-facets"></div>
+        <input class="search-view-input" role="search" placeholder="{{ ::gettext('Search...') }}" ng-model="search.text">
+        <span
+            ng-class="{'fa-search-plus': !search.viewMoreButtons, 'fa-search-minus': search.viewMoreButtons}"
+            class="search-view-more fa"></span>
+      </div>
+      <div class="col-sm-12">
+        <ul class="search-dropdown-menu search-view-menu" role="menu"></ul>
+      </div>
+    </div>
+  </script>
+  <script id="view.search.buttons" type="text/ng-template">
+    <div class="btn-group search-view-more-area" ng-show="search.viewMoreButtons">
+      <div class="btn-group">
+        <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" type="button" aria-expanded="false">
+          <span class="fa fa-filter"></span> {{ ::gettext('Filters') }} <span class="caret"></span>
+        </button>
+        <div class="dropdown-menu search-view-filter-menu"></div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" type="button">
+          <span class="fa fa-bars"></span> {{ ::gettext('Group By') }} <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu search-view-groups-menu"></ul>
+      </div>
+      <button class="btn btn-secondary">
+        <span class="fa fa-star"></span> {{ ::gettext('Favorites') }} <span class="caret"></span>
+      </button>
+    </div>
+  </script>
+</templates>

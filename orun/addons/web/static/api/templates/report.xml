@@ -1,0 +1,130 @@
+<templates>
+  <script id="view.report" type="text/ng-template">
+    <div ng-controller="ReportController">
+      <form id="report-form" method="get" action="/web/reports/report/">
+        <div class="data-heading panel panel-default">
+          <div class="panel-body">
+          <h2>{{ report.name }}</h2>
+          <div class="toolbar">
+            <button class="btn btn-primary" type="button" ng-click="report.preview()"><span class="fa fa-print fa-fw"></span> {{ ::gettext('Preview') }}</button>
+
+            <div class="btn-group">
+              <button class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+                      aria-expanded="false">{{ ::gettext('Export') }} <span class="caret"></span></button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" ng-click="Katrid.Reports.Reports.preview()">PDF</a>
+                <a class="dropdown-item" href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('docx')">Word</a>
+                <a class="dropdown-item" href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('xlsx')">Excel</a>
+                <a class="dropdown-item" href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('pptx')">PowerPoint</a>
+                <a class="dropdown-item" href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('csv')">CSV</a>
+                <a class="dropdown-item" href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('txt')">{{ ::gettext('Text File') }}</a>
+              </div>
+            </div>
+
+            <div class="btn-group">
+              <button class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+                      aria-expanded="false">{{ ::gettext('My reports') }} <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li><a ng-click="Katrid.Reports.Reports.preview()">PDF</a></li>
+                <li><a href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('docx')">Word</a></li>
+                <li><a href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('xlsx')">Excel</a></li>
+                <li><a href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('pptx')">PowerPoint</a></li>
+                <li><a href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('csv')">CSV</a></li>
+                <li><a href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('txt')">{{ ::gettext('Text File') }}</a></li>
+              </ul>
+            </div>
+
+          <div class="pull-right btn-group">
+            <button class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false"><i class="fa fa-gear fa-fw"></i></button>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="javascript:void(0)" ng-click="report.saveDialog()">{{ ::gettext('Save') }}</a>
+              <a class="dropdown-item" href="#">{{ ::gettext('Load') }}</a>
+            </div>
+          </div>
+
+          </div>
+        </div>
+        </div>
+        <div class="col-sm-12">
+          <table class="col-sm-12" style="margin-top: 20px; display:none;">
+            <tr>
+              <td colspan="2" style="padding-top: 8px;">
+                <label>{{ ::gettext('My reports') }}</label>
+
+                <select class="form-control" ng-change="action.userReportChanged(action.userReport.id)" ng-model="action.userReport.id">
+                    <option value=""></option>
+                    <option ng-repeat="rep in userReports" value="{{ rep.id }}">{{ rep.name }}</option>
+                </select>
+              </td>
+            </tr>
+          </table>
+        </div>
+      <div id="report-params">
+      <div id="params-fields" class="col-sm-12 form-group" ng-if="::customizableReport">
+        <div class="checkbox"><label><input type="checkbox" ng-model="paramsAdvancedOptions"> {{ ::gettext('Advanced options') }}</label></div>
+        <div ng-show="paramsAdvancedOptions">
+          <div class="form-group">
+            <label>{{ ::gettext('Printable Fields') }}</label>
+            <input type="hidden" id="report-id-fields"/>
+          </div>
+          <div class="form-group">
+            <label>{{ ::gettext('Totalizing Fields') }}</label>
+            <input type="hidden" id="report-id-totals"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="clearfix"></div>
+
+      </div>
+        <div ng-if="::advancedOptions">
+        <div id="params-sorting" class="col-sm-12 form-group">
+          <label class="control-label">{{ ::gettext('Sorting') }}</label>
+          <select multiple id="report-id-sorting"></select>
+        </div>
+
+        <div id="params-grouping" class="col-sm-12 form-group">
+          <label class="control-label">{{ ::gettext('Grouping') }}</label>
+          <select multiple id="report-id-grouping"></select>
+        </div>
+        <hr>
+        <table class="col-sm-12">
+          <tr>
+            <td class="col-sm-4">
+              <select class="form-control" ng-model="newParam">
+                <option value="">--- {{ ::gettext('FILTERS') }} ---</option>
+                <option ng-repeat="field in report.fields" value="{{ field.name }}">{{ field.label }}</option>
+              </select>
+            </td>
+            <td class="col-sm-8">
+              <button
+                  class="btn btn-outline-secondary" type="button"
+                  ng-click="report.addParam(newParam)">
+                <i class="fa fa-plus fa-fw"></i> {{ ::gettext('Add Parameter') }}
+              </button>
+            </td>
+          </tr>
+        </table>
+        <div class="clearfix"></div>
+        <hr>
+      </div>
+      <div id="params-params">
+        <div class="col-sm-12">
+          <div ng-repeat="param in report.params" ng-controller="ReportParamController" class="row form-group">
+            <div class="col-sm-12">
+              <label class="control-label">{{ param.label }}</label>
+            </div>
+            <div class="col-sm-4" ng-if="param.operationsVisible">
+              <select ng-model="param.operation" class="form-control" ng-change="param.setOperation(param.operation)">
+                <option ng-repeat="op in param.operations" value="{{op.id}}">{{op.text}}</option>
+              </select>
+            </div>
+            <div class="col param-widget"></div>
+          </div>
+        </div>
+      </div>
+      </form>
+    </div>
+  </script>
+</templates>
