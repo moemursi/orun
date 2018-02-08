@@ -512,7 +512,8 @@ class Model(Service):
         params = kwargs.get('params')
         if name:
             if name_fields is None:
-                name_fields = [_resolve_fk_search(f) for f in self._meta.get_name_fields()]
+                name_fields = self._meta.get_name_fields()
+                # name_fields = [_resolve_fk_search(f) for f in self._meta.get_name_fields()]
             q = [sa.or_(*[fld.column.ilike('%' + name + '%') for fld in name_fields])]
             if params:
                 q.append(params)
