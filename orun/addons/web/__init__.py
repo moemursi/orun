@@ -5,5 +5,14 @@ class AppConfig(orun.AppConfig):
     name = 'Web'
     version = '0.1'
     auto_install = True
+    js_templates = [
+        'static/api/templates/view.xml',
+        'static/api/templates/form.xml',
+        'static/api/templates/list.xml',
+        'static/api/templates/card.xml',
+        'static/api/templates/search.xml',
+        'static/api/templates/dialog.xml',
+        'static/api/templates/report.xml',
+    ]
 
 addon = AppConfig()

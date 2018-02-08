@@ -4,7 +4,7 @@ MENU_SEP = '/'
 
 
 class Menu(models.Model):
-    name = models.CharField(null=False)
+    name = models.CharField(null=False, translate=True)
     sequence = models.IntegerField(default=99)
     parent = models.ForeignKey('self', related_name='children')
     action = models.ForeignKey('ir.action')

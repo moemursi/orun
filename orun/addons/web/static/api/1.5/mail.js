@@ -6,8 +6,11 @@
       this.model = this.scope.$parent.model;
 
       this.scope.$parent.$watch('recordId', key => {
+        this.items = null;
         this.scope.loading = Katrid.i18n.gettext('Loading...');
-        return setTimeout(() => {
+        clearTimeout(this._pendingOperation);
+        this._pendingOperation = setTimeout(() => {
+          this._pendingOperation = null;
           this.masterChanged(key);
           return this.scope.$apply(() => {
             return this.scope.loading = null;
@@ -22,26 +25,23 @@
     masterChanged(key) {
       if (key) {
         const svc = new Katrid.Services.Model('mail.message');
+        if (this.scope.$parent.record)
         return svc.post('get_messages', null, { args: [this.scope.$parent.record.messages] })
         .done(res => {
-          return this.scope.$apply(() => {
-            return this.items = res.result.data;
-          });
+          if (res.ok)
+            this.scope.$apply(() => this.items = res.result );
         });
       }
     }
 
     _sendMesage(msg, attachments) {
-      if (attachments) {
-        let lst = [];
-        for (let f of attachments) lst.push(f.id);
-        attachments = lst;
-      }
+      if (attachments) attachments = attachments.map((obj) => obj.id);
       this.model.post('post_message', null, { args: [[this.scope.$parent.recordId]], kwargs: { content: msg, content_subtype: 'html', format: true, attachments: attachments } })
       .done(res => {
         const msgs = res.result;
         this.scope.message = '';
         this.scope.$apply(() => this.items = msgs.concat(this.items));
+        this.scope.files = null;
         this.scope.hideEditor();
       });
     }
@@ -53,7 +53,6 @@
         var me = this;
         Katrid.Services.Attachments.upload({files: files}, this.scope.$parent)
         .done((res) => {
-          console.log('the res', res);
           me._sendMesage(msg, res);
         });
       } else
@@ -75,7 +74,7 @@
       template() {
         return `\
   <div class="content">
-      <div class="container comments">
+      <div class="comments">
         <mail-comments/>
       </div>
   </div>\
@@ -121,7 +120,7 @@
 
       template() {
         return `\
-  <div>
+  <div class="container">
           <h3>${Katrid.i18n.gettext('Comments')}</h3>
           <div class="form-group">
           <button class="btn btn-default" ng-click="showEditor();">${Katrid.i18n.gettext('New message')}</button>
@@ -153,10 +152,15 @@
               <img src="/static/web/static/assets/img/avatar.png" class="avatar img-circle">
             </div>
             <div class="media-body">
-              <strong>{{ comment.author[1] }}</strong> - <span title="{{ comment.date_time|moment:'LLLL'}}"> {{comment.date_time|moment}}</span>
+              <strong>{{ ::comment.author[1] }}</strong> - <span title="{{ ::comment.date_time|moment:'LLLL'}}"> {{::comment.date_time|moment}}</span>
               <div class="clearfix"></div>
-              <div>
-                {{comment.content}}
+              <div class="form-group">
+                {{::comment.content}}
+              </div>
+              <div class="form-group" ng-if="comment.attachments">
+                <ul class="list-inline">
+                  <li ng-repeat="file in comment.attachments"><a href="/web/content/{{ ::file.id }}/?download">{{ ::file.name }}</a></li>
+                </ul>
               </div>
             </div>
           </div>

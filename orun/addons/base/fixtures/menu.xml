@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <data translate="true">
-  <menuitem id="sys.menu" name="System" sequence="999">
-    <menuitem id="sys.menu.auth" name="Authentication">
-      <menuitem id="sys.menu.auth.user" name="Users" action="action.sys.view.auth.user"/>
-      <menuitem id="sys.menu.auth.group" name="Groups" action="action.sys.view.auth.group"/>
-      <menuitem id="sys.menu.auth.company" name="Companies" action="action.sys.view.res.company"/>
+  <menuitem id="menu.settings" name="Settings" sequence="999">
+    <menuitem id="menu.settings.auth" name="Authentication">
+      <menuitem id="menu.settings.auth.user" name="Users" action="action.view.auth.user"/>
+      <menuitem id="menu.settings.auth.group" name="Groups" action="action.view.auth.group"/>
+      <menuitem id="menu.settings.auth.company" name="Companies" action="action.view.res.company"/>
     </menuitem>
-    <menuitem id="sys.menu.ui" name="User Interface">
-      <menuitem id="sys.menu.ui.action" name="Actions" action="action.sys.view.action">
-        <menuitem id="sys.menu.ui.action.window" name="Window Actions" action="action.sys.view.action.window"/>
+    <menuitem id="menu.settings.ui" name="User Interface">
+      <menuitem id="menu.settings.ir.action" name="Actions" action="action.view.ir.action">
+        <menuitem id="menu.settings.ir.action.window" name="Window Actions" action="action.view.ir.action.window"/>
       </menuitem>
-      <menuitem id="sys.menu.ui.menu" name="Menu" action="action.sys.view.ui.menu"/>
-      <menuitem id="sys.menu.ui.view" name="Views" action="action.sys.view.ui.view"/>
+      <menuitem id="menu.settings.ui.menu" name="Menu" action="action.view.ui.menu"/>
+      <menuitem id="menu.settings.ui.view" name="Views" action="action.view.ui.view"/>
     </menuitem>
-    <menuitem id="sys.menu.db" name="Database Dictionary">
-      <menuitem id="sys.menu.db.models" name="Models" action="action.sys.view.model"/>
-      <menuitem id="sys.menu.db.fields" name="Fields" action="action.sys.view.field"/>
+    <menuitem id="menu.settings.db" name="Database Dictionary">
+      <menuitem id="menu.settings.ir.models" name="Models" action="action.view.ir.model"/>
+      <menuitem id="menu.settings.ir.fields" name="Fields" action="action.view.ir.field"/>
     </menuitem>
   </menuitem>
 </data>

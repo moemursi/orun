@@ -101,7 +101,7 @@ class Rule(models.Model):
 
 
 class Export(models.Model):
-    name = models.CharField(256)
+    name = models.CharField(256, null=False)
     model = models.CharField(128, db_index=True)
 
     class Meta:
@@ -110,7 +110,7 @@ class Export(models.Model):
 
 class ExportField(models.Model):
     export = models.ForeignKey(Export, null=False, on_delete=models.CASCADE)
-    name = models.CharField(128)
+    name = models.CharField(128, null=False)
 
     class Meta:
         name = 'auth.export.field'

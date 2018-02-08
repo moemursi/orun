@@ -1,11 +1,11 @@
 <form>
   <div class="media">
-    <div class="media-left">
+    <div class="d-flex mr-3">
       <field name="image" nolabel ng-empty-image="(record.company_type === 'individual' && '/static/web/static/assets/img/avatar.png') || ('/static/web/static/assets/img/no-image.png')"/>
     </div>
     <div class="media-body">
       <h3>
-      <field name="name" cols="12" class="input-lg" nolabel="placeholder"/>
+      <field name="name" cols="12" class="form-control-lg" nolabel="placeholder"/>
       </h3>
     </div>
   </div>
@@ -61,7 +61,7 @@
     </tab>
     <tab>
       <tab-heading>{{ _('Notes') }}</tab-heading>
-      <field name="comments" nolabel="true"/>
+      <field name="comments" nolabel="true" cols="12"/>
     </tab>
   </tabset>
 </form>

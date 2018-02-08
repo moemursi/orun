@@ -1,7 +1,7 @@
 {% macro menu_item(menu) %}
-  <li class="menu-item">
-    <a href="{{ menu.get_absolute_url() }}"{% if menu.action_id %} class="menu-item-action"{% endif %}>
-      {{ menu.name }}
+  <li class="nav-link menu-item">
+    <a href="{{ menu.get_absolute_url() }}" class="nav-link {% if menu.action_id %}menu-item-action{% endif %}">
+      {{ gettext(menu.name) }}
     </a>
   {% set children_menu = menu.children.all() %}
   {% if children_menu %}

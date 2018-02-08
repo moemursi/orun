@@ -49,9 +49,8 @@ class Model(models.Model):
 
     def model_class(self):
         "Returns the Python model class for this type of content."
-        from orun import app
         try:
-            return app[self.name]
+            return self.env[self.name]
         except LookupError:
             return None
 

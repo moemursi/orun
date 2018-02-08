@@ -1,6 +1,7 @@
 import os
 
 from orun import app
+from orun.db import models
 from orun.conf import settings
 from orun.utils.translation import activate
 from orun.core.management import commands
@@ -29,7 +30,7 @@ def upgrade(app_labels, **options):
         all_models.extend(addon.models.keys())
     all_models = set(all_models)
     for model in all_models:
-        if model in app.models:
+        if model in app.models and isinstance(model, models.Model):
             model = app[model]
             model.init()
 

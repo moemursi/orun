@@ -7,15 +7,15 @@ from .model import Model
 
 class Object(models.Model):
     name = models.CharField(128, _('Object Name'), null=False)
-    model = models.ForeignKey('ir.model', null=False)
+    model = models.CharField(128, null=False)
     object_id = models.BigIntegerField()
     object = GenericForeignKey()
     app_label = models.CharField(64, null=False)
     can_update = models.BooleanField(default=True)
 
     class Meta:
-        display_field = 'name'
         name = 'ir.object'
+        index_together = (('model', 'object_id'),)
 
     def get_object(self, name):
         return self.objects.filter(self.c.name == name).one()

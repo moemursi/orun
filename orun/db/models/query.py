@@ -284,9 +284,6 @@ class Query(orm.Query):
     #         entities[0] = entities[0].__class__
     #     super(Query, self).__init__(entities, session=session)
 
-    def __iter__(self):
-        return RecordsProxy(super(Query, self).__iter__())
-
     # def _clone(self):
     #     q = super(Query, self)._clone()
     #     q.env = self.env

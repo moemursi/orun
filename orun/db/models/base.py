@@ -392,7 +392,7 @@ class Model(Service):
     def _get_default_search_view(cls):
         pass
 
-    @api.method
+    @api.serialize
     def get(self, id):
         if id:
             return self._search().get(id)
@@ -400,27 +400,27 @@ class Model(Service):
             raise self.DoesNotExist()
 
     @api.method
-    def get_view_info(cls, view_type, view=None):
+    def get_view_info(self, view_type, view=None):
         View = app['ui.view']
         model = app['ir.model']
 
         if view is None:
-            view = list(View.objects.filter(mode='primary', view_type=view_type, model=model.get_by_natural_key(cls._meta.name).pk))
+            view = list(View.objects.filter(mode='primary', view_type=view_type, model=self._meta.name))
             if view:
                view = view[0]
         elif isinstance(view, (int, str)):
             view = View.objects.get(view)
 
         if view:
-            xml_content = view.get_xml(model=cls)
+            xml_content = view.get_xml(model=self)
             return {
                 'content': etree.tostring(xml_content, encoding='utf-8').decode('utf-8'),
-                'fields': cls.get_fields_info(view_type=view_type, xml=xml_content)
+                'fields': self.get_fields_info(view_type=view_type, xml=xml_content)
             }
-        content = cls._get_default_view(view_type=view_type)
+        content = self._get_default_view(view_type=view_type)
         return {
             'content': content,
-            'fields': cls.get_fields_info(view_type=view_type, xml=content),
+            'fields': self.get_fields_info(view_type=view_type, xml=content),
             #'view_actions': self.get_view_actions(view_type),
         }
 
@@ -442,11 +442,6 @@ class Model(Service):
                     r[f.name] = False
         return r or None
 
-    def _deserialize_value(self, field, value):
-        if value == '':
-            value = None
-        field.deserialize(value, self)
-
     def deserialize(self, instance, data):
         data.pop('id', None)
         children = {}
@@ -455,7 +450,7 @@ class Model(Service):
             if field.child_field:
                 children[field] = v
             else:
-                instance._deserialize_value(field, v)
+                setattr(instance, k, v)
 
         instance.full_clean()
         if instance.pk:
@@ -517,7 +512,7 @@ class Model(Service):
         params = kwargs.get('params')
         if name:
             if name_fields is None:
-                name_fields = self._meta.get_name_fields()
+                name_fields = [_resolve_fk_search(f) for f in self._meta.get_name_fields()]
             q = [sa.or_(*[fld.column.ilike('%' + name + '%') for fld in name_fields])]
             if params:
                 q.append(params)
@@ -724,7 +719,7 @@ class Model(Service):
             if 'display_name' in fields:
                 fields.append(self._meta.title_field)
             fields = [f.db_column for f in [self._meta.fields_dict[f] for f in fields] if f.concrete]
-            pk = self._meta.pk.name
+            pk = self._meta.pk.column.name
             if pk not in fields:
                 fields.append(pk)
             if fields:
@@ -751,7 +746,8 @@ class Model(Service):
 
     def __str__(self):
         if self._meta.title_field:
-            return self[self._meta.title_field]
+            f = self._meta.fields_dict[self._meta.title_field]
+            return f.serialize(self[self._meta.title_field], self)
         return super(Model, self).__str__()
 
     def __iter__(self):
@@ -776,13 +772,10 @@ class Model(Service):
         if f:
             # check if the value is a valid python value
             value = f.to_python(value)
-            # in special cases field needs to be deserialized by itself
+            # in special cases the field needs to be deserialized by itself
             # if deserialize returns any value, use it as the current field value
-            value = f.deserialize(value, self) or value
-            # check for field name conflict (i.e. ForeignKey fields)
-            if key != f.attname:
-                # if the key is different from the field.attname do nothing, it must be done via deserialize
-                return
+            if f.set:
+                return f.set(value, self)
         super(Model, self).__setattr__(key, value)
 
     def save(self, update_fields=None, force_insert=False):
@@ -795,6 +788,12 @@ def unpickle_inner_exception(klass, exception_name):
     # Get the exception class from the class it is attached to:
     exception = getattr(klass, exception_name)
     return exception.__new__(exception)
+
+
+def _resolve_fk_search(field):
+    if isinstance(field, ForeignKey):
+        return field.related_model._meta.get_name_fields()
+    return field
 
 
 from orun.db.models.fields import ForeignKey, DateTimeField

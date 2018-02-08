@@ -9,16 +9,19 @@ from sqlalchemy.schema import CreateSchema
 from sqlalchemy.engine.url import URL, make_url
 
 from orun import g, SUPERUSER
-from orun.utils.translation import activate
 from orun.conf import global_settings
 from orun.db import (connection, DEFAULT_DB_ALIAS)
 from orun.utils.functional import SimpleLazyObject
+from orun.utils import translation
 from .registry import registry
 from .utils import adjust_dependencies
 from orun.auth.request import auth_before_request
 
 
 class Application(Flask):
+    jinja_options = Flask.jinja_options.copy()
+    jinja_options['extensions'] = ['jinja2.ext.autoescape', 'jinja2.ext.with_', 'jinja2.ext.i18n']
+
     def __init__(self, *args, **kwargs):
         settings = {}
         settings.update(global_settings.settings)
@@ -63,7 +66,6 @@ class Application(Flask):
         self.addons = []
         with self.app_context():
             for mod_name in mods:
-                print('Loading module', mod_name)
                 addon = registry.app_configs[mod_name]
                 addon.init_addon()
                 self.app_configs[mod_name] = addon
@@ -92,10 +94,7 @@ class Application(Flask):
             self.build_models()
 
     def build_models(self):
-        for model in self.models.values():
-            if model._meta.pk:
-                model._meta.pk._prepare()
-
+        print('Building models')
         for model in self.models.values():
             model._meta._build_table(self.meta)
 
@@ -192,6 +191,11 @@ class Application(Flask):
         ctx.g.context = context
         return ctx
 
+    def create_jinja_environment(self):
+        rv = super(Application, self).create_jinja_environment()
+        rv.install_gettext_callables(translation.gettext, translation.ngettext)
+        return rv
+
     def iter_blueprints(self):
         return reversed(self._blueprint_order)
 
@@ -214,12 +218,12 @@ class AppContext(flask.app.AppContext):
         super(AppContext, self).__enter__()
         # Apply new context language state
         if self.g.LANGUAGE_CODE:
-            activate(self.g.LANGUAGE_CODE)
+            translation.activate(self.g.LANGUAGE_CODE)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Restore the old context language state
         if self._old_lang:
-            activate(self._old_lang)
+            translation.activate(self._old_lang)
         super(AppContext, self).__exit__(exc_type, exc_val, exc_tb)
 
 

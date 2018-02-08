@@ -15,8 +15,8 @@ class PartnerCategory(models.Model):
 
 
 class PartnerTitle(models.Model):
-    name = models.CharField(128, _('Name'), null=False)
-    abbreviation = models.CharField(32, _('Abbreviation'), localize=True)
+    name = models.CharField(128, _('Name'), null=False, translate=True)
+    abbreviation = models.CharField(32, _('Abbreviation'), translate=True)
 
     class Meta:
         name = 'res.partner.title'

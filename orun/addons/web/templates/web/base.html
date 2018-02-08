@@ -13,7 +13,7 @@
   <!-- end extra head -->
 
   <!-- Bootstrap core CSS -->
-  <link href="/static/web/static/assets/css/bootstrap.css" rel="stylesheet">
+  <link href="/static/web/static/assets/css/bootstrap.min.css" rel="stylesheet">
   <!--link href="css/bootstrap-theme.css" rel="stylesheet"-->
 
   <!-- Font-awesome -->
@@ -35,12 +35,12 @@
 
   <!-- Katrid style -->
   <link href="/static/web/static/assets/css/style.css" rel="stylesheet" type="text/css">
-  <link href="/static/web/static/assets/css/skins/gray-skin.css" rel="stylesheet" type="text/css">
 
   <link href="/static/web/static/api/1.5/web.app.css" rel="stylesheet">
   <link href="/static/web/static/css/web.app.css" rel="stylesheet">
+  {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 
 {% block content %}{% endblock %}
 
@@ -61,6 +61,7 @@
 <script src="/static/web/static/libs/plugins/masked-money/jquery.maskMoney.min.js"></script>
 <script src="/static/web/static/assets/plugins/jquery.scrollbox/jquery.scrollbox.min.js"></script>
 
+<script src="/static/web/static/assets/js/popper.js"></script>
 <script src="/static/web/static/assets/js/bootstrap.min.js"></script>
 <script src="/static/web/static/libs/plugins/mask/jquery.mask.min.js"></script>
 
@@ -77,8 +78,10 @@
 {% endif %}
 <script src="/static/web/static/libs/underscore-min.js"></script>
 <script src="/static/web/static/api/1.5/katrid.js"></script>
+<script src="/static/web/static/api/1.5/settings.js"></script>
 <script src="/static/web/static/api/1.5/services.js"></script>
 <script src="/static/web/static/api/1.5/ui.js"></script>
+<script src="/static/web/static/api/1.5/templates.js"></script>
 <script src="/static/web/static/api/1.5/actions.js"></script>
 <script src="/static/web/static/api/1.5/data.js"></script>
 <script src="/static/web/static/api/1.5/app.js"></script>
@@ -87,10 +90,13 @@
 <script src="/static/web/static/api/1.5/grid.js"></script>
 <script src="/static/web/static/api/1.5/ui.templ.js"></script>
 <script src="/static/web/static/api/1.5/utils.js"></script>
-<script src="/static/web/static/api/1.5/dialogs.js"></script>
 <script src="/static/web/static/api/1.5/reports.js"></script>
 <script src="/static/web/static/api/1.5/views.js"></script>
+<script src="/static/web/static/api/1.5/dialogs.js"></script>
+<script src="/static/web/static/api/1.5/fields.js"></script>
+<script src="/static/web/static/api/1.5/search.js"></script>
 <script src="/static/web/static/api/1.5/mail.js"></script>
+<script src="/static/web/static/api/1.5/data-import.js"></script>
 
 <!-- additional scripts -->
 
@@ -151,7 +157,7 @@
 {% block page_loaded %}{% endblock %}
 
 <div id="loading-msg">
-  <span>{{ _('Loading...') }}</span>
+  <span>{{ gettext('Loading...') }}</span>
 </div>
 
 </body>

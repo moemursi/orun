@@ -7,7 +7,7 @@ from .model import Model
 
 
 class Action(models.Model):
-    name = models.CharField(128, _('Name'), null=False)
+    name = models.CharField(128, _('Name'), null=False, translate=True)
     action_type = models.CharField(32, _('Action Type'), null=False)
     usage = models.TextField(verbose_name=_('Usage'))
     description = models.TextField(verbose_name=_('Description'))
@@ -42,7 +42,7 @@ class WindowAction(Action):
     view = models.ForeignKey('ui.view', verbose_name=_('View'))
     domain = models.TextField(verbose_name=_('Domain'))
     context = models.TextField(verbose_name=_('Context'))
-    model = models.ForeignKey('ir.model', null=False, label=_('Model'))
+    model = models.CharField(128, null=False, label=_('Model'))
     object_id = models.BigIntegerField(verbose_name=_('Object ID'))
     #content_object = GenericForeignKey()
     view_mode = models.CharField(128, default='list,form', verbose_name=_('View Mode'))

@@ -1,5 +1,4 @@
 import orun
-from orun.db.models.signals import post_migrate
 
 
 class AppConfig(orun.AppConfig):

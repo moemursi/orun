@@ -160,6 +160,9 @@ class Options(object):
                     model.add_to_class('id', auto)
 
     def _build_table(self, meta):
+        if self.pk:
+            self.pk._prepare()
+
         if self.virtual or self.abstract or self.table is not None:
             return
 

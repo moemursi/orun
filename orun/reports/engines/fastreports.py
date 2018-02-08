@@ -18,7 +18,7 @@ class FastReport(Report):
             ]
         )
 
-    def export(self, format='pdf'):
+    def export(self, format='pdf', params=None):
         import fastreport
         conn_str = ''
         try:
@@ -46,14 +46,14 @@ class FastReports(ReportEngine):
                 # Windows integrated security
                 return 'Data Source=%s;Initial Catalog=%s;Integrated Security=True' % (url.host, url.database)
 
-    def export(self, report, format='pdf'):
+    def export(self, report, format='pdf', params=None, **kwargs):
         import fastreport
 
         if isinstance(report, str):
             # load by filename
             report = app.jinja_env.get_or_select_template(report).filename
             out_file = os.path.join(app.config['REPORT_PATH'], uuid.uuid4().hex) + '.' + format
-            fastreport.show_report(report, out_file, format, self.make_conn_str())
+            fastreport.show_report(report, out_file, format, self.make_conn_str(), '', '', params)
             return out_file
 
     def _load_xml(self, xml, rep):

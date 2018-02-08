@@ -102,7 +102,9 @@ class OrunJSONEncoder(json.JSONEncoder):
         elif isinstance(o, bytes):
             return o.decode()
         elif isinstance(o, models.Model):
-            return o.serialize()
+            if hasattr(o, '__serialize__'):
+                return o.serialize()
+            return o._get_instance_label()
         elif isinstance(o, sqlalchemy.orm.query.Query):
             return [r for r in o]
         elif isinstance(o, datetime.date):

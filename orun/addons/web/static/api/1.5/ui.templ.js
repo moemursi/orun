@@ -4,13 +4,13 @@
       let html = `<ol class="breadcrumb">`;
       let i = 0;
       for (let h of Katrid.Actions.Action.history) {
-        if (i === 0 && h.viewModes.length > 1) html += `<li><a href="javascript:void(0)" ng-click="return false;">${ h.info.display_name }</a></li>`;
+        if (i === 0 && h.viewModes.length > 1) html += `<li><a href="javascript:void(0)" ng-click="action.backTo(0, 'list')">${ h.info.display_name }</a></li>`;
         i++;
         if (Katrid.Actions.Action.history.length > i && h.viewType === 'form')
           html += `<li><a href="javascript:void(0)" ng-click="action.backTo(${i-1})">${ h.scope.record.display_name }</a></li>`;
       }
       if (scope.action.viewType === 'form')
-          html += "<li>{{ (dataSource.loadingRecord && Katrid.i18n.gettext('Loading...')) || record.display_name }}</li>";
+          html += "<li>{{ record.display_name }}</li>";
       html += '</ol>';
       return html;
     }
@@ -365,7 +365,7 @@
       <div class="btn-group">
         <button id="attachments-button" attachments-button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true">
           <span ng-show="!$parent.attachments.length">${ Katrid.i18n.gettext('Attachments') }</span>
-          <span ng-show="$parent.attachments.length">{{ Katrid.i18n.gettext('{0} Attachment(s)').format($parent.attachments.length) }}</span>
+          <span ng-show="$parent.attachments.length">{{ sprintf(gettext('%d Attachment(s)'), $parent.attachments.length) }}</span>
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu attachments-menu">
@@ -499,8 +499,7 @@
       return 'table table-striped table-bordered table-condensed table-hover display responsive nowrap dataTable no-footer dtr-column';
     }
 
-    renderList(scope, element, attrs, rowClick, parentDataSource) {
-      const showSelector = true;
+    renderList(scope, element, attrs, rowClick, parentDataSource, showSelector=true) {
       let ths = '<th ng-show="dataSource.groups.length"></th>';
       let cols = `<td ng-show="dataSource.groups.length" class="group-header">
   <div ng-show="row._group">
@@ -536,7 +535,7 @@
           }
         }
 
-        let _widget = Katrid.UI.Widgets.Widget.fromField(fieldInfo, col.attr('widget'));
+        let _widget = Katrid.UI.Widgets.Field.fromField(fieldInfo, col.attr('widget'));
         _widget = new _widget(scope, {}, fieldInfo, col);
         _widget.inplaceEditor = true;
         ths += _widget.th();
@@ -544,8 +543,8 @@
         cols += _widget.td(attrs.inline, colHtml);
       }
       if (parentDataSource) {
-        ths += '<th class="list-column-delete" ng-show="parent.dataSource.changing">';
-        cols += '<td class="list-column-delete" ng-show="parent.dataSource.changing" ng-click="removeItem($index);$event.stopPropagation();"><i class="fa fa-trash-o"></i></td>';
+        ths += '<th class="list-column-delete" ng-show="parent.dataSource.changing && !dataSource.readonly">';
+        cols += '<td class="list-column-delete" ng-show="parent.dataSource.changing && !dataSource.readonly" ng-click="removeItem($index);$event.stopPropagation();"><i class="fa fa-trash-o"></i></td>';
       }
       if ((rowClick == null)) {
         rowClick = 'action.listRowClick($index, row, $event)';
@@ -561,7 +560,7 @@
     }
 
     renderGrid(scope, element, attrs, rowClick) {
-      const tbl = this.renderList(scope, element, attrs, rowClick, true);
+      const tbl = this.renderList(scope, element, attrs, rowClick, true, false);
       let buttons;
       if (attrs.inline == 'inline')
         buttons = `<button class="btn btn-xs btn-info" ng-click="addItem()" ng-show="parent.dataSource.changing && !dataSource.changing" type="button">${Katrid.i18n.gettext('Add')}</button><button class="btn btn-xs btn-info" ng-click="addItem()" ng-show="dataSource.changing" type="button">${Katrid.i18n.gettext('Save')}</button><button class="btn btn-xs btn-info" ng-click="cancelChanges()" ng-show="dataSource.changing" type="button">${Katrid.i18n.gettext('Cancel')}</button>`;

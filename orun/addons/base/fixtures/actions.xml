@@ -1,38 +1,38 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <data>
-  <action id="action.sys.view.action" type="ir.action.window" name="Actions" model="ir.action">
+  <action id="action.view.ir.action" type="ir.action.window" name="Actions" model="ir.action">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="action.sys.view.action.window" type="ir.action.window" name="Window Actions" model="ir.action.window">
+  <action id="action.view.ir.action.window" type="ir.action.window" name="Window Actions" model="ir.action.window">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="action.sys.view.model" type="ir.action.window" name="Models" model="ir.model">
+  <action id="action.view.ir.model" type="ir.action.window" name="Models" model="ir.model">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="action.sys.view.field" type="ir.action.window" name="Fields" model="ir.model.field">
+  <action id="action.view.ir.field" type="ir.action.window" name="Fields" model="ir.model.field">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="action.sys.view.ui.menu" type="ir.action.window" name="Menu" model="ui.menu">
+  <action id="action.view.ui.menu" type="ir.action.window" name="Menu" model="ui.menu">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="action.sys.view.ui.view" type="ir.action.window" name="Views" model="ui.view">
+  <action id="action.view.ui.view" type="ir.action.window" name="Views" model="ui.view">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="action.sys.view.auth.user" type="ir.action.window" name="Users" model="auth.user">
+  <action id="action.view.auth.user" type="ir.action.window" name="Users" model="auth.user">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="action.sys.view.auth.group" type="ir.action.window" name="Groups" model="auth.group">
+  <action id="action.view.auth.group" type="ir.action.window" name="Groups" model="auth.group">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="action.sys.view.res.company" type="ir.action.window" name="Companies" model="res.company">
+  <action id="action.view.res.company" type="ir.action.window" name="Companies" model="res.company">
     <field name="view_mode">list,form</field>
   </action>
-  <action id="action.base.view.customer" type="ir.action.window" name="Customers" model="res.partner">
+  <action id="action.view.res.customer" type="ir.action.window" name="Customers" model="res.partner">
     <field name="view_mode">card,list,form</field>
     <field name="context">{"default_is_customer": 1}</field>
     <field name="domain">{"is_customer": 1}</field>
   </action>
-  <action id="action.base.view.vendor" type="ir.action.window" name="Vendors" model="res.partner">
+  <action id="action.view.res.vendor" type="ir.action.window" name="Vendors" model="res.partner">
     <field name="view_mode">card,list,form</field>
     <field name="context">{"default_is_supplier": 1}</field>
     <field name="domain">{"is_supplier": 1}</field>

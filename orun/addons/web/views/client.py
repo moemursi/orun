@@ -1,3 +1,4 @@
+import os
 from flask import redirect, send_from_directory, session, url_for, flash
 from orun.conf import settings
 from orun import request
@@ -6,7 +7,7 @@ from orun.utils.translation import gettext
 from orun import app, render_template
 from orun.views import BaseView, route, json_route
 from orun.auth.decorators import login_required
-from orun import app, auth
+from orun import app, auth, api
 
 
 class WebClient(BaseView):
@@ -28,7 +29,7 @@ class WebClient(BaseView):
         else:
             main_menu = menu.objects.filter(menu.c.parent_id == None).first()
             return redirect('/web/menu/%s/' % main_menu.id)
-        return render_template('web/index.html', _=gettext, **context)
+        return render_template('web/index.html', **context)
 
     @route('/action/<action_id>/')
     @login_required
@@ -43,7 +44,7 @@ class WebClient(BaseView):
             action = app[action.action_type].objects.get(action.id)
             cur_menu = None
             context['current_menu'] = cur_menu
-            return jsonify(action)
+            return jsonify(action.serialize())
         return render_template('web/action.html', **context)
 
     @route('/client/i18n/catalog.js')
@@ -65,11 +66,17 @@ class WebClient(BaseView):
                 auth.login(u)
                 return redirect(request.args.get('next', url_for('WebClient:index_1')))
             flash(gettext('Invalid username and password.'), 'danger')
-        return render_template('web/login.html', settings=settings, _=gettext)
+        return render_template('web/login.html', settings=settings)
 
     def logout(self):
         auth.logout()
         return redirect(url_for('WebClient:login'))
+
+    @route('/client/templates/')
+    def client_templates(self):
+        return b'<templates>%s</templates>' % b''.join(
+            [b''.join(addon.get_js_templates()) for addon in app.iter_blueprints() if addon.js_templates]
+        )
 
     @route('/content/<int:content_id>/')
     def content(self, content_id=None):
@@ -83,7 +90,7 @@ class WebClient(BaseView):
         for file in request.files.getlist('attachment'):
             obj = Attachment.create(
                 name=file.filename,
-                model_name=request.form['model'],
+                model=request.form['model'],
                 object_id=request.form['id'],
                 file_name=file.filename,
                 stored_file_name=file.filename,

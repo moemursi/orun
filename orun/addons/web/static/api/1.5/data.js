@@ -3,8 +3,10 @@
   function createRecord(rec, scope) {
     return new Proxy(rec, {
       set(target, propKey, value, receiver) {
-        scope.$setDirty(propKey);
-        scope.dataSource._pendingChanges = true;
+        if (scope) {
+          scope.$setDirty(propKey);
+          scope.dataSource._pendingChanges = true;
+        }
         return Reflect.set(target, propKey, value, receiver);
       }
     })
@@ -31,6 +33,7 @@
   }
   DataSourceState.initClass();
 
+  DEFAULT_REQUEST_INTERVAL = 300;
 
   class DataSource {
     constructor(scope) {
@@ -45,7 +48,7 @@
       this.pageLimit = 100;
       this.offset = 0;
       this.offsetLimit = 0;
-      this.requestInterval = 0;
+      this.requestInterval = DEFAULT_REQUEST_INTERVAL;
       this.pendingRequest = null;
       this.fieldName = null;
       this.children = [];
@@ -54,6 +57,16 @@
       this.state = null;
       this.fieldChangeWatchers = [];
       this._pendingChanges = false;
+    }
+
+    get loadingAction() {
+      return this._loadingAction;
+    }
+
+    set loadingAction(v) {
+      if (v) this.requestInterval = 0;
+      else this.requestInterval = DEFAULT_REQUEST_INTERVAL;
+      this._loadingAction = v;
     }
 
     cancelChanges() {
@@ -114,14 +127,10 @@
             if (res.ok) {
               this.scope.form.$setPristine();
               this.scope.form.$setUntouched();
-              for (let child of Array.from(this.children)) {
-                delete child.modifiedData;
-              }
+              if (this.children) this.children.map((child) => delete child.modifiedData);
               this._pendingChanges = false;
               this.setState(DataSourceState.browsing);
-              if (autoRefresh) {
-                return this.refresh(res.result);
-              }
+              if (autoRefresh) return this.refresh(res.result);
             } else {
               let s = `<span>${Katrid.i18n.gettext('The following fields are invalid:')}<hr></span>`;
               if (res.message) {
@@ -146,11 +155,7 @@
 
               return Katrid.Dialogs.Alerts.error(s);
             }
-        }).always(() => {
-            return this.scope.$apply(() => {
-              return this.uploading--;
-            });
-          });
+        }).always(() => this.scope.$apply(() => this.uploading-- ) );
         } else {
           Katrid.Dialogs.Alerts.warn(Katrid.i18n.gettext('No pending changes'));
         }
@@ -271,34 +276,37 @@
 
       const def = new $.Deferred();
 
-      let req = this.scope.model.search(params, {count: true})
-      .fail(res => {
-        return def.reject(res);
-      }).done(res => {
-        if (this.pageIndex > 1) {
-          this.offset = ((this.pageIndex - 1) * this.pageLimit) + 1;
-        } else {
-          this.offset = 1;
-        }
-        this.scope.$apply(() => {
-          if (res.result.count != null) {
-            this.recordCount = res.result.count;
-          }
-          this.scope.records = res.result.data;
-          if (this.pageIndex === 1) {
-            return this.offsetLimit = this.scope.records.length;
+      let req = () => {
+        this.scope.model.search(params, {count: true})
+        .fail(res => {
+          return def.reject(res);
+        }).done(res => {
+          if (this.pageIndex > 1) {
+            this.offset = ((this.pageIndex - 1) * this.pageLimit) + 1;
           } else {
-            return this.offsetLimit = (this.offset + this.scope.records.length) - 1;
+            this.offset = 1;
           }
+          this.scope.$apply(() => {
+            if (res.result.count != null) {
+              this.recordCount = res.result.count;
+            }
+            this.scope.records = res.result.data;
+            if (this.pageIndex === 1) {
+              return this.offsetLimit = this.scope.records.length;
+            } else {
+              return this.offsetLimit = (this.offset + this.scope.records.length) - 1;
+            }
+          });
+          return def.resolve(res);
+        }).always(() => {
+          this.pendingRequest = false;
+          this.scope.$apply(() => {
+            return this.loading = false;
+          });
         });
-        return def.resolve(res);
-      }).always(() => {
-        this.pendingRequest = false;
-        this.scope.$apply(() => { return this.loading = false; });
-      });
+      };
 
-      if (this.requestInterval > 0)
-        this.pendingRequest = setTimeout(req, this.requestInterval);
+      if (this.requestInterval > 0) this.pendingRequest = setTimeout(req, this.requestInterval);
       else req();
 
       return def.promise();
@@ -364,11 +372,9 @@
     }
 
     _clearTimeout() {
-      if (this.pendingRequest) {
-        this.loading = false;
-        this.loadingRecord = false;
-        return clearTimeout(this.pendingRequest);
-      }
+      this.loading = false;
+      this.loadingRecord = false;
+      return clearTimeout(this.pendingRequest);
     }
 
     setMasterSource(master) {

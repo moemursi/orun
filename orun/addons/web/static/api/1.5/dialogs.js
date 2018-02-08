@@ -1,16 +1,55 @@
 (function () {
 
   class Alerts {
-    success(msg) {
+    static success(msg) {
       return toastr['success'](msg);
     }
 
-    warn(msg) {
+    static warn(msg) {
       return toastr['warning'](msg);
     }
 
-    error(msg) {
+    static error(msg) {
       return toastr['error'](msg);
+    }
+  }
+
+  class Dialog extends Katrid.UI.Views.BaseView {
+    constructor(scope, options, $compile) {
+      super(scope);
+      this.$compile = $compile;
+      this.templateUrl = 'dialog.base';
+      this.scope.isDialog = true;
+    }
+
+    render() {
+      return $(sprintf(Katrid.$templateCache.get(this.templateUrl), { content: this.content }));
+    }
+
+    show() {
+      if (!this.el) {
+        this.el = $(this.render());
+        this.root = this.el.find('.modal-dialog-body');
+        this.el.find('form').first().addClass('row');
+        this.$compile(this.el)(this.scope);
+      }
+      this.el.modal('show')
+      .on('shown.bs.modal', () => Katrid.uiKatrid.setFocus(this.el.find('.form-field').first()));
+      return this.el;
+    }
+}
+
+  class Window extends Dialog {
+    constructor(scope, options, $compile) {
+      super(scope.$new(), options, $compile);
+      this.templateUrl = 'dialog.window';
+      console.log(Katrid.$templateCache.get(this.templateUrl));
+      this.scope.parentAction = scope.action;
+      console.log(options);
+      this.scope.views = { form: options.view };
+      this.scope.title = (options && options.title) || Katrid.i18n.gettext('Create: ');
+      this.scope.view = options.view;
+      this.content = options.view.content;
     }
   }
 
@@ -41,8 +80,9 @@
   };
 
   Katrid.Dialogs = {
-    Alerts: new Alerts(),
-    showWindow: showWindow
+    Alerts,
+    Dialog,
+    Window
   };
 
 }).call(this);

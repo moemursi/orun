@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 
 from orun import app, api
 from orun.db import models
@@ -34,12 +35,20 @@ class ReportAction(Action):
             model = app[self.model]
             qs = model.objects.all()
         xml = self.view.get_xml(model)
-        if params:
-            criterion = params.pop('data', [])
-            for crit in criterion:
-                print(crit)
+        _params = defaultdict(list)
+        for crit in params['data']:
+            for k, v in crit.items():
+                if k.startswith('value'):
+                    _params[crit['name']].append(v)
+        where = {}
+        for k, v in _params.items():
+            if len(v) > 1:
+                for i, val in enumerate(v):
+                    where[k + str(i + 1)] = val
+            else:
+                where[k] = v[0]
 
-        rep = engine.auto_report(xml, model=model, query=qs, report_title=self.name)
+        rep = engine.auto_report(xml, format=format, model=model, query=qs, report_title=self.name, params=where)
         if rep:
             if not isinstance(rep, str):
                 rep = rep.export(format=format)

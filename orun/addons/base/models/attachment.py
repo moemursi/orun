@@ -15,7 +15,7 @@ class Attachment(models.Model):
     name = models.CharField(label=_('Attachment Name'), null=False)
     file_name = models.CharField(label=_('File Name'))
     description = models.TextField(label=_('Description'))
-    model_name = models.CharField(128, label=_('Model'))
+    model = models.CharField(128, label=_('Model'))
     field = models.CharField(128)
     object_name = models.CharField()
     object_id = models.BigIntegerField()
@@ -34,7 +34,8 @@ class Attachment(models.Model):
 
     class Meta:
         name = 'ir.attachment'
-        index_together = (('model_name', 'obj_name'),)
+        title_field = 'file_name'
+        index_together = (('model', 'object_id'),)
 
     @property
     def storage(self):

@@ -1,0 +1,105 @@
+<templates>
+  <script id="view.form" type="text/ng-template">
+    <div ng-form="form" class="data-form" ng-class="{'form-data-changing': dataSource.changing, 'form-data-readonly': !dataSource.changing}">
+      <toolbar>
+        <div>
+          <a href="javascript:void(0)" title="Add to favorite"><i class="fa star fa-star-o pull-right"></i></a>
+          %(breadcrumb)s
+          <p class="help-block">{{ ::action.info.usage }}</p>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-primary" type="button" ng-disabled="dataSource.uploading"
+                  ng-click="dataSource.saveChanges()" ng-show="dataSource.changing">
+            {{ ::gettext('Save') }}
+          </button>
+          <button class="btn btn-primary" type="button" ng-disabled="dataSource.uploading"
+                  ng-click="dataSource.editRecord()" ng-show="!dataSource.changing">
+            {{ ::gettext('Edit') }}
+          </button>
+          <button class="btn btn-secondary" type="button" ng-disabled="dataSource.uploading"
+                  ng-click="dataSource.newRecord()" ng-show="!dataSource.changing">
+            {{ ::gettext('Create') }}
+          </button>
+          <button class="btn btn-secondary" type="button" ng-click="dataSource.cancelChanges()"
+                  ng-show="dataSource.changing">
+            {{ ::gettext('Cancel') }}
+          </button>
+
+
+          <div class="btn-group">
+            <div class="dropdown">
+              <button id="attachments-button" attachments-button="" type="button" class="btn btn-secondary dropdown-toggle"
+                      data-toggle="dropdown" aria-haspopup="true">
+                <span ng-show="!$parent.attachments.length">{{ ::gettext('Attachments') }} </span>
+                <span ng-show="$parent.attachments.length">{{ sprintf(gettext('%%d Attachment(s)'), $parent.attachments.length) }}</span>
+                <span class="caret"></span>
+              </button>
+              <div class="dropdown-menu attachments-menu">
+                <a ng-repeat="attachment in $parent.attachments" href="{{ ::attachment.download_url }}">
+                  {{ ::attachment.name }} <span
+                      class="fa fa-trash-o pull-right" title="Delete this attachment"
+                      onclick="event.preventDefault();" ng-click="action.deleteAttachment($index);"></span>
+                </a>
+                <li role="separator" class="divider" ng-show="attachments.length"></li>
+                <a class="dropdown-item" href="javascript:void(0)" onclick="$(this).next().click()">
+                  {{ ::gettext('Add...') }}
+                </a>
+                <input type="file" class="input-file-hidden" multiple="multiple"
+                       onchange="Katrid.Services.Attachments.upload(this)"/>
+              </div>
+            </div>
+          </div>
+          <div class="btn-group">
+            <div class="dropdown">
+              <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
+                      aria-haspopup="true">
+                {{ ::gettext('Action') }} <span class="caret"></span>
+              </button>
+              <div class="dropdown-menu dropdown-menu-actions">
+                <a class="dropdown-item" href="javascript:void(0)" ng-click="action.deleteSelection(true)"><i
+                    class="fa fa-fw fa-trash-o"></i> {{ ::gettext('Delete') }}</a>
+                <a class="dropdown-item" href='javascript:void(0)' ng-click="action.copy()">
+                  <i class="fa fa-fw fa-files-o"></i>
+                  {{ ::gettext('Duplicate') }}</a>
+                %(actions)s
+              </div>
+            </div>
+          </div>
+
+          <div class="pull-right">
+            <div class="btn-group pagination-area">
+              <span ng-show="records.length">
+                {{ dataSource.recordIndex }} / {{ records.length }}
+              </span>
+            </div>
+            <div class="btn-group" role="group">
+              <button class="btn btn-secondary" type="button" ng-click="dataSource.prior('form')">
+                <i class="fa fa-chevron-left"></i>
+              </button>
+              <button class="btn btn-secondary" type="button" ng-click="dataSource.next('form')">
+                <i class="fa fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+          <replace id="buttons"></replace>
+        </div>
+      </toolbar>
+
+      <div class="content-scroll">
+        <div class="content">
+          <div class="clearfix"></div>
+          <header class="content-container-heading"></header>
+          <div class="clearfix"></div>
+          <div class="content container">
+            <div class="card panel-default data-panel browsing"
+                 ng-class="{ browsing: dataSource.browsing, editing: dataSource.changing }">
+              <div class="card-body">
+                %(content)s
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </script>
+</templates>

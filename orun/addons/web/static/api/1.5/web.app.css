@@ -3,7 +3,7 @@
 }
 .left-menu-content {
   position: absolute;
-  top: 50px;
+  top: 0;
   bottom: 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -70,4 +70,8 @@
 }
 .attachments-area li {
   cursor: pointer;
+}
+#katrid-action-view #h-loading {
+  margin: 0;
+  padding: 16px;
 }

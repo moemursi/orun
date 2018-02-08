@@ -140,14 +140,32 @@ class ForeignKey(RelatedField):
             value = value[0]
         return super(ForeignKey, self).to_python(value)
 
-    def deserialize(self, value, instance):
-        if value and not isinstance(value, models.Model):
-            #return self.related_model(pk=value)
-            setattr(instance, self.attname, value)
+    def set(self, value, instance):
+        if isinstance(value, models.Model):
+            getattr(instance.__class__, self.name).__set__(instance, value)
+        else:
+            getattr(instance.__class__, self.attname).__set__(instance, value)
 
     def serialize(self, value, instance=None):
         if value:
             return value._get_instance_label()
+
+
+class OneToOneField(ForeignKey):
+    many_to_many = False
+    many_to_one = False
+    one_to_many = False
+    one_to_one = True
+
+    def __init__(self, to, on_delete=None, *args, **kwargs):
+        kwargs['unique'] = True
+        if on_delete is None:
+            on_delete = CASCADE
+        super(OneToOneField, self).__init__(to, on_delete=on_delete, *args, **kwargs)
+
+    def create_column(self, bind=None, *args, **kwargs):
+        kwargs['autoincrement'] = False
+        return super(OneToOneField, self).create_column(bind=bind, *args, **kwargs)
 
 
 CREATE_CHILD = 'CREATE'
@@ -202,7 +220,7 @@ class OneToManyField(RelatedField):
         value = value.options(load_only('pk'))
         return [v.pk for v in value]
 
-    def deserialize(self, value, instance):
+    def set(self, value, instance):
         if value:
             model = app[self.rel_field.model]
             pk = instance.pk
@@ -221,23 +239,6 @@ class OneToManyField(RelatedField):
                     item = model.write([values])
                 elif act == DESTROY_CHILD:
                     model.destroy([obj['id']])
-
-
-class OneToOneField(ForeignKey):
-    many_to_many = False
-    many_to_one = False
-    one_to_many = False
-    one_to_one = True
-
-    def __init__(self, to, on_delete=None, *args, **kwargs):
-        kwargs['unique'] = True
-        if on_delete is None:
-            on_delete = CASCADE
-        super(OneToOneField, self).__init__(to, on_delete=on_delete, *args, **kwargs)
-
-    def create_column(self, bind=None, *args, **kwargs):
-        kwargs['autoincrement'] = False
-        return super(OneToOneField, self).create_column(bind=bind, *args, **kwargs)
 
 
 class ManyToManyField(RelatedField):
@@ -358,11 +359,12 @@ class ManyToManyField(RelatedField):
     def to_python(self, value):
         return self.related_model.objects.only('pk').filter(self.related_model.c.pk.in_(value)).all() if value else None
 
-    def deserialize(self, value, instance):
+    def set(self, value, instance):
         # clear the current data before apply the new value
         v = getattr(instance, self.name)
         v.clear()
-        return value
+        if value:
+            getattr(instance.__class__, self.name).__set__(instance, value)
 
     def serialize(self, value, instance=None):
         return [obj._get_instance_label() for obj in value]

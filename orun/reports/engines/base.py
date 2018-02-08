@@ -92,7 +92,7 @@ class ReportEngine(object):
         if isinstance(xml, str):
             xml = etree.fromstring(xml)
         if 'file' in xml.attrib:
-            return self.export(xml.attrib['file'])
+            return self.export(xml.attrib['file'], **kwargs)
         else:
             fields = []
             for field in xml.findall('./fields/field'):
@@ -139,5 +139,5 @@ class ReportEngine(object):
         rep.report_title = report_title
         return self._load_xml(xml, rep)
 
-    def export(self, report, format='pdf'):
+    def export(self, report, format='pdf', params=None, **kwargs):
         raise NotImplementedError

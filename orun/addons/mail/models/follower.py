@@ -2,7 +2,7 @@ from orun.db import models
 
 
 class Follower(models.Model):
-    model_name = models.CharField(128)
+    model = models.CharField(128)
     object_id = models.BigIntegerField()
     partner = models.ForeignKey('res.partner')
     channel = models.ForeignKey('mail.channel')
@@ -10,4 +10,4 @@ class Follower(models.Model):
 
     class Meta:
         name = 'mail.followers'
-        index_together = (('model_name', 'object_id'),)
+        index_together = (('model', 'object_id'),)

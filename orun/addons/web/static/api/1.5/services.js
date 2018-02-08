@@ -144,20 +144,11 @@
       return this.post('copy', null, {args: [id]});
     }
 
-    _prepareFields(view) {
-      return (() => {
-        const result = [];
-        for (let f in view.fields) {
+    static _prepareFields(view) {
+      if (view.fields)
+        for (let f of Object.values(view.fields))
           // Add field display choices object
-          const v = view.fields[f];
-          if (v.choices) {
-            result.push(v.displayChoices = _.object(v.choices));
-          } else {
-            result.push(undefined);
-          }
-        }
-        return result;
-      })();
+          if (f.choices) f.displayChoices = _.object(f.choices);
     }
 
     fieldChange(methName, values) {
@@ -166,34 +157,22 @@
 
     getViewInfo(data) {
       return this.post('get_view_info', null, {kwargs: data})
-      .done(res => {
-        return this._prepareFields(res.result);
-      });
+      .done(res => this.constructor._prepareFields(res.result) );
     }
 
     loadViews(data) {
       return this.post('load_views', null, {kwargs: data})
-      .done(res => {
-        return (() => {
-          const result = [];
-          for (let view in res.result) {
-            const obj = res.result[view];
-            result.push(this._prepareFields(obj));
-          }
-          return result;
-        })();
-      });
+      .done(res => Object.values(res.result.views).map(this.constructor._prepareFields));
     }
 
     getFieldsInfo(data) {
       return this.post('get_fields_info', null, {kwargs: data})
       .done(res => {
-        return this._prepareFields(res.result);
+        return this.constructor._prepareFields(res.result);
       })
     }
 
     getFieldChoices(field, term) {
-      console.log('get field choices', field, term);
       return this.get('get_field_choices', {args: field, q: term});
     }
 
@@ -226,7 +205,7 @@
   }
 
   class Data extends Service {
-    static get url() { return '/web-data/' };
+    static get url() { return '/web/data/' };
 
     reorder(model, ids, field='sequence', offset=0) {
       return this.post('reorder', null, { args: [ model, ids, field, offset ] });
@@ -257,12 +236,22 @@
     }
   }
 
-  let data = new Data('', );
+  class View extends Model {
+    constructor() {
+      super('ui.view');
+    }
+
+    fromModel(model) {
+      return this.post('from_model', null, {model});
+    }
+  }
+
 
 
   this.Katrid.Services = {
     Data,
-    data,
+    View,
+    data: new Data('', ),
     Attachments,
     Service,
     Model

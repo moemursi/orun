@@ -11,7 +11,7 @@ class Subtype(models.Model):
     internal = models.BooleanField(default=True)
     parent = models.ForeignKey('self')
     rel_field = models.CharField(128)
-    model_name = models.CharField(128)
+    model = models.CharField(128)
     default = models.BooleanField(default=True)
 
     class Meta:
@@ -23,7 +23,7 @@ class Message(models.Model):
     date_time = models.DateTimeField(default=datetime.datetime.now)
     content = models.HtmlField()
     parent = models.ForeignKey('self')
-    model_name = models.CharField(128)
+    model = models.CharField(128)
     object_id = models.BigIntegerField()
     object_name = models.CharField()
     message_type = models.SelectionField(
@@ -49,18 +49,22 @@ class Message(models.Model):
     class Meta:
         name = 'mail.message'
         ordering = '-pk'
-        index_together = (('model_name', 'object_id'),)
+        index_together = (('model', 'object_id'),)
+
+    def get_message(self):
+        return {
+            'id': self.pk,
+            'content': self.content,
+            'email_from': self.email_from,
+            'author': self.author,
+            'date_time': self.date_time,
+            'message_type': self.message_type,
+            'object_id': self.object_id,
+            'object_name': self.object_name,
+            'attachments': [{'id': f.pk, 'name': f.file_name, 'mimetype': f.mimetype}for f in self.attachments],
+        }
 
     @api.records
     def get_messages(self, *args, **kwargs):
         for r in self:
-            yield {
-                'id': r.pk,
-                'content': r.content,
-                'email_from': r.email_from,
-                'author': r.author,
-                'date_time': r.date_time,
-                'message_type': r.message_type,
-                'object_id': r.object_id,
-                'object_name': r.object_name,
-            }
+            yield r.get_message()

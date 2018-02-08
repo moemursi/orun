@@ -1,14 +1,12 @@
 from collections import defaultdict
+from sqlalchemy.orm import foreign, remote
+from sqlalchemy.sql import and_
+from orun import app
 from orun.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from orun.db import DEFAULT_DB_ALIAS, models #, router, transaction
 from orun.db.models import DO_NOTHING
 from orun.db.models.base import ModelBase #, make_foreign_order_accessors
-#from orun.db.models.fields.related import (
-#    ForeignObject, ForeignObjectRel, ReverseManyToOneDescriptor,
-#    lazy_related_operation,
-#)
-from orun.utils.encoding import smart_text
-from orun.utils.functional import cached_property
+from orun.db.models import OneToManyField, ForeignKey
 
 from .models import Model
 
@@ -109,11 +107,14 @@ class GenericForeignKey(object):
             return rel_obj
 
         if ct_id is not None:
-            ct = self.get_content_type(id=ct_id)
-            try:
-                rel_obj = ct.get_object_for_this_type(pk_val)
-            except ObjectDoesNotExist:
-                pass
+            if isinstance(f, ForeignKey):
+                ct = self.get_content_type(id=ct_id)
+                try:
+                    rel_obj = ct.get_object_for_this_type(pk_val)
+                except ObjectDoesNotExist:
+                    pass
+            else:
+                rel_obj = app[ct_id].objects.get(pk_val)
         setattr(instance, self.cache_attr, rel_obj)
         return rel_obj
 
@@ -130,3 +131,13 @@ class GenericForeignKey(object):
 
     def _invalidate_cache(self):
         pass
+
+
+class GenericOneToManyField(OneToManyField):
+    def __init__(self, to, ct_field='model', to_field='object_id', lazy='dynamic', primary_join=None, *args, **kwargs):
+        if primary_join is None:
+            primary_join = lambda model, fk_model: and_(
+                model._meta.pk.column == foreign(fk_model._meta.fields_dict[to_field].column),
+                fk_model._meta.fields_dict[ct_field].column == model._meta.name
+            )
+        super(GenericOneToManyField, self).__init__(to, to_field, lazy, primary_join, *args, **kwargs)

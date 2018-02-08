@@ -35,7 +35,7 @@
 
         // Set parent/master data source
         scope.dataSource = new Katrid.Data.DataSource(scope);
-        scope.dataSource.readonly = attrs.readonly;
+        scope.dataSource.readonly = !_.isUndefined(attrs.readonly);
         let p = scope.$parent;
         while (p) {
           if (p.dataSource) {

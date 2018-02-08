@@ -1,25 +1,74 @@
 {% extends "/web/base.html" %}
+{% block extra_head %}
+<style>
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: flex;
+  -ms-flex-align: center;
+  -ms-flex-pack: center;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.form-signin {
+  width: 100%;
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+.form-signin .checkbox {
+  font-weight: 400;
+}
+.form-signin .form-control {
+  position: relative;
+  box-sizing: border-box;
+  height: auto;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-signin .form-control:focus {
+  z-index: 2;
+}
+.form-signin #id-username {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+</style>
+{% endblock %}
+{% block body_class %}text-center{% endblock %}
 {% block content %}
-  <div class="container" style="padding: 30px;">
+  <div style="width: 100%; max-width: 330px; padding: 15px;margin: 0 auto;">
     {% for category, msg in get_flashed_messages(with_categories=True) %}
       <div class="alert alert-{{ category }}">
       {{ msg }}
       </div>
     {% endfor %}
-    <form class="col-md-4 col-sm-6 col-md-offset-3 col-sm-offset-4" action="/web/login/" method="post">
+    <img class="mb-4" src="/static/web/static/assets/img/logo.png" alt="" style="max-height: 80px;">
+    <form class="form-signin" action="/web/login/" method="post">
       <div class="form-group">
-        <label>Usuário</label>
-        <input class="form-control" name="username" autofocus>
+        <label for="id-username" class="sr-only">{{ gettext('Email address') }}</label>
+        <input id="id-username" class="form-control form-control-lg" name="username" placeholder="{{ gettext('Email address') }}" autofocus>
+        <label for="id-password" class="sr-only">{{ _('Password') }}</label>
+        <input id="id-password" class="form-control form-control-lg" type="password" name="password" placeholder="{{ gettext('Password') }}">
       </div>
       <div class="form-group">
-        <label>Senha</label>
-        <input class="form-control" type="password" name="password">
-      </div>
-      <div class="form-group">
-        <button type="submit" class="btn btn-default">Login</button>
-      </div>
-      <div class="form-group">
-        <img src="/static/theme_plus/static/img/logo.png" style="max-width: 60px;" class="pull-right">
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Sign in</button>
       </div>
     </form>
   </div>

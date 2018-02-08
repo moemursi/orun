@@ -26,4 +26,8 @@ def load_fixture(app_config, filename, **options):
     deserializer = get_deserializer(format)
     with open(fpath, encoding='utf-8') as f:
         options['filename'] = fpath
-        deserializer(f, app, app_config=app_config, app_label=app_config.schema, **options)
+        try:
+            deserializer(f, app, app_config=app_config, app_label=app_config.schema, **options)
+        except:
+            print('Error loading the file', filename)
+            raise

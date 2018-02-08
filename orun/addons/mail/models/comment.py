@@ -1,20 +1,11 @@
-from sqlalchemy.orm import foreign, remote
-from sqlalchemy.sql import and_
 from orun.db import models
+from base.fields import GenericOneToManyField
 from orun import g, api
 
 
 class Comments(models.Model):
-    message_followers = models.OneToManyField(
-       'mail.followers', 'object_id',
-        editable=False,
-        primary_join=lambda model, fk_model: and_(model._meta.pk.column == foreign(fk_model._meta.fields_dict['object_id'].column), fk_model._meta.fields_dict['model_name'].column == model._meta.name),
-    )
-    messages = models.OneToManyField(
-       'mail.message', 'object_id',
-        editable=False,
-        primary_join=lambda model, fk_model: and_(model._meta.pk.column == foreign(fk_model._meta.fields_dict['object_id'].column), fk_model._meta.fields_dict['model_name'].column == model._meta.name),
-    )
+    message_followers = GenericOneToManyField('mail.followers', editable=False)
+    messages = GenericOneToManyField('mail.message', editable=False)
 
     @api.method
     def post_message(self, ids, content=None, **kwargs):
@@ -23,11 +14,11 @@ class Comments(models.Model):
             yield Message.create(
                 author=g.user_id,
                 content=content,
-                model_name=self._meta.name,
+                model=self._meta.name,
                 object_id=id,
                 message_type='comment',
                 attachments=kwargs.get('attachments'),
-            )
+            ).get_message()
 
     class Meta:
         abstract = True

@@ -20,6 +20,7 @@ class AppConfig(flask.Blueprint):
     db_schema = None
     create_schema = None
     models_module = None
+    js_templates = None
 
     def __init__(self, schema=None, app_module=None, *args, **kwargs):
         self.models = {}
@@ -52,6 +53,7 @@ class AppConfig(flask.Blueprint):
         return self.schema
 
     def init_addon(self):
+        print('Loading module', self.name)
         with apps._lock:
             if not self.is_ready:
                 self.is_ready = True
@@ -84,3 +86,8 @@ class AppConfig(flask.Blueprint):
 
     def get_models(self):
         return self.models.values()
+
+    def get_js_templates(self):
+        for templ in self.js_templates:
+            with open(os.path.join(self.root_path, templ), 'rb') as f:
+                yield f.read()

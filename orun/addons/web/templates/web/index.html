@@ -4,24 +4,39 @@
   <div id="page-content">
 
   <!-- Fixed navbar -->
-  <nav id="header" class="navbar navbar-inverse">
+  <nav id="header" class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="header-link hide-left-menu" href="javascript:void(0)">
       <i class="fa fa-bars"></i>
     </a>
     <div class="small-logo">
-      <span id="current-menu-name">{{ current_menu.name }}</span>
+      <span id="current-menu-name">{{ gettext(current_menu.name) }}</span>
     </div>
-    <div id="navbar" class="navbar-collapse">
-      <ul class="nav navbar-nav hidden-xs modules">
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="navbar-nav mr-auto modules">
         {% for menu in root_menu %}
-        <li>
-          <a class="module-selector" href="/web/menu/{{ menu.pk }}/">{% if menu.icon %}{{ menu.icon }}{% endif %} {{ menu.name }}</a>
+        <li class="nav-item">
+          <a class="nav-link module-selector" href="/web/menu/{{ menu.pk }}/">{% if menu.icon %}{{ menu.icon }}{% endif %} {{ gettext(menu.name) }}</a>
         </li>
         {% endfor %}
       </ul>
-      <ul id="static-nav" class="nav navbar-nav navbar-right">
-        <li>
-          <a href="javascript:void(0);" data-action="messages" title="View notifications" class="dropdown-toggle"
+      <input id="navbar-search" type="text" class="form-control form-control-dark" placeholder="{{ gettext('Find resources here...') }}">
+      <ul class="nav navbar-nav navbar-right hidden-xs">
+        <li class="dropdown">
+          <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false" ng-show="false">{{ gettext('Shortcuts') }} <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" aria-haspopup="true" aria-expanded="true">
+          </ul>
+        </li>
+      </ul>
+      <ul id="static-nav" class="nav navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link btn-voice-command" href="javascript:void(0);" onclick="$(this).toggleClass('active');Katrid.Speech.voiceCommand.toggle();" data-action="voiceCommand" title="Execute command voice">
+            <i class="fa fa-microphone"></i>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="javascript:void(0);" data-action="messages" title="View notifications" class="dropdown-toggle"
              data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i class="fa fa-bell"></i>
             <!--
@@ -32,31 +47,13 @@
           </ul>
 
         </li>
-        <li class="hidden-xs">
-          <a href="javascript:void(0);" data-action="fullScreen" title="Full Screen">
+        <li class="nav-item hidden-xs">
+          <a class="nav-link" href="javascript:void(0);" data-action="fullScreen" title="Full Screen">
             <i class="fa fa-arrows-alt"></i>
           </a>
         </li>
-        <li><a href="/web/logout/" title="Logout"><i class="fa fa-lg fa-sign-out"></i></a></li>
-      </ul>
-      <ul class="nav navbar-nav navbar-right hidden-xs">
-        <li class="navbar-search">
-          <label class="append-icon">
-            <input id="navbar-search" type="text" class="navbar-search-control" placeholder="{{ _('Find resources here...') }}">
-            <i class="icon fa fa-search"></i>
-          </label>
-        </li>
-        <li class="dropdown">
-          <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-             aria-expanded="false">{{ _('Shortcuts') }} <span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu" aria-haspopup="true" aria-expanded="true">
-          </ul>
-        </li>
-        <li>
-          <a class="btn-voice-command" href="javascript:void(0);" onclick="$(this).toggleClass('active');Katrid.Speech.voiceCommand.toggle();" data-action="voiceCommand" title="Execute command voice">
-            <i class="fa fa-microphone"></i>
-          </a>
+        <li class="nav-item">
+          <a class="nav-link" href="/web/logout/" title="Logout"><i class="fa fa-lg fa-sign-out"></i></a>
         </li>
       </ul>
     </div><!--/.nav-collapse -->
@@ -64,12 +61,11 @@
 
 
   <!-- Left Menu -->
-  <aside id="left-menu" class="sidebar hidden-xs">
+  <aside id="left-menu" class="sidebar bg-light">
     <div class="left-menu-content">
-    <div class="logo-area">
+    <div class="logo-area text-center">
       <a href="index.html" class="avatar">
-                    <img id="logo" src="/static/web/static/assets/img/katrid-logo-inverse.png">
-
+        <img id="logo" src="/static/web/static/assets/img/katrid-logo.png">
       </a>
 
 {#      <div class="user-info">#}
@@ -84,23 +80,21 @@
         <span class="user-dropdown"><i class="fa fa-fw fa-angle-down"></i></span>
       </a>
       <ul class="dropdown-menu">
-        <li><a href="/web/logout/"><i class="fa fa-fw fa-sign-out"></i> {{ _('Sign out') }}</a></li>
+        <li><a href="/web/logout/"><i class="fa fa-fw fa-sign-out"></i> {{ gettext('Sign out') }}</a></li>
       </ul>
     </div>
-    <div class="module-menu visible-xs">
-      <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ current_menu.name }} <i class="pe pe-7s-right-arrow pull-right"></i></a>
-      <ul class="dropdown-menu">
+    <div class="module-menu d-block d-sm-none dropdown">
+      <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ gettext(current_menu.name) }} <i class="pe pe-7s-right-arrow pull-right"></i></a>
+      <div class="dropdown-menu">
         {% for menu in root_menu %}
-        <li>
-          <a href="/web/menu/{{ menu.pk }}/">{% if menu.icon %}{{ menu.icon }}{% endif %} {{ menu.name }}</a>
-        </li>
+        <a class="dropdown-item" href="/web/menu/{{ menu.pk }}/">{% if menu.icon %}{{ menu.icon }}{% endif %} {{ gettext(menu.name) }}</a>
         {% endfor %}
-      </ul>
+      </div>
     </div>
 
     <!-- menu -->
     <nav class="sidebar-nav">
-      <ul id="left-side-menu" class="nav" aria-expanded="false">
+      <ul id="left-side-menu" class="nav flex-column" aria-expanded="false">
         {% for menu in current_menu.children.all() %}
           {{ menu_utils.menu_item(menu) }}
         {% endfor %}
@@ -116,11 +110,11 @@
   <div id="main-content" role="main" ng-view ng-cloak>
     <div id="katrid-action-view">&nbsp;</div>
   </div> <!-- /container -->
-  <footer id="footer" class="page-footer">
+  <footer id="footer" class="page-footer" ng-if="false">
     <div class="pull-right">
-      Log Histórico
+      Log History
     </div>
-    &copy; Katrid 2015-2017
+    &copy; Katrid 2015-2018
   </footer>
 
 <!--  <div id="demo-settings" title="Theme settings">

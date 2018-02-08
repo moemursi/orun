@@ -6,9 +6,10 @@ from orun.utils.functional import SimpleLazyObject
 
 
 class RecordsProxy(object):
-    def __init__(self, instance, env=None):
+    def __init__(self, model, iterable, env=None):
         self.__dict__['env'] = env
-        self.__dict__['__instance__'] = instance
+        self.__dict__['__model__'] = model
+        self.__dict__['__instance__'] = iterable
 
     def __iter__(self):
         return iter(self.__instance__)
@@ -53,7 +54,7 @@ class Environment(Mapping):
 
     @property
     def user(self):
-        return SimpleLazyObject(lambda: self['auth.user'].objects.get(self.context['user_id']))
+        return SimpleLazyObject(lambda: self['auth.user'].objects.get(self.user_id))
 
 
 def method(*args, public=False, methods=None):
@@ -68,7 +69,6 @@ def method(*args, public=False, methods=None):
 
 
 def records(*args, **kwargs):
-
     def decorator(fn):
         fn.exposed = True
 
@@ -79,9 +79,12 @@ def records(*args, **kwargs):
                 args = list(args)
                 ids = args[0]
                 args = args[1:]
-            assert isinstance(ids, (list, tuple, RecordsProxy))
+            if not ids and hasattr(self, '_sa_instance_state'):
+                ids = (self,)
+            elif ids:
+                ids = self.objects.filter(self.c.pk.in_(kwargs.pop('ids', ids)))
             if not isinstance(ids, RecordsProxy):
-                ids = RecordsProxy(self.objects.filter(self.c.pk.in_(kwargs.pop('ids', ids))))
+                ids = RecordsProxy(self,  ids)
             return fn(ids, *args, **kwargs)
         return wrapped
 
@@ -94,4 +97,21 @@ def depends(fields):
     def decorator(fn):
         fn.depends = fields
         return fn
+    return decorator
+
+
+def serialize(*args, **kwargs):
+    def decorator(fn):
+        fn.exposed = True
+
+        @wraps(fn)
+        def wrapped(*args, **kwargs):
+            r = fn(*args, **kwargs)
+            if r:
+                r.__serialize__ = True
+            return r
+        return wrapped
+
+    if args and callable(args[0]):
+        return decorator(args[0])
     return decorator

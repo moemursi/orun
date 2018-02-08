@@ -11,7 +11,7 @@
     static get(repName) {}
 
     static renderDialog(action) {
-      return Katrid.UI.Utils.Templates.renderReportDialog(action);
+      return Katrid.$templateCache.get('view.report');
     }
   }
   Reports.initClass();
@@ -82,6 +82,8 @@
       if (_.isString(xml)) {
         xml = $(xml);
       }
+      this.scope.customizableReport = xml.attr('customizableReport');
+      this.scope.advancedOptions = xml.attr('advancedOptions');
       const fields = [];
 
       for (let f of Array.from(xml.find('field'))) {
@@ -92,14 +94,24 @@
         const sortable = f.attr('sortable');
         const total = f.attr('total');
         const param = f.attr('param');
-        console.log(name, label, f);
+        const required = f.attr('required');
+        const autoCreate = f.attr('autoCreate') || required;
+        const operation = f.attr('operation');
+        let type = f.attr('type');
+        const modelChoices = f.attr('model-choices');
+        if (!type && modelChoices) type = 'ModelChoices';
         fields.push({
           name,
           label,
           groupable,
           sortable,
           total,
-          param
+          param,
+          required,
+          operation,
+          modelChoices,
+          type,
+          autoCreate
         });
       }
 
@@ -134,54 +146,31 @@
       this.fields = fields;
 
       // Create params
-      return (() => {
-        const result = [];
-        for (let p of Array.from(fields)) {
-          if (p.groupable) {
-            this.groupables.push(p);
-          }
-          if (p.sortable) {
-            this.sortables.push(p);
-          }
-          if (p.total) {
-            this.totals.push(p);
-          }
-          result.push(p.autoCreate = Array.from(params).includes(p.name));
-        }
-        return result;
-      })();
+      for (let p of fields) {
+        if (p.groupable)
+          this.groupables.push(p);
+        if (p.sortable)
+          this.sortables.push(p);
+        if (p.total)
+          this.totals.push(p);
+        if (!p.autoCreate) p.autoCreate = params.includes(p.name);
+      }
     }
 
     loadParams() {
-      console.log('load params', this.fields);
-      return (() => {
-        const result = [];
-        for (let p of Array.from(this.fields)) {
-          if (p.autoCreate) {
-            result.push(this.addParam(p.name));
-          } else {
-            result.push(undefined);
-          }
-        }
-        return result;
-      })();
+      for (let p of Array.from(this.fields))
+        if (p.autoCreate)
+          this.addParam(p.name);
     }
 
     addParam(paramName) {
-      return (() => {
-        const result = [];
-        for (let p of Array.from(this.fields)) {
-          if (p.name === paramName) {
-            p = new Param(p, this);
-            this.params.push(p);
-            //$(p.render(@elParams))
-            break;
-          } else {
-            result.push(undefined);
-          }
+      for (let p of Array.from(this.fields))
+        if (p.name === paramName) {
+          p = new Param(p, this);
+          this.params.push(p);
+          //$(p.render(@elParams))
+          break;
         }
-        return result;
-      })();
     }
 
     getValues() {}
@@ -207,12 +196,7 @@
     renderFields() {
       let p;
       let el = $('<div></div>');
-      const flds = ((() => {
-        const result = [];
-        for (p of Array.from(this.fields)) {         result.push(`<option value="${p.name}">${p.label}</option>`);
-        }
-        return result;
-      })()).join('');
+      const flds = this.fields.map((p) => `<option value="${p.name}">${p.label}</option>`).join('');
       const aggs = ((() => {
         const result1 = [];
         for (p of Array.from(this.fields)) {         if (p.total) {
@@ -226,8 +210,7 @@
       sel.append($(flds))
       .select2({ tags: ((() => {
         const result2 = [];
-        for (p of Array.from(this.fields)) {         result2.push({id: p.name, text: p.label});
-        }
+        for (p of Array.from(this.fields)) result2.push({id: p.name, text: p.label});
         return result2;
       })()) })
       .select2("container").find("ul.select2-choices").sortable({
@@ -346,7 +329,7 @@
         FloatField: this.Operations.between,
         DecimalField: this.Operations.between,
         ForeignKey: this.Operations.exact,
-        sqlchoices: this.Operations.exact
+        ModelChoices: this.Operations.exact
       };
 
       this.TypeOperations = {
@@ -357,49 +340,51 @@
         DateTimeField: [this.Operations.exact, this.Operations.in, this.Operations.gt, this.Operations.lt, this.Operations.between, this.Operations.isnull],
         DateField: [this.Operations.exact, this.Operations.in, this.Operations.gt, this.Operations.lt, this.Operations.between, this.Operations.isnull],
         ForeignKey: [this.Operations.exact, this.Operations.in, this.Operations.isnull],
-        sqlchoices: [this.Operations.exact, this.Operations.in, this.Operations.isnull]
+        ModelChoices: [this.Operations.exact, this.Operations.in, this.Operations.isnull]
       };
 
       this.Widgets = {
         CharField(param) {
-          return `<div><label class="control-label">&nbsp;</label><input id="rep-param-id-${param.id}" ng-model="param.value1" type="text" class="form-control"></div>`;
+          return `<div><input id="rep-param-id-${param.id}" ng-model="param.value1" type="text" class="form-control"></div>`;
         },
 
         IntegerField(param) {
           let secondField = '';
           if (param.operation === 'between') {
-            secondField = `<div class="col-xs-6"><label class="control-label">&nbsp;</label><input id="rep-param-id-${param.id}-2" ng-model="param.value2" type="text" class="form-control"></div>`;
+            secondField = `<div class="col-xs-6"><input id="rep-param-id-${param.id}-2" ng-model="param.value2" type="text" class="form-control"></div>`;
           }
-          return `<div class="row"><div class="col-sm-6"><label class="control-label">&nbsp;</label><input id="rep-param-id-${param.id}" type="number" ng-model="param.value1" class="form-control"></div>${secondField}</div>`;
+          return `<div class="row"><div class="col-sm-6"><input id="rep-param-id-${param.id}" type="number" ng-model="param.value1" class="form-control"></div>${secondField}</div>`;
         },
 
         DecimalField(param) {
           let secondField = '';
           if (param.operation === 'between') {
-            secondField = `<div class="col-xs-6"><label class="control-label">&nbsp;</label><input id="rep-param-id-${param.id}-2" ng-model="param.value2" type="text" class="form-control"></div>`;
+            secondField = `<div class="col-xs-6"><input id="rep-param-id-${param.id}-2" ng-model="param.value2" type="text" class="form-control"></div>`;
           }
-          return `<div class="col-sm-6"><label class="control-label">&nbsp;</label><input id="rep-param-id-${param.id}" type="number" ng-model="param.value1" class="form-control"></div>${secondField}`;
+          return `<div class="col-sm-6"><input id="rep-param-id-${param.id}" type="number" ng-model="param.value1" class="form-control"></div>${secondField}`;
         },
 
         DateTimeField(param) {
           let secondField = '';
           if (param.operation === 'between') {
-            secondField = `<div class="col-xs-6"><label class="control-label">&nbsp;</label>
+            secondField = `<div class="col-xs-6">
   <div class="input-group date"><input id="rep-param-id-${param.id}-2" datepicker ng-model="param.value2" class="form-control">
   <div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div>
   </div>
   </div>
   `;
           }
-          return `<div class="row"><div class="col-xs-6"><label class="control-label">&nbsp;</label><div class="input-group date"><input id="rep-param-id-${param.id}" datepicker ng-model="param.value1" class="form-control"><div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div></div></div>${secondField}</div>`;
+          return `<div class="row"><div class="col-xs-6"><div class="input-group date"><input id="rep-param-id-${param.id}" datepicker ng-model="param.value1" class="form-control"><div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div></div></div>${secondField}</div>`;
         },
 
         DateField(param) {
           let secondField = '';
           if (param.operation === 'between') {
-            secondField = `<div class="col-xs-6"><label class="control-label">&nbsp;</label><div class="input-group date"><input id="rep-param-id-${param.id}-2" datepicker ng-model="param.value2" class="form-control"><div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div></div></div>`;
+            secondField = `<div class="col-xs-6"><div class="input-group date"><input id="rep-param-id-${param.id}-2" datepicker ng-model="param.value2" class="form-control"><div class="input-group-append"><span class="btn btn-default" type="button"><span class="fa fa-calendar"></span></span></div></div></div>`;
           }
-          return `<div class="row"><div class="col-xs-6"><label class="control-label">&nbsp;</label><div class="input-group date"><input id="rep-param-id-${param.id}" datepicker ng-model="param.value1" class="form-control"><div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div></div></div>${secondField}</div>`;
+          return `<div class="col-sm-12 row"><div class="col-xs-6">
+<div class="input-group date"><input id="rep-param-id-${param.id}" datepicker ng-model="param.value1" class="form-control"><div class="input-group-append"><span class="btn btn-default" type="button"><span class="fa fa-calendar"></span></span></div></div>
+</div>${secondField}</div>`;
         },
 
         ForeignKey(param) {
@@ -408,11 +393,12 @@
           if (param.operation === 'in') {
             multiple = 'multiple';
           }
-          return `<div><label class="control-label">&nbsp;</label><input id="rep-param-id-${param.id}" ajax-choices="/api/rpc/${serviceName}/get_field_choices/" field="${param.name}" ng-model="param.value1" ${multiple}></div>`;
+          return `<div><input id="rep-param-id-${param.id}" ajax-choices="/api/rpc/${serviceName}/get_field_choices/" field="${param.name}" ng-model="param.value1" ${multiple}></div>`;
         },
 
-        sqlchoices(param) {
-          return `<div><label class="control-label">&nbsp;</label><input id="rep-param-id-${param.id}" ajax-choices="/api/reports/choices/" sql-choices="${param.name}" ng-model="param.value1"></div>`;
+        ModelChoices(param) {
+          console.log('model choices', param);
+          return `<div><input id="rep-param-id-${param.id}" ajax-choices="/api/reports/model/choices/" model-choices="${param.info.modelChoices}" ng-model="param.value1"></div>`;
         }
       };
     }
@@ -426,12 +412,9 @@
       this.params = params;
       this.name = this.info.name;
       this.label = this.info.label;
-      this.static = this.info.param === 'static';
       this.field = this.params.info.fields && this.params.info.fields[this.name];
+      this.static = this.info.param === 'static' || this.field.param === 'static';
       this.type = this.info.type || (this.field && this.field.type) || 'CharField';
-      if (this.info.sql_choices) {
-        this.type = 'sqlchoices';
-      }
       this.defaultOperation = this.info.default_operation || Params.DefaultOperations[this.type];
       this.operation = this.defaultOperation;
       // @operations = @info.operations or Params.TypeOperations[@type]
@@ -454,10 +437,11 @@
     }
 
     createControls(scope) {
-      const el = this.el.find("#param-widget");
+      const el = this.el.find(".param-widget");
       el.empty();
+      console.log('create controls', this.el[0].innerHTML);
       let widget = Params.Widgets[this.type](this);
-      widget = this.params.scope.compile(widget)(scope);
+      widget = Katrid.core.compile(widget)(scope);
       return el.append(widget);
     }
 
@@ -465,14 +449,15 @@
 
     operationTemplate() {
       const opts = this.getOperations();
-      return `<div class="col-sm-4"><label class="control-label">${this.label}</label><select id="param-op-${this.id}" ng-model="param.operation" ng-init="param.operation='${this.defaultOperation}'" class="form-control" onchange="$('#param-${this.id}').data('param').change();$('#rep-param-id-${this.id}')[0].focus()">
+      return `<div class="col-sm-4"><select id="param-op-${this.id}" ng-model="param.operation" ng-init="param.operation='${this.defaultOperation}'" class="form-control" onchange="$('#param-${this.id}').data('param').change();$('#rep-param-id-${this.id}')[0].focus()">
   ${opts}
   </select></div>`;
     }
 
     template() {
-      const operation = this.operationTemplate();
-      return `<div id="param-${this.id}" class="row form-group" data-param="${this.name}" ng-controller="ParamController"><div class="col-sm-12">${operation}<div id="param-widget-${this.id}"></div></div></div>`;
+      let operation = '';
+      if (!this.operation) operation = this.operationTemplate();
+      return `<div id="param-${this.id}" class="row form-group" data-param="${this.name}" ng-controller="ParamController"><label class="control-label">${this.label}</label>${operation}<div id="param-widget-${this.id}"></div></div>`;
     }
 
     render(container) {

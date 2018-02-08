@@ -48,8 +48,8 @@ msgstr "sim"
 msgid "no"
 msgstr "não"
 
-msgid "Create <i>\"{0}\"</i>..."
-msgstr "Criar <i>\"{0}\"</i>..."
+msgid "Create <i>\"%s\"</i>..."
+msgstr "Criar <i>\"%s\"</i>..."
 
 msgid "Record changes successfully saved"
 msgstr "As alterações do registro foram salvas com êxito"
@@ -201,11 +201,14 @@ msgstr "Nenhuma alteração pendente"
 msgid "Attachments"
 msgstr "Anexos"
 
-msgid "{0} Attachment(s)"
-msgstr "{0} Anexo(s)"
+msgid "%d Attachment(s)"
+msgstr "%d Anexo(s)"
 
 msgid "Add..."
 msgstr "Adicionar..."
 
 msgid "Delete this attachment"
 msgstr "Deletar este anexo"
+
+msgid "Search <i>%(label)s</i> by: <strong>%(text)s</strong>"
+msgstr "Pesquisar <i>%s</i> por: <strong>{{search.text}}</strong>"

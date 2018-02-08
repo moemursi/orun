@@ -51,8 +51,6 @@ strong {
 }
 #main-content {
   margin-left: 220px;
-  background-repeat: repeat;
-  background-color: #eaeaea;
   min-width: 310px;
   min-height: 100%;
   padding-bottom: 50px;
@@ -99,10 +97,6 @@ h6 {
 input[type=number].form-control,
 input[type=TIME].form-control {
   padding: 4px 2px 4px 8px;
-}
-.breadcrumb > li + li:before {
-  content: "\f105";
-  font-family: FontAwesome;
 }
 .user-info {
   padding: 2px 8px 0 0;
@@ -1259,9 +1253,6 @@ fieldset[disabled] .btn-blue-gray.focus {
   background-color: transparent;
   padding: 9px 10px;
 }
-#left-side-menu > li.menu-item:last-child {
-  border-bottom: 1px solid #d4d5d7;
-}
 #left-menu {
   width: 220px;
   float: left;
@@ -1283,14 +1274,10 @@ fieldset[disabled] .btn-blue-gray.focus {
   position: relative;
 }
 #left-menu .logo-area .avatar {
-  float: left;
   margin-right: 7px;
 }
 #left-menu .menu-item > a > em {
   float: right;
-}
-#left-menu .menu-item a:hover {
-  color: #232426;
 }
 #left-menu .menu-item > ul.nav > .menu-item > ul.nav > .menu-item > a {
   padding-left: 40px;
@@ -1302,26 +1289,16 @@ fieldset[disabled] .btn-blue-gray.focus {
   padding-left: 56px;
 }
 #left-menu li.menu-item > a:hover {
-  background-color: #ffffff;
+  color: #2a2a2a;
 }
 #left-menu .menu-item > a > small {
   font-weight: 300;
 }
 #left-side-menu > .menu-item > a {
-  background: #f3f3f3;
   font-weight: 600;
 }
 .navbar-default .navbar-nav > li > a {
   color: #404040;
-}
-.navbar-search-control {
-  outline: 0;
-  transition: all 300ms;
-  margin-top: 7px;
-  border: 1px solid #d5d5d5;
-  border-radius: 3px;
-  padding: 8px;
-  background: transparent;
 }
 .navbar-search-control:hover {
   border: 1px solid #bcbcbc;
@@ -1383,7 +1360,6 @@ a.user-dropdown {
 }
 #header #static-nav {
   margin: 0;
-  margin-right: -15px;
 }
 #header #static-nav > li > a {
   padding-top: 16px;
@@ -1418,6 +1394,9 @@ a.user-dropdown {
 }
 .navbar li > a.module-selector.active {
   color: #ffffff;
+}
+#header .navbar-dark .icon {
+  color: rgba(255, 255, 255, 0.5);
 }
 body.page {
   background: #eeeeee;
@@ -4030,7 +4009,6 @@ label.radio > i:after {
   background-color: #f5f5f5;
 }
 .data-heading {
-  background-color: #eaeaea;
   font-weight: 400;
   border: none;
   margin-bottom: 0;
@@ -4082,9 +4060,10 @@ label.radio > i:after {
   font-weight: bold;
 }
 .data-form header.content-container-heading {
-  background-color: #fff;
   border-bottom: 1px solid #dddddd;
   min-height: 32px;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+  background-color: #f8f9fa;
 }
 .data-form header.content-container-heading > .header-buttons {
   padding: 4px 0 4px 12px;
@@ -4234,7 +4213,6 @@ label.radio > i:after {
   width: 100%;
 }
 .search-area .search-view-menu li {
-  padding-left: 25px;
   position: relative;
 }
 .search-area .search-view-menu li .indent {
@@ -4286,6 +4264,12 @@ label.radio > i:after {
 .comments h3 {
   font-size: 16px;
   text-align: center;
+}
+.table thead {
+  background-color: #f8f9fa;
+}
+.box-shadow {
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
 }
 .dashboard-panel h1,
 .dashboard-panel h2 {
@@ -4803,10 +4787,8 @@ h3.popover-title {
   opacity: .8;
   border: none;
   padding: 5px;
-  color: #3c3c3c;
   bottom: 0;
   cursor: pointer;
-  background-color: #bababa;
 }
 .dropdown-menu > li > a {
   padding: 7px 17px;
@@ -4818,9 +4800,6 @@ h3.popover-title {
 }
 #left-menu .menu-item > a small {
   font-size: 8pt;
-}
-#left-menu .menu-item > a.menu-item-action {
-  color: #9b9b9b !important;
 }
 .dt-button-collection.dropdown-menu > li > a {
   padding: 5px 17px;
@@ -5064,22 +5043,19 @@ html {
   position: relative;
   min-height: 100%;
   margin: 0;
-  background-color: #ffffff;
 }
 body {
   min-height: 100%;
-  background: #efefef;
+  font-size: 13px;
 }
 #header {
   position: relative;
-  z-index: 992;
 }
 #footer.page-footer {
   background-color: #d9dbda;
   padding: 10px;
   bottom: 0;
   margin-left: 220px;
-  z-index: 9903;
   width: 100%;
 }
 .fixed-footer #footer.page-footer {
@@ -5093,9 +5069,16 @@ body {
   margin-top: 50px;
 }
 #left-menu {
-  padding-top: 50px;
-  top: 0;
-  z-index: 991;
+  background-color: #3f464e;
+  top: 51px;
+  color: #ffffff;
+  border-right: 1px solid #dddddd;
+}
+#left-menu.bg-dark {
+  background-color: #3f464e;
+}
+#left-menu.bg-dark li.menu-item > a:hover {
+  background-color: #343a40;
 }
 body.container {
   position: absolute;
@@ -5135,28 +5118,33 @@ body.container.hide-left-menu #footer.page-footer {
 .hide-left-menu #footer.page-footer {
   margin-left: 0;
 }
+#left-side-menu > li.menu-item .menu-item {
+  padding: 0;
+  border-top: none;
+}
+#left-side-menu > .menu-item {
+  padding: 0;
+}
+.navbar-button > i.fa {
+  background: transparent;
+  width: auto;
+  padding: 10px;
+  border-radius: 4px;
+}
+.navbar.navbar li.border-right {
+  border-right: none;
+}
 .form-field-readonly.bool-text,
 table tbody tr td.bool-text {
   text-transform: capitalize;
 }
-.card-view {
-  display: flex;
-  align-content: stretch;
-  overflow-x: visible;
-  -ms-flex-flow: row wrap;
-  -moz-flex-flow: row wrap;
-  -webkit-flex-flow: row wrap;
-  flex-flow: row wrap;
-  -moz-justify-content: flex-start;
-  -webkit-justify-content: flex-start;
-  justify-content: flex-start;
-  padding: 4px 12px;
-  min-height: 100%;
+.btn {
+  padding: .200rem .75rem;
 }
 .card-view .card-item {
   position: relative;
   min-width: 150px;
-  margin: 4px;
+  margin: 4px 4px 4px 0;
   padding: 8px;
   background-color: #fff;
   -ms-flex: 1 1 300px;
@@ -5267,10 +5255,11 @@ section div.checkbox {
 }
 .pagination-area {
   display: inline-block;
-  margin: 0 6px 0 0;
+  margin: 6px 6px 0 0;
 }
 .form-label {
   font-weight: 600;
+  margin-bottom: 4px;
 }
 .form-field-readonly {
   display: block;
@@ -5278,6 +5267,9 @@ section div.checkbox {
   overflow: hidden;
   min-height: 26px;
   border-bottom: 1px solid #e4e4e4;
+}
+.tabset {
+  width: 100%;
 }
 .table > tbody > tr > td.list-column-delete,
 .table > thead > tr > th.list-column-delete {
@@ -5292,10 +5284,10 @@ section div.checkbox {
 label.checkbox {
   margin: 0;
 }
-input[type=text].form-field:required {
+input.form-field:required {
   background-color: #eaebff;
 }
-input[type=text].form-field.ng-dirty {
+input.form-field.ng-dirty {
   background-color: #fffdf1;
 }
 input[type=text].form-field.ng-touched.ng-invalid,
@@ -5310,8 +5302,22 @@ select.form-field.ng-touched.ng-invalid,
 ul.ui-autocomplete {
   z-index: 99999;
 }
+.form-control {
+  height: 26px;
+  font-size: 13px;
+}
 .form-control.readonly {
   background-color: #f6f6f6;
+}
+.form-control-lg {
+  height: 40px;
+  font-size: 1.25rem;
+}
+textarea.form-control {
+  height: 52px;
+}
+select.form-control:not([size]):not([multiple]) {
+  height: 26px;
 }
 label.prepend-icon {
   margin-bottom: 0;
@@ -5338,6 +5344,9 @@ label.prepend-icon {
 }
 #katrid-action-view {
   height: 100%;
+  display: flex;
+  flex: 1 1 auto;
+  flex-flow: column nowrap;
 }
 .content-scroll {
   height: 100%;
@@ -5362,7 +5371,8 @@ label.prepend-icon {
 }
 .data-heading {
   width: 100%;
-  border: 1px solid #d6d6d6;
+  border-bottom: 1px solid #d6d6d6;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
 }
 .data-heading > .panel-body {
   padding: 12px;
@@ -5372,9 +5382,6 @@ label.prepend-icon {
 }
 .content.container {
   padding: 10px 0;
-}
-.content .data-panel {
-  height: 100%;
 }
 .content .data-panel.panel {
   border: 1px solid #c8c8d3;
@@ -5460,5 +5467,45 @@ div.form-data-readonly label.prepend-icon {
 }
 .list-record-selector {
   width: 1px;
+}
+.list-record-selector input[type="checkbox"] {
+  margin-top: 4px;
+}
+.dropdown-menu {
+  font-size: 13px;
+}
+.data-form .media {
+  width: 100%;
+}
+.data-form .content.container > .card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+.card-deck {
+  margin: 4px 0;
+}
+#header .header-link {
+  color: #dcdcdc;
+}
+.navbar .form-control {
+  padding: 25px 1rem;
+  border-width: 0;
+  border-radius: 0;
+  max-width: 160px;
+  font-size: 1rem;
+}
+.form-control-dark {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.form-control-dark:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+}
+.btn {
+  font-size: 13px;
+}
+.btn-lg {
+  font-size: 1.25rem;
 }
 /*# sourceMappingURL=style.css.map */

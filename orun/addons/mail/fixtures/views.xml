@@ -3,7 +3,7 @@
   <object id="view.mail.res.partner.form" model="ui.view">
     <field name="name">mail.res.partner.form.inherit</field>
     <field name="parent" ref="view.res.partner.form"/>
-    <field name="model:name">res.partner</field>
+    <field name="model">res.partner</field>
     <field name="template_name">mail/views/res.partner/form.xml</field>
   </object>
 </data>

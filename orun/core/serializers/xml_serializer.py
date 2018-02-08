@@ -41,7 +41,7 @@ class Deserializer(base.Deserializer):
                 lst.append(obj)
         return lst
 
-    def read_object(self, obj, **attrs):
+    def read_object(self, obj, trans=False, **attrs):
         ct = self.app['ir.model']
         if not isinstance(obj, dict):
             values = obj.getchildren()
@@ -54,21 +54,22 @@ class Deserializer(base.Deserializer):
 
         for child in values:
             if child.tag == 'field':
+                field_name = child.attrib['name']
                 if 'ref' in child.attrib:
                     try:
-                        obj['fields'][child.attrib['name']] = ref(self.app, child.attrib['ref'])
+                        obj['fields'][field_name] = ref(self.app, child.attrib['ref'])
                     except:
                         print('Error reading xml file file: ref:', child.attrib['ref'], self.app, self.options['filename'])
                         raise
                 elif 'eval' in child.attrib:
-                    obj['fields'][child.attrib['name']] = eval(child.attrib['eval'], {'ref': functools.partial(ref, self.app)})
+                    obj['fields'][field_name] = eval(child.attrib['eval'], {'ref': functools.partial(ref, self.app)})
                 elif 'model' in child.attrib:
-                    obj['fields'][child.attrib['name']] = ct.objects.only('pk').filter(ct.c.name == child.attrib['model']).first().pk
+                    obj['fields'][field_name] = ct.objects.only('pk').filter(ct.c.name == child.attrib['model']).first().pk
                 else:
                     s = child.text
-                    if 'translate' in child.attrib:
-                        s = _(s)
-                    obj['fields'][child.attrib['name']] = s
+                    if child.attrib.get('translate', trans):
+                        s = (s,)
+                    obj['fields'][field_name] = s
 
         obj_name = obj.pop('id')
         obj_id = None
@@ -94,19 +95,20 @@ class Deserializer(base.Deserializer):
         children = {}
         for k, v in values.items():
             # Check if there's a list of objects
-            if isinstance(v, list) and isinstance(instance._meta.fields_dict[k], models.OneToManyField):
+            field = instance._meta.fields_dict.get(k)
+            if isinstance(v, list) and isinstance(field, models.OneToManyField):
                 children[k] = v
+            elif isinstance(v, tuple) and isinstance(field, models.CharField) and not field.translate:
+                children[k] = _(v[0])
             else:
                 setattr(instance, *get_prep_value(Model, k, v))
         instance.save()
-        print(instance.pk)
         if pk is None:
-            ct = ct.get_by_natural_key(instance._meta.name)
             obj_id = Object.create(
                 app_label=self.app_config.app_label,
                 name=obj_name,
                 object_id=instance.pk,
-                model=ct
+                model=instance._meta.name
             )
         for child, v in children.items():
             # Delete all items
@@ -121,17 +123,14 @@ class Deserializer(base.Deserializer):
         action = None
         action_id = obj.attrib.get('action')
         if action_id:
-            sys_obj = Object
             try:
-                action = sys_obj.get_object(action_id).object
+                action = Object.get_object(action_id).object
                 action_id = action.pk
             except ObjectDoesNotExist:
                 raise Exception('The object id "%s" does not exist' % action_id)
         s = obj.attrib.get('name')
         if s is None and action:
             s = action.name
-        elif attrs.get('translate'):
-            s = _(s)
         if 'parent' in obj.attrib:
             parent = Object.get_object(obj.attrib['parent']).object_id
         fields = {
@@ -155,7 +154,6 @@ class Deserializer(base.Deserializer):
         return lst
 
     def read_action(self, obj, **attrs):
-        ContentType = self.app['ir.model']
         act = obj.attrib['type']
         s = obj.attrib['name']
         if obj.attrib.get('name'):
@@ -164,10 +162,7 @@ class Deserializer(base.Deserializer):
             'name': s,
         }
         if 'model' in obj.attrib:
-            try:
-                fields['model'] = ContentType.get_by_natural_key(obj.attrib['model'])
-            except:
-                raise Exception('"%s" ContentType not found on app %s' % (obj.attrib['model'], self.app_config.name))
+            fields['model'] = obj.attrib['model']
         action = {
             'model': act,
             'id': obj.attrib['id'],

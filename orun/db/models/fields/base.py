@@ -12,7 +12,7 @@ from orun.core import validators
 from orun.utils.text import capfirst
 from orun.utils.encoding import force_text, force_str
 from orun.utils.functional import cached_property
-from orun.utils.translation import gettext_lazy as _
+from orun.utils.translation import gettext, gettext_lazy as _
 
 
 class NOT_PROVIDED:
@@ -31,6 +31,7 @@ class Field(object):
     is_relation = None
     many_to_many = False
     rel_field = None
+    set = None
 
     default_error_messages = {
         'invalid_choice': _('Value %(value)r is not a valid choice.'),
@@ -448,6 +449,7 @@ class Field(object):
 class CharField(Field):
 
     def __init__(self, *args, **kwargs):
+        self.translate = kwargs.pop('translate', False)
         max_length = kwargs.pop('max_length', 512)
         args = list(args)
         if args:
@@ -471,7 +473,10 @@ class CharField(Field):
     def serialize(self, value, instance):
         if value is None:
             value = ''
-        value = str(value)
+        if self.translate:
+            value = gettext(value)
+        else:
+            value = str(value)
         return super(CharField, self).serialize(value, instance)
 
 

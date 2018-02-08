@@ -139,7 +139,7 @@ def Deserializer(object_list, **options):
             try:
                 obj = Model(**vals)
             except:
-                print(obj)
+                raise
             obj.save(force_insert=True)
             yield obj
         continue
