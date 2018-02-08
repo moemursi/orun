@@ -11,9 +11,7 @@
     <orderEntry type="jdk" jdkName="Python 3.6.0 virtualenv at C:\venv\orun" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="katrid" />
-    <orderEntry type="module" module-name="orun-demo" />
     <orderEntry type="module" module-name="myerp" />
-    <orderEntry type="module" module-name="pybr" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
