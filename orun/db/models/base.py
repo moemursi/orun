@@ -793,7 +793,7 @@ def unpickle_inner_exception(klass, exception_name):
 def _resolve_fk_search(field):
     if isinstance(field, ForeignKey):
         return field.related_model._meta.get_name_fields()
-    return field
+    return [field]
 
 
 from orun.db.models.fields import ForeignKey, DateTimeField
