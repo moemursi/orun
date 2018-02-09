@@ -1,3 +1,6 @@
+body {
+  font-size: 12px;
+}
 .table td,
 .table th {
   padding: 4px;
@@ -105,5 +108,8 @@ a:hover {
 }
 #logo {
   background-color: #ffffff;
-  width: 100%;
+  max-width: 190px;
+}
+select.form-control {
+  padding-top: 2px;
 }

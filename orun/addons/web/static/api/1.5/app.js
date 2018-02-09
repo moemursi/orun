@@ -71,7 +71,7 @@
       .done(function(res) {
         if (res.ok) {
           if (res.result.type) {
-            const act = new (Katrid.Actions[res.result.type])(res.result, $scope, $location);
+            const act = new (Katrid.Actions[res.result.type])(res.result, scope, scope.location);
             return act.execute();
           }
         }
