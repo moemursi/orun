@@ -62,21 +62,22 @@
   //   })
   // );
 
-  let doButtonClick = function() {
-    const btn = $(this);
-    const meth = btn.prop('name');
-    return $scope.model.post(meth, null, { kwargs: { id: $scope.record.id } })
-    .done(function(res) {
-      if (res.ok) {
-        if (res.result.type) {
-          const act = new (Katrid.Actions[res.result.type])(res.result, $scope, $location);
-          return act.execute();
-        }
-      }
-    });
-  };
 
   let setContent = function(content, scope) {
+    const doButtonClick = function() {
+      const btn = $(this);
+      const meth = btn.prop('name');
+      return scope.model.post(meth, null, { kwargs: { id: scope.record.id } })
+      .done(function(res) {
+        if (res.ok) {
+          if (res.result.type) {
+            const act = new (Katrid.Actions[res.result.type])(res.result, $scope, $location);
+            return act.execute();
+          }
+        }
+      });
+    };
+
     $('html, body').animate({ scrollTop: 0 }, 'fast');
     content = scope.content = $(content);
 
@@ -198,6 +199,7 @@
         control.$setDirty();
       }
     };
+
   }
 
 
