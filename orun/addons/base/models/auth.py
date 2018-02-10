@@ -59,7 +59,7 @@ class User(Partner):
     username = models.CharField(255, _('Login Name'))
     signature = models.HtmlField(_('Signature'))
     is_active = models.BooleanField(default=True)
-    action = models.ForeignKey('ir.action', label=_('Action'))
+    action = models.ForeignKey('ir.action', label=_('Home Action'))
     user_company = models.ForeignKey('res.company')
     is_staff = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
