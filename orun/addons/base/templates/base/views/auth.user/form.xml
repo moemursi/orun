@@ -1,6 +1,7 @@
 <form>
   <field name="name" />
-  <field name="login_name" />
+  <field name="username" />
+  <field name="email"/>
   <field name="is_staff" />
   <field name="action" />
   <field name="date_joined" />

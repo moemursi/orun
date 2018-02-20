@@ -31,8 +31,12 @@
       this.content = content;
     }
 
+    getTemplateContext() {
+      return { content: this.content };
+    }
+
     render() {
-      return sprintf(Katrid.$templateCache.get(this.templateUrl), { content: this.content });
+      return sprintf(Katrid.$templateCache.get(this.templateUrl), this.getTemplateContext());
     }
 
     renderTo(parent) {

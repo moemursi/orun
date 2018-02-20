@@ -570,6 +570,7 @@
             if (_.isArray(value)) return value;
             return [value.id, value.text];
           }
+          return null;
         });
 
         if (!multiple) scope.$watch(attrs.ngModel, (newValue, oldValue) => sel.select2('val', newValue));

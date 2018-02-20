@@ -208,6 +208,7 @@
 
     _validateForm(elForm, form, errorMsgs) {
       let elfield;
+      console.log(form.$error);
       for (let errorType in form.$error) {
         for (let child of Array.from(form.$error[errorType])) {
           if (child.$name.startsWith('grid-row-form')) elfield = this._validateForm(elForm.find('#' + child.$name), child, errorMsgs);

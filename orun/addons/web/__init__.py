@@ -13,6 +13,7 @@ class AppConfig(orun.AppConfig):
         'static/api/templates/search.xml',
         'static/api/templates/dialog.xml',
         'static/api/templates/report.xml',
+        'static/api/templates/dashboard.xml',
     ]
 
 addon = AppConfig()

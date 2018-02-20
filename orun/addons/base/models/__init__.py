@@ -15,3 +15,4 @@ from .reports import *
 from .config import *
 from .attachment import *
 from .http import *
+from .dashboard import *

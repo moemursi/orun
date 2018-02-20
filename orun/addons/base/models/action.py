@@ -12,6 +12,14 @@ class Action(models.Model):
     usage = models.TextField(verbose_name=_('Usage'))
     description = models.TextField(verbose_name=_('Description'))
     groups = models.ManyToManyField('auth.group')
+    binding_model = models.ForeignKey('ir.model', on_delete=models.CASCADE)
+    binding_type = models.SelectionField(
+        (
+            ('action', _('Action')),
+            ('report', _('Report')),
+        ),
+        default='action',
+    )
 
     class Meta:
         name = 'ir.action'
@@ -86,6 +94,13 @@ class WindowActionView(models.Model):
         title_field = 'view'
 
 
+class ViewAction(Action):
+    view = models.ForeignKey('ui.view', verbose_name=_('View'))
+
+    class Meta:
+        name = 'ir.action.view'
+
+
 class UrlAction(Action):
     url = models.TextField()
     target = models.SelectionField(
@@ -100,9 +115,31 @@ class UrlAction(Action):
 
 
 class ServerAction(Action):
+    sequence = models.IntegerField(default=5)
+    model = models.ForeignKey('ir.model', null=False)
+    code = models.TextField(label=_('Python Code'))
+    actions = models.ManyToManyField('self')
+    target_model = models.ForeignKey('ir.model')
+    target_field = models.ForeignKey('ir.model.field')
+    lines = models.OneToManyField('ir.action.server.line')
 
     class Meta:
         name = 'ir.action.server'
+
+
+class ServerActionLine(models.Model):
+    server_action = models.ForeignKey(ServerAction, null=False, on_delete=models.CASCADE)
+    field = models.ForeignKey('ir.model.field')
+    value = models.TextField()
+    type = models.SelectionField(
+        (
+            ('value', _('Value')),
+            ('expr', _('Python Expression')),
+        ), label=_('Evaluation Type')
+    )
+
+    class Meta:
+        name = 'ir.action.server.line'
 
 
 class ClientAction(Action):
@@ -115,7 +152,7 @@ class ClientAction(Action):
             ('main', 'Main Action of Current Window'),
         ), default='current',
     )
-    model = models.ForeignKey('ir.model', null=False, label=_('Model'))
+    model_name = models.CharField(label=_('Model'))
     context = models.TextField()
     params = models.TextField()
 

@@ -13,22 +13,16 @@ from orun import app, auth, api
 class WebClient(BaseView):
     route_base = '/web/'
 
-    @route('/', defaults={'menu_id': None})
-    @route('/menu/<menu_id>/')
     @login_required
-    def index(self, menu_id=None):
+    def index(self):
         menu = app['ui.menu']
+        main_menu = menu.objects.filter(menu.c.parent_id == None).first()
+        menu_id = main_menu.id
         context = {
-            'current_menu': menu_id,
+            'current_menu': main_menu,
             'root_menu': menu.objects.filter(menu.c.parent_id == None),
             'settings': settings,
         }
-        if menu_id:
-            cur_menu = menu.objects.get(menu_id)
-            context['current_menu'] = cur_menu
-        else:
-            main_menu = menu.objects.filter(menu.c.parent_id == None).first()
-            return redirect('/web/menu/%s/' % main_menu.id)
         return render_template('web/index.html', **context)
 
     @route('/action/<action_id>/')
@@ -111,3 +105,8 @@ class WebClient(BaseView):
             'ok': True,
             'result': True,
         }
+
+@app.errorhandler(500)
+def error(e):
+    pass
+    # return render_template('web/500.html')

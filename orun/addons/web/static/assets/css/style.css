@@ -4789,6 +4789,7 @@ h3.popover-title {
   padding: 5px;
   bottom: 0;
   cursor: pointer;
+  color: black;
 }
 .dropdown-menu > li > a {
   padding: 7px 17px;
@@ -5047,6 +5048,7 @@ html {
 body {
   min-height: 100%;
   font-size: 13px;
+  background-color: #f8f9fa;
 }
 #header {
   position: relative;
@@ -5354,6 +5356,7 @@ label.prepend-icon {
   display: flex;
   flex: 1 1 auto;
   position: relative;
+  background-color: #f8f9fa;
 }
 .content-scroll > .content {
   position: absolute;

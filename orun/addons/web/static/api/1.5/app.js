@@ -236,6 +236,7 @@
       if (action.model) $scope.model = new Katrid.Services.Model(action.model, $scope);
       if ($scope.isDialog) act.isDialog = $scope.isDialog;
       if ($scope.parentAction) act.parentAction = $scope.parentAction;
+      console.log('client', act);
       if (act && act.isDialog) {
         act.routeUpdate({ view_type: action.view_type });
         act.createNew();

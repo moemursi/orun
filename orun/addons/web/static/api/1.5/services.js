@@ -182,12 +182,12 @@
 
     write(data, params) {
       return this.post('write', params, {kwargs: {data}})
-      .done(() => Katrid.Dialogs.Alerts.success(Katrid.i18n.gettext('Record saved successfully.'))).fail(function (res) {
-        if ((res.status === 500) && res.responseText) {
+      .done(() => Katrid.Dialogs.Alerts.success(Katrid.i18n.gettext('Record saved successfully.')))
+      .fail((res) => {
+        if ((res.status === 500) && res.responseText)
           return alert(res.responseText);
-        } else {
+        else
           return Katrid.Dialogs.Alerts.error(Katrid.i18n.gettext('Error saving record changes'));
-        }
       });
     }
 
