@@ -38,6 +38,8 @@
 
   <link href="/static/web/static/api/1.5/web.app.css" rel="stylesheet">
   <link href="/static/web/static/css/web.app.css" rel="stylesheet">
+  <link href="/static/web/static/assets/plugins/c3/c3.min.css" rel="stylesheet"/>
+
   {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
@@ -77,6 +79,10 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
 {% endif %}
 <script src="/static/web/static/libs/underscore-min.js"></script>
+
+<script src="/static/web/static/assets/plugins/c3/d3.v3.min.js"></script>
+<script src="/static/web/static/assets/plugins/c3/c3.min.js"></script>
+
 <script src="/static/web/static/api/1.5/katrid.js"></script>
 <script src="/static/web/static/api/1.5/settings.js"></script>
 <script src="/static/web/static/api/1.5/services.js"></script>

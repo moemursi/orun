@@ -58,7 +58,7 @@ class WebClient(BaseView):
             u = auth.authenticate(username=username, password=password)
             if u and u.is_authenticated:
                 auth.login(u)
-                return redirect(request.args.get('next', url_for('WebClient:index_1')))
+                return redirect(request.args.get('next', url_for('WebClient:index')))
             flash(gettext('Invalid username and password.'), 'danger')
         return render_template('web/login.html', settings=settings)
 
@@ -106,7 +106,7 @@ class WebClient(BaseView):
             'result': True,
         }
 
-@app.errorhandler(500)
-def error(e):
-    pass
+# @app.errorhandler(500)
+# def error(e):
+#     pass
     # return render_template('web/500.html')

@@ -116,11 +116,7 @@ class OrunJSONEncoder(json.JSONEncoder):
             if o.microsecond:
                 r = r[:12]
             return r
-        elif isinstance(o, decimal.Decimal):
-            return str(o)
-        elif isinstance(o, uuid.UUID):
-            return str(o)
-        elif isinstance(o, Promise):
+        elif isinstance(o, (decimal.Decimal, uuid.UUID, Promise)):
             return str(o)
         elif isinstance(o, GeneratorType):
             return [obj for obj in o]

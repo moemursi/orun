@@ -1,5 +1,6 @@
-from orun.db import models
+from orun.db import models, session
 from orun.utils.translation import gettext_lazy as _
+from orun import api
 
 
 class Category(models.Model):
@@ -17,6 +18,10 @@ class Query(models.Model):
 
     class Meta:
         name = 'ir.query'
+
+    @api.method
+    def read(self, id, **kwargs):
+        return [list(row) for row in session.execute(self.objects.get(id).sql)]
 
 
 class DashboardSettings(models.Model):

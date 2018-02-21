@@ -1,7 +1,6 @@
 (() => {
   class BaseObject {
     doAction(act) {
-      console.log('do action', act);
     }
   }
 
