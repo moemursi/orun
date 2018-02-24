@@ -65,6 +65,8 @@ class Deserializer(base.Deserializer):
                     obj['fields'][field_name] = eval(child.attrib['eval'], {'ref': functools.partial(ref, self.app)})
                 elif 'model' in child.attrib:
                     obj['fields'][field_name] = ct.objects.only('pk').filter(ct.c.name == child.attrib['model']).first().pk
+                elif 'file' in child.attrib:
+                    obj['fields'][field_name] = open(os.path.join(self.app_config.root_path, child.attrib['file'])).read()
                 else:
                     s = child.text
                     if child.attrib.get('translate', trans):

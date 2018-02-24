@@ -87,6 +87,9 @@ h6 {
   font-weight: 400;
   margin-top: 6px;
 }
+.modal-header h5 {
+  margin: 0;
+}
 .dropdown-notifications-menu {
   padding: 10px;
   color: #3c3d40;
@@ -5211,6 +5214,10 @@ table tbody tr td.bool-text {
   padding-bottom: 4px;
   margin-bottom: 0;
 }
+.modal-body form section.form-group {
+  padding-bottom: 4px;
+  margin-bottom: 0;
+}
 #loading-msg {
   position: fixed;
   border-radius: 2px;
@@ -5230,7 +5237,9 @@ table tbody tr td.bool-text {
   color: red !important;
 }
 td.DecimalField,
-th.DecimalField {
+th.DecimalField,
+td.FloatField,
+th.FloatField {
   text-align: right;
 }
 th span {
@@ -5286,7 +5295,8 @@ section div.checkbox {
 label.checkbox {
   margin: 0;
 }
-input.form-field:required {
+input.form-field:required,
+select.form-field:required {
   background-color: #eaebff;
 }
 input.form-field.ng-dirty {
@@ -5438,6 +5448,9 @@ label.prepend-icon {
   left: 6px;
   content: "\f00c";
 }
+.form-label-checkbox {
+  display: block;
+}
 div.form-data-changing .form-field-readonly {
   display: none;
 }
@@ -5510,5 +5523,22 @@ div.form-data-readonly label.prepend-icon {
 }
 .btn-lg {
   font-size: 1.25rem;
+}
+.comment .media-left {
+  margin-right: 10px;
+}
+.comment .media-left img {
+  max-width: 50px;
+  max-height: 500px;
+}
+.page-title {
+  font-size: 24px;
+  font-weight: normal;
+}
+.page-title span {
+  font-size: 16px;
+  color: #333;
+  display: inline-block;
+  vertical-align: 1px;
 }
 /*# sourceMappingURL=style.css.map */

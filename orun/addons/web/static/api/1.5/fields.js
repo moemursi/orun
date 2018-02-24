@@ -454,7 +454,6 @@
 
     template(scope, el, attrs, field) {
       const html = super.template(scope, el, attrs, field, 'grid');
-      console.log('grid', html);
       return html;
     }
   }

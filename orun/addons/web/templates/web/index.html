@@ -15,7 +15,7 @@
       <ul class="navbar-nav mr-auto modules">
         {% for menu in root_menu %}
         <li class="nav-item" ng-class="{active: current_menu === {{ menu.pk }} }">
-          <a class="nav-link module-selector" ng-click="current_menu={{ menu.pk }}" href="javascript:void(0)">{% if menu.icon %}{{ menu.icon }}{% endif %} {{ gettext(menu.name) }}</a>
+          <a class="nav-link module-selector" ng-click="current_menu={{ menu.pk }};" onclick="$('#left-side-menu[data-menu-id=\'{{ menu.pk }}\']').find('.menu-item-action').first().click()" data-menu-id="{{ menu.pk }}" href="javascript:void(0)">{% if menu.icon %}{{ menu.icon }}{% endif %} {{ gettext(menu.name) }}</a>
         </li>
         {% endfor %}
       </ul>
@@ -100,7 +100,7 @@
     <!-- menu -->
     <nav class="sidebar-nav">
       {% for current_menu in root_menu %}
-      <ul id="left-side-menu" class="nav flex-column" ng-show="current_menu==={{ current_menu.pk }}">
+      <ul id="left-side-menu" class="nav flex-column" data-menu-id="{{ current_menu.pk }}" ng-show="current_menu==={{ current_menu.pk }}">
         {% for menu in current_menu.children.all() %}
           {{ menu_utils.menu_item(menu) }}
         {% endfor %}

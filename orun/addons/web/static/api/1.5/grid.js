@@ -71,12 +71,18 @@
         var renderDialog = function() {
           let el;
           let html = scope._cachedViews.form.content;
+
+          scope.view = scope._cachedViews.form;
+          let fld = scope._cachedViews.form.fields[scope.field.field];
+          if (fld) fld.visible = false;
+
           if (attrs.inline) {
             el = $compile(html)(scope);
             gridEl.find('.inline-input-dialog').append(el);
           } else {
             html = $(Katrid.UI.Utils.Templates.gridDialog().replace('<!-- view content -->', html));
             el = $compile(html)(scope);
+            el.find('form').first().addClass('row');
           }
 
           // Get the first form controller

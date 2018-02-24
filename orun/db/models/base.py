@@ -462,8 +462,8 @@ class Model(Service):
 
         #post_data = cls.post_data.pop(id(instance), None)
 
-        for k, v in children.items():
-            instance._deserialize_value(k, v)
+        #for k, v in children.items():
+        #    instance._deserialize_value(k, v)
 
     def serialize(self, fields=None, exclude=None, view_type=None):
         opts = self._meta

@@ -121,9 +121,8 @@
 
         const fieldInfo = this.scope.view.fields[name];
 
-        if ((col.attr('visible') === 'False') || (fieldInfo.visible === false)) {
+        if (!fieldInfo || (col.attr('visible') === 'False') || (fieldInfo.visible === false))
           continue;
-        }
 
         if (fieldInfo.choices) {
           fieldInfo._listChoices = {};
