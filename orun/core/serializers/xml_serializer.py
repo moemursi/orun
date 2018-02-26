@@ -66,7 +66,9 @@ class Deserializer(base.Deserializer):
                 elif 'model' in child.attrib:
                     obj['fields'][field_name] = ct.objects.only('pk').filter(ct.c.name == child.attrib['model']).first().pk
                 elif 'file' in child.attrib:
-                    obj['fields'][field_name] = open(os.path.join(self.app_config.root_path, child.attrib['file'])).read()
+                    obj['fields'][field_name] = open(
+                        os.path.join(self.app_config.root_path, child.attrib['file']), encoding='utf-8'
+                    ).read()
                 else:
                     s = child.text
                     if child.attrib.get('translate', trans):

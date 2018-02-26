@@ -123,8 +123,8 @@
   <div class="container">
           <h3>${Katrid.i18n.gettext('Comments')}</h3>
           <div class="form-group">
-          <button class="btn btn-default" ng-click="showEditor();">${Katrid.i18n.gettext('New message')}</button>
-          <button class="btn">${Katrid.i18n.gettext('Log an internal note')}</button>
+          <button class="btn btn-outline-secondary" ng-click="showEditor();">${Katrid.i18n.gettext('New message')}</button>
+          <button class="btn btn-outline-secondary">${Katrid.i18n.gettext('Log an internal note')}</button>
           </div>
           <div id="mail-editor" style="display: none;">
             <div class="form-group">

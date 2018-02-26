@@ -96,6 +96,11 @@ h6 {
 }
 .form-control {
   padding: 4px 8px;
+  border-radius: 0;
+}
+.form-control:focus {
+  padding: 4px 8px;
+  box-shadow: none;
 }
 input[type=number].form-control,
 input[type=TIME].form-control {
@@ -5359,6 +5364,7 @@ label.prepend-icon {
   display: flex;
   flex: 1 1 auto;
   flex-flow: column nowrap;
+  background-color: #ffffff;
 }
 .content-scroll {
   height: 100%;
@@ -5366,7 +5372,7 @@ label.prepend-icon {
   display: flex;
   flex: 1 1 auto;
   position: relative;
-  background-color: #f8f9fa;
+  background-color: #ffffff;
 }
 .content-scroll > .content {
   position: absolute;
@@ -5385,6 +5391,7 @@ label.prepend-icon {
 .data-heading {
   width: 100%;
   border-bottom: 1px solid #d6d6d6;
+  background-color: #f8f9fa;
   box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
 }
 .data-heading > .panel-body {
@@ -5533,12 +5540,39 @@ div.form-data-readonly label.prepend-icon {
 }
 .page-title {
   font-size: 24px;
-  font-weight: normal;
+  color: #55595d;
+  font-weight: 300;
 }
 .page-title span {
   font-size: 16px;
-  color: #333;
+  color: #555555;
   display: inline-block;
   vertical-align: 1px;
+}
+.dashboard {
+  padding: 15px;
+  background-color: #ffffff;
+}
+.sparks {
+  list-style: none;
+  text-align: right;
+}
+.sparks h5 {
+  color: #676767;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+.sparks .sparks-info span {
+  font-size: 18px;
+  display: block;
+}
+.sparks li:first-child {
+  border-left: none;
+}
+.sparks li {
+  border-left: 1px dotted #d1d1d1;
+  padding: 0 10px;
+  display: inline-block;
 }
 /*# sourceMappingURL=style.css.map */

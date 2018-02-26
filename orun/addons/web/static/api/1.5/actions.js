@@ -459,6 +459,7 @@
 
     execute() {
       let tag = ClientAction.registry[this.info.tag];
+      console.log('tag', this.info, tag, this.info.tag);
       if (tag.prototype instanceof Katrid.UI.Views.ActionView) {
         tag = new tag(this.scope);
         tag.renderTo();

@@ -21,7 +21,12 @@ class Query(models.Model):
 
     @api.method
     def read(self, id, **kwargs):
-        return [list(row) for row in session.execute(self.objects.get(id).sql)]
+        q = session.execute(self.objects.get(id).sql)
+        desc = q.cursor.description
+        return {
+            'fields': [f[0] for f in desc],
+            'data': [list(row) for row in q],
+        }
 
 
 class DashboardSettings(models.Model):
