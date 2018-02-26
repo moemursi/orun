@@ -1,0 +1,6 @@
+<templates>
+  <script id="view.dashboard" type="text/ng-template">
+    <dashboard class="dashboard" data-dashboard-id="%(dashboard)s">
+    </dashboard>
+  </script>
+</templates>
