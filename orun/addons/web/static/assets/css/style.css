@@ -5575,4 +5575,9 @@ div.form-data-readonly label.prepend-icon {
   padding: 0 10px;
   display: inline-block;
 }
+.dropdown-item.checked > :first-child::before {
+  content: '\f00c';
+  font-family: 'FontAwesome';
+  float: left;
+}
 /*# sourceMappingURL=style.css.map */

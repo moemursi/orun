@@ -21,6 +21,8 @@ class FastReport(Report):
     def export(self, format='pdf', params=None):
         import fastreport
         conn_str = ''
+        if format == 'native':
+            format = 'fpx'
         try:
             base_name = uuid.uuid4().hex
             rep_file = os.path.join(tempfile.gettempdir(), base_name + '.frx')
@@ -49,6 +51,8 @@ class FastReports(ReportEngine):
     def export(self, report, format='pdf', params=None, **kwargs):
         import fastreport
 
+        if format == 'native':
+            format = 'fpx'
         if isinstance(report, str):
             # load by filename
             report = app.jinja_env.get_or_select_template(report).filename

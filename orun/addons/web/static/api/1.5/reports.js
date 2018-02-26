@@ -190,7 +190,7 @@
     }
 
     preview() {
-      return this.export();
+      return this.export(localStorage.katridReportViewer);
     }
 
     renderFields() {
