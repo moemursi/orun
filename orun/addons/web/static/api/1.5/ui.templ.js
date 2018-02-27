@@ -564,7 +564,7 @@
         buttons = `<button class="btn btn-xs btn-info" ng-click="addItem()" ng-show="parent.dataSource.changing && !dataSource.changing" type="button">${Katrid.i18n.gettext('Add')}</button><button class="btn btn-xs btn-info" ng-click="addItem()" ng-show="dataSource.changing" type="button">${Katrid.i18n.gettext('Save')}</button><button class="btn btn-xs btn-info" ng-click="cancelChanges()" ng-show="dataSource.changing" type="button">${Katrid.i18n.gettext('Cancel')}</button>`;
       else
         buttons = `<button class="btn btn-xs btn-info" ng-click="addItem()" ng-show="parent.dataSource.changing" type="button">${Katrid.i18n.gettext('Add')}</button>`;
-      return `<div><div ng-show="!dataSource.readonly">
+      return `<div style="overflow-x: auto;"><div ng-show="!dataSource.readonly">
   ${buttons}
   </div><div class="row inline-input-dialog" ng-show="dataSource.changing"/>${tbl}</div>`;
     }

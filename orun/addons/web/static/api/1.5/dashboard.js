@@ -55,9 +55,28 @@
     }
   }
 
+  class Query extends Katrid.UI.Widgets.Component {
+    constructor() {
+      super();
+      this.scope = false;
+    }
+    link(scope, el, attrs) {
+      console.log(attrs);
+      if (!attrs.name) throw Error('Query name attribute is required!');
+      $.get('/api/rpc/ir.query/read/?id=' + attrs.id).done((res) => {
+        let data = res.result.data.map((row) => (_.object(res.result.fields, row)));
+        scope.$apply(() => {
+          scope[attrs.name] = data;
+        });
+      });
+      el.remove();
+    }
+  }
+
   Katrid.Actions.ClientAction.register('dashboard', DashboardView);
 
   Katrid.uiKatrid.directive('dashboard', DashboardComponent);
   Katrid.uiKatrid.directive('chart', Chart);
+  Katrid.uiKatrid.directive('query', Query);
 
 })();
