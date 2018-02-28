@@ -1011,6 +1011,7 @@
             let r = null;
             if (res.ok && res.result && res.result.data)
               r = res.result.data;
+            console.log('attachments', r);
             scope.$apply(() => scope.attachments = r );
           });
         }, 1000);
