@@ -271,9 +271,10 @@
       }
     }
 
-    th() {
+    th(lbl) {
       let cls = `${this.field.type} list-column`;
-      return `<th class="${cls}" name="${name}"><span>{{::view.fields.${this.field.name}.caption}}</span></th>`;
+      lbl = lbl || `{{view.fields.${this.field.name}.caption}}`;
+      return `<th class="${cls}" name="${name}"><span>${lbl}</span></th>`;
     }
 
     td(gridEditor = null, html = null) {

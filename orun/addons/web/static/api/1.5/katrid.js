@@ -5,7 +5,8 @@
   this.Katrid = {
     ready(fn) {
       const script = $('script').first();
-      return fn(angular.element($(script).parent()).scope());
+      return fn(angular.element($('#katrid-action-view')).scope());
+      //return fn(angular.element($(script).parent()).scope());
     },
 
     bootstrap() {

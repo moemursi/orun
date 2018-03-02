@@ -52,7 +52,7 @@ class Field(object):
     child_field = False
 
     def __init__(self, label=None, db_column=None, db_index=False, primary_key=False,
-                 concrete=None, readonly=False, null=True, required=None, widget_attrs=None,
+                 concrete=None, readonly=None, null=True, required=None, widget_attrs=None,
                  auto_created=False, default=NOT_PROVIDED, choices=None,
                  deferred=False, copy=None, serializable=True, editable=True, help_text=None, validators=[],
                  error_messages=None,
@@ -70,6 +70,10 @@ class Field(object):
         self.proxy_field = proxy
         if concrete is None and getter:
             concrete = False
+            if readonly is None:
+                readonly = True
+        if readonly is None:
+            readonly = False
         elif concrete is None:
             concrete = True
         self.concrete = concrete

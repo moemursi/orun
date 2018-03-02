@@ -429,7 +429,7 @@
     static initClass() {
       this.actionType = 'ir.action.client';
       this.registry = {};
-      this.register('refresh', this.tag_refresh);
+      this.register('refresh', 'tag_refresh');
     }
 
     static register(tag, obj) {
@@ -459,11 +459,10 @@
 
     execute() {
       let tag = ClientAction.registry[this.info.tag];
-      console.log('tag', this.info, tag, this.info.tag);
       if (tag.prototype instanceof Katrid.UI.Views.ActionView) {
         tag = new tag(this.scope);
         tag.renderTo();
-      }
+      } else if (_.isString(tag)) this[tag].apply(this);
     }
 
     routeUpdate(location) {

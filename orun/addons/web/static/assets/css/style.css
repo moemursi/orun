@@ -1560,6 +1560,25 @@ body.page .login-logo {
 .status-field.status-field-sm a:last-child:after {
   border: none;
 }
+.bg-red.status-field a.active .badge,
+.bg-red .status-field a.progress-active .badge {
+  background: #e66551;
+}
+.bg-red .status-field a.active:after,
+.bg-red .status-field a.progress-active:after {
+  border-left-color: #e66551 !important;
+}
+.bg-red .status-field.left-arrow a.active:before,
+.bg-red .status-field.left-arrow a.progress-active:before,
+.bg-red .status-field.status-field-sm.left-arrow a.active:before,
+.bg-red .status-field.status-field-sm.left-arrow a.progress-active:before {
+  border-right-color: #e66551;
+}
+.bg-red .status-field a.active .badge,
+.bg-red .status-field a.progress-active .badge {
+  background-color: #FFFFFF;
+  color: #e66551;
+}
 /*!
  * Datepicker for Bootstrap v1.6.1 (https://github.com/eternicode/bootstrap-datepicker)
  *
@@ -5286,6 +5305,7 @@ section div.checkbox {
 }
 .tabset {
   width: 100%;
+  margin-top: 10px;
 }
 .table > tbody > tr > td.list-column-delete,
 .table > thead > tr > th.list-column-delete {

@@ -204,7 +204,7 @@ class Update(QuerySet):
         return session.execute(self.query.compile().values(*args, **kwargs))
 
     def __get__(self, instance, owner):
-        if instance is not None:
+        if instance is not None and hasattr(self, '_sa_instance_state'):
             # Update the current instance
             return self.where(self.model._meta.pk.column == instance.pk)
         return self

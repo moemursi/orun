@@ -515,7 +515,7 @@
         let name = col.attr('name');
         if (!name) {
           cols += `<td>${col.html()}</td>`;
-          ths += "<th><span>${col.attr('caption')}</span></th>";
+          ths += "<th><span>${col.attr('label')}</span></th>";
           continue;
         }
 
@@ -536,7 +536,7 @@
         let _widget = Katrid.UI.Widgets.Field.fromField(fieldInfo, col.attr('widget'));
         _widget = new _widget(scope, {}, fieldInfo, col);
         _widget.inplaceEditor = true;
-        ths += _widget.th();
+        ths += _widget.th(col.attr('label'));
 
         cols += _widget.td(attrs.inline, colHtml);
       }
