@@ -68,8 +68,8 @@ class WebClient(BaseView):
 
     @route('/client/templates/')
     def client_templates(self):
-        return b'<templates>%b</templates>' % b''.join(
-            [b''.join(addon.get_js_templates()) for addon in app.iter_blueprints() if addon.js_templates]
+        return '<templates>%s</templates>' % ''.join(
+            [''.join(addon.get_js_templates()) for addon in app.iter_blueprints() if addon.js_templates]
         )
 
     @route('/content/<int:content_id>/')
