@@ -3,6 +3,7 @@ import datetime
 import collections
 import itertools
 import sqlalchemy as sa
+from sqlalchemy.schema import FetchedValue
 from sqlalchemy.orm import relationship
 
 from orun.utils.datastructures import DictWrapper
@@ -55,7 +56,7 @@ class Field(object):
                  concrete=None, readonly=None, null=True, required=None, widget_attrs=None,
                  auto_created=False, default=NOT_PROVIDED, choices=None,
                  deferred=False, copy=None, serializable=True, editable=True, help_text=None, validators=[],
-                 error_messages=None,
+                 error_messages=None, compute=None,
                  unique=False, db_tablespace=None, getter=None, setter=None, proxy=None, *args, **kwargs):
         self.column = None
         self.unique = unique
@@ -94,6 +95,7 @@ class Field(object):
         self.depends = None
         self.getter = getter
         self.setter = setter
+        self.compute = compute
 
         if null is None:
             self.null = True
@@ -163,10 +165,14 @@ class Field(object):
             kwargs['nullable'] = False
         if self.default is not NOT_PROVIDED:
             kwargs['default'] = self.default
-        tp = self.db_type(bind=bind)
-        if not isinstance(tp, tuple):
-            tp = (tp,)
-        args += tp
+        if self.compute:
+            kwargs['info'] = {'compute': self.compute}
+            args += (FetchedValue(),)
+        else:
+            tp = self.db_type(bind=bind)
+            if not isinstance(tp, tuple):
+                tp = (tp,)
+            args += tp
         return sa.Column(self.db_column, *args, **kwargs)
 
     def get_internal_type(self):
@@ -384,6 +390,9 @@ class Field(object):
             else:
                 if value is not default:
                     keywords[name] = value
+
+        if self.compute:
+            keywords['compute'] = self.compute
         # Work out path - we shorten it for known Orun core fields
         path = "%s.%s" % (self.__class__.__module__, self.__class__.__name__)
         if path.startswith("orun.db.models.fields.related"):
