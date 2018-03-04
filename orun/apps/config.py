@@ -89,5 +89,5 @@ class AppConfig(flask.Blueprint):
 
     def get_js_templates(self):
         for templ in self.js_templates:
-            with open(os.path.join(self.root_path, templ), 'rb', encoding='utf-8') as f:
-                yield f.read().decode('utf-8')
+            with open(os.path.join(self.root_path, templ), 'rb') as f:
+                yield f.read()

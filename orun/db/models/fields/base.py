@@ -528,9 +528,19 @@ class TextField(Field):
 class BooleanField(Field):
     _db_type = sa.Boolean(create_constraint=False)
 
+    _bool_values = {
+        'True': True,
+        'False': False,
+        '1': True,
+        '0': False,
+    }
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('default', False)
         super(BooleanField, self).__init__(*args, **kwargs)
+
+    def to_python(self, value):
+        return super(BooleanField, self).to_python(self._bool_values.get(value, value))
 
 
 class DateTimeField(Field):
