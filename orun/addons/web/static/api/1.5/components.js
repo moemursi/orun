@@ -47,9 +47,9 @@
           var fieldAttrs = {};
           for (let [k, v] of Object.entries(attrs))
             if (k.startsWith('field')) {
-              fieldAttrs[att] = v;
-              element.removeAttr(att);
-              attrs.$set(att);
+              fieldAttrs[k] = v;
+              element.removeAttr(k);
+              attrs.$set(k);
             }
 
           fieldAttrs.name = attrs.name;
