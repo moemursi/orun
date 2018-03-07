@@ -496,6 +496,9 @@ class CharField(Field):
 class IntegerField(Field):
     _db_type = sa.Integer()
 
+    def get_internal_type(self):
+        return 'IntegerField'
+
 
 class BigIntegerField(Field):
     _db_type = sa.BigInteger()
@@ -572,6 +575,9 @@ class TimeField(DateTimeField):
 
 class SmallIntegerField(Field):
     _db_type = sa.SmallInteger()
+
+    def get_internal_type(self):
+        return 'IntegerField'
 
 
 class PositiveIntegerField(IntegerField):

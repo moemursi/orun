@@ -345,6 +345,10 @@
     widgetTemplate(scope, el, attrs, field, type) {
       return super.widgetTemplate(scope, el, attrs, field, 'number');
     }
+
+    spanTemplate(scope, el, attrs, field) {
+      return `<span class="form-field-readonly">{{ (record.${attrs.name}|number) || '--' }}</span>`;
+    }
   }
 
 
