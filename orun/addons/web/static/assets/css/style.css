@@ -5604,4 +5604,7 @@ div.form-data-readonly label.prepend-icon {
   font-family: 'FontAwesome';
   float: left;
 }
+.borderless {
+  border: none !important;
+}
 /*# sourceMappingURL=style.css.map */

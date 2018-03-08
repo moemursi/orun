@@ -499,6 +499,8 @@
 
     renderList(scope, element, attrs, rowClick, parentDataSource, showSelector=true) {
       let ths = '<th ng-show="dataSource.groups.length"></th>';
+      let tfoot = false;
+      let totals = [];
       let cols = `<td ng-show="dataSource.groups.length" class="group-header">
   <div ng-show="row._group">
   <span class="fa fa-fw fa-caret-right"
@@ -519,12 +521,17 @@
           continue;
         }
 
+        let total = col.attr('total');
+        if (total) {
+          totals.push([name, total]);
+          tfoot = true;
+        } else totals.push(total);
+
         name = col.attr('name');
         const fieldInfo = scope.view.fields[name];
 
-        if ((col.attr('visible') === 'False') || (fieldInfo.visible === false)) {
+        if ((col.attr('visible') === 'False') || (fieldInfo.visible === false))
           continue;
-        }
 
         if (fieldInfo.choices) {
           fieldInfo._listChoices = {};
@@ -547,14 +554,21 @@
       if ((rowClick == null)) {
         rowClick = 'action.listRowClick($index, row, $event)';
       }
-      const s = `<table class="${this.constructor.cssListClass}">
+
+      console.log(tfoot);
+
+      if (tfoot)
+        tfoot = `<tfoot><tr>${ totals.map(t => (t ? `<td class="text-right"><strong><ng-total field="${ t[0] }" type="${ t[1] }"></ng-total></strong></td>` : '<td class="borderless"></td>')).join('') }</tr></tfoot>`;
+      else
+        tfoot = '';
+      return `<table class="${this.constructor.cssListClass}">
   <thead><tr>${ths}</tr></thead>
   <tbody>
   <tr ng-repeat="row in records" ng-init="record = {}" ng-click="${rowClick}" ng-class="{'group-header': row._hasGroup}" ng-form="grid-row-form-{{$index}}" id="grid-row-form-{{$index}}">${cols}</tr>
   </tbody>
+  ${ tfoot }
   </table>
   `;
-      return s;
     }
 
     renderGrid(scope, element, attrs, rowClick) {

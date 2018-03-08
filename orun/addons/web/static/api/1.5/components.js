@@ -90,6 +90,29 @@
     })
   );
 
+  class Total {
+    constructor($filter) {
+      this.restrict = 'E';
+      this.scope = false;
+      this.replace = true;
+      this.$filter = $filter;
+    }
+
+    template(el, attrs) {
+      console.log(attrs);
+      return `<span ng-bind="total_${attrs.field}|number:2"></span>`;
+    }
+
+    link(scope, element, attrs, controller) {
+      scope.$watch(`records`, (newValue) => {
+        let total = 0;
+        newValue.map((r) => total += parseFloat(r[attrs.field]));
+        scope['total_' + attrs.field] = total;
+      });
+    }
+  }
+
+  uiKatrid.directive('ngTotal', Total);
 
   uiKatrid.directive('ngSum', () =>
     ({

@@ -293,6 +293,8 @@
         s = `<td class="${cls}">{{::view.fields.${name}._listChoices[row.${name}]}}${editor}</td>`;
       } else if (fieldInfo.type === 'BooleanField') {
         s = `<td class="bool-text ${cls}">{{::row.${name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}}${editor}</td>`;
+      } else if (fieldInfo.type === 'IntegerField') {
+        s = `<td class="${cls}">{{::row.${name}|number}}${editor}</td>`;
       } else if (fieldInfo.type === 'DecimalField') {
         s = `<td class="${cls}">{{::row.${name}|number:2}}${editor}</td>`;
       } else if (fieldInfo.type === 'DateField') {

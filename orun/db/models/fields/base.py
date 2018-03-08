@@ -573,11 +573,8 @@ class TimeField(DateTimeField):
     _db_type = sa.Time()
 
 
-class SmallIntegerField(Field):
+class SmallIntegerField(IntegerField):
     _db_type = sa.SmallInteger()
-
-    def get_internal_type(self):
-        return 'IntegerField'
 
 
 class PositiveIntegerField(IntegerField):
