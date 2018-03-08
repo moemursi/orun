@@ -555,8 +555,6 @@
         rowClick = 'action.listRowClick($index, row, $event)';
       }
 
-      console.log(tfoot);
-
       if (tfoot)
         tfoot = `<tfoot><tr>${ totals.map(t => (t ? `<td class="text-right"><strong><ng-total field="${ t[0] }" type="${ t[1] }"></ng-total></strong></td>` : '<td class="borderless"></td>')).join('') }</tr></tfoot>`;
       else

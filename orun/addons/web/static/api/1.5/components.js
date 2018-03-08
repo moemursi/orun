@@ -100,15 +100,19 @@
 
     template(el, attrs) {
       console.log(attrs);
-      return `<span ng-bind="total_${attrs.field}|number:2"></span>`;
+      if (attrs.type[0] === "'")
+        return `<span>${ attrs.type.substring(1, attrs.type.length - 1) }</span>`;
+      else
+        return `<span ng-bind="total_${attrs.field}|number:2"></span>`;
     }
 
     link(scope, element, attrs, controller) {
-      scope.$watch(`records`, (newValue) => {
-        let total = 0;
-        newValue.map((r) => total += parseFloat(r[attrs.field]));
-        scope['total_' + attrs.field] = total;
-      });
+      if (attrs.type[0] !== "'")
+        scope.$watch(`records`, (newValue) => {
+          let total = 0;
+          newValue.map((r) => total += parseFloat(r[attrs.field]));
+          scope['total_' + attrs.field] = total;
+        });
     }
   }
 
