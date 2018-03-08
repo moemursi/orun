@@ -239,6 +239,8 @@ class ModelBase(type):
 
     def __subclasscheck__(cls, sub):
         if cls is Model:
+            if isinstance(cls, Model):
+                cls = cls.__class__
             return super(ModelBase, cls).__subclasscheck__(sub)
         if sub is not Model and sub._meta.parents:
             for parent in sub._meta.parents:
