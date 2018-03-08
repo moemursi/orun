@@ -1560,6 +1560,10 @@ body.page .login-logo {
 .status-field.status-field-sm a:last-child:after {
   border: none;
 }
+.bg-red.status-field a.active,
+.bg-red .status-field a.progress-active {
+  background: #e66551;
+}
 .bg-red.status-field a.active .badge,
 .bg-red .status-field a.progress-active .badge {
   background: #e66551;
@@ -4058,7 +4062,7 @@ label.radio > i:after {
 }
 .data-panel fieldset {
   margin-top: 10px;
-  padding-bottom: 30px;
+  padding-bottom: 10px;
 }
 .data-panel .image-box {
   margin: 0 0 8px 0;
