@@ -277,7 +277,7 @@
       return `<th class="${cls}" name="${name}"><span>${lbl}</span></th>`;
     }
 
-    td(gridEditor = null, html = null) {
+    td(gridEditor = null, html = null, col = null) {
       let colHtml = this.element.html();
       let s;
       let fieldInfo = this.field;
@@ -296,7 +296,7 @@
       } else if (fieldInfo.type === 'IntegerField') {
         s = `<td class="${cls}">{{::row.${name}|number}}${editor}</td>`;
       } else if (fieldInfo.type === 'DecimalField') {
-        let decimalPlaces = this.attrs.decimalPlaces || 2;
+        let decimalPlaces = this.element.attr('decimal-places') || 2;
         s = `<td class="${cls}">{{::row.${name}|number:${ decimalPlaces } }}${editor}</td>`;
       } else if (fieldInfo.type === 'DateField') {
         s = `<td class="${cls}">{{::row.${name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}}${editor}</td>`;

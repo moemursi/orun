@@ -545,7 +545,7 @@
         _widget.inplaceEditor = true;
         ths += _widget.th(col.attr('label'));
 
-        cols += _widget.td(attrs.inline, colHtml);
+        cols += _widget.td(attrs.inline, colHtml, col);
       }
       if (parentDataSource) {
         ths += '<th class="list-column-delete" ng-show="parent.dataSource.changing && !dataSource.readonly">';

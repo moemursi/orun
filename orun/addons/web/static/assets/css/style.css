@@ -4061,8 +4061,8 @@ label.radio > i:after {
   margin-top: 8px;
 }
 .data-panel fieldset {
-  margin-top: 10px;
-  padding-bottom: 10px;
+  margin-top: 0;
+  padding-bottom: 0;
 }
 .data-panel .image-box {
   margin: 0 0 8px 0;
