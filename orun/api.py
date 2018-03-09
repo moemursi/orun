@@ -81,7 +81,7 @@ def records(*args, **kwargs):
                 args = list(args)
                 ids = args[0]
                 args = args[1:]
-            if not ids and issubclass(self, models.Model):
+            if not ids and not issubclass(self, models.Model):
                 ids = (self,)
             elif ids:
                 ids = self.objects.filter(self.c.pk.in_(kwargs.pop('ids', ids)))

@@ -422,7 +422,8 @@
     }
 
     spanTemplate(scope, el, attrs, field) {
-      return `<span class="form-field-readonly">{{ (record.${attrs.name}|number:2) || '--' }}</span>`;
+      let decimalPlaces = attrs.decimalPlaces || 2;
+      return `<span class="form-field-readonly">{{ (record.${attrs.name}|number:${ decimalPlaces }) || '--' }}</span>`;
     }
   }
   DecimalField.initClass();
