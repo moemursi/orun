@@ -464,6 +464,10 @@ class Model(Service):
         else:
             instance.save()
 
+        for child, v in children.items():
+            if v:
+                child.set(v, instance)
+
         #post_data = cls.post_data.pop(id(instance), None)
 
         #for k, v in children.items():
@@ -652,6 +656,7 @@ class Model(Service):
         if not isinstance(data, (list, tuple)):
             data = [data]
         _cache_change = _cache_create = None
+        res = []
         for row in data:
             pk = row.pop('id', None)
             if pk:
@@ -661,7 +666,8 @@ class Model(Service):
                 #_cache_create = _cache_create or cls.check_permission('create')
                 obj = self()
             self.deserialize(obj, row)
-            yield obj.pk
+            res.append(obj.pk)
+        return res
 
     @api.method
     def destroy(self, ids):
