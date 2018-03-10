@@ -21,7 +21,7 @@
     static init() {
       Katrid.localSettings = new LocalSettings();
     }
-    
+
     constructor() {
     }
 
@@ -61,10 +61,10 @@
     },
 
     Speech: {
-      enabled: false
+      enabled: true
     }
   };
-  
+
   Katrid.LocalSettings = LocalSettings;
 
   if (Katrid.Settings.servicesProtocol === 'io') {
