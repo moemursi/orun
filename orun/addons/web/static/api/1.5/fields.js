@@ -368,7 +368,7 @@
     }
 
     spanTemplate(scope, el, attrs, field) {
-      return `{{ ::record.tp }}<span class="form-field-readonly">{{ view.fields.${attrs.name}.displayChoices[record.${attrs.name}] || '--' }}</span>`;
+      return `<span class="form-field-readonly">{{ view.fields.${attrs.name}.displayChoices[record.${attrs.name}] || '--' }}</span>`;
     }
 
     innerHtml(scope, el, attrs, field) {
