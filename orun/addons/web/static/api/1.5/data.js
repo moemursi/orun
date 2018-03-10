@@ -110,7 +110,6 @@
       const el = this.scope.formElement;
       if (this.validate()) {
         const data = this.getModifiedData(this.scope.form, el, this.scope.record);
-        console.log('save changes', data);
         this.scope.form.data = data;
 
         let beforeSubmit = el.attr('before-submit');
@@ -127,7 +126,11 @@
             if (res.ok) {
               this.scope.form.$setPristine();
               this.scope.form.$setUntouched();
-              if (this.children) this.children.map((child) => delete child.modifiedData);
+              if (this.children) this.children.map((child) => {
+                child.scope.dataSet = [];
+                delete child.modifiedData;
+                child.refresh();
+              });
               this._pendingChanges = false;
               this.setState(DataSourceState.browsing);
               if (autoRefresh) return this.refresh(res.result);

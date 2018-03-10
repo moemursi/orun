@@ -68,7 +68,7 @@
             })
           );
 
-        var renderDialog = function() {
+        let renderDialog = function() {
           let el;
           let html = scope._cachedViews.form.content;
 
@@ -93,16 +93,17 @@
           if (!attrs.inline) {
             el.modal('show');
             el.on('hidden.bs.modal', function() {
+              scope.record = null;
               scope.dataSource.setState(Katrid.Data.DataSourceState.browsing);
               el.remove();
               scope.gridDialog = null;
-              return scope.recordIndex = -1;
+              scope.recordIndex = -1;
             });
           }
           return false;
         };
 
-        var loadViews = (obj) => {
+        let loadViews = (obj) => {
           scope._cachedViews = obj;
           scope.view = scope._cachedViews.list;
           let onclick = 'openItem($index)';
@@ -173,12 +174,24 @@
         };
 
         scope.showDialog = function(index) {
+          if (scope._cachedViews.form) {
+              renderDialog();
+          } else {
+            scope.model.getViewInfo({ view_type: 'form' })
+            .done(function(res) {
+              if (res.ok) {
+                scope._cachedViews.form = res.result;
+                return renderDialog();
+              }
+            });
+          }
+
           if (index != null) {
             // Show item dialog
             scope.recordIndex = index;
 
             if (!scope.dataSet[index]) {
-              scope.dataSource.get(scope.records[index].id, 0)
+              return scope.dataSource.get(scope.records[index].id, 0)
               .done(function(res) {
                 if (res.ok) {
                   return scope.$apply(function() {
@@ -191,21 +204,14 @@
               });
             }
             const rec = scope.dataSet[index];
-            scope.record = rec;
+            setTimeout(() => {
+              scope.$apply(() => {
+                scope.record = rec;
+              });
+
+            }, 200);
           } else {
             scope.recordIndex = -1;
-          }
-
-          if (scope._cachedViews.form) {
-            setTimeout(() => renderDialog());
-          } else {
-            scope.model.getViewInfo({ view_type: 'form' })
-            .done(function(res) {
-              if (res.ok) {
-                scope._cachedViews.form = res.result;
-                return renderDialog();
-              }
-            });
           }
 
         };
