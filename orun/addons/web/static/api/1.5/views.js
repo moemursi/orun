@@ -133,7 +133,7 @@
 
         let _widget = Katrid.UI.Widgets.Field.fromField(fieldInfo, col.attr('widget'));
         _widget = new _widget(this.scope, {}, fieldInfo, col);
-        _widget.inplaceEditor = true;
+        // _widget.inplaceEditor = false;
         ths += _widget.th();
 
         cols += _widget.td(false, colHtml);

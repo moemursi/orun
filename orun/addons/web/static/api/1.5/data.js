@@ -129,7 +129,7 @@
               if (this.children) this.children.map((child) => {
                 child.scope.dataSet = [];
                 delete child.modifiedData;
-                child.refresh();
+                child.scope.masterChanged(this.scope.recordId);
               });
               this._pendingChanges = false;
               this.setState(DataSourceState.browsing);
@@ -488,7 +488,7 @@
           });
           return def.resolve(res);
         }).always(() => {
-          this.setState(DataSourceState.browsing);
+          // this.setState(DataSourceState.browsing);
           return this.scope.$apply(() => {
             return this.loadingRecord = false;
           });

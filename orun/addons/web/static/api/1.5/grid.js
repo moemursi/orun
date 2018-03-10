@@ -193,18 +193,14 @@
             if (!scope.dataSet[index]) {
               return scope.dataSource.get(scope.records[index].id, 0)
               .done(function(res) {
-                if (res.ok) {
+                if (res.ok)
                   return scope.$apply(function() {
                     scope.dataSet[index] = scope.record;
-                    if (scope.parent.dataSource.changing) {
-                      return scope.dataSource.editRecord();
-                    }
                   });
-                }
               });
             }
-            const rec = scope.dataSet[index];
             setTimeout(() => {
+              const rec = scope.dataSet[index];
               scope.$apply(() => {
                 scope.record = rec;
               });
@@ -216,7 +212,7 @@
 
         };
 
-        const masterChanged = function(key) {
+        const masterChanged = scope.masterChanged = function(key) {
           // Ajax load nested data
           scope._changeCount = 0;
           scope.records = [];
