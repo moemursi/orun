@@ -93,7 +93,10 @@
           <div class="content container">
             <div class="card panel-default data-panel browsing"
                  ng-class="{ browsing: dataSource.browsing, editing: dataSource.changing }">
-              <div class="card-body">
+              <div class="card-body teste">
+                  <a class="maximize-button" role="button" title="Maximizar" onclick="$(this).closest('div.card.data-panel').toggleClass('box-fullscreen');$(this).find('i').toggleClass('fa-compress fa-expand')">
+                    <i class=" fa fa-expand"></i>
+                  </a>
                 %(content)s
               </div>
             </div>
