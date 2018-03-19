@@ -1,3 +1,4 @@
+import pyodbc
 import sqlalchemy.dialects.mssql.base
 import sqlalchemy.dialects.mssql.pyodbc
 
@@ -28,3 +29,12 @@ class MSDDLCompiler(sqlalchemy.dialects.mssql.base.MSDDLCompiler):
 class MSSQLDialect(sqlalchemy.dialects.mssql.pyodbc.dialect):
     statement_compiler = MSSQLCompiler
     ddl_compiler = MSDDLCompiler
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+        try:
+            return super(MSSQLDialect, self).do_execute(cursor, statement, parameters, context)
+        except pyodbc.Error as e:
+            if e.args[0] == '01003':
+                print(e.args[1])
+            else:
+                raise
