@@ -11,7 +11,7 @@ class MSSQLCompiler(sqlalchemy.dialects.mssql.base.MSSQLCompiler):
     def visit_insert(self, *args, **kwargs):
         sql = super(MSSQLCompiler, self).visit_insert(*args, **kwargs)
         if self.returning:
-            sql = """SET NOCOUNT ON DECLARE @table table (id int) """ + sql + """ SELECT id FROM @table"""
+            sql = """SET ANSI_WARNINGS OFF SET NOCOUNT ON DECLARE @table table (id int) """ + sql + """ SELECT id FROM @table"""
         return sql
 
     def visit_create_column(self, element, **kwargs):
@@ -29,12 +29,3 @@ class MSDDLCompiler(sqlalchemy.dialects.mssql.base.MSDDLCompiler):
 class MSSQLDialect(sqlalchemy.dialects.mssql.pyodbc.dialect):
     statement_compiler = MSSQLCompiler
     ddl_compiler = MSDDLCompiler
-
-    def do_execute(self, cursor, statement, parameters, context=None):
-        try:
-            return super(MSSQLDialect, self).do_execute(cursor, statement, parameters, context)
-        except pyodbc.Error as e:
-            if e.args[0] == '01003':
-                print(e.args[1])
-            else:
-                raise
