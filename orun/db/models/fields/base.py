@@ -1,3 +1,4 @@
+import warnings
 import decimal
 import datetime
 import collections
@@ -239,7 +240,11 @@ class Field(object):
                 return v()
             return v
         elif callable(getter):
-            return getter(instance)
+            try:
+                return getter(instance)
+            except (TypeError, decimal.InvalidOperation, ZeroDivisionError) as e:
+                warnings.warn(str(e), stacklevel=2)
+                return 0
 
     def __set__(self, instance, value):
         setter = self.setter
