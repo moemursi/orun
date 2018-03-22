@@ -451,7 +451,7 @@
     }
 
     static dispatchBindingAction(parent, action) {
-      let format = 'pdf';
+      let format = localStorage.katridReportViewer || 'pdf';
       let sel = parent.selection;
       if (sel)
         sel = sel.join(',');
