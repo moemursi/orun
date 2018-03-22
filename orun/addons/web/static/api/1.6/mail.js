@@ -1,3 +1,4 @@
+
 (function () {
 
   class Comments {
@@ -66,19 +67,9 @@
       restrict: 'E',
       scope: {},
       replace: true,
+      template: '<div class="content"><div class="comments"><mail-comments/></div></div>',
       link(scope, element, attrs) {
-        const form = $(element).closest('div[ng-form=form]').find('.content-scroll>.content');
-        return form.append(element);
-      },
-
-      template() {
-        return `\
-  <div class="content">
-      <div class="comments">
-        <mail-comments/>
-      </div>
-  </div>\
-  `;
+        $(element).closest('div[ng-form=form]').find('.content-scroll>.content').append(element);
       }
     })
   );
@@ -119,7 +110,7 @@
       },
 
       template() {
-        return `\
+        return `
   <div class="container">
           <h3>${Katrid.i18n.gettext('Comments')}</h3>
           <div class="form-group">
@@ -164,8 +155,7 @@
               </div>
             </div>
           </div>
-    </div>\
-  `;
+    </div>`;
       }
     })
   );

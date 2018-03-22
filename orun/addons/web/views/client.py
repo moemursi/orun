@@ -25,21 +25,20 @@ class WebClient(BaseView):
         }
         return render_template('web/index.html', **context)
 
-    @route('/action/<action_id>/')
-    @login_required
-    def action(self, action_id=None):
-        Action = app['ir.action']
-        Menu = app['ui.menu']
-        context = {
-            'root_menu': Menu.objects.filter(Menu.c.parent_id == None),
-        }
-        if action_id:
-            action = Action.objects.get(action_id).get_action()
-            action = app[action.action_type].objects.get(action.id)
-            cur_menu = None
-            context['current_menu'] = cur_menu
-            return jsonify(action.serialize())
-        return render_template('web/action.html', **context)
+    # @route('/action/<action_id>/')
+    # @login_required
+    # def action(self, action_id=None):
+    #     Action = app['ir.action']
+    #     Menu = app['ui.menu']
+    #     context = {
+    #         'root_menu': Menu.objects.filter(Menu.c.parent_id == None),
+    #     }
+    #     if action_id:
+    #         action = Action.objects.get(action_id).get_action()
+    #         cur_menu = None
+    #         context['current_menu'] = cur_menu
+    #         return jsonify(action.serialize())
+    #     return render_template('web/action.html', **context)
 
     @route('/client/i18n/catalog.js')
     def i18n_js_catalog(self):

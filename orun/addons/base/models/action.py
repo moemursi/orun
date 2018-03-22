@@ -1,4 +1,6 @@
-from orun import app
+from collections import defaultdict
+
+from orun import app, api
 from orun.db import models
 from orun.utils.translation import gettext_lazy as _
 
@@ -16,10 +18,11 @@ class Action(models.Model):
     binding_type = models.SelectionField(
         (
             ('action', _('Action')),
-            ('report', _('Report')),
+            ('print', _('Print')),
         ),
         default='action',
     )
+    multiple = models.BooleanField(label='Restrict to lists')
 
     class Meta:
         name = 'ir.action'
@@ -35,8 +38,20 @@ class Action(models.Model):
     def get_action(self):
         return app[self.action_type].objects.get(self.pk)
 
+    @api.method
+    def load(self, id, context=None):
+        return self.objects.get(id).get_action().serialize()
+
     def execute(self):
         raise NotImplemented()
+
+    def get_bindings(self, model):
+        r = defaultdict(list)
+        # TODO: optimize filter by name (plain query)
+        obj = self.env['ir.model'].get_by_natural_key(model)
+        for action in self.objects.filter(self.c.binding_model_id==obj.pk):
+            r[action.binding_type].append(action)
+        return r
 
 
 class WindowAction(Action):

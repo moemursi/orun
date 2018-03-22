@@ -1,6 +1,8 @@
 <templates>
   <script id="view.form" type="text/ng-template">
-    <div ng-form="form" class="data-form" ng-class="{'form-data-changing': dataSource.changing, 'form-data-readonly': !dataSource.changing}">
+    <div ng-form="form" class="data-form"
+         ng-class="{'form-data-changing': dataSource.changing, 'form-data-readonly': !dataSource.changing}"
+    >
       <toolbar>
         <div>
           <a href="javascript:void(0)" title="Add to favorite"><i class="fa star fa-star-o pull-right"></i></a>
@@ -9,20 +11,20 @@
         </div>
         <div class="toolbar">
           <button class="btn btn-primary" type="button" ng-disabled="dataSource.uploading"
-                  ng-click="dataSource.saveChanges()" ng-show="dataSource.changing">
-            {{ ::gettext('Save') }}
+                  ng-click="dataSource.save()" ng-show="dataSource.changing">
+            {{ ::_.gettext('Save') }}
           </button>
           <button class="btn btn-primary" type="button" ng-disabled="dataSource.uploading"
-                  ng-click="dataSource.editRecord()" ng-show="!dataSource.changing">
-            {{ ::gettext('Edit') }}
+                  ng-click="dataSource.edit()" ng-show="!dataSource.changing">
+            {{ ::_.gettext('Edit') }}
           </button>
           <button class="btn btn-secondary" type="button" ng-disabled="dataSource.uploading"
-                  ng-click="dataSource.newRecord()" ng-show="!dataSource.changing">
-            {{ ::gettext('Create') }}
+                  ng-click="dataSource.insert()" ng-show="!dataSource.changing">
+            {{ ::_.gettext('Create') }}
           </button>
-          <button class="btn btn-secondary" type="button" ng-click="dataSource.cancelChanges()"
+          <button class="btn btn-secondary" type="button" ng-click="dataSource.cancel()"
                   ng-show="dataSource.changing">
-            {{ ::gettext('Cancel') }}
+            {{ ::_.gettext('Cancel') }}
           </button>
 
 
@@ -30,7 +32,7 @@
             <div class="dropdown">
               <button id="attachments-button" attachments-button="" type="button" class="btn btn-secondary dropdown-toggle"
                       data-toggle="dropdown" aria-haspopup="true">
-                <span ng-show="!attachments.length">{{ ::gettext('Attachments') }} </span>
+                <span ng-show="!attachments.length">{{ ::_.gettext('Attachments') }} </span>
                 <span ng-show="attachments.length">{{ sprintf(gettext('%%d Attachment(s)'), attachments.length) }}</span>
                 <span class="caret"></span>
               </button>
@@ -42,7 +44,7 @@
                 </a>
                 <div role="separator" class="dropdown-divider" ng-show="attachments.length"></div>
                 <a class="dropdown-item" href="javascript:void(0)" onclick="$(this).next().click()">
-                  {{ ::gettext('Add...') }}
+                  {{ ::_.gettext('Add...') }}
                 </a>
                 <input type="file" class="input-file-hidden" multiple="multiple"
                        onchange="Katrid.Services.Attachments.upload(this)"/>
@@ -53,14 +55,14 @@
             <div class="dropdown">
               <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
                       aria-haspopup="true">
-                {{ ::gettext('Action') }} <span class="caret"></span>
+                {{ ::_.gettext('Action') }} <span class="caret"></span>
               </button>
               <div class="dropdown-menu dropdown-menu-actions">
                 <a class="dropdown-item" href="javascript:void(0)" ng-click="action.deleteSelection(true)"><i
-                    class="fa fa-fw fa-trash-o"></i> {{ ::gettext('Delete') }}</a>
+                    class="fa fa-fw fa-trash-o"></i> {{ ::_.gettext('Delete') }}</a>
                 <a class="dropdown-item" href='javascript:void(0)' ng-click="action.copy()">
                   <i class="fa fa-fw fa-files-o"></i>
-                  {{ ::gettext('Duplicate') }}</a>
+                  {{ ::_.gettext('Duplicate') }}</a>
                 %(actions)s
               </div>
             </div>
@@ -69,7 +71,7 @@
           <div class="pull-right">
             <div class="btn-group pagination-area">
               <span ng-show="records.length">
-                {{ dataSource.recordIndex }} / {{ records.length }}
+                {{ dataSource.recordIndex + 1 }} / {{ records.length }}
               </span>
             </div>
             <div class="btn-group" role="group">

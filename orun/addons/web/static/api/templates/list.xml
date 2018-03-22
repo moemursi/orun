@@ -47,7 +47,7 @@
   </script>
   <script id="view.list.td.selector" type="text/ng-template">
     <td class="list-record-selector" onclick="event.stopPropagation();">
-      <input type="checkbox" ng-click="action.selectToggle($event.currentTarget)"
+      <input data-id="{{ ::row.id }}" type="checkbox" ng-click="action.selectToggle($event.currentTarget)"
              onclick="if (!$(this).prop('checked')) $(this).closest('table').find('th.list-record-selector input').prop('checked', false)">
     </td>
   </script>

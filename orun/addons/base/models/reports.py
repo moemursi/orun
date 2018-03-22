@@ -55,6 +55,7 @@ class ReportAction(Action):
             out_file = '/web/reports/' + os.path.basename(rep)
             return {
                 'open': out_file,
+                'name': self.name,
             }
 
     @api.method

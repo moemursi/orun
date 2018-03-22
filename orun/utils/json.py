@@ -16,3 +16,4 @@ def jsonify(data, cls=OrunJSONEncoder):
         (json.dumps(data, indent=indent, separators=separators, cls=cls), '\n'),
         mimetype=app.config['JSONIFY_MIMETYPE']
     )
+

@@ -1,9 +1,46 @@
 (function () {
 
+
+  class ActionManager {
+    static initClass() {
+    }
+
+    constructor() {
+      this.actions = [];
+      this.mainAction = null;
+    }
+
+    addAction(action) {
+      if (!this.mainAction)
+        this.mainAction = action;
+      this.actions.push(action);
+    }
+
+    removeAction(action) {
+      this.actions.splice(this.actions.indexOf(action), this.actions.length);
+    }
+
+    get action() {
+      return this.actions[this.actions.length-1];
+    }
+    set action(v) {
+      this.actions.splice(this.actions.indexOf(action) + 1, this.actions.length);
+    }
+
+    clear() {
+      this.actions = [];
+      this.mainAction = null;
+    }
+
+    get path() {
+      return this.action.path;
+    }
+  }
+
   class Action {
     static initClass() {
       this.history = [];
-      this.prototype.actionType = null;
+      this.actionType = null;
     }
     constructor(info, scope, location) {
       this.info = info;
@@ -232,14 +269,10 @@
           let viewType = this.viewType;
           return this.scope.$apply(() => {
             this.scope.views = views;
-            this.scope.view = views[viewType];
+            this.scope.view = new Katrid.Data.View(views[viewType]);
             this.apply();
           });
         });
-      }
-
-      if (this.viewType !== 'list') {
-        return this.scope.dataSource.groupBy();
       }
     }
 
@@ -481,10 +514,12 @@
     ClientAction
   };
 
+  this.Katrid.Actions.ActionManager = ActionManager;
+  this.Katrid.Actions.actionManager = new ActionManager();
   this.Katrid.Actions[WindowAction.actionType] = WindowAction;
   this.Katrid.Actions[ReportAction.actionType] = ReportAction;
   this.Katrid.Actions[ViewAction.actionType] = ViewAction;
   this.Katrid.Actions[UrlAction.actionType] = UrlAction;
   this.Katrid.Actions[ClientAction.actionType] = ClientAction;
 
-}).call(this);
+})();

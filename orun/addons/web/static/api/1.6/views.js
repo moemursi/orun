@@ -131,7 +131,7 @@
           }
         }
 
-        let _widget = Katrid.UI.Widgets.Field.fromField(fieldInfo, col.attr('widget'));
+        let _widget = Katrid.UI.Widgets[col.attr('widget') || fieldInfo.type] || Katrid.UI.Widgets.StringField;
         _widget = new _widget(this.scope, {}, fieldInfo, col);
         // _widget.inplaceEditor = false;
         ths += _widget.th();

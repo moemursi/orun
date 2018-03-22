@@ -85,17 +85,17 @@
 
   // Auto initialize voice command
   Katrid.Speech.voiceCommand = new VoiceCommand();
-    console.log('start voice commands');
-  if (Katrid.Settings.Speech.enabled) {
+
+  // load voice commands
+  let model = new Katrid.Services.Model('voice.command');
+  model.search()
+  .done(res => {
+    if (res.ok)
+      for (let cmd of res.result.data)
+        Katrid.Speech.voiceCommand.commands.push({ name: cmd.name, command: cmd.command });
+  });
+
+  if (Katrid.Settings.Speech.enabled)
     Katrid.Speech.voiceCommand.start();
-    // load voice commands
-    let model = new Katrid.Services.Model('voice.command');
-    model.search()
-    .done(res => {
-      if (res.ok)
-        for (let cmd of res.result.data)
-          Katrid.Speech.voiceCommand.commands.push({ name: cmd.name, command: cmd.command });
-    });
-  }
 
 }).call(this);

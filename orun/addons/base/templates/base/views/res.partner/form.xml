@@ -28,9 +28,9 @@
   <fieldset class="col-sm-6">
     <legend>{{ _('Details') }}</legend>
     <div class="row">
-      <field name="phone" icon="fa fa-phone"/>
-      <field name="fax"/>
-      <field name="mobile" icon="fa fa-mobile"/>
+      <field name="phone" icon="fa fa-phone" cols="4"/>
+      <field name="fax" cols="4"/>
+      <field name="mobile" icon="fa fa-mobile" cols="4"/>
       <field name="website" icon="fa fa-globe"/>
       <field name="email" icon="fa fa-envelope"/>
       <field name="language"/>

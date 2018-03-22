@@ -1,27 +1,5 @@
 (function () {
 
-  function createRecord(rec, scope) {
-    return new Proxy(rec, {
-      set(target, propKey, value, receiver) {
-        if (scope) {
-          scope.$setDirty(propKey);
-          scope.dataSource._pendingChanges = true;
-        }
-        return Reflect.set(target, propKey, value, receiver);
-      }
-    })
-  }
-
-  class RecordState {
-    static initClass() {
-      this.destroyed = 'destroyed';
-      this.created = 'created';
-      this.modified = 'modified';
-    }
-  }
-  RecordState.initClass();
-
-
   class DataSourceState {
     static initClass() {
       this.inserting = 'inserting';
@@ -37,13 +15,14 @@
 
   class DataSource {
     constructor(scope) {
-      this.onFieldChange = this.onFieldChange.bind(this);
+      // this.onFieldChange = this.onFieldChange.bind(this);
+      this.fields = [];
       this.scope = scope;
-      this.recordIndex = 0;
+      this._recordIndex = 0;
       this.recordCount = null;
       this.loading = false;
       this.loadingRecord = false;
-      this.masterSource = null;
+      this._masterSource = null;
       this.pageIndex = 0;
       this.pageLimit = 100;
       this.offset = 0;
@@ -54,9 +33,13 @@
       this.children = [];
       this.modifiedData = null;
       this.uploading = 0;
-      this.state = null;
-      this.fieldChangeWatchers = [];
+      this._state = null;
+      this.fieldWatchers = [];
       this._pendingChanges = false;
+    }
+
+    addFieldWatcher(field) {
+
     }
 
     get loadingAction() {
@@ -69,24 +52,23 @@
       this._loadingAction = v;
     }
 
-    cancelChanges() {
+    cancel() {
       this._pendingChanges = false;
       if ((this.state === DataSourceState.inserting) && Katrid.Settings.UI.goToDefaultViewAfterCancelInsert) {
-        this.scope.record = this._new();
+        this.record = {};
         this.scope.action.setViewType('list');
       } else {
         if (this.state === DataSourceState.editing) {
           const r = this.refresh([this.scope.record.id]);
-          if (r && $.isFunction(r.promise)) {
+          if (r && $.isFunction(r.promise))
             r.done(() => {
-              return this.setState(DataSourceState.browsing);
+              return this.state = DataSourceState.browsing;
             });
-          } else {
-            this.setState(DataSourceState.browsing);
-          }
+          else
+            this.state = DataSourceState.browsing;
         } else {
-          this.scope.record = this._new();
-          this.setState(DataSourceState.browsing);
+          this.record = {};
+          this.state = DataSourceState.browsing;
         }
       }
     }
@@ -96,26 +78,24 @@
       const r = this.saveChanges(false);
       if (r && $.isFunction(r.promise)) {
         return r.done(res => {
-          if (res.ok && res.result) {
+          if (res.ok && res.result)
             this.scope.result = res.result;
-          }
+
           return $(this.scope.root).closest('.modal').modal('toggle');
         });
       }
     }
 
-    saveChanges(autoRefresh) {
+    save(autoRefresh=true) {
       // Submit fields with dirty state only
-      if (autoRefresh == null) { autoRefresh = true; }
       const el = this.scope.formElement;
       if (this.validate()) {
         const data = this.getModifiedData(this.scope.form, el, this.scope.record);
         this.scope.form.data = data;
 
         let beforeSubmit = el.attr('before-submit');
-        if (beforeSubmit) {
+        if (beforeSubmit)
           beforeSubmit = this.scope.$eval(beforeSubmit);
-        }
 
         //@scope.form.data = null
 
@@ -123,79 +103,72 @@
           this.uploading++;
           return this.scope.model.write([data])
           .done(res => {
-            if (res.ok) {
-              this.scope.form.$setPristine();
-              this.scope.form.$setUntouched();
-              if (this.children) this.children.map((child) => {
+
+            this.scope.action.location.search('id', res[0]);
+            this.scope.form.$setPristine();
+            this.scope.form.$setUntouched();
+            if (this.children)
+              this.children.map((child) => {
                 child.scope.dataSet = [];
                 delete child.modifiedData;
                 child.scope.masterChanged(this.scope.recordId);
               });
-              this._pendingChanges = false;
-              this.setState(DataSourceState.browsing);
-              if (autoRefresh) return this.refresh(res.result);
-            } else {
-              let s = `<span>${Katrid.i18n.gettext('The following fields are invalid:')}<hr></span>`;
-              if (res.message) {
-                s = res.message;
-              } else if (res.messages) {
-                let elfield;
-                for (let fld in res.messages) {
-                  const msgs = res.messages[fld];
-                  const field = this.scope.view.fields[fld];
-                  elfield = el.find(`.form-field[name="${field.name}"]`);
-                  elfield.addClass('ng-invalid ng-touched');
-                  s += `<strong>${field.caption}</strong><ul>`;
-                  for (let msg of Array.from(msgs)) {
-                    s += `<li>${msg}</li>`;
-                  }
-                  s += '</ul>';
-                }
-                if (elfield) {
-                  elfield.focus();
-                }
-              }
+            this._pendingChanges = false;
+            this.state = DataSourceState.browsing;
+            if (autoRefresh)
+              return this.refresh(res);
 
-              return Katrid.Dialogs.Alerts.error(s);
+          })
+          .fail(error => {
+
+            let s = `<span>${Katrid.i18n.gettext('The following fields are invalid:')}<hr></span>`;
+            if (error.message)
+              s = error.message;
+            else if (error.messages) {
+              let elfield;
+              for (let fld in error.messages) {
+                const msgs = error.messages[fld];
+                const field = this.scope.view.fields[fld];
+                elfield = el.find(`.form-field[name="${field.name}"]`);
+                elfield.addClass('ng-invalid ng-touched');
+                s += `<strong>${field.caption}</strong><ul>`;
+                for (let msg of Array.from(msgs)) {
+                  s += `<li>${msg}</li>`;
+                }
+                s += '</ul>';
+              }
+              if (elfield)
+                elfield.focus();
             }
-        }).always(() => this.scope.$apply(() => this.uploading-- ) );
-        } else {
+
+            return Katrid.Dialogs.Alerts.error(s);
+
+          })
+          .always(() => this.scope.$apply(() => this.uploading-- ) );
+        } else
           Katrid.Dialogs.Alerts.warn(Katrid.i18n.gettext('No pending changes'));
-        }
       }
     }
 
     copy(id) {
       return this.scope.model.copy(id)
       .done(res => {
-        this.setState(DataSourceState.inserting);
-        this.scope.record = this._new();
-        return this.scope.$apply(() => {
-          return this.setFields(res.result);
-        });
+        this.record = {};
+        this.state = DataSourceState.inserting;
+        this.setValues(res);
+        this.scope.$apply();
       });
     }
 
     findById(id) {
-      for (let rec of Array.from(this.scope.records)) {
-        if (rec.id === id) {
+      for (let rec of this.scope.records)
+        if (rec.id === id)
           return rec;
-        }
-      }
+      return null;
     }
 
     hasKey(id) {
-      return (() => {
-        const result = [];
-        for (let rec of Array.from(this.scope.records)) {
-          if (rec.id === id) {
-            result.push(true);
-          } else {
-            result.push(undefined);
-          }
-        }
-        return result;
-      })();
+      return this.findById(id) !== null;
     }
 
     refresh(data) {
@@ -212,9 +185,10 @@
     _validateForm(elForm, form, errorMsgs) {
       let elfield;
       console.log(form.$error);
-      for (let errorType in form.$error) {
+      for (let errorType in form.$error)
         for (let child of Array.from(form.$error[errorType])) {
-          if (child.$name.startsWith('grid-row-form')) elfield = this._validateForm(elForm.find('#' + child.$name), child, errorMsgs);
+          if (child.$name.startsWith('grid-row-form'))
+            elfield = this._validateForm(elForm.find('#' + child.$name), child, errorMsgs);
           else {
             elfield = elForm.find(`.form-field[name="${child.$name}"]`);
             elfield.addClass('ng-touched');
@@ -223,7 +197,6 @@
             errorMsgs.push(`<span>${field.caption}</span><ul><li>${Katrid.i18n.gettext('This field cannot be empty.')}</li></ul>`);
           }
         }
-      }
 
       return elfield;
     }
@@ -243,9 +216,8 @@
       return true;
     }
 
-    getIndex(obj) {
-      const rec = this.findById(obj.id);
-      return this.scope.records.indexOf(rec);
+    indexOf(obj) {
+      return this.scope.records.indexOf(this.findById(obj.id));
     }
 
     search(params, page, fields) {
@@ -281,7 +253,7 @@
       const def = new $.Deferred();
 
       let req = () => {
-        this.scope.model.search(params, {count: true})
+        this.scope.model.search(params)
         .fail(res => {
           return def.reject(res);
         }).done(res => {
@@ -291,10 +263,10 @@
             this.offset = 1;
           }
           this.scope.$apply(() => {
-            if (res.result.count != null) {
-              this.recordCount = res.result.count;
+            if (res.count != null) {
+              this.recordCount = res.count;
             }
-            this.scope.records = res.result.data;
+            this.scope.records = res.data;
             if (this.pageIndex === 1) {
               return this.offsetLimit = this.scope.records.length;
             } else {
@@ -327,7 +299,7 @@
       .then(res => {
         this.scope.records = [];
         const groupName = group.context.grouping[0];
-        for (let r of Array.from(res.result)) {
+        for (let r of Array.from(res)) {
           let s = r[groupName];
           if ($.isArray(s)) {
             r._paramValue = s[0];
@@ -345,7 +317,7 @@
           const row = {_group: r, _hasGroup: true};
 
           // load groupings info
-          var grouping = r;
+          let grouping = r;
           this.scope.groupings.push(grouping);
 
           // auto load records
@@ -364,15 +336,13 @@
     }
 
     goto(index) {
-      return this.scope.moveBy(index - this.recordIndex);
+      return this.recordIndex = index;
     }
 
     moveBy(index) {
-      const newIndex = (this.recordIndex + index) - 1;
-      if ((newIndex > -1) && (newIndex < this.scope.records.length)) {
-        this.recordIndex = newIndex + 1;
-        return this.scope.action.location.search('id', this.scope.records[newIndex].id);
-      }
+      const newIndex = (this._recordIndex + index);
+      if ((newIndex > -1) && (newIndex < this.scope.records.length))
+        this.recordIndex = newIndex;
     }
 
     _clearTimeout() {
@@ -381,9 +351,13 @@
       return clearTimeout(this.pendingRequest);
     }
 
-    setMasterSource(master) {
-      this.masterSource = master;
+    set masterSource(master) {
+      this._masterSource = master;
       master.children.push(this);
+    }
+
+    get masterSource() {
+      return this._masterSource;
     }
 
     applyModifiedData(form, element, record) {
@@ -474,7 +448,7 @@
 
     get(id, timeout) {
       this._clearTimeout();
-      this.setState(DataSourceState.loading);
+      this.state = DataSourceState.loading;
       this.loadingRecord = true;
       const def = new $.Deferred();
 
@@ -484,7 +458,7 @@
           return def.reject(res);
       }).done(res => {
           this.scope.$apply(() => {
-            return this._setRecord(res.result.data[0]);
+            return this.record = res.data[0];
           });
           return def.resolve(res);
         }).always(() => {
@@ -501,26 +475,25 @@
       return def.promise();
     }
 
-    newRecord() {
-      this.setState(DataSourceState.inserting);
-      this.scope.recordId = null;
-      this.scope.model.getDefaults(this.scope.getContext())
+    insert() {
+      this.record = {};
+      return this.scope.model.getDefaults()
       .done(res => {
-        return this.scope.$apply(() => {
-          this.scope.record = this._new();
+        this.scope.$apply(() => {
+          this.state = DataSourceState.inserting;
           this.scope.record.display_name = Katrid.i18n.gettext('(New)');
-          if (res.result) {
-            return this.setFields(res.result);
-          }
+          if (res.result)
+            this.setValues(res.result);
+
         });
       });
     }
 
     _new() {
-      return createRecord({}, this.scope);
+      return Katrid.Data.createRecord({}, this.scope);
     }
 
-    setFields(values) {
+    setValues(values) {
       for (let attr in values) {
         let v = values[attr];
         this.scope.record[attr] = v;
@@ -543,8 +516,8 @@
       }
     }
 
-    editRecord() {
-      return this.setState(DataSourceState.editing);
+    edit() {
+      this.state = DataSourceState.editing;
     }
 
     toClientValue(attr, value) {
@@ -557,20 +530,28 @@
       return value;
     }
 
-    setState(state) {
+    set state(state) {
       // Clear modified fields information
       this._modifiedFields = [];
-      this.state = state;
-      return this.changing =  [DataSourceState.editing, DataSourceState.inserting].includes(this.state);
+      this._state = state;
+      this.inserting = state === DataSourceState.inserting;
+      this.editing = state === DataSourceState.editing;
+      this.loading = state === DataSourceState.loading;
+      this.browsing = state === DataSourceState.browsing;
+      this.changing =  [DataSourceState.editing, DataSourceState.inserting].includes(this.state);
     }
 
-    _setRecord(rec) {
+    get state() {
+      return this._state;
+    }
+
+    set record(rec) {
       // Track field changes
-      this.scope.record = createRecord(rec, this.scope);
+      this.scope.record = Katrid.Data.createRecord(rec, this.scope);
       this.scope.recordId = rec.id;
       this._pendingChanges = false;
       this.scope.form.$setPristine();
-      return this.state = DataSourceState.browsing;
+      // this.state = DataSourceState.browsing;
     }
 
     next() {
@@ -597,37 +578,42 @@
       }
     }
 
-    setRecordIndex(index) {
-      return this.recordIndex = index + 1;
+    set recordIndex(index) {
+      this._recordIndex = index;
+      this.scope.action.location.search('id', this.scope.records[index].id);
     }
 
-    onFieldChange(res) {
-      if (res.ok && res.result.fields) {
-        return this.scope.$apply(() => {
-          return (() => {
-            const result = [];
-            for (let f in res.result.fields) {
-              const v = res.result.fields[f];
-              result.push(this.scope.$set(f, v));
-            }
-            return result;
-          })();
-        });
-      }
+    get recordIndex() {
+      return this._recordIndex;
     }
 
-    fieldChange(meth, params) {
-      return this.scope.model.post(meth, null, { kwargs: params })
-      .done(res => {
-        return this.scope.$apply(() => {
-          if (res.ok) {
-            if (res.result.values) {
-              return this.setFields(res.result.values);
-            }
-          }
-        });
-      });
-    }
+    // onFieldChange(res) {
+    //   if (res.ok && res.result.fields) {
+    //     return this.scope.$apply(() => {
+    //       return (() => {
+    //         const result = [];
+    //         for (let f in res.result.fields) {
+    //           const v = res.result.fields[f];
+    //           result.push(this.scope.$set(f, v));
+    //         }
+    //         return result;
+    //       })();
+    //     });
+    //   }
+    // }
+
+    // fieldChange(meth, params) {
+    //   return this.scope.model.post(meth, null, { kwargs: params })
+    //   .done(res => {
+    //     return this.scope.$apply(() => {
+    //       if (res.ok) {
+    //         if (res.result.values) {
+    //           return this.setFields(res.result.values);
+    //         }
+    //       }
+    //     });
+    //   });
+    // }
 
     expandGroup(index, row) {
       const rg = row._group;
@@ -653,20 +639,9 @@
   }
 
 
-  class Record {
-    constructor(res) {
-      this.res = res;
-      this.data = this.res.data;
-    }
-  }
-
-
   Katrid.Data = {
     DataSource,
-    Record,
-    RecordState,
-    DataSourceState,
-    createRecord
+    DataSourceState
   };
 
-}).call(this);
+})();

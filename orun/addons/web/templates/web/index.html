@@ -15,7 +15,7 @@
       <ul class="navbar-nav mr-auto modules">
         {% for menu in root_menu %}
         <li class="nav-item" ng-class="{active: current_menu === {{ menu.pk }} }">
-          <a class="nav-link module-selector" ng-click="current_menu={{ menu.pk }};" onclick="$('#left-side-menu[data-menu-id=\'{{ menu.pk }}\']').find('.menu-item-action').first().click()" data-menu-id="{{ menu.pk }}" href="javascript:void(0)">{% if menu.icon %}{{ menu.icon }}{% endif %} {{ gettext(menu.name) }}</a>
+          <a class="nav-link module-selector" ng-click="current_menu={{ menu.pk }};" [data-menu-id="{{ menu.pk }}" href="#/menu/{{ menu.pk }}/">{% if menu.icon %}{{ menu.icon }}{% endif %} {{ gettext(menu.name) }}</a>
         </li>
         {% endfor %}
       </ul>
@@ -133,7 +133,6 @@
 
 {% endblock %}
 {% block page_loaded %}
-  <script src="/static/web/static/api/1.5/speech.js"></script>
   <script>
     $(document).ready(function () {
       $.each($('a.module-selector'), function (idx, el) {

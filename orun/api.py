@@ -1,7 +1,9 @@
 from collections import Mapping
 import inspect
 from functools import wraps
-from orun import app
+
+from orun import app, request
+from orun.core.exceptions import RPCError
 from orun.utils.functional import SimpleLazyObject
 
 
@@ -102,6 +104,13 @@ def depends(fields):
     return decorator
 
 
+def onchange(fields):
+    def decorator(fn):
+        fn.depends = fields
+        return fn
+    return decorator
+
+
 def serialize(*args, **kwargs):
     def decorator(fn):
         fn.exposed = True
@@ -117,3 +126,31 @@ def serialize(*args, **kwargs):
     if args and callable(args[0]):
         return decorator(args[0])
     return decorator
+
+
+def jsonrpc(fn):
+
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        from orun.utils.json import jsonify
+        data = request.json
+        _id = data['id']
+        kwargs['params'] = data.get('params')
+        try:
+            r = fn(*args, **kwargs)
+            return jsonify({
+                'jsonrpc': '2.0',
+                'id': _id,
+                'result': r
+            })
+        except RPCError as e:
+            return jsonify({
+                'jsonrpc': '2.0',
+                'id': _id,
+                'error': {
+                    'code': e.code,
+                    'message': str(e)
+                }
+            })
+
+    return wrapped

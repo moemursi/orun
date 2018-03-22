@@ -258,4 +258,4 @@
   };
 
   this.Katrid.Services.upload
-}).call(this);
+})();

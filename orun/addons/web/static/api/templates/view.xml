@@ -61,19 +61,24 @@
   <script id="view.buttons" type="text/ng-template">
     <div class="btn-group">
       <button class="btn btn-primary" type="button" ng-click="action.createNew()">
-        {{ ::gettext('Create') }}
+        {{ ::_.gettext('Create') }}
       </button>
     </div>
   </script>
   <script id="view.buttons.reports" type="text/ng-template">
-    <div class="btn-group">
+    <div class="btn-group" ng-show="action.selectionLength">
       <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true">
-        {{ ::gettext('Print') }} <span class="caret"></span>
+        {{ ::_.gettext('Print') }} <span class="caret"></span>
       </button>
       <div class="dropdown-menu">
-        <a class="dropdown-item" href='javascript:void(0)' ng-click="action.autoReport()">
-          <i class="fa fa-fw fa-file"></i> {{ ::gettext('Auto Report') }}
+        <a class="dropdown-item" ng-click="action.autoReport()">
+          {{ ::_.gettext('Auto Report') }}
         </a>
+
+        <a ng-repeat="bindingAction in view.toolbar.print" class="dropdown-item" data-id="{{ bindingAction.id }}" ng-click="$parent.action.doBindingAction($event)">
+          {{ bindingAction.name }}
+        </a>
+
       </div>
     </div>
   </script>
@@ -81,12 +86,14 @@
     <div class="btn-group" ng-show="action.selectionLength">
       <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
               aria-haspopup="true">
-        {{ ::gettext('Action') }} <span class="caret"></span>
+        {{ ::_.gettext('Action') }} <span class="caret"></span>
       </button>
       <div class="dropdown-menu">
-        <a class="dropdown-item" href='javascript:void(0)' ng-click="action.deleteSelection()">
-          <i class="fa fa-fw fa-trash-o"></i> {{ ::gettext('Delete') }}
+        <a class="dropdown-item" ng-click="action.deleteSelection()">
+          <i class="fa fa-fw fa-trash-o"></i> {{ ::_.gettext('Delete') }}
         </a>
+
+
       </div>
     </div>
   </script>

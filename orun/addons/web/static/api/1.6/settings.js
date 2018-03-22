@@ -2,7 +2,7 @@
 
   class Application {
     static initClass() {
-      this.prototype.auth = {
+      this.auth = {
         user: {},
         isAuthenticated: false,
         logout(next) {
@@ -10,6 +10,7 @@
         }
       };
     }
+
     constructor(title) {
       this.title = title;
     }
@@ -61,7 +62,7 @@
     },
 
     Speech: {
-      enabled: true
+      enabled: false
     }
   };
 

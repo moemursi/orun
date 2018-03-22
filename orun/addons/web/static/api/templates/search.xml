@@ -3,7 +3,7 @@
     <div class="search-area">
       <div class="search-view">
         <div class="search-view-facets"></div>
-        <input class="search-view-input" role="search" placeholder="{{ ::gettext('Search...') }}" ng-model="search.text">
+        <input class="search-view-input" role="search" placeholder="{{ ::_.gettext('Search...') }}" ng-model="search.text">
         <span
             ng-class="{'fa-search-plus': !search.viewMoreButtons, 'fa-search-minus': search.viewMoreButtons}"
             class="search-view-more fa"></span>
@@ -17,18 +17,18 @@
     <div class="btn-group search-view-more-area" ng-show="search.viewMoreButtons">
       <div class="btn-group">
         <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" type="button" aria-expanded="false">
-          <span class="fa fa-filter"></span> {{ ::gettext('Filters') }} <span class="caret"></span>
+          <span class="fa fa-filter"></span> {{ ::_.gettext('Filters') }} <span class="caret"></span>
         </button>
         <div class="dropdown-menu search-view-filter-menu"></div>
       </div>
       <div class="btn-group">
         <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" type="button">
-          <span class="fa fa-bars"></span> {{ ::gettext('Group By') }} <span class="caret"></span>
+          <span class="fa fa-bars"></span> {{ ::_.gettext('Group By') }} <span class="caret"></span>
         </button>
         <ul class="dropdown-menu search-view-groups-menu"></ul>
       </div>
       <button class="btn btn-secondary">
-        <span class="fa fa-star"></span> {{ ::gettext('Favorites') }} <span class="caret"></span>
+        <span class="fa fa-star"></span> {{ ::_.gettext('Favorites') }} <span class="caret"></span>
       </button>
     </div>
   </script>

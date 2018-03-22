@@ -208,6 +208,7 @@ class Deserializer(base.Deserializer):
         report = {
             'model': 'ir.action.report',
             'id': obj.attrib.get('id'),
+            'children': obj.getchildren(),
             'fields': {
                 'report_type': obj.attrib.get('type', 'paginated'),
                 'name': obj.attrib.get('name'),

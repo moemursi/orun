@@ -7,6 +7,21 @@ from sqlalchemy.orm.exc import NoResultFound
 from orun.utils.encoding import force_text
 
 
+class RPCError(Exception):
+    def __init__(self, code, *args):
+        self.code = code
+        super(RPCError, self).__init__(*args)
+
+
+class MethodNotFound(RPCError):
+    """Requested method not found"""
+    def __init__(self, message=None, code=-32601, *args):
+        if message is None:
+            message = 'Requested method not found'
+        self.message = message
+        super(MethodNotFound, self).__init__(code, message, *args)
+
+
 class FieldDoesNotExist(Exception):
     """The requested model field does not exist"""
     pass

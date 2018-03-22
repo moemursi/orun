@@ -83,30 +83,6 @@
       return `<div class="btn-group">${r.join('')}</div>`;
     }
 
-    gridDialog() {
-      return `\
-  <div class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document" ng-class="{'form-data-changing': dataSource.changing, 'form-data-readonly': !dataSource.changing}">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="myModalLabel">{{ field.caption }}</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        </div>
-        <div class="modal-body">
-  <!-- view content -->
-          <div class="clearfix"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" type="button" ng-click="save()" ng-show="dataSource.changing">${Katrid.i18n.gettext('Save')}</button>
-          <button type="button" class="btn btn-default" type="button" data-dismiss="modal" ng-show="dataSource.changing">${Katrid.i18n.gettext('Cancel')}</button>
-          <button type="button" class="btn btn-default" type="button" data-dismiss="modal" ng-show="!dataSource.changing">${Katrid.i18n.gettext('Close')}</button>
-        </div>
-      </div>
-    </div>
-  </div>\
-  `;
-    }
-
     getFilterButtons() {
       return `\
   <div class="btn-group search-view-more-area" ng-show="search.viewMoreButtons">
@@ -508,7 +484,7 @@
     {{::row._group.__str__}} ({{::row._group.count }})</div></td>`;
       if (showSelector) {
         ths += `<th class="list-record-selector"><input type="checkbox" ng-click="action.selectToggle($event.currentTarget)" onclick="$(this).closest('table').find('td.list-record-selector input').prop('checked', $(this).prop('checked'))"></th>`;
-        cols += `<td class="list-record-selector" onclick="event.stopPropagation();"><input type="checkbox" ng-click="action.selectToggle($event.currentTarget)" onclick="if (!$(this).prop('checked')) $(this).closest('table').find('th.list-record-selector input').prop('checked', false)"></td>`;
+        cols += `<td class="list-record-selector" onclick="event.stopPropagation();"><input title="teste" type="checkbox" ng-click="action.selectToggle($event.currentTarget)" onclick="if (!$(this).prop('checked')) $(this).closest('table').find('th.list-record-selector input').prop('checked', false)"></td>`;
       }
 
       for (let col of Array.from(element.children())) {
@@ -533,15 +509,14 @@
         if ((col.attr('visible') === 'False') || (fieldInfo.visible === false))
           continue;
 
-        if (fieldInfo.choices) {
-          fieldInfo._listChoices = {};
-          for (let choice of Array.from(fieldInfo.choices)) {
-            fieldInfo._listChoices[choice[0]] = choice[1];
-          }
-        }
+        // if (fieldInfo.choices) {
+        //   fieldInfo._listChoices = {};
+        //   for (let choice of Array.from(fieldInfo.choices)) {
+        //     fieldInfo._listChoices[choice[0]] = choice[1];
+        //   }
+        // }
 
-        let _widget = Katrid.UI.Widgets.Field.fromField(fieldInfo, col.attr('widget'));
-        _widget = new _widget(scope, {}, fieldInfo, col);
+        let _widget = fieldInfo.createWidget(col.attr('widget'), scope, col, col);
         _widget.inplaceEditor = true;
         ths += _widget.th(col.attr('label'));
 
@@ -738,7 +713,7 @@
     renderStatusField(fieldName) {
       return `\
   <div class="status-field status-field-sm pull-right">
-    <input type="hidden" ng-model="record.${fieldName}"/>
+    <input type="hidden" ng-model="self.${fieldName}"/>
     <div class="steps">
       <a ng-class="{active: $parent.$parent.record.${fieldName} === item[0]}" ng-repeat="item in choices">
         <span ng-bind="item[1]"/>

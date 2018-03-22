@@ -335,7 +335,7 @@ class Model(Service):
         raise NotImplementedError
 
     @api.method
-    def load_views(self, views=None, **kwargs):
+    def load_views(self, views=None, toolbar=False, **kwargs):
         if views is None and 'action' in kwargs:
             Action = app['ir.action.window']
             action = Action.objects.get(kwargs.get('action'))
@@ -346,7 +346,7 @@ class Model(Service):
         return {
             'fields': self.get_fields_info(),
             'views': {
-                mode: self.get_view_info(view_type=mode, view=v)
+                mode: self.get_view_info(view_type=mode, view=v, toolbar=toolbar)
                 for mode, v in views.items()
             }
         }
@@ -404,7 +404,7 @@ class Model(Service):
             raise self.DoesNotExist()
 
     @api.method
-    def get_view_info(self, view_type, view=None):
+    def get_view_info(self, view_type, view=None, toolbar=False):
         View = app['ui.view']
         model = app['ir.model']
 
@@ -417,16 +417,23 @@ class Model(Service):
 
         if view:
             xml_content = view.get_xml(model=self)
-            return {
+            r = {
                 'content': etree.tostring(xml_content, encoding='utf-8').decode('utf-8'),
                 'fields': self.get_fields_info(view_type=view_type, xml=xml_content)
             }
-        content = self._get_default_view(view_type=view_type)
-        return {
-            'content': content,
-            'fields': self.get_fields_info(view_type=view_type, xml=content),
-            #'view_actions': self.get_view_actions(view_type),
-        }
+        else:
+            content = self._get_default_view(view_type=view_type)
+            r = {
+                'content': content,
+                'fields': self.get_fields_info(view_type=view_type, xml=content),
+            }
+        if toolbar and view_type != 'search':
+            bindings = app['ir.action'].get_bindings(self._meta.name)
+            r['toolbar'] = {
+                'print': [action.serialize() for action in bindings['print'] if view_type == 'list' or not action.multiple],
+                'action': [action.serialize() for action in bindings['action'] if view_type == 'list' or not action.multiple],
+            }
+        return r
 
     @api.method
     def get_defaults(self, context=None, *args, **kwargs):

@@ -1,8 +1,9 @@
 from flask import request
-from orun import app
+
+from orun import app, api
+from orun.core.exceptions import ValidationError, MethodNotFound
 from orun.db import models, transaction
 from orun.db.models.query import Query
-from orun.utils.json import jsonify
 from orun.views import BaseView, route
 from orun.auth.decorators import login_required
 
@@ -10,37 +11,30 @@ from orun.auth.decorators import login_required
 class RPC(BaseView):
     route_base = '/api/'
 
-    @route('/rpc/<service>/<method>/', methods=['GET', 'POST', 'DELETE', 'PUT'])
+    @route('/rpc/<service>/call/', methods=['GET', 'POST', 'DELETE', 'PUT'])
     @transaction.atomic
     @login_required
-    def call(self, service, method):
-        if not method.startswith('_'):
+    @api.jsonrpc
+    def call(self, service, params):
+        data = request.json
+        method = data['method']
+        if method.startswith('_'):
+            raise MethodNotFound
+        else:
             kwargs = {}
             args = ()
             for k in request.args.lists():
                 if k[0].startswith('_'):
                     continue
-                if k[0] == 'args':
-                    args = k[1]
-                elif len(k[1]) == 1:
-                    kwargs[k[0]] = k[1][0]
-                else:
-                    kwargs[k[0]] = k[1]
             service = app[service]
             meth = getattr(service, method)
             if getattr(meth, 'exposed', None):
                 qs = kwargs
-                if request.method == 'POST':
-                    if request.data:
-                        kwargs = request.json.get('kwargs', {})
-                        args = request.json.get('args', [])
-                    else:
-                        kwargs = {}
-                        args = []
-                    r = meth(*args, **kwargs)
-                else:
-                    print(args, kwargs)
-                    r = meth(*args, **kwargs)
+
+                args = params.get('args', ())
+                kwargs = params.get('kwargs', {})
+                r = meth(*args, **kwargs)
+
                 if isinstance(r, Query):
                     r = {
                         'data': r,
@@ -50,12 +44,9 @@ class RPC(BaseView):
                     r = {
                         'data': [r]
                     }
-                res = {
-                    'status': 'ok',
-                    'ok': True,
-                    'result': r,
-                }
-                return jsonify(res)
+                return r
+            else:
+                raise MethodNotFound
 
     @route('/field/choices/<service>/<field>/', methods=['GET'])
     @login_required
@@ -64,12 +55,12 @@ class RPC(BaseView):
         field = service._meta.get_field(field)
         service = app[field.related_model._meta.name]
         r = service.search_name(name=request.args.get('q'))
-        return jsonify({'result': r})
+        return {'result': r}
 
     @route('/app/settings/', methods=['GET'])
     @login_required
     def app_settings(self):
-        return jsonify({'result': {}})
+        return {'result': {}}
 
 
 class Auth(BaseView):

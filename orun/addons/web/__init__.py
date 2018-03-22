@@ -14,6 +14,7 @@ class AppConfig(orun.AppConfig):
         'static/api/templates/dialog.xml',
         'static/api/templates/report.xml',
         'static/api/templates/dashboard.xml',
+        'static/api/templates/fields.xml',
     ]
 
 addon = AppConfig()
