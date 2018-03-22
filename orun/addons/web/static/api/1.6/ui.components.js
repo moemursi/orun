@@ -378,10 +378,9 @@
           allowZero: true
         }).bind('keyup blur', function (event) {
           const newVal = element.maskMoney('unmasked')[0];
-          if (newVal !== parseFloat(controller.$viewValue)) {
-            controller.$setViewValue(newVal);
+          controller.$setViewValue(newVal);
+          if (newVal !== parseFloat(controller.$viewValue))
             scope.$apply();
-          }
         });
 
         return controller.$render = function () {
