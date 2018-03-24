@@ -161,9 +161,8 @@
           const data = scope.dataSource.applyModifiedData(scope.form, scope.gridDialog, scope.record);
           if (scope.recordIndex > -1) {
             const rec = scope.records[scope.recordIndex];
-            for (let attr of data) {
-              rec[attr] = data[attr];
-            }
+            console.log(data);
+            Object.entries(data).forEach(([k, v]) => rec[k] = v );
           } else if (scope.recordIndex === -1) {
             scope.records.push(scope.record);
           }

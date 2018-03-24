@@ -505,8 +505,7 @@
       modal.find('#id-btn-ok').click(() => {
 
         let svc = new Katrid.Services.Model('telegram.pending');
-        if (format == null)
-          format = localStorage.katridReportViewer || 'pdf';
+        format = 'pdf';
         const params = report.getUserParams();
         svc.post('export_report', { args: [report.info.id], kwargs: { contacts: sel.val(), format, params } })
         .done(function(res) {
