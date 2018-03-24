@@ -154,7 +154,7 @@
 
     labelTemplate() {
       const placeholder = '';
-      const label = this.field.caption;
+      const label = this.caption;
       if (this.attrs.nolabel === 'placeholder') {
         this.placeholder = label;
         return '';
