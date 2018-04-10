@@ -7,6 +7,7 @@
       let oldGet = templateCache.get;
 
       templateCache.get = function (name) {
+        console.log('get template', name);
         return Templates.prepare(name, oldGet.call(this, name));
       };
 

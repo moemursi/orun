@@ -50,7 +50,6 @@ class Command(object):
         data = getattr(app_config, 'fixtures', None)
         if data:
             for filename in data:
-                filename = os.path.join(app_config.path, 'fixtures', filename)
                 self._load_file(app_config, filename)
         if 'with_demo' in options:
             demo = getattr(app_config, 'demo', None)

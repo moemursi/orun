@@ -223,16 +223,23 @@
       return '';
     }
 
-    _td(cls) {
-      return `<td class="${cls}">{{ ::row.${this.field.name} }}</td>`;
+    _td(cls, readonly=true) {
+      let prefix = '';
+      if (readonly)
+        prefix = '::';
+      return `<td class="${cls}">{{ ${prefix}row.${this.field.name} }}</td>`;
     }
 
-    td() {
+    td(readonly=true) {
       if (this.content)
         return this.content;
-      if (this.field.hasChoices)
-        return `<td class="${this.field.type}">{{ ::view.fields.${this.field.name}.displayChoices[row.${this.field.name}] }}${this._gridEditor()}</td>`;
-      return this._td(`${this.field.type} field-${this.field.name}`);
+      if (this.field.hasChoices) {
+        let prefix = '';
+        if (readonly)
+          prefix = '::';
+        return `<td class="${this.field.type}">{{ ${prefix}view.fields.${this.field.name}.displayChoices[row.${this.field.name}] }}${this._gridEditor()}</td>`;
+      }
+      return this._td(`${this.field.type} field-${this.field.name}`, readonly);
 
       let colHtml = this.element.html();
       let s;

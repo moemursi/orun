@@ -64,6 +64,7 @@ class Application(Flask):
         mods = adjust_dependencies(mods)
         self.app_configs = {}
         self.addons = []
+
         with self.app_context():
             for mod_name in mods:
                 addon = registry.app_configs[mod_name]
@@ -79,10 +80,6 @@ class Application(Flask):
                 # Register blueprints
                 self.register_blueprint(addon)
 
-                # Initialize addon on current instance
-                if hasattr(addon, 'init_app'):
-                    addon.init_app(self)
-
                 # Register addon commands
                 for cmd in registry.module_commands[addon.app_label]:
                     self.cli.add_command(cmd)
@@ -92,6 +89,12 @@ class Application(Flask):
 
             # Initialize app context models
             self.build_models()
+
+            for addon in self.addons:
+                # Initialize addon on current instance
+                if hasattr(addon, 'init_app'):
+                    addon.init_app(self)
+
 
     def build_models(self):
         print('Building models')

@@ -22,7 +22,7 @@
         scope._cachedViews = {};
         scope._ = scope.$parent._;
         scope._changeCount = 0;
-        scope.dataSet = [];
+        let dataSet = {};
         scope.parent = scope.$parent;
         scope.model = new Katrid.Services.Model(field.model);
 
@@ -161,7 +161,6 @@
           const data = scope.dataSource.applyModifiedData(scope.form, scope.gridDialog, scope.record);
           if (scope.recordIndex > -1) {
             const rec = scope.records[scope.recordIndex];
-            console.log(data);
             Object.entries(data).forEach(([k, v]) => rec[k] = v );
           } else if (scope.recordIndex === -1) {
             scope.records.push(scope.record);
@@ -189,17 +188,15 @@
             // Show item dialog
             scope.recordIndex = index;
 
-            if (!scope.dataSet[index]) {
+            if (!dataSet[index]) {
               return scope.dataSource.get(scope.records[index].id, 0)
-              .done(function(res) {
-                if (res.ok)
-                  return scope.$apply(function() {
-                    scope.dataSet[index] = scope.record;
-                  });
+              .done(res => {
+                if (res.data)
+                  dataSet[index] = scope.record;
               });
             }
             setTimeout(() => {
-              const rec = scope.dataSet[index];
+              const rec = dataSet[index];
               scope.$apply(() => scope.record = rec);
 
             }, 200);
