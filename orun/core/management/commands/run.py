@@ -18,9 +18,9 @@ from orun.core.management import commands
               'loading is enabled if the reloader is disabled.')
 @commands.option('--with-threads/--without-threads', default=False,
               help='Enable or disable multithreading.')
-@commands.option('--websocket', is_flag=True, default=False,
-              help='Enable websocket.')
-def command(host, port, reload, debugger, eager_loading, with_threads, websocket, **kwargs):
+@commands.option('--websocket', is_flag=True, default=False, help='Enable websocket.')
+@commands.option('--gevent', '--gevent-loop', is_flag=True, default=False, help='Gevent loop.')
+def command(host, port, reload, debugger, eager_loading, with_threads, websocket, gevent_loop, **kwargs):
     """Runs a local development server for the Flask application.
 
     This local server is recommended for development purposes only but it
@@ -60,6 +60,14 @@ def command(host, port, reload, debugger, eager_loading, with_threads, websocket
         from orun import io
         app.config['WEBSOCKET'] = True
         io.socketio.run(app, host, port, debug=True, use_reloader=reload)
+
+    elif gevent_loop:
+        from gevent import monkey
+        monkey.patch_all()
+
+        from gevent.wsgi import WSGIServer
+
+        WSGIServer((host, port), app.wsgi_app).serve_forever()
     else:
         app.config['WEBSOCKET'] = False
         run_simple(host, port, app, use_reloader=reload, use_debugger=debugger, threaded=with_threads)

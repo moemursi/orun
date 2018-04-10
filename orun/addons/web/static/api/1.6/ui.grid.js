@@ -191,13 +191,12 @@
             if (!dataSet[index]) {
               return scope.dataSource.get(scope.records[index].id, 0)
               .done(res => {
-                if (res.data)
-                  dataSet[index] = scope.record;
+                dataSet[index] = scope.record;
               });
             }
             setTimeout(() => {
-              const rec = dataSet[index];
-              scope.$apply(() => scope.record = rec);
+              scope.record = dataSet[index];
+              scope.$apply();
 
             }, 200);
           } else {
