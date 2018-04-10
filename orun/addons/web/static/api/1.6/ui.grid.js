@@ -126,7 +126,7 @@
         };
 
         scope.addItem = function() {
-          scope.dataSource.newRecord();
+          scope.dataSource.insert();
           if (attrs.inline === 'tabular') {
             scope.records.push({});
           } else if (!attrs.inline) {

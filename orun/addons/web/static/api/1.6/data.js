@@ -550,6 +550,7 @@
       this.scope.record = Katrid.Data.createRecord(rec, this.scope);
       this.scope.recordId = rec.id;
       this._pendingChanges = false;
+      if (this.scope.form)
       this.scope.form.$setPristine();
       // this.state = DataSourceState.browsing;
     }
