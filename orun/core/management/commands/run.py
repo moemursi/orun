@@ -71,4 +71,3 @@ def command(host, port, reload, debugger, eager_loading, with_threads, websocket
     else:
         app.config['WEBSOCKET'] = False
         run_simple(host, port, app, use_reloader=reload, use_debugger=debugger, threaded=with_threads)
-

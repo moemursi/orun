@@ -172,7 +172,6 @@
       const inner = this.innerHtml();
       if (inner)
         html += inner + `</${this.prototype.tag}>`;
-      console.log(html);
 
       return html;
     }
@@ -274,7 +273,7 @@
 
   class InputWidget extends Field {
     static get tag() {
-      return 'input';
+      return 'input input-field';
     }
 
     constructor() {

@@ -4704,4 +4704,7 @@ select.form-control {
   border-radius: 0;
   border: none;
 }
+.word-space-nowrap {
+  white-space: nowrap;
+}
 /*# sourceMappingURL=style.map */

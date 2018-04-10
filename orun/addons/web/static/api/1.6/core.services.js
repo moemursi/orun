@@ -85,8 +85,6 @@
       if (context)
         data.context = context;
 
-      console.log('the context', context);
-
       data = {
         jsonrpc: '2.0',
         method: name,

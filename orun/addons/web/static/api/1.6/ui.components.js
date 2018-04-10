@@ -57,6 +57,16 @@
     };
   });
 
+  uiKatrid.directive('inputField', () => ({
+      restrict: 'A',
+      scope: false,
+      link(scope, el) {
+        el.click(function() {
+          $(this).select();
+        })
+      }
+  }));
+
 
   uiKatrid.directive('view', () =>
     ({
@@ -362,8 +372,13 @@
       restrict: 'A',
       require: 'ngModel',
       link(scope, element, attrs, controller) {
-
         const precision = parseInt(attrs.decimalPlaces) || 2;
+        element.click(function() {
+          setTimeout(() => {
+          $(this).select();
+
+          }, 10);
+        });
 
         const thousands = attrs.uiMoneyThousands || ".";
         const decimal = attrs.uiMoneyDecimal || ",";
@@ -534,7 +549,6 @@
           },
 
           initSelection(el, cb) {
-            console.log('init selection');
             let v = controller.$modelValue;
             if (multiple) {
               v = v.map(obj => ({id: obj[0], text: obj[1]}));
