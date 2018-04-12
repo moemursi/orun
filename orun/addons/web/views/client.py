@@ -21,7 +21,7 @@ class WebClient(BaseView):
         menu_id = main_menu.id
         context = {
             'current_menu': main_menu,
-            'root_menu': menu.objects.filter(menu.c.parent_id == None),
+            'root_menu': menu.objects.filter(menu.c.parent_id == None, menu.c.id != 78),
             'settings': settings,
         }
         return render_template('web/index.html', **context)
