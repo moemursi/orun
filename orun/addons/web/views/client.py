@@ -16,7 +16,8 @@ class WebClient(BaseView):
     @login_required
     def index(self):
         menu = app['ui.menu']
-        main_menu = menu.objects.filter(menu.c.parent_id == None).first()
+        #menu_items = menu.search_visible_items()
+        main_menu = menu.objects.filter(menu.c.parent_id == None, menu.c.id != 78).first()
         menu_id = main_menu.id
         context = {
             'current_menu': main_menu,
