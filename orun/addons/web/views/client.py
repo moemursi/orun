@@ -1,7 +1,7 @@
 import os
 from flask import redirect, send_from_directory, session, url_for, flash
 from orun.conf import settings
-from orun import request
+from orun import request, g
 from orun.utils.json import jsonify
 from orun.utils.translation import gettext
 from orun import app, render_template
@@ -21,7 +21,7 @@ class WebClient(BaseView):
         menu_id = main_menu.id
         context = {
             'current_menu': main_menu,
-            'root_menu': menu.objects.filter(menu.c.parent_id == None, menu.c.id != 78),
+            'root_menu': menu.objects.filter(menu.c.parent_id == None) if g.user.is_superuser else menu.objects.filter(menu.c.parent_id == None),
             'settings': settings,
         }
         return render_template('web/index.html', **context)
