@@ -17,7 +17,9 @@
     link(scope, element, attrs) {
       let me = this;
       // Load remote field model info
+
       const field = scope.$parent.view.fields[attrs.name];
+
       scope.action = scope.$parent.action;
       scope.fieldName = attrs.name;
       scope.field = field;
@@ -30,9 +32,9 @@
       scope.parent = scope.$parent;
       scope.model = new Katrid.Services.Model(field.model);
 
-      if (attrs.inline === 'tabular')
+      if (attrs.inlineEditor === 'tabular')
         scope.inline = 'tabular';
-      else if (attrs.hasOwnProperty('inline'))
+      else if (attrs.hasOwnProperty('inlineEditor'))
         scope.inline = 'inline';
 
       scope.getContext = function () {

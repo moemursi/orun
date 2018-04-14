@@ -19,7 +19,8 @@
           let v;
           element.removeAttr('name');
 
-          if (_.isUndefined(field)) throw Error('Field not found: ' + attrs.name);
+          if (_.isUndefined(field))
+            throw Error('Field not found: ' + attrs.name);
 
           let widget = field.createWidget(attrs.widget, scope, attrs, element);
           widget.inplaceEditor = inplaceEditor;
