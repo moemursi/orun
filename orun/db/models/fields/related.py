@@ -324,8 +324,10 @@ class ManyToManyField(RelatedField):
         from_ = 'from_%s' % self.model._meta.name.replace('.', '_')
         to_ = 'to_%s' % rel_model._meta.name.replace('.', '_')
 
+        model_name = self.model._meta.name + '.' + self.name + '.rel'
+
         class Meta:
-            name = self.model._meta.name + '.' + self.name + '.rel'
+            name = model_name
             log_changes = False
 
         new_model = type('%s_%s' % (self.model.__name__, self.name), (models.Model,), {
@@ -341,6 +343,8 @@ class ManyToManyField(RelatedField):
 
         new_model._meta._build_table(self.model._meta.app.meta)
         new_model._meta._build_mapper()
+        if new_model._meta.app:
+            new_model._meta.app.models[model_name] = new_model
         return new_model, from_, to_
 
     def deconstruct(self):
@@ -364,10 +368,17 @@ class ManyToManyField(RelatedField):
         v = getattr(instance, self.name)
         v.clear()
         if value:
+            m = self.related_model
+            value = m.objects.only('pk').filter(m.c.pk.in_([v[0] if isinstance(v, list) else v for v in value])).all()
             getattr(instance.__class__, self.name).__set__(instance, value)
 
     def serialize(self, value, instance=None):
         return [obj._get_instance_label() for obj in value]
+
+    def _get_info(self):
+        info = super(ManyToManyField, self)._get_info()
+        info['model'] = self.related_model._meta.name
+        return info
 
 
 def get_first_rel_field(model, rel_model):

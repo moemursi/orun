@@ -21,9 +21,12 @@ def Deserializer(stream_or_string, app, **options):
     pwd = url.password
     if db_engine == 'mssql':
         if user_name:
+            additional_params = ''
+            if os.name == 'nt':
+                additional_params = '-f 65001'
             os.system(
-                'sqlcmd -U %s -P %s -S %s -d %s -i "%s" -f 65001' %
-                (user_name, pwd, host, db_name, stream_or_string.name,)
+                'sqlcmd -U %s -P %s -S %s -d %s -i "%s" %s' %
+                (user_name, pwd, host, db_name, stream_or_string.name, additional_params)
             )
         else:
             os.system(

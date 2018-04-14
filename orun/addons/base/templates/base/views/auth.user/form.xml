@@ -2,7 +2,9 @@
   <field name="name" />
   <field name="username" />
   <field name="email"/>
+  <field name="password"/>
   <field name="is_staff" />
+  <field name="is_superuser" />
   <field name="action" />
   <field name="date_joined" />
   <field name="signature" />

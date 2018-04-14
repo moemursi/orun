@@ -14,8 +14,8 @@
                   </tr>
                   </thead>
                   <tbody>
-                  <tr ng-repeat="row in records" ng-init="record = {}" ng-class="{'group-header': row._hasGroup}"
-                      ng-click="action.listRowClick($index, row, $event)">
+                  <tr ng-repeat="record in records" ng-class="{'group-header': row._hasGroup}"
+                      ng-click="action.listRowClick($index, record, $event)">
                     <td id="replace-cols"></td>
                   </tr>
                   </tbody>

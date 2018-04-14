@@ -478,10 +478,10 @@
       let tfoot = false;
       let totals = [];
       let cols = `<td ng-show="dataSource.groups.length" class="group-header">
-  <div ng-show="row._group">
+  <div ng-show="record._group">
   <span class="fa fa-fw fa-caret-right"
-    ng-class="{'fa-caret-down': row._group.expanded, 'fa-caret-right': row._group.collapsed}"></span>
-    {{::row._group.__str__}} ({{::row._group.count }})</div></td>`;
+    ng-class="{'fa-caret-down': record._group.expanded, 'fa-caret-right': record._group.collapsed}"></span>
+    {{::record._group.__str__}} ({{::record._group.count }})</div></td>`;
       if (showSelector) {
         ths += `<th class="list-record-selector"><input type="checkbox" ng-click="action.selectToggle($event.currentTarget)" onclick="$(this).closest('table').find('td.list-record-selector input').prop('checked', $(this).prop('checked'))"></th>`;
         cols += `<td class="list-record-selector" onclick="event.stopPropagation();"><input title="teste" type="checkbox" ng-click="action.selectToggle($event.currentTarget)" onclick="if (!$(this).prop('checked')) $(this).closest('table').find('th.list-record-selector input').prop('checked', false)"></td>`;
@@ -520,7 +520,7 @@
         _widget.inplaceEditor = true;
         ths += _widget.th(col.attr('label'));
 
-        cols += _widget.td(false);
+        cols += _widget.td(scope.inline, colHtml, col);
       }
       if (parentDataSource) {
         ths += '<th class="list-column-delete" ng-show="parent.dataSource.changing && !dataSource.readonly">';
@@ -534,10 +534,10 @@
         tfoot = `<tfoot><tr>${ totals.map(t => (t ? `<td class="text-right"><strong><ng-total field="${ t[0] }" type="${ t[1] }"></ng-total></strong></td>` : '<td class="borderless"></td>')).join('') }</tr></tfoot>`;
       else
         tfoot = '';
-      return `<table class="${this.constructor.cssListClass}">
+      return `<table class="${this.constructor.cssListClass} grid">
   <thead><tr>${ths}</tr></thead>
   <tbody>
-  <tr ng-repeat="row in records" ng-init="record = {}" ng-click="${rowClick}" ng-class="{'group-header': row._hasGroup}" ng-form="grid-row-form-{{$index}}" id="grid-row-form-{{$index}}">${cols}</tr>
+  <tr ng-repeat="record in records" ng-click="${rowClick}" ng-class="{'group-header': record._hasGroup, 'form-data-changing': (dataSource.changing && dataSource.recordIndex === $index), 'form-data-readonly': !(dataSource.changing && dataSource.recordIndex === $index)}" ng-form="grid-row-form-{{$index}}" id="grid-row-form-{{$index}}">${cols}</tr>
   </tbody>
   ${ tfoot }
   </table>

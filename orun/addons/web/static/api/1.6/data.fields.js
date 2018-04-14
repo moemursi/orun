@@ -105,12 +105,22 @@
     }
   }
 
+  class ManyToManyField extends ForeignKey {
+    toJson(val) {
+      console.log('to json val', val);
+      if (_.isArray(val))
+        return val[0];
+      return val;
+    }
+  }
+
   Katrid.Data.Fields = {
     Field,
     StringField,
     DateTimeField,
     ForeignKey,
     OneToManyField,
+    ManyToManyField,
     DateField
   }
 

@@ -55,8 +55,8 @@ class Partner(models.Model):
     company = models.ForeignKey('res.company', label=_('Company'))
     comments = models.TextField(label=_('Notes'))
     image = models.ImageField(attachment=True, deferred=False)
-    # Password used for both api and site users
-    password = models.PasswordField()
+    # user password
+    site_password = models.PasswordField()
 
     class Meta:
         name = 'res.partner'
@@ -90,12 +90,12 @@ class Partner(models.Model):
 
     def set_password(self, password):
         from orun.auth.hashers import make_password
-        self.password = make_password(password)
-        self._password = password
+        self.site_password = make_password(password)
+        self._site_password = password
 
     @classmethod
     def authenticate(cls, username, password):
         from orun.auth.hashers import check_password
         usr = cls.objects.filter(email=username, active=True).first()
-        if usr and check_password(password, usr.password):
+        if usr and check_password(password, usr.site_password):
             return usr

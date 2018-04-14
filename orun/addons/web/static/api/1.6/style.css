@@ -3057,10 +3057,6 @@ fieldset legend {
 .data-form header.content-container-heading:empty {
   display: none;
 }
-.data-panel section,
-.data-panel .field {
-  padding-bottom: 6px;
-}
 @media (min-width: 1200px) {
   .data-panel section.border,
   .data-panel .field.border {
@@ -4062,6 +4058,10 @@ body.container.hide-left-menu #footer.page-footer {
 .hide-left-menu #footer.page-footer {
   margin-left: 0;
 }
+html,
+body {
+  font-family: Ubuntu, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
 .form-field-readonly.bool-text,
 table tbody tr td.bool-text {
   text-transform: capitalize;
@@ -4166,8 +4166,11 @@ th.FloatField,
 td.IntegerField,
 th.IntegerField,
 section.IntegerField .form-field-readonly,
+section.IntegerField input.form-control,
 section.DecimalField .form-field-readonly,
-section.FloatField .form-field-readonly {
+section.DecimalField input.form-control,
+section.FloatField .form-field-readonly,
+section.FloatField input.form-control {
   text-align: right;
 }
 th span {
@@ -4213,7 +4216,7 @@ section div.checkbox {
 }
 .table > tbody > tr > td.list-column-delete,
 .table > thead > tr > th.list-column-delete {
-  padding: 5px 10px;
+  padding: 5px 10px 0 10px;
   text-align: center;
   width: 1px;
 }
@@ -4282,6 +4285,35 @@ label.prepend-icon {
 }
 .ng-form.form-data-changing .form-field-readonly {
   display: none;
+}
+table.grid .form-data-changing td {
+  padding: 0;
+}
+table.grid .form-data-changing .grid-field-readonly {
+  display: none;
+}
+table.grid .form-data-changing section[readonly] .grid-field-readonly {
+  min-height: 26px;
+  display: block;
+  border: 1px solid #e6e6e6;
+  background-color: #f5f5f5;
+  padding: 3px 5px 0 8px;
+  font-weight: normal;
+  border-radius: 3px;
+}
+table.grid .form-data-changing section[readonly] .form-field,
+table.grid .form-data-changing section[readonly] .input-group,
+table.grid .form-data-changing section[readonly] label.checkbox {
+  display: none;
+}
+table.grid .form-data-changing section[readonly] label.prepend-icon {
+  display: none;
+}
+table.grid .form-data-readonly td {
+  padding: 4px;
+}
+table.grid .form-data-readonly .grid-field-readonly {
+  margin: 4px;
 }
 #katrid-action-view {
   height: 100%;
@@ -4384,6 +4416,7 @@ label.prepend-icon {
 }
 div.form-data-changing .form-field-readonly {
   display: none;
+  margin: 0;
 }
 div.form-data-changing .form-label-checkbox span {
   display: none;
@@ -4703,8 +4736,5 @@ select.form-control {
 .card.full-width.no-border {
   border-radius: 0;
   border: none;
-}
-.word-space-nowrap {
-  white-space: nowrap;
 }
 /*# sourceMappingURL=style.map */

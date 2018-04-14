@@ -139,7 +139,6 @@
     searchName(name) {
       if (_.isString(name))
         name = { args: name };
-      console.log(name);
       return this.post('search_name', name);
     }
 
@@ -197,7 +196,7 @@
     }
 
     getFieldChoices(field, term) {
-      return this.get('get_field_choices', {args: field, q: term});
+      return this.post('get_field_choices', { args: [ field, term ]} );
     }
 
     doViewAction(data) {

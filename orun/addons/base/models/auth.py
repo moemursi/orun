@@ -1,5 +1,4 @@
-#from orun.core.mail import send_mail
-from orun import app, g
+from orun import app, g, SUPERUSER
 from orun.db import models, session
 from orun.utils.translation import gettext_lazy as _
 from orun.auth.hashers import check_password
@@ -21,7 +20,7 @@ class ModelAccess(models.Model):
     name = models.CharField(null=False)
     active = models.BooleanField(default=True)
     model = models.ForeignKey('ir.model', on_delete=models.CASCADE, null=False)
-    group = models.ForeignKey('auth.group', on_delete=models.CASCADE, null=False)
+    group = models.ForeignKey('auth.group', on_delete=models.CASCADE)
     perm_read = models.BooleanField(default=True)
     perm_change = models.BooleanField()
     perm_create = models.BooleanField()
@@ -34,9 +33,10 @@ class ModelAccess(models.Model):
     @classmethod
     def has_permission(cls, model, operation, user=None):
         if user is None:
-            if g.user.is_superuser:
+            if g.user_id == SUPERUSER or g.user.is_superuser:
                 return True
             user = g.user_id
+        return True
         args = []
         if operation == 'read':
             args.append(cls.c.perm_read == True)
@@ -50,8 +50,11 @@ class ModelAccess(models.Model):
             args.append(cls.c.perm_full == True)
         User = app['auth.user']
         Model = app['ir.model']
-        qs = session.query(cls.pk).join(Model).filter(Model.c.name == model, User.groups.any(id=cls.c.group_id))
-        return qs.filter(*args).first()
+        Group = app['auth.group']
+        qs = session.query(cls.c.pk).join(Model).outerjoin(Group).filter(
+            Model.c.name == model, cls.c.active == True, *args
+        )
+        return bool(len(qs))
 
 
 class User(Partner):
@@ -65,9 +68,15 @@ class User(Partner):
     is_superuser = models.BooleanField(default=False)
     groups = models.ManyToManyField(Group, label=_('Groups'))
     companies = models.ManyToManyField('res.company', label=_('Companies'))
+    password = models.PasswordField()
 
     class Meta:
         name = 'auth.user'
+
+    def set_password(self, password):
+        from orun.auth.hashers import make_password
+        self.password = make_password(password)
+        self._password = password
 
     def has_perm(self, perm, obj=None):
         return True
@@ -80,7 +89,7 @@ class User(Partner):
 
     @classmethod
     def authenticate(cls, username, password):
-        usr = cls.objects.filter(cls.c.username == username, cls.c.active == True).first()
+        usr = cls.objects.filter(cls.c.username == username, cls.c.active == True, cls.c.is_staff == True).first()
         if usr and check_password(password, usr.password):
             return usr
 

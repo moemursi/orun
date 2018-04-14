@@ -60,7 +60,7 @@ def create(db):
         conn.execute("""CREATE DATABASE %s""" % db_name)
     elif db_engine == 'mssql':
         conn.autocommit = True
-        conn.execute("""CREATE DATABASE [%s]""" % db_name)
+        conn.execute("""ROLLBACK; CREATE DATABASE [%s]""" % db_name)
         conn.autocommit = False
     elif db_engine == 'oracle':
         conn.execute('create user usr_%s identified by %s' % (db, db_settings.password))

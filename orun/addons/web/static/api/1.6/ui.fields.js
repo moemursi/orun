@@ -27,6 +27,8 @@
       this.field = field;
       this.element = element;
       this.content = element.html();
+      this.inline = scope.inline;
+      this.spanPrefix = '';
 
       // Check if field depends from another
       if ((field.depends != null) && field.depends.length)
@@ -34,7 +36,7 @@
 
       if (attrs.ngShow)
         this.templAttrs['ng-show'] = attrs.ngShow;
-
+      
       if (attrs.ngReadonly || field.readonly)
         this.templAttrs['ng-readonly'] = attrs.ngReadonly || field.readonly;
 
@@ -67,15 +69,15 @@
       return this.element.attr('label') || this.field.caption;
     }
 
-    renderTo(templTag, inplaceEditor = false) {
+    renderTo(templTag, inplaceEditor=false, cls='') {
       let templAttrs = [];
       for (let [k, v] of Object.entries(this.templAttrs))
         templAttrs.push(k + '=' + '"' + v + '"');
 
       if (inplaceEditor)
-        return this.template(this.scope, this.element, this.attrs, this.field);
+        return `<${templTag} class="${cls}" ${templAttrs.join('')}>${this.template(this.scope, this.element, this.attrs, this.field)}</${templTag}>`;
 
-      return `<${templTag} class="${this.field.type} section-field-${this.attrs.name} form-group" ${templAttrs.join('')}>` +
+      return `<${templTag} class="${this.field.type} section-field-${this.field.name} form-group" ${templAttrs.join('')}>` +
             this.template(this.scope, this.element, this.attrs, this.field) +
             `</${templTag}>`
     }
@@ -107,6 +109,7 @@
         }
       }
 
+      if (!_.isUndefined(this.attrs.$attr))
       for (let attr of Object.keys(this.attrs.$attr)) {
         let attrName = this.attrs.$attr[attr];
         if (!attrName.startsWith('container-') && (attr !== 'ngShow') && (attr !== 'ngReadonly')) {
@@ -163,31 +166,41 @@
       return `<label for="${this.id}" class="form-label">${label}</label>`;
     }
 
+    get emptyText() {
+      if (this.inplaceEditor)
+        return '';
+      return '--';
+    }
+
+    get readOnlyClass() {
+      if (this.inplaceEditor || this.spanPrefix === '::')
+        return 'grid-field-readonly';
+      return 'form-field-readonly';
+    }
+
     spanTemplate(scope, el, attrs, field) {
-      return `<span class="form-field-readonly">{{ record.${this.attrs.name}.toString() || '--' }}</span>`;
+      return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}record.${this.field.name}.toString() || '${this.emptyText}' }}</span>`;
     }
 
     widgetTemplate() {
       let html = `<${this.constructor.tag} id="${this.id}" name="${this.field.name}" ${this._getWidgetAttrs()}>`;
       const inner = this.innerHtml();
       if (inner)
-        html += inner + `</${this.prototype.tag}>`;
-
+        html += inner + `</${this.constructor.tag}>`;
       return html;
     }
 
     template() {
       let label = '';
-      let span = '';
+      let span = this.spanTemplate();
       if (!this.inplaceEditor) {
         label = this.labelTemplate();
-        span = this.spanTemplate();
+        // span =
       }
-      return '<div>' +
-        label +
-        span +
-        this.widgetTemplate() +
-        '</div>';
+      let widget = this.widgetTemplate();
+      if (this.inline === 'inline')
+        widget = `<div ng-if="dataSource.changing && dataSource.recordIndex === $index">${widget}</div>`;
+      return `<div>${label}${span}${widget}</div>`;
     }
 
     link(scope, el, attrs, $compile, field) {
@@ -218,27 +231,29 @@
       return `<th class="${cls}" name="${this.field.name}"><span>${lbl}</span></th>`;
     }
 
-    _gridEditor() {
-      return '';
+    _gridEditor(cls) {
+      return this.renderTo('section', true, cls);
     }
 
-    _td(cls, readonly=true) {
-      let prefix = '';
-      if (readonly)
-        prefix = '::';
-      return `<td class="${cls}">{{ ${prefix}row.${this.field.name} }}</td>`;
+    _tdContent() {
+      return this.spanTemplate();
     }
 
-    td(readonly=true) {
+    _td(cls) {
+      let content;
+      if (this.inplaceEditor)
+        content = this._gridEditor(cls);
+      else {
+        this.spanPrefix = '::';
+        content = this.spanTemplate();
+      }
+      return `<td class="${cls}">${ content }</td>`;
+    }
+
+    td() {
       if (this.content)
         return this.content;
-      if (this.field.hasChoices) {
-        let prefix = '';
-        if (readonly)
-          prefix = '::';
-        return `<td class="${this.field.type}">{{ ${prefix}view.fields.${this.field.name}.displayChoices[row.${this.field.name}] }}${this._gridEditor()}</td>`;
-      }
-      return this._td(`${this.field.type} field-${this.field.name}`, readonly);
+      return this._td(`${this.field.type} field-${this.field.name}`);
 
       let colHtml = this.element.html();
       let s;
@@ -247,7 +262,7 @@
       let editor = '';
       if ((gridEditor === 'tabular') && html) editor = html;
       if (colHtml) {
-        s = `<td><a data-id="{{::row.${name}[0]}}">${colHtml}</a>${editor}</td>`;
+        s = `<td><a data-id="{{::record.${name}[0]}}">${colHtml}</a>${editor}</td>`;
       } else if (fieldInfo.type === 'ForeignKey') {
         s = `<td><a data-id="{{::row.${name}[0]}}">{{row.${name}[1]}}</a>${editor}</td>`;
       } else if  (fieldInfo._listChoices) {
@@ -325,21 +340,29 @@
     }
   }
 
+
   class NumericField extends InputWidget {
-    get type() {
-      return 'number';
+    static get tag() {
+      return 'input decimal';
     }
+
+    get type() {
+      if (Katrid.Settings.UI.isMobile)
+        return 'number';
+      return 'text';
+    }
+
     spanTemplate() {
-      return `<span class="form-field-readonly">{{ (record.${this.field.name}|number) || '--' }}</span>`;
+      return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}(record.${this.field.name}|number) || '${this.emptyText}' }}</span>`;
     }
   }
+
 
   class IntegerField extends NumericField {
-    _td(cls) {
-      return `<td class="${cls}">{{::row.${this.field.name}|number}}${this._gridEditor()}</td>`;
+    static get tag() {
+      return 'input decimal decimal-places="0"';
     }
   }
-
 
 
   class TimeField extends InputWidget {
@@ -355,7 +378,7 @@
     }
 
     spanTemplate() {
-      return `<span class="form-field-readonly">{{ view.fields.${this.attrs.name}.displayChoices[record.${this.attrs.name}] || '--' }}</span>`;
+      return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}view.fields.${this.field.name}.displayChoices[record.${this.field.name}] || '${this.emptyText}' }}</span>`;
     }
 
     innerHtml() {
@@ -375,17 +398,17 @@
         allowOpen = false;
 
       if (!allowOpen)
-        return `<span class="form-field-readonly">{{ record.${this.field.name}[1] || '--' }}</span>`;
+        return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}record.${this.field.name}[1] || '${this.emptyText}' }}</span>`;
 
-      return `<span class="form-field-readonly"><a href="#/action/${ this.field.model }/view/?id={{ record.${this.field.name}[0] }}" ng-click="action.openObject('${ this.field.model }', record.${this.field.name}[0], $event, '${ this.field.caption }')">{{ record.${this.field.name}[1] }}</a><span ng-if="!record.${this.field.name}[1]">--</span></span>`;
+      return `<span class="${this.readOnlyClass}"><a href="#/action/${ this.field.model }/view/?id={{ ${this.spanPrefix}record.${this.field.name}[0] }}" ng-click="action.openObject('${ this.field.model }', record.${this.field.name}[0], $event, '${ this.field.caption }')">{{ ${this.spanPrefix}record.${this.field.name}[1] }}</a><span ng-if="!record.${this.field.name}[1]">--</span></span>`;
     }
 
     get type() {
       return 'hidden';
     }
 
-    _td(cls) {
-      return `<td><a data-id="{{::row.${this.field.name}[0]}}">{{row.${this.field.name}[1]}}</a>${this._gridEditor()}</td>`;
+    _tdContent() {
+      return `<a data-id="{{::record.${this.field.name}[0]}}">{{record.${this.field.name}[1]}}</a>`;
     }
   }
 
@@ -397,7 +420,7 @@
   }
 
 
-  class FloatField extends TextField {
+  class FloatField extends NumericField {
     static get tag() {
       if (Katrid.Settings.UI.isMobile)
         return 'input';
@@ -412,19 +435,20 @@
 
     spanTemplate() {
       let decimalPlaces = this.attrs.decimalPlaces || 2;
-      return `<span class="form-field-readonly">{{ (record.${this.field.name}|number:${ decimalPlaces }) || '--' }}</span>`;
+      return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}(record.${this.field.name}|number:${ decimalPlaces }) || '${this.emptyText}' }}</span>`;
     }
 
-    _td(cls) {
+    _tdContent() {
       let filter;
       let decimalPlaces = this.element.attr('decimal-places');
       if (decimalPlaces)
         filter `number:${ decimalPlaces }`;
       else
         filter = `numberFormat:${this.element.attr('max-digits') || 6}`;
-      return `<td class="${cls}">{{::row.${this.field.name}|${filter} }}${this._gridEditor()}</td>`;
+      return `{{::record.${this.field.name}|${filter} }}`;
     }
   }
+
 
   class DecimalField extends FloatField {
     spanTemplate() {
@@ -434,16 +458,16 @@
         fmt = 'numberFormat';
       else
         maxDigits = this.attrs.decimalPlaces || 2;
-      return `<span class="form-field-readonly">{{ (record.${this.field.name}|${ fmt }:${ maxDigits }) || '--' }}</span>`;
+      return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}(record.${this.field.name}|${ fmt }:${ maxDigits }) || '${this.emptyText}' }}</span>`;
     }
 
-    _td(cls) {
+    _tdContent(cls) {
       let maxDigits = this.element.attr('max-digits');
       if (maxDigits)
-        return `<td class="${cls}">{{::row.${this.field.name}|numberFormat:${ maxDigits } }}${this._gridEditor()}</td>`;
+        return `<td class="${cls}">{{::record.${this.field.name}|numberFormat:${ maxDigits } }}${this._gridEditor()}</td>`;
       else {
         maxDigits = 2;
-        return `<td class="${cls}">{{::row.${this.field.name}|number:${ maxDigits } }}${this._gridEditor()}</td>`;
+        return `{{::record.${this.field.name}|number:${ maxDigits } }}`;
       }
     }
   }
@@ -455,15 +479,15 @@
     }
 
     spanTemplate() {
-      return `<span class="form-field-readonly">{{ (record.${this.field.name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}') || '--' }}</span>`;
+      return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}(record.${this.field.name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}') || '${this.emptyText}' }}</span>`;
     }
 
     widgetTemplate() {
       return `<div class="input-group date" ng-show="dataSource.changing">${ super.widgetTemplate() }<div class="input-group-append"><button class="btn btn-default" type="button"><span class="fa fa-calendar"></span></button></div></div>`;
     }
 
-    _td(cls) {
-      return `<td class="${cls}">{{::row.${this.field.name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}}${this._gridEditor()}</td>`;
+    _tdContent(cls) {
+      return `{{::record.${this.field.name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}}`;
     }
   }
 
@@ -493,7 +517,7 @@
     }
 
     spanTemplate() {
-      return `<span class="form-field-readonly">{{ record.${this.field.name}|m2m }}</span>`;
+      return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}record.${this.field.name}|m2m }}</span>`;
     }
 
     get type() {
@@ -504,8 +528,8 @@
 
   class BooleanField extends InputWidget {
     spanTemplate() {
-      return `<span class="form-field-readonly bool-text">
-  {{ (record.${this.field.name} && gettext('yes')) || ((record.${this.field.name} === false) && gettext('no')) || (!record.${this.field.name} && '--') }}
+      return `<span class="${this.readOnlyClass} bool-text">
+  {{ ${this.spanPrefix}(record.${this.field.name} && gettext('yes')) || ((record.${this.field.name} === false) && gettext('no')) || (!record.${this.field.name} && '${this.emptyText}') }}
   </span>`;
     }
 
@@ -513,8 +537,12 @@
       return 'checkbox';
     }
 
+    _tdContent() {
+      return `{{::record.${this.field.name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}}`;
+    }
+
     _td(cls) {
-      return `<td class="bool-text ${cls}">{{::row.${this.field.name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}}${this._gridEditor()}</td>`;
+      return super._td('bool-text ' + cls);
     }
 
     widgetTemplate() {
@@ -577,7 +605,7 @@
     }
 
     spanTemplate() {
-      return "<span class=\"form-field-readonly\">*******************</span>";
+      return `<span class="form-field-readonly">*******************</span>`;
     }
   }
 

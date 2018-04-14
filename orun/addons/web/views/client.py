@@ -16,12 +16,12 @@ class WebClient(BaseView):
     @login_required
     def index(self):
         menu = app['ui.menu']
-        #menu_items = menu.search_visible_items()
-        main_menu = menu.objects.filter(menu.c.parent_id == None, menu.c.id != 78).first()
-        menu_id = main_menu.id
+        menu_items = menu.search_visible_items()
+        root_menu = menu_items.filter(menu.c.parent_id == None).all()
+        menu_id = root_menu[0]
         context = {
-            'current_menu': main_menu,
-            'root_menu': menu.objects.filter(menu.c.parent_id == None) if g.user.is_superuser else menu.objects.filter(menu.c.parent_id == None),
+            'current_menu': menu_id,
+            'root_menu': root_menu,
             'settings': settings,
         }
         return render_template('web/index.html', **context)

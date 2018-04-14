@@ -44,7 +44,7 @@ def drop(db):
             commands.echo(e, err=True)
     elif db_engine == 'mssql':
         try:
-            conn.execute('''DROP DATABASE [%s]''' % db_name)
+            conn.execute('''ROLLBACK; DROP DATABASE [%s]''' % db_name)
         except Exception as e:
             commands.echo(e, err=True)
         conn.autocommit = False

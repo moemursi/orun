@@ -39,11 +39,11 @@
           }
 
           //templ.find('.field').addClass("col-md-#{attrs.cols or cols or 6}")
+          // Remove field attrs from section element
+          let fieldAttrs = {};
 
           widget.link(scope, templ, fieldAttrs, $compile, field);
 
-          // Remove field attrs from section element
-          var fieldAttrs = {};
           for (let [k, v] of Object.entries(attrs))
             if (k.startsWith('field')) {
               fieldAttrs[k] = v;
@@ -58,13 +58,14 @@
   });
 
   uiKatrid.directive('inputField', () => ({
-      restrict: 'A',
-      scope: false,
-      link(scope, el) {
-        el.click(function() {
-          $(this).select();
-        })
-      }
+    restrict: 'A',
+    scope: false,
+    link(scope, element, attrs) {
+      $(element).on('click', function() {
+        // input field select all text on click
+        $(this).select();
+      });
+    }
   }));
 
 
@@ -372,18 +373,15 @@
       restrict: 'A',
       require: 'ngModel',
       link(scope, element, attrs, controller) {
-        const precision = parseInt(attrs.decimalPlaces) || 2;
-        element.click(function() {
-          setTimeout(() => {
-          $(this).select();
-
-          }, 10);
-        });
+        let precision = 2;
+        if (attrs.decimalPlaces)
+         precision = parseInt(attrs.decimalPlaces);
 
         const thousands = attrs.uiMoneyThousands || ".";
         const decimal = attrs.uiMoneyDecimal || ",";
         const symbol = attrs.uiMoneySymbol;
         const negative = attrs.uiMoneyNegative || true;
+
         const el = element.maskMoney({
           symbol,
           thousands,
@@ -391,11 +389,29 @@
           precision,
           allowNegative: negative,
           allowZero: true
-        }).bind('keyup blur', function (event) {
-          const newVal = element.maskMoney('unmasked')[0];
-          controller.$setViewValue(newVal);
-          if (newVal !== parseFloat(controller.$viewValue))
-            scope.$apply();
+        })
+        .bind('keyup blur', function (event) {
+          if (precision) {
+            const newVal = element.maskMoney('unmasked')[0];
+            console.log(newVal, el.val(), parseInt(controller.$viewValue));
+            if (newVal !== parseFloat(controller.$viewValue)) {
+              controller.$setViewValue(newVal);
+              scope.$apply();
+            }
+          } else {
+            let s = `\\${thousands}`;
+            let newVal = el.val().replace(new RegExp(s, 'g'), '');
+            newVal = parseInt(newVal);
+              console.log('new val', s, el.val(), newVal);
+
+            if (newVal !== parseInt(controller.$viewValue)) {
+              controller.$setViewValue(newVal);
+              scope.$apply();
+            }
+          }
+        })
+        .on('click', function () {
+          setTimeout(() => $(this).select(), 1);
         });
 
         return controller.$render = function () {
@@ -419,6 +435,7 @@
         let domain, serviceName;
         let sel = el;
         const field = scope.view.fields[attrs.name];
+
         if (attrs.domain != null)
           domain = attrs.domain;
         else if (field.domain)
@@ -454,9 +471,12 @@
             };
 
             const f = () => {
-              let svc = new Katrid.Services.Model(field.model);
-              svc.searchName(data)
-              .done(res => {
+              let svc;
+              if (scope.model)
+                svc = scope.model.getFieldChoices(field.name, query.term);
+              else
+                svc = (new Katrid.Services.Model(field.model)).searchName(data);
+              svc.done(res => {
 
                 let data = res.items;
                 const r = data.map(item => ({ id: item[0], text: item[1] }));
@@ -614,7 +634,9 @@
             });
 
           } else if (v && multiple) {
-            return controller.$setViewValue(v.map((obj) => [obj.id, obj.text]));
+            if (!_.isArray(v))
+              v = [v];
+            return controller.$setViewValue(v.map((obj) => _.isArray(obj) ? obj : [obj.id, obj.text]));
           } else {
             controller.$setDirty();
             if (v) {
@@ -765,9 +787,8 @@
 
   uiKatrid.filter('m2m', () =>
     function (input) {
-      if (_.isArray(input)) {
-        return input.map((obj) => obj[1]).join(', ');
-      }
+      if (_.isArray(input))
+        return input.map((obj) => obj ? obj[1] : null).join(', ');
     }
   );
 

@@ -53,19 +53,27 @@
     }
 
     cancel() {
+      if (!this.changing)
+        return;
+
+      for (let child of this.children)
+        child.cancel();
+
+      this._recordIndex = null;
       this._pendingChanges = false;
+
       if ((this.state === DataSourceState.inserting) && Katrid.Settings.UI.goToDefaultViewAfterCancelInsert) {
         this.record = {};
         this.scope.action.setViewType('list');
       } else {
         if (this.state === DataSourceState.editing) {
-          const r = this.refresh([this.scope.record.id]);
-          if (r && $.isFunction(r.promise))
-            r.done(() => {
-              return this.state = DataSourceState.browsing;
-            });
-          else
-            this.state = DataSourceState.browsing;
+          if (this.scope.record) {
+            const r = this.refresh([this.scope.record.id]);
+            if (r && $.isFunction(r.promise))
+              r.done(() => this.state = DataSourceState.browsing);
+            else
+              this.state = DataSourceState.browsing;
+          }
         } else {
           this.record = {};
           this.state = DataSourceState.browsing;
@@ -456,13 +464,16 @@
         return this.scope.model.getById(id)
         .fail(res => {
           return def.reject(res);
-      }).done(res => {
+        })
+        .done(res => {
+          if (this.state === DataSourceState.loading)
+            this.state = DataSourceState.browsing;
           this.scope.$apply(() => {
             return this.record = res.data[0];
           });
           return def.resolve(res);
-        }).always(() => {
-          // this.setState(DataSourceState.browsing);
+        })
+        .always(() => {
           return this.scope.$apply(() => {
             return this.loadingRecord = false;
           });
@@ -537,8 +548,11 @@
       this.inserting = state === DataSourceState.inserting;
       this.editing = state === DataSourceState.editing;
       this.loading = state === DataSourceState.loading;
-      this.browsing = state === DataSourceState.browsing;
       this.changing =  [DataSourceState.editing, DataSourceState.inserting].includes(this.state);
+    }
+
+    get browsing() {
+      return this._state === DataSourceState.browsing;
     }
 
     get state() {
@@ -551,7 +565,7 @@
       this.scope.recordId = rec.id;
       this._pendingChanges = false;
       if (this.scope.form)
-      this.scope.form.$setPristine();
+        this.scope.form.$setPristine();
       // this.state = DataSourceState.browsing;
     }
 
@@ -581,7 +595,8 @@
 
     set recordIndex(index) {
       this._recordIndex = index;
-      this.scope.action.location.search('id', this.scope.records[index].id);
+      if (!this.masterSource)
+        this.scope.action.location.search('id', this.scope.records[index].id);
     }
 
     get recordIndex() {

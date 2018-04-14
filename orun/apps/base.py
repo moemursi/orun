@@ -206,7 +206,9 @@ class Application(Flask):
         return self.with_context(user_id)
 
     @contextmanager
-    def with_context(self, user_id=SUPERUSER, context=None):
+    def with_context(self, user_id=None, context=None):
+        if user_id is None:
+            user_id = SUPERUSER
         old_env = g.env
         new_env = g.env(user_id, context)
         g.env = new_env

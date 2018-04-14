@@ -632,6 +632,13 @@ class PasswordField(CharField):
         kwargs.setdefault('max_length', 128)
         super(PasswordField, self).__init__(*args, **kwargs)
 
+    def to_python(self, value):
+        from orun.auth.hashers import is_password_usable, make_password
+        if is_password_usable:
+            return make_password(value)
+        return value
+
+
 
 class SlugField(CharField):
     pass
