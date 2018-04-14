@@ -313,5 +313,12 @@ class Query(orm.Query):
     def only(self, *args):
         return self.options(load_only(*args))
 
+    def join(self, *args, **kwargs):
+        args = list(args)
+        for i, arg in enumerate(args):
+            if not isinstance(arg, type):
+                args[i] = arg.__class__
+        return super(Query, self).join(*args, **kwargs)
+
 
 Session = sa.orm.sessionmaker(autoflush=False, autocommit=True, query_cls=Query)

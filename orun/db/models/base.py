@@ -472,8 +472,7 @@ class Model(Service):
             instance.save()
 
         for child, v in children.items():
-            if v:
-                child.set(v, instance)
+            child.set(v, instance)
 
         #post_data = cls.post_data.pop(id(instance), None)
 

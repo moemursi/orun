@@ -35,6 +35,7 @@ class RecordsProxy(object):
 class Environment(Mapping):
     def __init__(self, user_id, context):
         self.user_id = user_id
+        self.user = SimpleLazyObject(lambda: self['auth.user'].objects.get(self.user_id))
         self.context = context
 
     def __getitem__(self, item):
@@ -53,10 +54,6 @@ class Environment(Mapping):
 
     def __len__(self):
         return len(app.models)
-
-    @property
-    def user(self):
-        return SimpleLazyObject(lambda: self['auth.user'].objects.get(self.user_id))
 
 
 def method(*args, public=False, methods=None):
