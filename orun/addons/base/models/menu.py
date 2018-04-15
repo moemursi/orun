@@ -26,9 +26,9 @@ class Menu(models.Model):
         return self.get_full_name()
 
     def search_visible_items(self):
-        qs = self.objects.filter(self.c.action_id is not None)
+        qs = self.objects
         if self.env.user_id == SUPERUSER or self.env.user.is_superuser:
-            return qs
+            return qs.filter(self.c.parent_id == None)
         Group = self.env['auth.group']
         UserGroups = self.env['auth.user.groups.rel']
         MenuGroups = self.env['ui.menu.groups.rel']
@@ -53,6 +53,10 @@ class Menu(models.Model):
             ]
 
         return _iter_item(None)
+
+    @property
+    def url(self):
+        return self.get_absolute_url()
 
     def get_absolute_url(self):
         if self.action_id:
