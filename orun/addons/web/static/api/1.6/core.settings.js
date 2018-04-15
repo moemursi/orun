@@ -17,10 +17,8 @@
 
 
     static get context() {
-      if (Katrid.Actions.actionManager.mainAction) {
-        console.log(Katrid.Actions.actionManager.mainAction.getContext());
+      if (Katrid.Actions.actionManager.mainAction)
         return Katrid.Actions.actionManager.mainAction.getContext();
-      }
     }
   }
   Application.initClass();
