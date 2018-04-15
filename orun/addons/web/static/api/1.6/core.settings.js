@@ -15,9 +15,12 @@
       this.title = title;
     }
 
+
     static get context() {
-      if (Katrid.Actions.actionManager.mainAction)
+      if (Katrid.Actions.actionManager.mainAction) {
+        console.log(Katrid.Actions.actionManager.mainAction.getContext());
         return Katrid.Actions.actionManager.mainAction.getContext();
+      }
     }
   }
   Application.initClass();
