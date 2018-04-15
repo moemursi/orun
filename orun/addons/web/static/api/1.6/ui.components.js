@@ -197,6 +197,8 @@
           }
         });
 
+        el.on('click', () => setTimeout(() => $(el).select()));
+
         // Mask date format
         if (Katrid.Settings.UI.dateInputMask === true) {
           el = el.mask(dateFmt.replace(/[A-z]/g, 0));
@@ -369,32 +371,35 @@
   );
 
 
-  uiKatrid.directive('decimal', $filter =>
-    ({
-      restrict: 'A',
-      require: 'ngModel',
-      link(scope, element, attrs, controller) {
-        let precision = 2;
-        if (attrs.decimalPlaces)
-         precision = parseInt(attrs.decimalPlaces);
+  class Decimal {
+    constructor($filter) {
+      this.restrict = 'A';
+      this.require = 'ngModel';
+      this.$filter = $filter;
+    }
 
-        const thousands = attrs.uiMoneyThousands || ".";
-        const decimal = attrs.uiMoneyDecimal || ",";
-        const symbol = attrs.uiMoneySymbol;
-        const negative = attrs.uiMoneyNegative || true;
+    link(scope, element, attrs, controller) {
+      let precision = 2;
+      if (attrs.decimalPlaces)
+       precision = parseInt(attrs.decimalPlaces);
 
-        const el = element.maskMoney({
-          symbol,
-          thousands,
-          decimal,
-          precision,
-          allowNegative: negative,
-          allowZero: true
-        })
-        .bind('keyup blur', function (event) {
+      const thousands = attrs.uiMoneyThousands || ".";
+      const decimal = attrs.uiMoneyDecimal || ",";
+      const symbol = attrs.uiMoneySymbol;
+      const negative = attrs.uiMoneyNegative || true;
+
+      const el = element.maskMoney({
+        symbol,
+        thousands,
+        decimal,
+        precision,
+        allowNegative: negative,
+        allowZero: true
+      })
+      .bind('keyup blur', function (event) {
+        if (el.val()) {
           if (precision) {
             const newVal = element.maskMoney('unmasked')[0];
-            console.log(newVal, el.val(), parseInt(controller.$viewValue));
             if (newVal !== parseFloat(controller.$viewValue)) {
               controller.$setViewValue(newVal);
               scope.$apply();
@@ -403,28 +408,29 @@
             let s = `\\${thousands}`;
             let newVal = el.val().replace(new RegExp(s, 'g'), '');
             newVal = parseInt(newVal);
-              console.log('new val', s, el.val(), newVal);
 
             if (newVal !== parseInt(controller.$viewValue)) {
               controller.$setViewValue(newVal);
               scope.$apply();
             }
           }
-        })
-        .on('click', function () {
-          setTimeout(() => $(this).select(), 1);
-        });
+        } else if (controller.$viewValue)
+          controller.$setViewValue('');
+      });
 
-        return controller.$render = function () {
-          if (controller.$viewValue) {
-            return element.val($filter('number')(controller.$viewValue, precision));
-          } else {
-            return element.val('');
-          }
-        };
-      }
-    })
-  );
+      controller.$render = () => {
+        if (controller.$viewValue) {
+          return element.val(this.$filter('number')(controller.$viewValue, precision));
+        } else {
+          return element.val('');
+        }
+      };
+    }
+
+  }
+
+
+  uiKatrid.directive('decimal', Decimal);
 
 
   Katrid.uiKatrid.directive('foreignkey', ($compile, $controller) =>

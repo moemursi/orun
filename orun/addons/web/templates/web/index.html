@@ -101,7 +101,7 @@
     <nav class="sidebar-nav">
       {% for current_menu in root_menu %}
       <ul id="left-side-menu" class="nav flex-column" data-menu-id="{{ current_menu.pk }}" ng-show="current_menu==={{ current_menu.pk }}">
-        {% for menu in current_menu.children.all() %}
+        {% for menu in current_menu.children %}
           {{ menu_utils.menu_item(menu) }}
         {% endfor %}
       </ul>

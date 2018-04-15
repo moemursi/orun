@@ -241,6 +241,7 @@
 
     _td(cls) {
       let content;
+      console.log(this.inplaceEditor);
       if (this.inplaceEditor)
         content = this._gridEditor(cls);
       else {

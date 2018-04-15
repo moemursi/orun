@@ -202,6 +202,7 @@
 
                 function mask() {
                     var value = $input.val();
+                    if (value)
                     $input.val(maskValue(value));
                 }
 

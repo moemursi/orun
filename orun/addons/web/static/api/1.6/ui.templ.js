@@ -517,7 +517,7 @@
         // }
 
         let _widget = fieldInfo.createWidget(col.attr('widget'), scope, col, col);
-        _widget.inplaceEditor = true;
+        _widget.inplaceEditor = Boolean(scope.inline);
         ths += _widget.th(col.attr('label'));
 
         cols += _widget.td(scope.inline, colHtml, col);
@@ -534,7 +534,10 @@
         tfoot = `<tfoot><tr>${ totals.map(t => (t ? `<td class="text-right"><strong><ng-total field="${ t[0] }" type="${ t[1] }"></ng-total></strong></td>` : '<td class="borderless"></td>')).join('') }</tr></tfoot>`;
       else
         tfoot = '';
-      return `<table class="${this.constructor.cssListClass} grid">
+      let gridClass = ' grid';
+      if (scope.inline)
+        gridClass += ' inline-editor';
+      return `<table class="${this.constructor.cssListClass}${gridClass}">
   <thead><tr>${ths}</tr></thead>
   <tbody>
   <tr ng-repeat="record in records" ng-click="${rowClick}" ng-class="{'group-header': record._hasGroup, 'form-data-changing': (dataSource.changing && dataSource.recordIndex === $index), 'form-data-readonly': !(dataSource.changing && dataSource.recordIndex === $index)}" ng-form="grid-row-form-{{$index}}" id="grid-row-form-{{$index}}">${cols}</tr>

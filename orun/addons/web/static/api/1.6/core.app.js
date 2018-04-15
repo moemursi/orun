@@ -264,14 +264,16 @@
       combo: 'esc',
       allowIn: ['INPUT', 'SELECT', 'TEXTAREA'],
       callback: (evt) => {
-        let btn = $('.maximize-button').first();
-        if ($scope.dataSource && $scope.dataSource.changing) {
-          evt.preventDefault();
-          $scope.dataSource.cancel();
-        }
-        else if (btn.closest('div.card.data-panel').hasClass('box-fullscreen')) {
-          evt.preventDefault();
-          btn.click();
+        if (!$(evt.target).hasClass('modal')) {
+          let btn = $('.maximize-button').first();
+          if ($scope.dataSource && $scope.dataSource.changing) {
+            evt.preventDefault();
+            $scope.dataSource.cancel();
+          }
+          else if (btn.closest('div.card.data-panel').hasClass('box-fullscreen')) {
+            evt.preventDefault();
+            btn.click();
+          }
         }
       }
     });
@@ -282,7 +284,7 @@
       else location = $location;
 
       $scope.action = act = new (Katrid.Actions[action.action_type])(action, $scope, location);
-      // restored cached action data
+      // restored cached action datae
       if (action.__cached)
         act.views = Katrid.Actions.Action.history[Katrid.Actions.Action.history.length - 1].views;
       if (reset)

@@ -4231,7 +4231,8 @@ input.form-field:required,
 select.form-field:required {
   background-color: #eaebff;
 }
-input.form-field.ng-dirty {
+input.form-field.ng-dirty,
+select.form-field.ng-dirty {
   background-color: #fffdf1;
 }
 input[type=text].form-field.ng-touched.ng-invalid,
@@ -4286,13 +4287,13 @@ label.prepend-icon {
 .ng-form.form-data-changing .form-field-readonly {
   display: none;
 }
-table.grid .form-data-changing td {
+table.grid.inline-editor .form-data-changing td {
   padding: 0;
 }
-table.grid .form-data-changing .grid-field-readonly {
+table.grid.inline-editor .form-data-changing.inline-editor .grid-field-readonly {
   display: none;
 }
-table.grid .form-data-changing section[readonly] .grid-field-readonly {
+table.grid.inline-editor .form-data-changing section[readonly] .grid-field-readonly {
   min-height: 26px;
   display: block;
   border: 1px solid #e6e6e6;
@@ -4301,18 +4302,21 @@ table.grid .form-data-changing section[readonly] .grid-field-readonly {
   font-weight: normal;
   border-radius: 3px;
 }
-table.grid .form-data-changing section[readonly] .form-field,
-table.grid .form-data-changing section[readonly] .input-group,
-table.grid .form-data-changing section[readonly] label.checkbox {
+table.grid.inline-editor .form-data-changing section[readonly] .form-field,
+table.grid.inline-editor .form-data-changing section[readonly] .input-group,
+table.grid.inline-editor .form-data-changing section[readonly] label.checkbox {
   display: none;
 }
-table.grid .form-data-changing section[readonly] label.prepend-icon {
+table.grid.inline-editor .form-data-changing section[readonly] label.prepend-icon {
   display: none;
 }
 table.grid .form-data-readonly td {
   padding: 4px;
 }
 table.grid .form-data-readonly .grid-field-readonly {
+  margin: 4px;
+}
+.grid-field-readonly {
   margin: 4px;
 }
 #katrid-action-view {

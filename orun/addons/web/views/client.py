@@ -17,11 +17,10 @@ class WebClient(BaseView):
     def index(self):
         menu = app['ui.menu']
         menu_items = menu.search_visible_items()
-        root_menu = menu_items.filter(menu.c.parent_id == None).all()
-        menu_id = root_menu[0]
+        menu_id = menu_items[0]
         context = {
             'current_menu': menu_id,
-            'root_menu': root_menu,
+            'root_menu': menu_items,
             'settings': settings,
         }
         return render_template('web/index.html', **context)
