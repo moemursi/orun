@@ -95,69 +95,6 @@
       }
     }
 
-    save(autoRefresh=true) {
-      // Submit fields with dirty state only
-      const el = this.scope.formElement;
-      if (this.validate()) {
-        const data = this.getModifiedData(this.scope.form, el, this.scope.record);
-        this.scope.form.data = data;
-
-        let beforeSubmit = el.attr('before-submit');
-        if (beforeSubmit)
-          beforeSubmit = this.scope.$eval(beforeSubmit);
-
-        //@scope.form.data = null
-
-        if (data) {
-          this.uploading++;
-          return this.scope.model.write([data])
-          .done(res => {
-
-            this.scope.action.location.search('id', res[0]);
-            this.scope.form.$setPristine();
-            this.scope.form.$setUntouched();
-            if (this.children)
-              this.children.map((child) => {
-                child.scope.dataSet = [];
-                delete child.modifiedData;
-                child.scope.masterChanged(this.scope.recordId);
-              });
-            this._pendingChanges = false;
-            this.state = DataSourceState.browsing;
-            if (autoRefresh)
-              return this.refresh(res);
-
-          })
-          .fail(error => {
-
-            let s = `<span>${Katrid.i18n.gettext('The following fields are invalid:')}<hr></span>`;
-            if (error.message)
-              s = error.message;
-            else if (error.messages) {
-              let elfield;
-              for (let fld in error.messages) {
-                const msgs = error.messages[fld];
-                const field = this.scope.view.fields[fld];
-                elfield = el.find(`.form-field[name="${field.name}"]`);
-                elfield.addClass('ng-invalid ng-touched');
-                s += `<strong>${field.caption}</strong><ul>`;
-                for (let msg of Array.from(msgs)) {
-                  s += `<li>${msg}</li>`;
-                }
-                s += '</ul>';
-              }
-              if (elfield)
-                elfield.focus();
-            }
-
-            return Katrid.Dialogs.Alerts.error(s);
-
-          })
-          .always(() => this.scope.$apply(() => this.uploading-- ) );
-        } else
-          Katrid.Dialogs.Alerts.warn(Katrid.i18n.gettext('No pending changes'));
-      }
-    }
 
     copy(id) {
       return this.scope.model.copy(id)
@@ -429,6 +366,70 @@
             ret[child.fieldName] = res;
         }
       return ret;
+    }
+
+    save(autoRefresh=true) {
+      // Submit fields with dirty state only
+      const el = this.scope.formElement;
+      if (this.validate()) {
+        const data = this.getModifiedData(this.scope.form, el, this.scope.record);
+        this.scope.form.data = data;
+
+        let beforeSubmit = el.attr('before-submit');
+        if (beforeSubmit)
+          beforeSubmit = this.scope.$eval(beforeSubmit);
+
+        //@scope.form.data = null
+
+        if (data) {
+          this.uploading++;
+          return this.scope.model.write([data])
+          .done(res => {
+
+            this.scope.action.location.search('id', res[0]);
+            this.scope.form.$setPristine();
+            this.scope.form.$setUntouched();
+            if (this.children)
+              this.children.map((child) => {
+                child.scope.dataSet = [];
+                delete child.modifiedData;
+                child.scope.masterChanged(this.scope.recordId);
+              });
+            this._pendingChanges = false;
+            this.state = DataSourceState.browsing;
+            if (autoRefresh)
+              return this.refresh(res);
+
+          })
+          .fail(error => {
+
+            let s = `<span>${Katrid.i18n.gettext('The following fields are invalid:')}<hr></span>`;
+            if (error.message)
+              s = error.message;
+            else if (error.messages) {
+              let elfield;
+              for (let fld in error.messages) {
+                const msgs = error.messages[fld];
+                const field = this.scope.view.fields[fld];
+                elfield = el.find(`.form-field[name="${field.name}"]`);
+                elfield.addClass('ng-invalid ng-touched');
+                s += `<strong>${field.caption}</strong><ul>`;
+                for (let msg of Array.from(msgs)) {
+                  s += `<li>${msg}</li>`;
+                }
+                s += '</ul>';
+              }
+              if (elfield)
+                elfield.focus();
+            }
+
+            return Katrid.Dialogs.Alerts.error(s);
+
+          })
+          .always(() => this.scope.$apply(() => this.uploading-- ) );
+        } else
+          Katrid.Dialogs.Alerts.warn(Katrid.i18n.gettext('No pending changes'));
+      }
     }
 
     _getModified(data) {
