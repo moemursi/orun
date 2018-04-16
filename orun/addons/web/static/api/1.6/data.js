@@ -384,7 +384,7 @@
         for (let attr in data) {
           const v = data[attr];
           obj[attr] = v;
-          record[attr] = v;
+          //record[attr] = v;
         }
 
         this.modifiedData = ds;
@@ -408,17 +408,13 @@
         for (let el of Array.from($(element).find('.form-field.ng-dirty'))) {
           const nm = el.name;
           if (nm) {
-            let fld = this.scope.view.fields[nm];
-            let fv = record[nm];
-            if (fld && !_.isUndefined(fv) && (fv !== null))
-              fv = fld.toJson(fv);
-            data[nm] = fv;
+            data[nm] = record[nm];
           }
         }
 
         for (let child of Array.from(this.children)) {
           const subData = data[child.fieldName] || [];
-          for (let attr in child.modifiedData) {
+          for (let attr of child.modifiedData) {
             let obj = child.modifiedData[attr];
             if (obj.$deleted) {
               obj = {
