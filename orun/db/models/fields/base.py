@@ -600,6 +600,8 @@ class DecimalField(Field):
         return sa.Numeric(self.digits, self.decimal_places)
 
     def to_python(self, value):
+        if isinstance(value, str):
+            value = value.replace(',', '.')
         if isinstance(value, (str, float)):
             value = decimal.Decimal(str(value))
         if value is not None:
