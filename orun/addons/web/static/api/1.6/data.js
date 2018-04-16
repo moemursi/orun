@@ -414,7 +414,8 @@
 
         for (let child of Array.from(this.children)) {
           const subData = data[child.fieldName] || [];
-          for (let attr of child.modifiedData) {
+          if (child.modifiedData)
+          for (let attr of Array.from(child.modifiedData)) {
             let obj = child.modifiedData[attr];
             if (obj.$deleted) {
               obj = {
