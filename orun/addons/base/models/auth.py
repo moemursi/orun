@@ -64,11 +64,11 @@ class User(Partner):
     is_active = models.BooleanField(default=True)
     action = models.ForeignKey('ir.action', label=_('Home Action'))
     user_company = models.ForeignKey('res.company')
-    is_staff = models.BooleanField(default=True)
-    is_superuser = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=True, label=_('Is staff'))
+    is_superuser = models.BooleanField(default=False, label=_('Superuser'))
     groups = models.ManyToManyField(Group, label=_('Groups'))
     companies = models.ManyToManyField('res.company', label=_('Companies'))
-    password = models.PasswordField()
+    password = models.PasswordField(label=_('Password'))
 
     class Meta:
         name = 'auth.user'

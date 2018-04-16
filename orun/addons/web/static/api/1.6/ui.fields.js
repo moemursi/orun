@@ -530,16 +530,12 @@
   class BooleanField extends InputWidget {
     spanTemplate() {
       return `<span class="${this.readOnlyClass} bool-text">
-  {{ ${this.spanPrefix}(record.${this.field.name} && gettext('yes')) || ((record.${this.field.name} === false) && gettext('no')) || (!record.${this.field.name} && '${this.emptyText}') }}
+  {{${this.spanPrefix}record.${this.field.name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}}
   </span>`;
     }
 
     get type() {
       return 'checkbox';
-    }
-
-    _tdContent() {
-      return `{{::record.${this.field.name} ? '${Katrid.i18n.gettext('yes')}' : '${Katrid.i18n.gettext('no')}'}}`;
     }
 
     _td(cls) {

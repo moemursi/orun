@@ -370,3 +370,9 @@ msgstr "Moeda"
 
 msgid "Address Format"
 msgstr "Formato Endereço"
+
+msgid "Password"
+msgstr "Senha"
+
+msgid "Superuser"
+msgstr "Super Usuário"

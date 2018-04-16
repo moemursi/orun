@@ -12,6 +12,10 @@
       link(scope, element, attrs, ctrl) {
         let inplaceEditor = $(element).closest('.table.dataTable').length > 0;
         let field = scope.view.fields[attrs.name];
+        if (field && field.visible === false) {
+          element.remove();
+          return;
+        }
         // Overrides the field label
         if (attrs.label) field.caption = attrs.label;
 
@@ -441,6 +445,7 @@
         //f = scope.view.fields['model']
         let domain, serviceName;
         let sel = el;
+        let _shown = false;
         const field = scope.view.fields[attrs.name];
 
         if (attrs.domain != null)
@@ -651,6 +656,15 @@
             } else {
               return controller.$setViewValue(null);
             }
+          }
+        })
+        .on('select2-open', () => {
+          if (!_shown) {
+            // remove select2 on modal hide event
+            _shown = true;
+            let parentModal = el.closest('div.modal');
+            if (parentModal.length)
+              parentModal.on('hide.bs.modal', () => sel.select2('destroy'));
           }
         });
 

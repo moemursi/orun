@@ -4316,7 +4316,7 @@ table.grid .form-data-readonly td {
 table.grid .form-data-readonly .grid-field-readonly {
   margin: 4px;
 }
-.grid-field-readonly {
+table.grid .grid-field-readonly {
   margin: 4px;
 }
 #katrid-action-view {

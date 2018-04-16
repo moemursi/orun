@@ -72,17 +72,18 @@
             }
           })
         });
-      else
+      else {
         scope.model.loadViews()
-        .done(res =>
-          scope.$apply(function () {
+        .done(res => {
             // detects the relational field
             let fld = res.views.list.fields[scope.field.field];
             if (fld)
               fld.visible = false;
             loadViews(res.views);
-          })
-        );
+            scope.$apply();
+          }
+        )
+      }
 
       let renderDialog = function () {
         let el;
