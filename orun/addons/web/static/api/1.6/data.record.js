@@ -2,8 +2,8 @@
 
   class Record {
     constructor(res) {
-      this.res = res;
-      this.data = this.res.data;
+      // this.res = res;
+      // this.data = this.res.data;
     }
   }
 
@@ -14,6 +14,7 @@
         if (scope) {
           scope.$setDirty(propKey);
           scope.dataSource._pendingChanges = true;
+          //scope.dataSource._modifiedData[propKey] =
         }
         return Reflect.set(target, propKey, value, receiver);
       }
