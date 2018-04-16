@@ -11,11 +11,17 @@
   function createRecord(rec, scope) {
     return new Proxy(rec, {
       set(target, propKey, value, receiver) {
-        if (scope) {
+        if (!propKey.startsWith('$') && scope) {
           scope.$setDirty(propKey);
           scope.dataSource._pendingChanges = true;
-          //scope.dataSource._modifiedData[propKey] =
+          if (!rec.$modified) {
+            rec.$modifiedData = {};
+            rec.$modified = true;
+            rec.$old = jQuery.extend({}, rec);
+          }
+          rec.$modifiedData[propKey] = scope.dataSource.fieldByName(propKey).toJson(value);
         }
+        scope.dataSource.$modifiedRecords.push(rec);
         return Reflect.set(target, propKey, value, receiver);
       }
     })

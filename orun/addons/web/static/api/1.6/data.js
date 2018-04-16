@@ -15,6 +15,7 @@
 
   class DataSource {
     constructor(scope) {
+      this.$modifiedRecords = [];
       // this.onFieldChange = this.onFieldChange.bind(this);
       this.fields = [];
       this.scope = scope;
@@ -393,16 +394,51 @@
       return data;
     }
 
-    getModifiedData(form, element, record) {
-      if (record.$deleted) {
-        if (record.id) {
-          return {
-            id: record.id,
-            $deleted: true
-          };
+    getNestedData() {
+      let ret = {};
+      for (let child of this.children)
+        if (child.$modifiedRecords.length) {
+          let res = [];
+          let deleted = [];
+          for (let rec of child.$modifiedRecords) {
+            if (rec.$deleted) {
+              deleted.push(rec);
+              if ((rec.id !== null) && (rec.id !== undefined))
+                res.push({id: rec.id, action: 'DESTROY'})
+            }
+          }
+
+          for (let rec of child.$modifiedRecords) {
+            if (rec.$modifiedData && !rec.$deleted && (deleted.indexOf(rec) === -1)) {
+              let data = rec.$modifiedData;
+              jQuery.extend(data, child.getNestedData());
+              if ((rec.id === null) || (rec.id === undefined))
+                res.push({
+                  action: 'CREATE',
+                  values: data,
+                });
+              else if ((rec.id !== null) && (rec.id !== undefined))
+                res.push({
+                  action: 'UPDATE',
+                  values: data,
+                });
+            }
+          }
+          if (Object.keys(res).length > 0)
+            ret[child.fieldName] = res;
         }
-        return;
-      }
+      return ret;
+    }
+
+    getModifiedData(form, element, record) {
+      let data = this.getNestedData();
+      if (this.record.$modified)
+        jQuery.extend(data, this.record.$modifiedData);
+
+      if (this.record.id)
+        data['id'] = record.id;
+      return data;
+
       if (form.$dirty || this._modifiedFields.length) {
         const data = {};
         for (let el of Array.from($(element).find('.form-field.ng-dirty'))) {
@@ -542,6 +578,10 @@
       return value;
     }
 
+    fieldByName(fieldName) {
+      return this.scope.view.fields[fieldName];
+    }
+
     set state(state) {
       // Clear modified fields information
       this._modifiedFields = [];
@@ -560,9 +600,14 @@
       return this._state;
     }
 
+    get record() {
+      return this.scope.record;
+    }
+
     set record(rec) {
       // Track field changes
       this.scope.record = Katrid.Data.createRecord(rec, this.scope);
+      rec.$created = true;
       this.scope.recordId = rec.id;
       this._pendingChanges = false;
       if (this.scope.form)
