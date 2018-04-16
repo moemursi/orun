@@ -11,20 +11,23 @@
   function createRecord(rec, scope) {
     return new Proxy(rec, {
       set(target, propKey, value, receiver) {
-        if (!propKey.startsWith('$') && scope) {
-          scope.$setDirty(propKey);
-          scope.dataSource._pendingChanges = true;
-          if (!rec.$modified) {
-            rec.$modifiedData = {};
-            rec.$modified = true;
-            rec.$old = jQuery.extend({}, rec);
+        console.log('proxy set', propKey, value);
+        if (!propKey.startsWith('$$')) {
+          if (!propKey.startsWith('$') && scope) {
+            scope.$setDirty(propKey);
+            scope.dataSource._pendingChanges = true;
+            if (!rec.$modified) {
+              rec.$modifiedData = {};
+              rec.$modified = true;
+              rec.$old = jQuery.extend({}, rec);
+            }
+            let fld = scope.dataSource.fieldByName(propKey);
+            if (!(fld instanceof Katrid.Data.Fields.OneToManyField))
+              rec.$modifiedData[propKey] = fld.toJson(value);
           }
-          let fld = scope.dataSource.fieldByName(propKey);
-          if (!(fld instanceof Katrid.Data.Fields.ManyToManyField))
-            rec.$modifiedData[propKey] = fld.toJson(value);
+          if (scope.dataSource.$modifiedRecords.indexOf(rec) === -1)
+            scope.dataSource.$modifiedRecords.push(rec);
         }
-        if (scope.dataSource.$modifiedRecords.indexOf(rec) === -1)
-          scope.dataSource.$modifiedRecords.push(rec);
         return Reflect.set(target, propKey, value, receiver);
       }
     })

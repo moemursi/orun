@@ -401,25 +401,6 @@
         allowZero: true
       })
       .bind('keyup blur', function (event) {
-        if (el.val()) {
-          if (precision) {
-            const newVal = element.maskMoney('unmasked')[0];
-            if (newVal !== parseFloat(controller.$viewValue)) {
-              controller.$setViewValue(newVal);
-              scope.$apply();
-            }
-          } else {
-            let s = `\\${thousands}`;
-            let newVal = el.val().replace(new RegExp(s, 'g'), '');
-            newVal = parseInt(newVal);
-
-            if (newVal !== parseInt(controller.$viewValue)) {
-              controller.$setViewValue(newVal);
-              scope.$apply();
-            }
-          }
-        } else if (controller.$viewValue)
-          controller.$setViewValue('');
       });
 
       controller.$render = () => {
@@ -429,6 +410,41 @@
           return element.val('');
         }
       };
+
+      controller.$parsers.push(value => {
+        if (_.isString(value) && value) {
+          if (precision)
+             value = element.maskMoney('unmasked')[0];
+          else
+            value = parseInt(value);
+        } else if (value)
+          return value;
+        else
+          value = null;
+        return value;
+        // if (el.val()) {
+        //   if (precision) {
+        //     let newVal = element.maskMoney('unmasked')[0];
+        //     if (_.isString(newVal))
+        //       newVal = parseFloat(newVal.replace(new RegExp('\\' + decimal, 'g'), '.'));
+        //     console.log('decimal new val', newVal);
+        //     if (newVal !== parseFloat(controller.$viewValue)) {
+        //       controller.$setViewValue(parseFloat(newVal));
+        //       scope.$apply();
+        //     }
+        //   } else {
+        //     let s = `\\${thousands}`;
+        //     let newVal = el.val().replace(new RegExp(s, 'g'), '');
+        //     newVal = parseInt(newVal);
+        //
+        //     if (newVal !== parseInt(controller.$viewValue)) {
+        //       controller.$setViewValue(newVal);
+        //       scope.$apply();
+        //     }
+        //   }
+        // } else if (controller.$viewValue)
+        //   controller.$setViewValue('');
+      })
     }
 
   }

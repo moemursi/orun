@@ -436,8 +436,7 @@
       let res = {};
       if (data)
         for (let [k, v] of Object.entries(data))
-          if (!k.startsWith('$'))
-            res[k] = v;
+          res[k] = v;
       return res;
     }
 
@@ -536,7 +535,9 @@
     }
 
     insert() {
-      this.record = {};
+      let rec = {};
+      rec.$created = true;
+      this.record = rec;
       return this.scope.model.getDefaults()
       .done(res => {
         this.scope.$apply(() => {
@@ -619,7 +620,6 @@
     set record(rec) {
       // Track field changes
       this.scope.record = Katrid.Data.createRecord(rec, this.scope);
-      rec.$created = true;
       this.scope.recordId = rec.id;
       this._pendingChanges = false;
       if (this.scope.form)

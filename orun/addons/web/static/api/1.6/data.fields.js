@@ -84,18 +84,22 @@
   }
 
   class NumericField extends Field {
-
-  }
-
-  class IntegerField extends Field {
-
-  }
-
-  class DecimalField extends NumericField {
     toJson(val) {
       if (val && _.isString(val))
         return parseFloat(val);
+      return val;
     }
+  }
+
+  class IntegerField extends Field {
+    toJson(val) {
+      if (val && _.isString(val))
+        return parseInt(val);
+      return val;
+    }
+  }
+
+  class DecimalField extends NumericField {
   }
 
   class ForeignKey extends Field {

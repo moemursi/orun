@@ -141,14 +141,13 @@
       scope.doViewAction = (viewAction, target, confirmation) => scope.action._doViewAction(scope, viewAction, target, confirmation);
 
       scope._incChanges = function () {
-        scope.parent.record[`$${scope.fieldName}`] = ++scope._changeCount;
         return scope.parent.record[scope.fieldName] = scope.records;
       };
 
       scope.addItem = function () {
         scope.dataSource.insert();
         if (attrs.inline)
-          scope.records.push({});
+          scope.records.push(scope.record);
         else
           return scope.showDialog();
       };
@@ -191,11 +190,13 @@
       };
 
       scope.save = function () {
+        console.log(scope.record.prop_ms);
         // const data = scope.dataSource.applyModifiedData(scope.form, scope.gridDialog, scope.record);
         if (scope.recordIndex > -1) {
           // const rec = scope.records[scope.recordIndex];
           // Object.entries(data).forEach(([k, v]) => rec[k] = v);
         } else if (scope.recordIndex === -1) {
+          console.log(scope.record);
           scope.records.push(scope.record);
         }
         if (!scope.inline) {
