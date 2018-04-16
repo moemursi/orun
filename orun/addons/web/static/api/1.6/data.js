@@ -408,7 +408,11 @@
         for (let el of Array.from($(element).find('.form-field.ng-dirty'))) {
           const nm = el.name;
           if (nm) {
-            data[nm] = record[nm];
+            let fld = this.scope.view.fields[nm];
+            let fv = record[nm];
+            if (fld && !_.isUndefined(fv) && (fv !== null))
+              fv = fld.toJson(fv);
+            data[nm] = fv;
           }
         }
 
