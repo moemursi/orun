@@ -444,7 +444,6 @@
     }
 
     getModifiedData(form, element, record) {
-      console.log('modified data', record.$modifiedData);
       let data = this.getNestedData();
       if (record.$modified)
         jQuery.extend(data, this._getModified(record.$modifiedData));

@@ -193,8 +193,8 @@
         console.log(scope.record.prop_ms);
         // const data = scope.dataSource.applyModifiedData(scope.form, scope.gridDialog, scope.record);
         if (scope.recordIndex > -1) {
-          // const rec = scope.records[scope.recordIndex];
-          // Object.entries(data).forEach(([k, v]) => rec[k] = v);
+          const rec = scope.records[scope.recordIndex];
+          // scope.records[scope.recordIndex] = scope.record;
         } else if (scope.recordIndex === -1) {
           console.log(scope.record);
           scope.records.push(scope.record);
@@ -222,20 +222,19 @@
           // Show item dialog
           scope.recordIndex = index;
 
-          if (!scope.dataSet[index]) {
+          if (scope.records[index] && !scope.records[index].$modified) {
             return scope.dataSource.get(scope.records[index].id, 0)
-            .done(function (res) {
-              if (res.ok)
-                return scope.$apply(function () {
-                  scope.dataSet[index] = scope.record;
-                });
-            });
-          }
-          setTimeout(() => {
-            const rec = scope.dataSet[index];
-            scope.$apply(() => scope.record = rec);
+              .done(res => {
+                setTimeout(() => scope.record = scope.records[index] = scope.dataSource.record);
+              });
 
-          }, 200);
+          }
+          else
+            setTimeout(() => {
+              const rec = scope.dataSource.records[index];
+              scope.$apply(() => scope.record = rec);
+
+            }, 200);
         } else {
           scope.recordIndex = -1;
         }

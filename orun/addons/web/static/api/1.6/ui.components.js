@@ -415,8 +415,10 @@
         if (_.isString(value) && value) {
           if (precision)
              value = element.maskMoney('unmasked')[0];
-          else
+          else {
+            value = value.replace(new RegExp(`\\${thousands}`, 'g'), '');
             value = parseInt(value);
+          }
         } else if (value)
           return value;
         else
