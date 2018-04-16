@@ -118,7 +118,9 @@
             scope.recordIndex = -1;
           });
         }
-        return false;
+        const def = new $.Deferred();
+        el.on('shown.bs.modal', () => def.resolve());
+        return def;
       };
 
       let loadViews = (obj) => {
@@ -190,11 +192,16 @@
       };
 
       scope.save = function () {
-        console.log(scope.record.prop_ms);
         // const data = scope.dataSource.applyModifiedData(scope.form, scope.gridDialog, scope.record);
         if (scope.recordIndex > -1) {
-          const rec = scope.records[scope.recordIndex];
-          // scope.records[scope.recordIndex] = scope.record;
+          // bug fix proxy object apply changes
+          let rec = scope.record;
+          scope.record = null;
+          scope.records.splice(scope.recordIndex, 1);
+          setTimeout(() => {
+            scope.records.splice(scope.recordIndex, 0, rec);
+            scope.$apply();
+          });
         } else if (scope.recordIndex === -1) {
           console.log(scope.record);
           scope.records.push(scope.record);
@@ -205,38 +212,41 @@
         scope._incChanges();
       };
 
+
       scope.showDialog = function (index) {
-        if (scope._cachedViews.form) {
-          renderDialog();
-        } else {
-          scope.model.getViewInfo({view_type: 'form'})
-          .done(function (res) {
-            if (res.ok) {
-              scope._cachedViews.form = res.result;
-              return renderDialog();
-            }
-          });
-        }
 
         if (index != null) {
           // Show item dialog
           scope.recordIndex = index;
 
           if (scope.records[index] && !scope.records[index].$modified) {
-            return scope.dataSource.get(scope.records[index].id, 0)
+            scope.dataSource.get(scope.records[index].id, 0, false, index)
               .done(res => {
-                setTimeout(() => scope.record = scope.records[index] = scope.dataSource.record);
+                scope.records[index] = res;
+                scope.dataSource.edit();
               });
 
           }
           else
-            setTimeout(() => {
-              const rec = scope.dataSource.records[index];
-              scope.$apply(() => scope.record = rec);
+            scope.record = scope.records[index];
 
-            }, 200);
-        } else {
+        } else
           scope.recordIndex = -1;
+
+        let done = () => {
+
+        };
+
+        if (scope._cachedViews.form) {
+          renderDialog().done(done);
+        } else {
+          scope.model.getViewInfo({view_type: 'form'})
+          .done(function (res) {
+            if (res.result) {
+              scope._cachedViews.form = res.result;
+              return renderDialog().done(done);
+            }
+          });
         }
 
       };

@@ -504,7 +504,7 @@
 
     }
 
-    get(id, timeout) {
+    get(id, timeout, apply=true, index=false) {
       this._clearTimeout();
       this.state = DataSourceState.loading;
       this.loadingRecord = true;
@@ -518,10 +518,12 @@
         .done(res => {
           if (this.state === DataSourceState.loading)
             this.state = DataSourceState.browsing;
-          this.scope.$apply(() => {
-            return this.record = res.data[0];
-          });
-          return def.resolve(res);
+          this.record = res.data[0];
+          if (apply)
+            this.scope.$apply();
+          if (index !== false)
+            this.scope.records[index] = this.record;
+          return def.resolve(this.record);
         })
         .always(() => {
           return this.scope.$apply(() => {
