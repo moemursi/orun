@@ -91,6 +91,13 @@
 
   }
 
+  class DecimalField extends NumericField {
+    toJson(val) {
+      if (val && _.isString(val))
+        return parseFloat(val);
+    }
+  }
+
   class ForeignKey extends Field {
     toJson(val) {
       if (_.isArray(val))
@@ -117,6 +124,8 @@
   Katrid.Data.Fields = {
     Field,
     StringField,
+    IntegerField,
+    DecimalField,
     DateTimeField,
     ForeignKey,
     OneToManyField,
