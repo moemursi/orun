@@ -19,9 +19,12 @@
             rec.$modified = true;
             rec.$old = jQuery.extend({}, rec);
           }
-          rec.$modifiedData[propKey] = scope.dataSource.fieldByName(propKey).toJson(value);
+          let fld = scope.dataSource.fieldByName(propKey);
+          if (!(fld instanceof Katrid.Data.Fields.ManyToManyField))
+            rec.$modifiedData[propKey] = fld.toJson(value);
         }
-        scope.dataSource.$modifiedRecords.push(rec);
+        if (scope.dataSource.$modifiedRecords.indexOf(rec) === -1)
+          scope.dataSource.$modifiedRecords.push(rec);
         return Reflect.set(target, propKey, value, receiver);
       }
     })

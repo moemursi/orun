@@ -191,11 +191,10 @@
       };
 
       scope.save = function () {
-        const data = scope.dataSource.applyModifiedData(scope.form, scope.gridDialog, scope.record);
+        // const data = scope.dataSource.applyModifiedData(scope.form, scope.gridDialog, scope.record);
         if (scope.recordIndex > -1) {
-          const rec = scope.records[scope.recordIndex];
-          console.log(data);
-          Object.entries(data).forEach(([k, v]) => rec[k] = v);
+          // const rec = scope.records[scope.recordIndex];
+          // Object.entries(data).forEach(([k, v]) => rec[k] = v);
         } else if (scope.recordIndex === -1) {
           scope.records.push(scope.record);
         }

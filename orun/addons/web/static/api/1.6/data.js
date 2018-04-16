@@ -409,8 +409,9 @@
           }
 
           for (let rec of child.$modifiedRecords) {
-            if (rec.$modifiedData && !rec.$deleted && (deleted.indexOf(rec) === -1)) {
-              let data = rec.$modifiedData;
+            console.log(rec.$modified, rec.$modifiedData);
+            if (rec.$modifiedData && !rec.$deleted && rec.$modified && (deleted.indexOf(rec) === -1)) {
+              let data = this._getModified(rec.$modifiedData);
               jQuery.extend(data, child.getNestedData());
               if ((rec.id === null) || (rec.id === undefined))
                 res.push({
@@ -430,10 +431,21 @@
       return ret;
     }
 
+    _getModified(data) {
+      console.log('get modified data', data);
+      let res = {};
+      if (data)
+        for (let [k, v] of Object.entries(data))
+          if (!k.startsWith('$'))
+            res[k] = v;
+      return res;
+    }
+
     getModifiedData(form, element, record) {
+      console.log('modified data', record.$modifiedData);
       let data = this.getNestedData();
-      if (this.record.$modified)
-        jQuery.extend(data, this.record.$modifiedData);
+      if (record.$modified)
+        jQuery.extend(data, this._getModified(record.$modifiedData));
 
       if (this.record.id)
         data['id'] = record.id;
