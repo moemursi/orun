@@ -459,8 +459,7 @@
         fmt = 'numberFormat';
       else
         maxDigits = this.attrs.decimalPlaces || 2;
-      return `<span class="${this.readOnlyClass}">{{ record.${this.field.name} }}</span>`;
-      // return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}(record.${this.field.name}|${ fmt }:${ maxDigits }) || '${this.emptyText}' }}</span>`;
+      return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}(record.${this.field.name}|${ fmt }:${ maxDigits }) || '${this.emptyText}' }}</span>`;
     }
 
     _tdContent(cls) {
