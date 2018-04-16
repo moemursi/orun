@@ -349,6 +349,8 @@
             console.log(rec.$modified, rec.$modifiedData);
             if (rec.$modifiedData && !rec.$deleted && rec.$modified && (deleted.indexOf(rec) === -1)) {
               let data = this._getModified(rec.$modifiedData);
+              if (rec.id)
+                data['id'] = rec.id;
               jQuery.extend(data, child.getNestedData());
               if ((rec.id === null) || (rec.id === undefined))
                 res.push({
