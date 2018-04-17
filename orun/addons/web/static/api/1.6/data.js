@@ -211,7 +211,8 @@
         this.scope.model.search(params)
         .fail(res => {
           return def.reject(res);
-        }).done(res => {
+        })
+        .done(res => {
           if (this.pageIndex > 1) {
             this.offset = ((this.pageIndex - 1) * this.pageLimit) + 1;
           } else {
@@ -221,7 +222,11 @@
             if (res.count != null)
               this.recordCount = res.count;
 
-            this.scope.records = res.data;
+            let data = res.data;
+            if (this.readonly)
+              this.scope.records = data;
+            else
+              this.scope.records = data.map((obj) => Katrid.Data.createRecord(obj, this.scope));
             if (this.pageIndex === 1) {
               return this.offsetLimit = this.scope.records.length;
             } else {
@@ -229,7 +234,8 @@
             }
           });
           return def.resolve(res);
-        }).always(() => {
+        })
+        .always(() => {
           this.pendingRequest = false;
           this.scope.$apply(() => {
             return this.loading = false;
