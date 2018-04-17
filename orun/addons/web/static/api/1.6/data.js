@@ -462,16 +462,50 @@
       }
     }
 
+    _getNested(recs) {
+      let res = [];
+      if (recs.$deleted && recs.$deleted.recs.length)
+        for (let rec of recs.$deleted.recs)
+          res.push({id: rec.id, action: 'DESTROY'});
+
+      let vals;
+      if (recs.recs.length)
+        for (let rec of recs.recs) {
+          vals = {};
+          if (rec.$created)
+            vals = {
+              action: 'CREATE',
+              values: this._getModified(rec.$modifiedData)
+            };
+          else if (rec.$modified) {
+            vals = {
+              action: 'UPDATE',
+              values: this._getModified(rec.$modifiedData)
+            };
+            vals.values.id = rec.id;
+          }
+          else
+            continue;
+          res.push(vals);
+        }
+
+      return res;
+    }
+
+
     _getModified(data) {
       let res = {};
       if (data)
         for (let [k, v] of Object.entries(data))
-          res[k] = v;
+          if (v instanceof Katrid.Data.SubRecords) {
+            res[k] = this._getNested(v);
+          } else
+            res[k] = v;
       return res;
     }
 
     getModifiedData(form, element, record) {
-      let data = this.getNestedData();
+      let data = {};
       if (record.$modified)
         jQuery.extend(data, this._getModified(record.$modifiedData));
 

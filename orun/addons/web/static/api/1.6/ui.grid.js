@@ -194,6 +194,7 @@
         scope._incChanges();
         rec.$deleted = true;
         scope.dataSource.$modifiedRecords.push(rec);
+        scope.$parent.record.$modifiedData[scope.fieldName].$deleted.append(rec);
         // return scope.dataSource.applyModifiedData(null, null, rec);
       };
 
