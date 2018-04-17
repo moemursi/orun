@@ -4290,7 +4290,7 @@ label.prepend-icon {
 table.grid.inline-editor .form-data-changing td {
   padding: 0;
 }
-table.grid.inline-editor .form-data-changing.inline-editor .grid-field-readonly {
+table.grid.inline-editor .form-data-changing .grid-field-readonly {
   display: none;
 }
 table.grid.inline-editor .form-data-changing section[readonly] .grid-field-readonly {
@@ -4298,7 +4298,7 @@ table.grid.inline-editor .form-data-changing section[readonly] .grid-field-reado
   display: block;
   border: 1px solid #e6e6e6;
   background-color: #f5f5f5;
-  padding: 3px 5px 0 8px;
+  padding: 3px 5px 0 3px;
   font-weight: normal;
   border-radius: 3px;
 }
@@ -4316,8 +4316,11 @@ table.grid .form-data-readonly td {
 table.grid .form-data-readonly .grid-field-readonly {
   margin: 4px;
 }
-table.grid .grid-field-readonly {
+table.grid.inline-editor .grid-field-readonly {
   margin: 4px;
+}
+table.grid.inline-editor .grid-field-readonly {
+  margin: 0;
 }
 #katrid-action-view {
   height: 100%;
