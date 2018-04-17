@@ -31,6 +31,7 @@
       scope.dataSet = [];
       scope.parent = scope.$parent;
       scope.model = new Katrid.Services.Model(field.model);
+      scope.isList = true;
 
       if (attrs.inlineEditor === 'tabular')
         scope.inline = 'tabular';
@@ -46,8 +47,8 @@
       };
 
       // Set parent/master data source
-      scope.dataSource = new Katrid.Data.DataSource(scope);
-      scope.dataSource.readonly = !_.isUndefined(attrs.readonly);
+      let dataSource = scope.dataSource = new Katrid.Data.DataSource(scope);
+      dataSource.readonly = !_.isUndefined(attrs.readonly);
       let p = scope.$parent;
       while (p) {
         if (p.dataSource) {
@@ -75,6 +76,7 @@
       else {
         scope.model.loadViews()
         .done(res => {
+          console.log(res);
             // detects the relational field
             let fld = res.views.list.fields[scope.field.field];
             if (fld)
@@ -116,11 +118,16 @@
             el.remove();
             scope.gridDialog = null;
             scope.recordIndex = -1;
+            _destroyChildren();
           });
         }
         const def = new $.Deferred();
         el.on('shown.bs.modal', () => def.resolve());
         return def;
+      };
+
+      let _destroyChildren = () => {
+        dataSource.children = [];
       };
 
       let loadViews = (obj) => {
@@ -142,7 +149,11 @@
 
       scope.doViewAction = (viewAction, target, confirmation) => scope.action._doViewAction(scope, viewAction, target, confirmation);
 
-      scope._incChanges = function () {
+      let _cacheChildren = (fieldName, records) => {
+        scope.record[fieldName] = records;
+      };
+
+      scope._incChanges = () => {
         return scope.parent.record[scope.fieldName] = scope.records;
       };
 
@@ -182,7 +193,8 @@
         scope.records.splice(idx, 1);
         scope._incChanges();
         rec.$deleted = true;
-        return scope.dataSource.applyModifiedData(null, null, rec);
+        scope.dataSource.$modifiedRecords.push(rec);
+        // return scope.dataSource.applyModifiedData(null, null, rec);
       };
 
       scope.$set = (field, value) => {
@@ -203,7 +215,6 @@
             scope.$apply();
           });
         } else if (scope.recordIndex === -1) {
-          console.log(scope.record);
           scope.records.push(scope.record);
         }
         if (!scope.inline) {
@@ -213,27 +224,53 @@
       };
 
 
+      let _loadChildFromCache = (child) => {
+        if (scope.record.hasOwnProperty(child.fieldName)) {
+          child.scope.records = scope.record[child.fieldName];
+        }
+      };
+
+
       scope.showDialog = function (index) {
+
+        let needToLoad = false;
 
         if (index != null) {
           // Show item dialog
           scope.recordIndex = index;
 
-          if (scope.records[index] && !scope.records[index].$modified) {
+          if (scope.records[index] && !scope.records[index].$loaded) {
             scope.dataSource.get(scope.records[index].id, 0, false, index)
               .done(res => {
+                res.$loaded = true;
                 scope.records[index] = res;
                 scope.dataSource.edit();
+
+                // load nested data
+                for (let child of dataSource.children) {
+                  child.scope.masterChanged(res.id)
+                  .done(res => {
+                    _cacheChildren(child.fieldName, res.data);
+                  })
+
+                }
               });
 
           }
-          else
-            scope.record = scope.records[index];
+          else {
+            needToLoad = true;
+          }
 
         } else
           scope.recordIndex = -1;
 
         let done = () => {
+          if (needToLoad) {
+            scope.record = scope.records[index];
+            for (let child of dataSource.children)
+              _loadChildFromCache(child);
+            scope.$apply();
+          }
 
         };
 
@@ -259,12 +296,15 @@
           const data = {};
           data[field.field] = key;
           if (key)
-            scope.dataSource.search(data)
+            return scope.dataSource.search(data)
             .always(() => scope.dataSource.state = Katrid.Data.DataSourceState.browsing);
         }
       };
 
-      scope.$parent.$watch('recordId', masterChanged);
+      if (!scope.$parent.isList) {
+        dataSource.invalidate = masterChanged;
+        scope.$parent.$watch('recordId', masterChanged);
+      }
     }
 
   }

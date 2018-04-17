@@ -118,14 +118,23 @@
     }
 
     refresh(data) {
+      let r;
       if (data) {
         // Refresh current record
-        return this.get(data[0]);
+        r = this.get(data[0]);
       } else if (this.scope.record.id) {
-        return this.get(this.scope.record.id);
+        r = this.get(this.scope.record.id);
       } else {
-        return this.search(this._params, this._page);
+        r = this.search(this._params, this._page);
       }
+      r.done(() => {
+        for (let child in this.children)
+          if (child.invalidate) {
+            child.invalidate(this.recordId);
+            child.scope.$apply();
+          }
+      });
+      return r;
     }
 
     _validateForm(elForm, form, errorMsgs) {
@@ -209,9 +218,9 @@
             this.offset = 1;
           }
           this.scope.$apply(() => {
-            if (res.count != null) {
+            if (res.count != null)
               this.recordCount = res.count;
-            }
+
             this.scope.records = res.data;
             if (this.pageIndex === 1) {
               return this.offsetLimit = this.scope.records.length;
@@ -370,6 +379,26 @@
       return ret;
     }
 
+    _clearRecordCache(rec) {
+      if (rec) {
+        delete rec.$modified;
+        delete rec.$modifiedData;
+        delete rec.$old;
+        delete rec.$deleted;
+        delete rec.$created;
+      }
+    }
+
+    _clearCache() {
+      this._clearRecordCache(this.record);
+      if (this.scope.records)
+        for (let rec in this.scope.records)
+          this._clearRecordCache(rec);
+      this.$modifiedRecords = [];
+      for (let child of this.children)
+        child._clearCache();
+    }
+
     save(autoRefresh=true) {
       // Submit fields with dirty state only
       const el = this.scope.formElement;
@@ -387,14 +416,13 @@
           this.uploading++;
           return this.scope.model.write([data])
           .done(res => {
-
+            //this._clearCache();
             this.scope.action.location.search('id', res[0]);
             this.scope.form.$setPristine();
             this.scope.form.$setUntouched();
             if (this.children)
               this.children.map((child) => {
                 child.scope.dataSet = [];
-                delete child.modifiedData;
                 child.scope.masterChanged(this.scope.recordId);
               });
             this._pendingChanges = false;
@@ -435,7 +463,6 @@
     }
 
     _getModified(data) {
-      console.log('get modified data', data);
       let res = {};
       if (data)
         for (let [k, v] of Object.entries(data))
@@ -619,6 +646,10 @@
 
     get record() {
       return this.scope.record;
+    }
+
+    get recordId() {
+      return this.scope.recordId;
     }
 
     set record(rec) {
