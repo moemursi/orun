@@ -407,6 +407,12 @@
 
     save(autoRefresh=true) {
       // Submit fields with dirty state only
+
+      // Save pending children
+      for (let child of this.children)
+        if (child.changing)
+          child.scope.save();
+
       const el = this.scope.formElement;
       if (this.validate()) {
         const data = this.getModifiedData(this.scope.form, el, this.scope.record);
@@ -476,7 +482,7 @@
 
       let vals;
       if (recs.recs.length)
-        for (let rec of recs.recs) {
+        for (let rec of recs.recs) if (rec) {
           vals = {};
           if (rec.$created)
             vals = {

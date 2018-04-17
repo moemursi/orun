@@ -206,8 +206,9 @@
 
       scope.save = function () {
         // const data = scope.dataSource.applyModifiedData(scope.form, scope.gridDialog, scope.record);
+        if (scope.inline)
+          return scope.$parent.record[scope.fieldName] = scope.records;
         if (scope.recordIndex > -1) {
-          // bug fix proxy object apply changes
           let rec = scope.record;
           scope.record = null;
           scope.records.splice(scope.recordIndex, 1);
