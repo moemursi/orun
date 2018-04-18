@@ -47,6 +47,7 @@ class Menu(models.Model):
             return [
                 {
                     'pk': menu_item.pk, 'name': menu_item.name, 'url': menu_item.get_absolute_url(),
+                    'action_id': menu_item.action_id,
                     'children': _iter_item(menu_item.pk)
                 }
                 for menu_item in visible_items[item]

@@ -87,6 +87,7 @@
   Katrid.Speech.voiceCommand = new VoiceCommand();
 
   // load voice commands
+  /*
   let model = new Katrid.Services.Model('voice.command');
   model.search()
   .done(res => {
@@ -97,5 +98,6 @@
 
   if (Katrid.Settings.Speech.enabled)
     Katrid.Speech.voiceCommand.start();
+  */]
 
 }).call(this);
