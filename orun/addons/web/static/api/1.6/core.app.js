@@ -226,7 +226,6 @@
 
 
   ngApp.controller('ActionController', function($scope, $compile, $location, $route, action, reset, hotkeys) {
-    console.log(action);
     prepareScope($scope, $location);
     Katrid.core.setContent = setContent;
     Katrid.core.compile = $compile;

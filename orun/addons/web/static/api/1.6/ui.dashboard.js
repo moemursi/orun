@@ -26,7 +26,7 @@
       let model = new Katrid.Services.Model('ir.dashboard.settings');
       model.search({ dashboard_id: dashboardId })
       .done(res => {
-        if (res.ok) {
+        if (res.data) {
           let content = res.result.data[0].content;
           content = this.$compile(content)(scope);
           el.append(content);
