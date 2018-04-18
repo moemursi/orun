@@ -166,7 +166,6 @@
       controller: 'MenuController',
       resolve: {
         menu: ['$route', ($route) => {
-          console.log('menu id', $route.current.params.menuId);
           return $route.current.params.menuId;
         }]
       },
@@ -184,7 +183,7 @@
     console.log('menu controller');
     let action = $(`#left-side-menu[data-menu-id='${ menu }']`).find('.menu-item-action').first();
     $scope.$parent.current_menu = parseInt(menu);
-    setTimeout(() => action.click(), 1);
+    action.click();
   });
 
 
