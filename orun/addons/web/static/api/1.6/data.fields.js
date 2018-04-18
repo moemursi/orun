@@ -119,7 +119,7 @@
   class ManyToManyField extends ForeignKey {
     toJson(val) {
       if (_.isArray(val))
-        return val[0];
+        return val.map(obj => _.isArray(obj) ? obj[0] : obj);
       return val;
     }
   }
