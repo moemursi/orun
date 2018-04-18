@@ -73,9 +73,7 @@ class Registry(object):
                             app_config.path = os.path.dirname(mod.__file__)
                             self.modules[name] = mod
                             self.app_configs[name] = app_config
-                            print(name)
                         except (ImportError, AttributeError) as e:
-                            print(e)
                             pass
 
     def check_models_ready(self):

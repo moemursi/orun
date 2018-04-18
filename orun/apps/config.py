@@ -62,7 +62,6 @@ class AppConfig(flask.Blueprint):
                 try:
                     self.models_module = import_module('%s.models' % self.schema)
                 except ImportError as e:
-                    print('Error loading', self.schema)
                     pass
 
                 # Register views

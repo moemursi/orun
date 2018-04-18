@@ -1,12 +1,5 @@
 (function() {
 
-  class Record {
-    constructor(res) {
-      // this.res = res;
-      // this.data = this.res.data;
-    }
-  }
-
   class SubRecords {
     constructor(recs) {
       this.recs = recs;
@@ -22,7 +15,6 @@
   function createRecord(rec, scope) {
     return new Proxy(rec, {
       set(target, propKey, value, receiver) {
-        console.log('proxy set', propKey, value);
         if (!propKey.startsWith('$$')) {
           if (!propKey.startsWith('$') && scope) {
             scope.$setDirty(propKey);
@@ -60,7 +52,6 @@
   }
   RecordState.initClass();
 
-  Katrid.Data.Record = Record;
   Katrid.Data.RecordState = RecordState;
   Katrid.Data.createRecord = createRecord;
   Katrid.Data.SubRecords = SubRecords;
