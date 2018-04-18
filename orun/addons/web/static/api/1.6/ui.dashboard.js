@@ -27,7 +27,7 @@
       model.search({ dashboard_id: dashboardId })
       .done(res => {
         if (res.data) {
-          let content = res.result.data[0].content;
+          let content = res.data[0].content;
           content = this.$compile(content)(scope);
           el.append(content);
         }
@@ -43,12 +43,13 @@
     }
 
     link(scope, el, attrs) {
-      $.get('/api/rpc/ir.query/read/?id=' + attrs.queryId).done((res) => {
+      Katrid.Services.Query.read(attrs.queryId)
+      .done(res => {
         c3.generate({
           bindto: el[0],
           data: {
             type: 'donut',
-            columns: res.result.data
+            columns: res.data
           }
         });
       });
@@ -61,13 +62,12 @@
       this.scope = false;
     }
     link(scope, el, attrs) {
-      console.log(attrs);
-      if (!attrs.name) throw Error('Query name attribute is required!');
-      $.get('/api/rpc/ir.query/read/?id=' + attrs.id).done((res) => {
-        let data = res.result.data.map((row) => (_.object(res.result.fields, row)));
-        scope.$apply(() => {
-          scope[attrs.name] = data;
-        });
+      if (!attrs.name)
+        throw Error('Query name attribute is required!');
+      Katrid.Services.Query.read(attrs.id)
+      .done(res => {
+        let data = res.data.map((row) => (_.object(res.fields, row)));
+        scope.$apply(() => scope[attrs.name] = data);
       });
       el.remove();
     }

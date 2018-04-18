@@ -227,6 +227,18 @@
     }
   }
 
+
+  class Query extends Model {
+    constructor() {
+      super('ir.query');
+    }
+
+    static read(id) {
+      return (new Query()).post('read', { args: [id] });
+    }
+  }
+
+
   class Data extends Service {
     static get url() { return '/web/data/' };
 
@@ -285,6 +297,7 @@
     Attachments,
     Service,
     Model,
+    Query,
     Actions
   };
 
