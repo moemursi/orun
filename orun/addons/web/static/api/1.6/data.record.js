@@ -26,13 +26,17 @@
             }
             let fld = scope.dataSource.fieldByName(propKey);
             if (fld instanceof Katrid.Data.Fields.OneToManyField) {
+
+
               if (!rec.$modifiedData[propKey]) {
                 rec.$modifiedData[propKey] = new SubRecords(value);
                 rec.$modifiedData[propKey].$deleted = new SubRecords([]);
-              }
+              } else
+                rec.$modifiedData[propKey].recs = value;
+
               return Reflect.set(target, propKey, value, receiver);
             }
-            else
+            else if (fld)
               rec.$modifiedData[propKey] = fld.toJson(value);
           }
           if (scope.dataSource.$modifiedRecords.indexOf(rec) === -1)

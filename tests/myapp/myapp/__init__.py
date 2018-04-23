@@ -6,11 +6,10 @@ class AppConfig(orun.AppConfig):
     version = '0.1'
     auto_install = False
     installable = True
-    fixtures = [
-        'actions.xml', 'menu.xml',
-    ]
+    # fixtures = [
+    #     'actions.xml', 'menu.xml',
+    # ]
     depends = ['mail']
-    db_schema = 'confinamento'
 
 
 addon = AppConfig()

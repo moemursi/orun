@@ -18,7 +18,8 @@ def _login_required(fn=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=
         @wraps(view_func)
         def wrapped(*args, **kwargs):
             user = session.get(session_key)
-            if user:
+            # Disable decorator for testing framework
+            if user or app.config['TESTING']:
                 return view_func(*args, **kwargs)
             return redirect(
                 url_for(login_url, **{redirect_field_name: request.path}) if ':' in login_url else login_url

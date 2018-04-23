@@ -26,43 +26,6 @@
     }]
   );
 
-  // ngApp.run(['$route', '$rootScope', '$location', function($route, $rootScope, $location) {
-  //
-  //   const original = $location.path;
-  //   return $location.path = function(path, currentAction, back) {
-  //     let reload;
-  //     if (currentAction === false) {
-  //       reload = false;
-  //     } else {
-  //       reload = true;
-  //     }
-  //
-  //     if (currentAction != null) {
-  //       const lastRoute = $route.current;
-  //       var un = $rootScope.$on('$locationChangeSuccess', function() {
-  //         if ($route.current) {
-  //           $route.current.currentAction = currentAction;
-  //           $route.current.reload = reload;
-  //           $route.current.back = back;
-  //         }
-  //         return un();
-  //       });
-  //     }
-  //     return original.apply($location, [path]);
-  //   };
-  // }
-  // ]);
-
-
-  // ngApp.factory('actions', () =>
-  //   ({
-  //     get(service, id) {
-  //       return $.get(`/web/action/${service}/${id}/` );
-  //     }
-  //   })
-  // );
-
-
   let setContent = function(content, scope) {
     const doButtonClick = function() {
       const btn = $(this);

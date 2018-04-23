@@ -29,7 +29,7 @@ class AppConfig(flask.Blueprint):
         mod_name = app_module or self.__class__.__module__.split('.')[-1]
         if self.schema is None:
             self.schema = schema or mod_name
-        kwargs.setdefault('url_prefix', '/static/%s' % self.schema)
+        kwargs.setdefault('static_url_path', '/static/' + self.schema)
         self.name = self.schema
         self.is_ready = False
         self.module = app_module

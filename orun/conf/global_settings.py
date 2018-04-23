@@ -2,6 +2,7 @@ settings = {
     'INSTALLED_APPS': [],
     'DEFAULT_INDEX_TABLESPACE': None,
     'DEBUG': True,
+    'WEBSOCKET': False,
 
     'LOCALE_PATHS': [],
     'LANGUAGE_CODE': 'en-us',

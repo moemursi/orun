@@ -218,6 +218,7 @@
           });
         } else if (scope.recordIndex === -1) {
           scope.records.push(scope.record);
+          scope.$parent.record[scope.fieldName] = scope.records;
         }
         if (!scope.inline) {
           scope.gridDialog.modal('toggle');
@@ -243,20 +244,20 @@
 
           if (scope.records[index] && !scope.records[index].$loaded) {
             scope.dataSource.get(scope.records[index].id, 0, false, index)
-              .done(res => {
-                res.$loaded = true;
-                scope.records[index] = res;
-                scope.dataSource.edit();
+            .done(res => {
+              res.$loaded = true;
+              scope.records[index] = res;
+              scope.dataSource.edit();
 
-                // load nested data
-                for (let child of dataSource.children) {
-                  child.scope.masterChanged(res.id)
-                  .done(res => {
-                    _cacheChildren(child.fieldName, res.data);
-                  })
+              // load nested data
+              for (let child of dataSource.children) {
+                child.scope.masterChanged(res.id)
+                .done(res => {
+                  _cacheChildren(child.fieldName, res.data);
+                })
 
-                }
-              });
+              }
+            });
 
           }
           else {

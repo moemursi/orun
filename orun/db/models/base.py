@@ -249,6 +249,10 @@ class ModelBase(type):
                 return issubclass(cls, parent)
         return super(ModelBase, cls).__subclasscheck__(sub)
 
+    @api.method
+    def field_onchange(self, field, *args, **kwargs):
+        self._meta.fields_dict[field].onchange(*args, **kwargs)
+
     # Add DML attributes
     @property
     def select(cls):

@@ -68,12 +68,14 @@ class Registry(object):
                 for _, name, is_pkg in pkgutil.iter_modules([path]):
                     if is_pkg and not name.startswith('_'):
                         try:
+                            print('finding', name)
                             mod = import_module(name)
                             app_config = mod.addon
                             app_config.path = os.path.dirname(mod.__file__)
                             self.modules[name] = mod
                             self.app_configs[name] = app_config
                         except (ImportError, AttributeError) as e:
+                            print(name, e)
                             pass
 
     def check_models_ready(self):

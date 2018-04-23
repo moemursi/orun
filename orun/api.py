@@ -1,6 +1,6 @@
-from collections import Mapping
+from collections import Mapping, defaultdict
 import inspect
-from functools import wraps
+from functools import wraps, partial
 
 from orun import app, request
 from orun.core.exceptions import RPCError
@@ -55,6 +55,9 @@ class Environment(Mapping):
     def __len__(self):
         return len(app.models)
 
+    def ref(self, name):
+        pass
+
 
 def method(*args, public=False, methods=None):
     def decorator(fn):
@@ -94,17 +97,17 @@ def records(*args, **kwargs):
     return decorator
 
 
-def depends(fields):
-    def decorator(fn):
-        fn.depends = fields
-        return fn
-    return decorator
-
-
 def onchange(fields):
     def decorator(fn):
-        fn.depends = fields
+
+        def contribute_to_class(cls, name):
+            if not cls._meta.onchange:
+                cls._meta.onchange = [fields]
+
+        fn._onchange = fields
+        fn.contribute_to_class = contribute_to_class
         return fn
+
     return decorator
 
 

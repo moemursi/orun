@@ -1,7 +1,7 @@
 <form>
   <div class="media">
     <div class="d-flex mr-3">
-      <field name="image" nolabel ng-empty-image="(record.company_type === 'individual' && '/static/web/static/assets/img/avatar.png') || ('/static/web/static/assets/img/no-image.png')"/>
+      <field name="image" nolabel ng-empty-image="(record.company_type === 'individual' && '/static/web/assets/img/avatar.png') || ('/static/web/assets/img/no-image.png')"/>
     </div>
     <div class="media-body">
       <h3>

@@ -58,7 +58,7 @@ class Field(object):
                  auto_created=False, default=NOT_PROVIDED, choices=None,
                  deferred=False, copy=None, serializable=True, editable=True, help_text=None, validators=[],
                  error_messages=None, compute=None,
-                 unique=False, db_tablespace=None, getter=None, setter=None, proxy=None, *args, **kwargs):
+                 unique=False, db_tablespace=None, getter=None, setter=None, proxy=None, onchange=None, *args, **kwargs):
         self.column = None
         self.unique = unique
         self.name = None
@@ -93,7 +93,7 @@ class Field(object):
         self.editable = editable and serializable
         self.help_text = help_text
         self.db_tablespace = db_tablespace or settings.DEFAULT_INDEX_TABLESPACE
-        self.depends = None
+        self._onchange = onchange
         self.getter = getter
         self.setter = setter
         self.compute = compute
@@ -155,9 +155,6 @@ class Field(object):
         # Initialize the primary key sqlalchemy column
         if self.primary_key and self.model._meta.app:
             self._prepare()
-        if isinstance(self.getter, str):
-            fn = getattr(cls, self.getter, None)
-            self.depends = getattr(fn, 'depends', None)
 
     def create_column(self, bind=None, *args, **kwargs):
         if self.primary_key:
@@ -210,7 +207,7 @@ class Field(object):
             'type': self.get_internal_type(),
             'caption': capfirst(self.label),
             'choices': self.choices,
-            'depends': self.depends,
+            'onchange': bool(self._onchange),
             'attrs': self.widget_attrs,
         }
         if hasattr(self, 'max_length'):
@@ -253,6 +250,9 @@ class Field(object):
         if callable(setter):
             setter(value)
         #instance._state.record[self] = value
+
+    def onchange(self, args, kwargs):
+        pass
 
     @cached_property
     def validators(self):
