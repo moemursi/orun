@@ -124,7 +124,7 @@
         })
         .done(res => {
           if (res.error)
-            def.rejct(res.error);
+            def.reject(res.error);
           else
             def.resolve(res.result);
         })

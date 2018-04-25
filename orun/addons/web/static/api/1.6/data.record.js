@@ -26,8 +26,6 @@
             }
             let fld = scope.dataSource.fieldByName(propKey);
             if (fld instanceof Katrid.Data.Fields.OneToManyField) {
-
-
               if (!rec.$modifiedData[propKey]) {
                 rec.$modifiedData[propKey] = new SubRecords(value);
                 rec.$modifiedData[propKey].$deleted = new SubRecords([]);

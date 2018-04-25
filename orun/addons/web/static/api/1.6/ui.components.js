@@ -125,7 +125,8 @@
         scope.$watch(`records`, (newValue) => {
           let total = 0;
           newValue.map((r) => total += parseFloat(r[attrs.field]));
-          scope['total_' + attrs.field] = total;
+          console.log('RECORDS CHANGED', total);
+          scope['total$' + attrs.field] = total;
         });
     }
   }
