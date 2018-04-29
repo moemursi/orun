@@ -37,7 +37,7 @@ class Options(object):
     proxy = None
     fixtures = None
     virtual = False
-    onchange = None
+    on_field_change = None
 
     def __init__(self, attrs, app_config=None, bases=None):
         self.meta_attrs = attrs

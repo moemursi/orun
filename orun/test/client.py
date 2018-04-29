@@ -22,4 +22,4 @@ class ClientTestCase(unittest.TestCase):
             'method': meth,
             'id': 1,
             'params': data,
-        }))
+        }), content_type='application/json')

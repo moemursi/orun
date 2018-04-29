@@ -26,4 +26,4 @@ class ChangeModel(models.Model):
 
     @api.onchange(change_field)
     def change_field_event(self):
-        pass
+        print('field changed')

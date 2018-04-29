@@ -21,5 +21,5 @@ class ChangeTestCase(ClientTestCase):
         cls.client = app.test_client()
 
     def test_change_event(self):
-        r = self.rpc('myapp.changemodel', 'field_onchange', {'args': 'fieldname'})
+        r = self.rpc('myapp.changemodel', 'on_field_change', {'args': ['change_field']})
         print(r)

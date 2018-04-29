@@ -100,12 +100,20 @@ def records(*args, **kwargs):
 def onchange(fields):
     def decorator(fn):
 
-        def contribute_to_class(cls, name):
-            if not cls._meta.onchange:
-                cls._meta.onchange = [fields]
+        def contribute_to_class(fields, cls, name):
+            if not cls._meta.on_field_change:
+                cls._meta.__class__.on_field_change = defaultdict(list)
+            if not isinstance(fields, (list, dict)):
+                fields = [fields]
+            for field in fields:
+                if not isinstance(field, str):
+                    field = field.name
+                lst = cls._meta.on_field_change[field]
+                if fn not in lst:
+                    lst.append(fn)
 
         fn._onchange = fields
-        fn.contribute_to_class = contribute_to_class
+        fn.contribute_to_class = partial(contribute_to_class, fields)
         return fn
 
     return decorator

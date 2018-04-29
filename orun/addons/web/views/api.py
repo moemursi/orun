@@ -27,13 +27,13 @@ class RPC(BaseView):
                 if k[0].startswith('_'):
                     continue
             service = app[service]
-            meth = getattr(service, method)
+            meth = getattr(service.__class__, method)
             if getattr(meth, 'exposed', None):
                 qs = kwargs
 
                 args = params.get('args', ())
                 kwargs = params.get('kwargs', {})
-                r = meth(*args, **kwargs)
+                r = meth(service, *args, **kwargs)
 
                 if isinstance(r, Query):
                     r = {

@@ -250,8 +250,8 @@ class ModelBase(type):
         return super(ModelBase, cls).__subclasscheck__(sub)
 
     @api.method
-    def field_onchange(self, field, *args, **kwargs):
-        self._meta.fields_dict[field].onchange(*args, **kwargs)
+    def on_field_change(self, field, *args, **kwargs):
+        return self._meta.fields_dict[field].onchange(self)
 
     # Add DML attributes
     @property

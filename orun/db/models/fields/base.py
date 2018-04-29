@@ -5,9 +5,7 @@ import collections
 import itertools
 import sqlalchemy as sa
 from sqlalchemy.schema import FetchedValue
-from sqlalchemy.orm import relationship
 
-from orun.utils.datastructures import DictWrapper
 from orun.conf import settings
 from orun.core import exceptions
 from orun.core import validators
@@ -156,6 +154,13 @@ class Field(object):
         if self.primary_key and self.model._meta.app:
             self._prepare()
 
+    def onchange(self, instance):
+        if self._onchange:
+            getattr(instance, self._onchange)(instance)
+        for fn in instance._meta.on_field_change[self.name]:
+            fn(instance)
+        return instance
+
     def create_column(self, bind=None, *args, **kwargs):
         if self.primary_key:
             kwargs['primary_key'] = self.primary_key
@@ -250,9 +255,6 @@ class Field(object):
         if callable(setter):
             setter(value)
         #instance._state.record[self] = value
-
-    def onchange(self, args, kwargs):
-        pass
 
     @cached_property
     def validators(self):
