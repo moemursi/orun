@@ -133,6 +133,7 @@
 
         let _widget = Katrid.UI.Widgets[col.attr('widget') || fieldInfo.type] || Katrid.UI.Widgets.StringField;
         _widget = new _widget(this.scope, {}, fieldInfo, col);
+        _widget.inList = true;
         ths += _widget.th();
 
         cols += _widget.td();

@@ -2,6 +2,7 @@ import sqlalchemy as sa
 from sqlalchemy.sql import select, update, delete, text
 from sqlalchemy import orm, or_, and_
 from sqlalchemy.orm import load_only
+from orun.core.exceptions import ObjectDoesNotExist
 
 from orun.api import RecordsProxy
 from orun.db import session, connection
@@ -288,6 +289,15 @@ class Query(orm.Query):
     #     q = super(Query, self)._clone()
     #     q.env = self.env
     #     return q
+
+    def get_or_create(self, defaults=None, **kwargs):
+        try:
+            obj = self.filter(**kwargs).one()
+        except ObjectDoesNotExist:
+            obj = None
+        if obj is None:
+            obj = self._entities[0].type.create(**kwargs)
+        return obj
 
     def filter(self, *criterion, **kwargs):
         # prepare django-styled params

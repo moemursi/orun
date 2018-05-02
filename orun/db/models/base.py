@@ -336,6 +336,8 @@ class Model(Service):
         return True
 
     def get_by_natural_key(self, *args, **kwargs):
+        if self._meta.title_field:
+            return self.objects.filter({self._meta.title_field: args[0]})
         raise NotImplementedError
 
     @api.method

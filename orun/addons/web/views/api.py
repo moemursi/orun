@@ -1,7 +1,7 @@
 from flask import request
 
 from orun import app, api
-from orun.core.exceptions import ValidationError, MethodNotFound
+from orun.core.exceptions import MethodNotFound
 from orun.db import models, transaction
 from orun.db.models.query import Query
 from orun.views import BaseView, route

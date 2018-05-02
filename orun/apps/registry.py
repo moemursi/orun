@@ -30,7 +30,9 @@ class Registry(object):
         self.addon_path = [os.path.join(base_dir, '..', 'addons'), os.path.join(base_dir, '..', '..', 'addons')]  # basic addons paths
 
         if ADDONS_ENVIRONMENT_VARIABLE in os.environ:
-            self.addon_path.extend(os.environ[ADDONS_ENVIRONMENT_VARIABLE].split(';'))
+            paths = os.environ[ADDONS_ENVIRONMENT_VARIABLE].split(';')
+            sys.path.extend(paths)
+            self.addon_path.extend(paths)
 
     def find_commands(self, management_dir):
         """

@@ -86,5 +86,6 @@ def close_old_connections(*args, **kwargs):
     for conn in connections.all():
         if conn.session.dirty:
             conn.dispose()
+
 signals.request_started.connect(close_old_connections)
 signals.request_finished.connect(close_old_connections)

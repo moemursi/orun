@@ -15,9 +15,14 @@ class Query(models.Model):
     category = models.ForeignKey(Category, null=False)
     sql = models.TextField()
     params = models.TextField()
+    public = models.BooleanField(default=False)
 
     class Meta:
         name = 'ir.query'
+
+    def get_by_natural_key(self, category, name):
+        cat = self.env['ir.query.category'].get_by_natural_key(category).only('pk').one()
+        return self.objects.filter({'category': cat.pk, 'name': name}).one()
 
     @api.method
     def read(self, id, **kwargs):

@@ -398,8 +398,8 @@
       if (((this.attrs.allowOpen != null) && (this.attrs.allowOpen === 'false')) || ((this.attrs.allowOpen == null) && this.field.attrs && (this.field.attrs['allow-open'] === false)))
         allowOpen = false;
 
-      if (!allowOpen)
-        return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}record.${this.field.name}[1] || '${this.emptyText}' }}</span>`;
+      if (!allowOpen || this.inList)
+        return `<span class="${this.readOnlyClass}"><a href="javascript:void(0)">{{ ${this.spanPrefix}record.${this.field.name}[1] || '${this.emptyText}' }}</a></span>`;
 
       return `<span class="${this.readOnlyClass}"><a href="#/action/${ this.field.model }/view/?id={{ ${this.spanPrefix}record.${this.field.name}[0] }}" ng-click="action.openObject('${ this.field.model }', record.${this.field.name}[0], $event, '${ this.field.caption }')">{{ ${this.spanPrefix}record.${this.field.name}[1] }}</a><span ng-if="!record.${this.field.name}[1]">--</span></span>`;
     }
@@ -409,7 +409,7 @@
     }
 
     _tdContent() {
-      return `<a data-id="{{::record.${this.field.name}[0]}}">{{record.${this.field.name}[1]}}</a>`;
+      return `{{record.${this.field.name}[1]}}`;
     }
   }
 

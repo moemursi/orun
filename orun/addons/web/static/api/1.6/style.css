@@ -4744,4 +4744,7 @@ select.form-control {
   border-radius: 0;
   border: none;
 }
+.dataTable span a:hover {
+  color: #007bff;
+}
 /*# sourceMappingURL=style.map */

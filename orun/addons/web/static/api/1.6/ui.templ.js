@@ -517,6 +517,7 @@
         // }
 
         let _widget = fieldInfo.createWidget(col.attr('widget'), scope, col, col);
+        _widget.inList = true;
         _widget.inplaceEditor = Boolean(scope.inline);
         ths += _widget.th(col.attr('label'));
 
