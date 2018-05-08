@@ -1,11 +1,13 @@
-from flask import request
+from flask import request, abort
 
 from orun import app, api
+from orun.utils.json import jsonify
+from orun.conf import settings
 from orun.core.exceptions import MethodNotFound
 from orun.db import models, transaction
 from orun.db.models.query import Query
 from orun.views import BaseView, route
-from orun.auth.decorators import login_required
+from orun.auth.decorators import login_required, cross_domain
 
 
 class RPC(BaseView):
@@ -61,6 +63,16 @@ class RPC(BaseView):
     @login_required
     def app_settings(self):
         return {'result': {}}
+
+    @route('/public/query/<int:id>/')
+    @cross_domain('*')
+    def public_query(self, id=None):
+        if settings.PUBLIC_QUERY_ALLOWED:
+            Query = app['ir.query']
+            q = Query.objects.get(id)
+            if q.public:
+                return jsonify({'result': Query.read(id)})
+        abort(403, 'Permission denied!')
 
 
 class Auth(BaseView):

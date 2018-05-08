@@ -24,6 +24,7 @@ settings = {
     'DEFAULT_FILE_STORAGE': 'orun.core.files.storage.FileSystemStorage',
     'FILE_UPLOAD_PERMISSIONS': None,
     'FILE_UPLOAD_DIRECTORY_PERMISSIONS': None,
+    'PUBLIC_QUERY_ALLOWED': False,
 
     'FORMAT_MODULE_PATH': None,
     'DATE_INPUT_FORMATS': [

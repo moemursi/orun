@@ -25,7 +25,7 @@ class MigrationRecorder(object):
     migration_metadata = MetaData()
 
     Migration = Table(
-        'sys_migration', migration_metadata,
+        'ir_migration', migration_metadata,
         Column('id', Integer, primary_key=True),
         Column('app', String(255), nullable=False),
         Column('name', String(255), nullable=False),

@@ -2,7 +2,8 @@
   <field name="name" />
   <field name="username" />
   <field name="email"/>
-  <field name="password"/>
+  <field name="password" cols="3"/>
+  <field name="active" cols="3"/>
   <field name="is_staff" />
   <field name="is_superuser" />
   <field name="action" />

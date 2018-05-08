@@ -7,6 +7,7 @@ class Category(models.Model):
     name = models.CharField(label=_('Name'), translate=True)
 
     class Meta:
+        title_field = 'name'
         name = 'ir.query.category'
 
 
@@ -25,11 +26,16 @@ class Query(models.Model):
         return self.objects.filter({'category': cat.pk, 'name': name}).one()
 
     @api.method
-    def read(self, id, **kwargs):
+    def read(self, id, with_desc=False, **kwargs):
         q = session.execute(self.objects.get(id).sql)
         desc = q.cursor.description
+        if with_desc:
+            fields = [{'field': f[0], 'type': f[1], 'size': f[2]} for f in desc]
+        else:
+            fields = [f[0] for f in desc]
+
         return {
-            'fields': [f[0] for f in desc],
+            'fields': fields,
             'data': [list(row) for row in q],
         }
 

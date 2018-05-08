@@ -43,8 +43,13 @@
     }
 
     link(scope, el, attrs) {
-      Katrid.Services.Query.read(attrs.queryId)
-      .done(res => {
+      let r;
+      if (_.isUndefined(attrs.url))
+        r = Katrid.Services.Query.read(attrs.queryId);
+      else
+        r = $.get(attrs.url);
+
+      r.done(res => {
         c3.generate({
           bindto: el[0],
           data: {
@@ -64,8 +69,12 @@
     link(scope, el, attrs) {
       if (!attrs.name)
         throw Error('Query name attribute is required!');
-      Katrid.Services.Query.read(attrs.id)
-      .done(res => {
+      let r;
+      if (_.isUndefined(attrs.url))
+        r = Katrid.Services.Query.read(attrs.id);
+      else
+        r = $.get(attrs.url);
+      r.done(res => {
         let data = res.data.map((row) => (_.object(res.fields, row)));
         scope.$apply(() => scope[attrs.name] = data);
       });
@@ -79,4 +88,5 @@
   Katrid.uiKatrid.directive('chart', Chart);
   Katrid.uiKatrid.directive('query', Query);
 
+  console.log('ui dashboard');
 })();
