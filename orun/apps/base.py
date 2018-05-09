@@ -101,8 +101,12 @@ class Application(Flask):
         for model in self.models.values():
             model._meta._build_table(self.meta)
 
-        for model in list(self.models.values()):
-            model._meta._build_mapper()
+        try:
+            for model in list(self.models.values()):
+                model._meta._build_mapper()
+        except:
+            print('Error building model', model._meta.name)
+            raise
 
     def create_all(self):
         self._create_schemas()

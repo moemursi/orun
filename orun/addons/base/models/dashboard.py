@@ -22,8 +22,7 @@ class Query(models.Model):
         name = 'ir.query'
 
     def get_by_natural_key(self, category, name):
-        cat = self.env['ir.query.category'].get_by_natural_key(category).only('pk').one()
-        return self.objects.filter({'category': cat.pk, 'name': name}).one()
+        return self.objects.filter({'category': category, 'name': name}).one()
 
     @api.method
     def read(self, id, with_desc=False, **kwargs):

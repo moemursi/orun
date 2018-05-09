@@ -133,6 +133,52 @@
 
 {% endblock %}
 {% block page_loaded %}
+  <!-- menu-startup -->
+  <script>
+    $('.menu-item').each(function () {
+      var li = $(this);
+      if (li.find('.menu-item').length) li.children('a').append('<em class="fa fa-angle-left"></em>')
+    });
+    $('.menu-item>a').click(function (event) {
+      var el = $(this);
+      var li = el.parent();
+      if (li.children('ul').length) {
+        li.toggleClass('open');
+        var span = li.children('a').children('em.fa');
+        span.toggleClass('fa-angle-left');
+        span.toggleClass('fa-angle-down');
+      }
+    });
+  </script>
+  <script>
+    $(document).ready(function () {
+      var url = window.location.href.split('/');
+      url = url[url.length - 1];
+
+      $('ul.nav a[href="' + url + '"]').addClass('active').parent().parent().addClass('in').parent().addClass('active');
+
+      // It will also work for relative and absolute hrefs
+      $('ul.nav a').filter(function () {
+        return this.href == url;
+      }).addClass('active').parent().parent().addClass('in').parent().addClass('active');
+
+
+      var loadingTimeout;
+      var loadingMsg = $('#loading-msg').hide();
+      $(document).ajaxStart(function() {
+        loadingTimeout = setTimeout(function() {
+          loadingMsg.show();
+        }, 700);
+      })
+      .ajaxStop(function() {
+        clearTimeout(loadingTimeout);
+        loadingMsg.hide();
+      });
+
+    });
+  </script>
+  <!-- end menu -->
+
   <script>
     $(document).ready(function () {
       $.each($('a.module-selector'), function (idx, el) {
