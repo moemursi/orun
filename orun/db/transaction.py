@@ -1,7 +1,8 @@
+from functools import wraps
+from contextlib import ContextDecorator, contextmanager
 from orun.db import (
     DEFAULT_DB_ALIAS, DatabaseError, Error, ProgrammingError, connections,
 )
-from functools import wraps
 
 
 class TransactionManagementError(ProgrammingError):
@@ -22,32 +23,36 @@ def get_connection(using=None):
 
 
 def begin(using=None):
-    conn = get_connection(using).session
-    return conn.begin()
+    conn = get_connection(using)
+    if conn.transaction is None:
+        conn.begin()
+    return conn.transaction
 
 
-class Atomic(object):
+class Atomic(ContextDecorator):
     def __init__(self, using, savepoint):
         self.using = using
         self.savepoint = savepoint
+        self.trans = None
 
-    def __call__(self, func):
-        @wraps(func)
-        def inner(*args, **kwds):
-            with _atomic(self.using, self.savepoint):
-                return func(*args, **kwds)
-        return inner
+    def __enter__(self):
+        self.trans = begin(self.using)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.trans.commit()
 
 
+@contextmanager
 def _atomic(using, savepoint):
-    conn = get_connection(using)
-    if savepoint:
-        return conn.begin_nested()
-    return conn.begin(subtransactions=conn.is_active)
+    trans = begin(using)
+    yield trans
+    trans.commit()
 
 
-def atomic(using=None, savepoint=False):
-    if callable(using):
-        return Atomic(DEFAULT_DB_ALIAS, savepoint)(using)
-    else:
-        return _atomic(using, savepoint)
+def atomic(fn, using=DEFAULT_DB_ALIAS, savepoint=False):
+    if callable(fn):
+        @wraps(fn)
+        def inner(*args, **kwargs):
+            with _atomic(using, savepoint):
+                return fn(*args, **kwargs)
+        return inner
