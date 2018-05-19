@@ -37,7 +37,9 @@ class Query(models.Model):
     @api.method
     def read(self, id, with_desc=False, **kwargs):
         q = self.objects.get(id)
-        params = q._prepare_params()
+        params = q.params
+        if params:
+            params = q._prepare_params()
         q = session.execute(q.sql, params)
         desc = q.cursor.description
         if with_desc:
