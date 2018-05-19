@@ -5,6 +5,7 @@
   let DEFAULT_COLS = {
     'BooleanField': 3,
     'DecimalField': 3,
+    'FloatField': 3,
     'DateField': 3,
     'DateTimeField': 3,
     'IntegerField': 3,

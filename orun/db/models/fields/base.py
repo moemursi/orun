@@ -643,7 +643,6 @@ class PasswordField(CharField):
         return value
 
 
-
 class SlugField(CharField):
     pass
 
@@ -652,7 +651,7 @@ class BinaryField(Field):
     _db_type = sa.LargeBinary()
 
     def __init__(self, attachment=None, storage='db', *args, **kwargs):
-        kwargs.setdefault('deferred', True)
+        kwargs.setdefault('deferred', not attachment)
         super(BinaryField, self).__init__(*args, **kwargs)
         self.attachment = attachment
         self.storage = storage

@@ -202,7 +202,7 @@ class OneToManyField(RelatedField):
             f = get_first_rel_field(to, self.model)
             assert f is not None, 'Unable to create OneToManyField "%s", no ForeignKey field found on "%s" for model "%s"' % (self.name, to._meta.name, self.model._meta.name)
             self.to_field = f.name
-        return self.to._meta.fields_dict[self.to_field]
+        return app.get_model(self.to)._meta.fields_dict[self.to_field]
 
     @cached_property
     def related(self):

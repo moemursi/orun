@@ -29,8 +29,8 @@
         if (this.scope.$parent.record)
         return svc.post('get_messages', { args: [this.scope.$parent.record.messages] })
         .done(res => {
-          if (res.ok)
-            this.scope.$apply(() => this.items = res.result );
+          this.items = res;
+          this.scope.$apply();
         });
       }
     }
@@ -39,9 +39,10 @@
       if (attachments) attachments = attachments.map((obj) => obj.id);
       this.model.post('post_message', { args: [[this.scope.$parent.recordId]], kwargs: { content: msg, content_subtype: 'html', format: true, attachments: attachments } })
       .done(res => {
-        const msgs = res.result;
+        const msgs = res;
         this.scope.message = '';
-        this.scope.$apply(() => this.items = msgs.concat(this.items));
+        this.items = msgs.concat(this.items);
+        this.scope.$apply();
         this.scope.files = null;
         this.scope.hideEditor();
       });
@@ -52,7 +53,7 @@
         let files = [];
         for (let f of this.scope.files) files.push(f.file);
         var me = this;
-        Katrid.Services.Attachments.upload({files: files}, this.scope.$parent)
+        Katrid.Services.Attachments.upload({files: files}, this.scope)
         .done((res) => {
           me._sendMesage(msg, res);
         });
@@ -140,10 +141,10 @@
           <div ng-show="loading">{{ loading }}</div>
           <div class="comment media col-sm-12" ng-repeat="comment in comments.items">
             <div class="media-left">
-              <img src="/static/web/static/assets/img/avatar.png" class="avatar img-circle">
+              <img src="/static/web/assets/img/avatar.png" class="avatar rounded">
             </div>
             <div class="media-body">
-              <strong>{{ ::comment.author[1] }}</strong> - <span title="{{ ::comment.date_time|moment:'LLLL'}}"> {{::comment.date_time|moment}}</span>
+              <strong>{{ ::comment.author[1] }}</strong> - <span class="timestamp text-muted" title="{{ ::comment.date_time|moment:'LLLL'}}"> {{::comment.date_time|moment}}</span>
               <div class="clearfix"></div>
               <div class="form-group">
                 {{::comment.content}}

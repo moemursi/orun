@@ -441,6 +441,14 @@
       if (this._selection)
         return Array.from(this._selection).map((el) => ($(el).data('id')));
     }
+
+    deleteAttachment(attachments, index) {
+      let att = attachments[index];
+      if (confirm(Katrid.i18n.gettext('Confirm delete attachment?'))) {
+        attachments.splice(index, 1);
+        Katrid.Services.Attachments.destroy(att.id);
+      }
+    }
   }
   WindowAction.initClass();
 

@@ -33,14 +33,14 @@
               <button id="attachments-button" attachments-button="" type="button" class="btn btn-secondary dropdown-toggle"
                       data-toggle="dropdown" aria-haspopup="true">
                 <span ng-show="!attachments.length">{{ ::_.gettext('Attachments') }} </span>
-                <span ng-show="attachments.length">{{ sprintf(gettext('%%d Attachment(s)'), attachments.length) }}</span>
+                  <span ng-show="attachments.length">{{ _.sprintf(_.gettext('%%d Attachment(s)'), attachments.length) }}</span>
                 <span class="caret"></span>
               </button>
               <div class="dropdown-menu attachments-menu">
-                <a class="dropdown-item" ng-repeat="attachment in attachments" href="{{ ::attachment.download_url }}">
+                <a class="dropdown-item position-relative" ng-repeat="attachment in attachments" href="{{ ::attachment.download_url }}">
                   {{ ::attachment.name }} <span
-                      class="fa fa-trash-o pull-right" title="Delete this attachment"
-                      onclick="event.preventDefault();" ng-click="action.deleteAttachment($index);"></span>
+                      class="fa fa-trash-o remove-attachment-button" title="{{ ::_.gettext('Delete attachment') }}"
+                      ng-click="$event.preventDefault();action.deleteAttachment(attachments, $index);$event.stopPropagation();"></span>
                 </a>
                 <div role="separator" class="dropdown-divider" ng-show="attachments.length"></div>
                 <a class="dropdown-item" href="javascript:void(0)" onclick="$(this).next().click()">

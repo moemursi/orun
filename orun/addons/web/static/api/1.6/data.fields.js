@@ -99,6 +99,9 @@
     }
   }
 
+  class FloatField extends NumericField {
+  }
+
   class DecimalField extends NumericField {
   }
 
@@ -128,6 +131,7 @@
     Field,
     StringField,
     IntegerField,
+    FloatField,
     DecimalField,
     DateTimeField,
     ForeignKey,

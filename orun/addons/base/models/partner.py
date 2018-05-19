@@ -54,7 +54,7 @@ class Partner(models.Model):
     ))
     company = models.ForeignKey('res.company', label=_('Company'))
     comments = models.TextField(label=_('Notes'))
-    image = models.ImageField(attachment=True, deferred=False)
+    image = models.ImageField(attachment=True)
     # user password
     site_password = models.PasswordField()
 

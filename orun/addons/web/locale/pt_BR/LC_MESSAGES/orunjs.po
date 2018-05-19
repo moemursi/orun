@@ -42,6 +42,9 @@ msgstr "Atalhos"
 msgid "Confirm delete record?"
 msgstr "Confirma a exclusão do registro?"
 
+msgid "Confirm delete attachment?"
+msgstr "Confirma a exclusão do anexo?"
+
 msgid "yes"
 msgstr "sim"
 
@@ -207,8 +210,8 @@ msgstr "%d Anexo(s)"
 msgid "Add..."
 msgstr "Adicionar..."
 
-msgid "Delete this attachment"
-msgstr "Deletar este anexo"
+msgid "Delete attachment"
+msgstr "Deletar anexo"
 
-msgid "Search <i>%(label)s</i> by: <strong>%(text)s</strong>"
-msgstr "Pesquisar <i>%s</i> por: <strong>{{search.text}}</strong>"
+msgid "Search <i>%(caption)s</i> by: <strong>%(text)s</strong>"
+msgstr "Pesquisar <i>%(caption)s</i> por: <strong>%(text)s</strong>"

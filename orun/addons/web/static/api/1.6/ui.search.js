@@ -185,8 +185,8 @@
     }
 
     templateLabel() {
-      return sprintf(`Search <i>%(label)s</i> by: <strong>%(text)s</strong>`, {
-        label: this.label,
+      return sprintf(Katrid.i18n.gettext(`Search <i>%(caption)s</i> by: <strong>%(text)s</strong>`), {
+        caption: this.label,
         text: '{{search.text}}'
       });
     }

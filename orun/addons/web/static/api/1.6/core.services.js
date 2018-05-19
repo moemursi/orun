@@ -248,9 +248,14 @@
   }
 
   class Attachments {
+    static destroy(id) {
+      let svc = new Model('ir.attachment');
+      svc.destroy(id);
+    }
+
     static upload(file, scope=null) {
       let data = new FormData();
-      if (scope === null) scope = angular.element(file).scope().$parent;
+      if (scope === null) scope = angular.element(file).scope();
       data.append('model', scope.model.name);
       data.append('id', scope.recordId);
       for (let f of file.files) data.append('attachment', f, f.name);
@@ -262,6 +267,7 @@
         contentType: false
       })
       .done((res) => {
+        console.log('attachments', scope.attachments, scope);
         if (!scope.attachments)
           scope.attachments = [];
         if (res)

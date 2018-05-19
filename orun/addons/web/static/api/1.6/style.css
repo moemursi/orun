@@ -3039,8 +3039,8 @@ label.radio > i:after {
 fieldset legend {
   font-size: 15px;
   font-weight: bold;
-  border-bottom: 1px solid #d2d2d2;
-  padding-bottom: 5px;
+  color: #7a79aa;
+  padding-top: 8px;
 }
 .data-form header.content-container-heading {
   border-bottom: 1px solid #dddddd;
@@ -4754,5 +4754,23 @@ select.form-control {
 }
 .pwa-menu .btn {
   margin-bottom: 8px;
+}
+.comments .comment {
+  margin-bottom: 10px;
+}
+.comments .comment .media-body {
+  margin-top: 5px;
+}
+.comments .comment .media-body .timestamp {
+  font-style: italic;
+}
+.attachments-menu .dropdown-item {
+  padding-right: 40px;
+}
+.attachments-menu .remove-attachment-button {
+  position: absolute;
+  top: 2px;
+  right: 8px;
+  padding: 4px;
 }
 /*# sourceMappingURL=style.map */

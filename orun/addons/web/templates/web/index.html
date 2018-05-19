@@ -176,6 +176,16 @@
       });
 
     });
+
+    $(document).ready(() => {
+      let url = window.location.href.split('#')[1].split('?')[0];
+      let el = $(`li.menu-item a[href$="${url}"]`);
+      if (el.length) {
+        let scope = angular.element(el).scope();
+        scope.current_menu = el.closest('#left-side-menu.nav').data('menu-id');
+        scope.$apply();
+      }
+    });
   </script>
   <!-- end menu -->
 

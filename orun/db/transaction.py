@@ -56,3 +56,5 @@ def atomic(fn, using=DEFAULT_DB_ALIAS, savepoint=False):
             with _atomic(using, savepoint):
                 return fn(*args, **kwargs)
         return inner
+    else:
+        return _atomic(fn, False)

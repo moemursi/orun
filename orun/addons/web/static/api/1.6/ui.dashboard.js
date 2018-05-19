@@ -47,7 +47,10 @@
       if (_.isUndefined(attrs.url))
         r = Katrid.Services.Query.read(attrs.queryId);
       else
-        r = $.get(attrs.url);
+        r = $.ajax({
+          url: attrs.url,
+          type: 'get',
+        });
 
       r.done(res => {
         c3.generate({

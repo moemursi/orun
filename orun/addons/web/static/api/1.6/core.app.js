@@ -87,7 +87,7 @@
     }
   };
 
-  const actionTempl = `<div id="katrid-action-view"><h4 id="h-loading" class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> {{ ::_.gettext('Loading...') }}</h4></div>`;
+  const actionTempl = `<div id="katrid-action-view"><h4 id="h-loading" class="ajax-loading-animation"><i class="fa fa-refresh fa-spin"></i> <span ng-bind="::_.gettext('Loading...')"></span></h4></div>`;
 
   ngApp.config(function($routeProvider) {
     $routeProvider
@@ -271,7 +271,6 @@
     } else {
       Katrid.core.rootElement = angular.element('#katrid-action-view');
       $scope.$on('$routeUpdate', () => $scope.action.routeUpdate($location.$$search));
-      // $scope.$on('$routeUpdate', () => console.log('route update'));
       // $scope.$on('$locationChangeStart', () => console.log('location change start'));
     }
     initAction(action);
