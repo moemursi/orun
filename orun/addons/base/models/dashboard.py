@@ -26,6 +26,8 @@ class Query(models.Model):
         return self.objects.filter({'category': category, 'name': name}).one()
 
     def _prepare_params(self):
+        print('USER ID', self.env.user_id)
+        print('USER', self.env.user)
         ctx = {
             'request': request,
             'user_id': self.env.user_id,
