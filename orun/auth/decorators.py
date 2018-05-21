@@ -21,8 +21,8 @@ def _login_required(fn=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=
             # Disable decorator for testing framework
             if user or app.config['TESTING']:
                 return view_func(*args, **kwargs)
-            print(request.environ['Scheme'])
             print(request.environ.keys())
+            print(request.environ['Scheme'])
             return redirect(
                 url_for(
                     login_url, _external=True, _scheme=request.environ['wsgi.url_scheme'],
