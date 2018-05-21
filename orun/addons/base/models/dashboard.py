@@ -32,7 +32,7 @@ class Query(models.Model):
             'user': self.env.user,
         }
         # evaluate query params
-        params = eval(self.params, ctx)
+        return eval(self.params, ctx)
 
     @api.method
     def read(self, id, with_desc=False, **kwargs):
