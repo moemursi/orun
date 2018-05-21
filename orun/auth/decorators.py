@@ -23,7 +23,7 @@ def _login_required(fn=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=
                 return view_func(*args, **kwargs)
 
             return redirect(
-                url_for(login_url, _external=True, **{redirect_field_name: request.path})
+                url_for(login_url, _external=True, _scheme=request.environ['wsgi.url_scheme'] **{redirect_field_name: request.path})
                 if ':' in login_url else login_url
             )
         return wrapped
