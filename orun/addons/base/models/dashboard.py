@@ -26,8 +26,6 @@ class Query(models.Model):
         return self.objects.filter({'category': category, 'name': name}).one()
 
     def _prepare_params(self):
-        print('USER ID', self.env.user_id)
-        print('USER', self.env.user.source_id)
         ctx = {
             'request': request,
             'user_id': self.env.user_id,
@@ -42,6 +40,7 @@ class Query(models.Model):
         params = q.params
         if params:
             params = q._prepare_params()
+        print('PARAMS', params)
         q = session.execute(q.sql, params)
         desc = q.cursor.description
         if with_desc:
