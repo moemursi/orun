@@ -23,7 +23,7 @@ def _login_required(fn=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=
                 return view_func(*args, **kwargs)
             return redirect(
                 url_for(
-                    login_url, _external=True, _scheme='https',
+                    login_url, _external=True, _scheme=request.environ.get('HTTP_X_FORWARDED_PROTO', 'http'),
                     **{redirect_field_name: request.path})
                 if ':' in login_url else login_url
             )
