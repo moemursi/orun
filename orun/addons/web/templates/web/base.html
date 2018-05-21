@@ -45,17 +45,14 @@
 
 <script src="/static/web/assets/js/jquery.min.js"></script>
 <script src="/static/web/libs/plugins/jquery-ui.min.js"></script>
+<script src="/static/web/assets/plugins/jquery.datetimepicker/jquery-ui-timepicker-addon.min.js"></script>
 <script src="/static/web/assets/plugins/moment/moment.js"></script>
 <script src="/static/web/assets/plugins/moment/pt-br.js"></script>
 
-<script src="/static/web/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
-<script src="/static/web/assets/plugins/bootstrap-datepicker/locales/bootstrap-datepicker.pt-BR.min.js"></script>
+{#<script src="/static/web/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>#}
+{#<script src="/static/web/assets/plugins/bootstrap-datepicker/locales/bootstrap-datepicker.pt-BR.min.js"></script>#}
 
 <script src="/static/web/libs/plugins/select2/select2.js"></script>
-
-{% if settings.LANGUAGE_CODE == 'pt-br' %}
-<script src="/static/web/libs/plugins/select2/select2_locale_pt-BR.js"></script>
-{% endif %}
 
 <script src="/static/web/libs/plugins/jquery.maskedinput/jquery.maskedinput.min.js"></script>
 <script src="/static/web/assets/plugins/jquery.scrollbox/jquery.scrollbox.min.js"></script>
@@ -86,6 +83,11 @@
 <!-- additional scripts -->
 
 <script src="/static/web/assets/plugins/toastr/toastr.min.js"></script>
+{% if settings.LANGUAGE_CODE == 'pt-br' %}
+<script src="/static/web/libs/plugins/select2/select2_locale_pt-BR.js"></script>
+<script src="/static/web/assets/plugins/jquery-ui.datepicker/i18n/datepicker-pt-BR.js"></script>
+<script src="/static/web/assets/plugins/jquery.datetimepicker/i18n/jquery-ui-timepicker-pt-BR.js"></script>
+{% endif %}
 
 <!-- end additional scripts -->
 

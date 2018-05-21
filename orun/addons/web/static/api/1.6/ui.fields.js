@@ -489,9 +489,20 @@
     }
 
     _tdContent(cls) {
-      return `{{::record.${this.field.name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}'}}`;
+      return `{{::record.${this.field.name}|date:'${Katrid.i18n.gettext('yyyy-MM-dd')}'}}`;
     }
   }
+
+
+  class DateTimeField extends TextField {
+    static get tag() {
+      return 'input datetimepicker';
+    }
+    spanTemplate() {
+      return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}(record.${this.field.name}|date:'${Katrid.i18n.gettext('yyyy-MM-dd hh:mma')}') || '${this.emptyText}' }}</span>`;
+    }
+  }
+
 
   class OneToManyField extends Field {
     static get tag() {
@@ -632,6 +643,7 @@
       DecimalField,
       FloatField,
       DateField,
+      DateTimeField,
       TimeField,
       BooleanField,
       OneToManyField,

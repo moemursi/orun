@@ -177,6 +177,43 @@
       })
   );
 
+  uiKatrid.directive('datetimepicker', ['$filter', $filter => ({
+    restrict: 'A',
+    require: '?ngModel',
+    link(scope, el, attrs, controller) {
+      let calendar = $(el).datetimepicker({
+      });
+      const dateFmt = Katrid.i18n.gettext('yyyy-MM-dd hh:mma');
+      // Mask date format
+      if (Katrid.Settings.UI.dateInputMask === true) {
+        console.log('set input mask');
+        el = el.mask(dateFmt.replace(/[A-z]/g, 0));
+      } else if (Katrid.Settings.UI.dateInputMask) {
+        el = el.mask(Katrid.Settings.UI.dateInputMask);
+      }
+
+      el.on('click', () => setTimeout(() => $(el).select()));
+      controller.$formatters.push(function (value) {
+        if (value) {
+          const dt = new Date(value);
+          // calendar.datepicker('setDate', dt);
+          return $filter('date')(value, dateFmt);
+        }
+        return value;
+      });
+
+      controller.$render = function () {
+        if (_.isDate(controller.$viewValue)) {
+          const v = $filter('date')(controller.$viewValue, dateFmt);
+          return el.val(v);
+        } else {
+          return el.val(controller.$viewValue);
+        }
+      };
+
+    }
+  })]);
+
 
   uiKatrid.directive('datepicker', ['$filter', $filter =>
     ({

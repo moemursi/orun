@@ -1023,7 +1023,7 @@ class BaseDatabaseSchemaEditor(object):
         Returns all constraint names matching the columns and conditions
         """
         column_names = list(column_names) if column_names else None
-        with self.connection.cursor() as cursor:
+        with self.connection.session.cursor() as cursor:
             constraints = self.connection.introspection.get_constraints(cursor, model._meta.db_table)
         result = []
         for name, infodict in constraints.items():

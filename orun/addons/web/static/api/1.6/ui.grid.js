@@ -159,7 +159,8 @@
 
       scope.addItem = function () {
         scope.dataSource.insert();
-        if (attrs.inline)
+        console.log(attrs.$attr.inlineEditor);
+        if (attrs.$attr.inlineEditor)
           scope.records.push(scope.record);
         else
           return scope.showDialog();

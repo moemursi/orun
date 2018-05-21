@@ -90,8 +90,11 @@ msgstr "Agrupar por:"
 msgid "yyyy-mm-dd"
 msgstr "dd/mm/yyyy"
 
-msgid "yyyy-MM-dd hh:mm"
-msgstr "dd/MM/yyyy hh:mm"
+msgid "yyyy-MM-dd"
+msgstr "dd/MM/yyyy"
+
+msgid "yyyy-MM-dd hh:mma"
+msgstr "dd/MM/yyyy HH:mm"
 
 msgid "(New)"
 msgstr "(Novo)"
