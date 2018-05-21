@@ -27,7 +27,7 @@ class Query(models.Model):
 
     def _prepare_params(self):
         print('USER ID', self.env.user_id)
-        print('USER', self.env.user)
+        print('USER', self.env.user.source_id)
         ctx = {
             'request': request,
             'user_id': self.env.user_id,
