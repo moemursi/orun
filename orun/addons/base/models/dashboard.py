@@ -40,11 +40,10 @@ class Query(models.Model):
         params = q.params
         if params:
             params = q._prepare_params()
-        print('PARAMS', params)
         q = session.execute(q.sql, params)
         desc = q.cursor.description
         if with_desc:
-            fields = [{'field': f[0], 'type': f[1], 'size': f[2]} for f in desc]
+            fields = [{'field': f[0], 'type': str(f[1]).split('.', 1)[0], 'size': f[2]} for f in desc]
         else:
             fields = [f[0] for f in desc]
 
