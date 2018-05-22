@@ -49,8 +49,8 @@
 <script src="/static/web/assets/plugins/moment/moment.js"></script>
 <script src="/static/web/assets/plugins/moment/pt-br.js"></script>
 
-{#<script src="/static/web/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>#}
-{#<script src="/static/web/assets/plugins/bootstrap-datepicker/locales/bootstrap-datepicker.pt-BR.min.js"></script>#}
+<script src="/static/web/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="/static/web/assets/plugins/bootstrap-datepicker/locales/bootstrap-datepicker.pt-BR.min.js"></script>
 
 <script src="/static/web/libs/plugins/select2/select2.js"></script>
 
@@ -88,6 +88,13 @@
 <script src="/static/web/assets/plugins/jquery-ui.datepicker/i18n/datepicker-pt-BR.js"></script>
 <script src="/static/web/assets/plugins/jquery.datetimepicker/i18n/jquery-ui-timepicker-pt-BR.js"></script>
 {% endif %}
+<script>
+  $(function() {
+    if (!$.fn.bootstrapDatePicker && $.fn.datepicker && $.fn.datepicker.noConflict) {
+      $.fn.bootstrapDatePicker = $.fn.datepicker.noConflict();
+    }
+  });
+</script>
 
 <!-- end additional scripts -->
 
