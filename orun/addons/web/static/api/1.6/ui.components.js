@@ -224,7 +224,7 @@
         let el = element;
         const dateFmt = Katrid.i18n.gettext('yyyy-mm-dd');
         const shortDate = dateFmt.replace(/[m]/g, 'M');
-        var calendar = element.parent('div').datepicker({
+        var calendar = element.parent('div').bootstrapDatePicker({
           format: dateFmt,
           keyboardNavigation: false,
           language: Katrid.i18n.languageCode,

@@ -484,9 +484,8 @@
       return `<span class="${this.readOnlyClass}">{{ ${this.spanPrefix}(record.${this.field.name}|date:'${Katrid.i18n.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}') || '${this.emptyText}' }}</span>`;
     }
 
-    widgetTemplate1_1() {
-      //return `<div class="input-group date" ng-show="dataSource.changing">${ super.widgetTemplate() }<div class="input-group-append"><button class="btn btn-default" type="button"><span class="fa fa-calendar"></span></button></div></div>`;
-
+    widgetTemplate() {
+      return `<div class="input-group date" ng-show="dataSource.changing">${ super.widgetTemplate() }<div class="input-group-append"><button class="btn btn-default" type="button"><span class="fa fa-calendar"></span></button></div></div>`;
     }
 
     _tdContent(cls) {
