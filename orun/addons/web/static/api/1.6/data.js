@@ -454,6 +454,8 @@
                 console.log(fld, error.messages);
                 const msgs = error.messages[fld];
                 const field = this.scope.view.fields[fld];
+                if (field && field.name)
+                  continue;
                 elfield = el.find(`.form-field[name="${field.name}"]`);
                 elfield.addClass('ng-invalid ng-touched');
                 s += `<strong>${field.caption}</strong><ul>`;

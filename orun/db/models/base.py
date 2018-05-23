@@ -770,7 +770,10 @@ class Model(Service):
     def __str__(self):
         if self._meta.title_field:
             f = self._meta.fields_dict[self._meta.title_field]
-            return f.serialize(self[self._meta.title_field], self)
+            v = f.serialize(self[self._meta.title_field], self)
+            if not isinstance(v, str):
+                v = str(v)
+            return v
         return super(Model, self).__str__()
 
     def __iter__(self):
