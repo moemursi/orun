@@ -3,7 +3,7 @@ import inspect
 from functools import wraps, partial
 
 from orun import app, request
-from orun.core.exceptions import RPCError
+from orun.core.exceptions import RPCError, ValidationError
 from orun.utils.functional import SimpleLazyObject
 
 
@@ -150,6 +150,15 @@ def jsonrpc(fn):
                 'jsonrpc': '2.0',
                 'id': _id,
                 'result': r
+            })
+        except ValidationError as e:
+            return jsonify({
+                'jsonrpc': '2.0',
+                'id': _id,
+                'error': {
+                    'code': e.code,
+                    'messages': e.message_dict,
+                }
             })
         except RPCError as e:
             return jsonify({

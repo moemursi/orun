@@ -104,7 +104,7 @@ class TooManyFieldsSent(SuspiciousOperation):
 NON_FIELD_ERRORS = '__all__'
 
 
-class ValidationError(Exception):
+class ValidationError(RPCError):
     """An error while validating data."""
     def __init__(self, message, code=None, params=None):
         """
@@ -117,7 +117,7 @@ class ValidationError(Exception):
         """
 
         # PY2 can't pickle naive exception: http://bugs.python.org/issue1692335.
-        super(ValidationError, self).__init__(message, code, params)
+        super(ValidationError, self).__init__(code, message, params)
 
         if isinstance(message, ValidationError):
             if hasattr(message, 'error_dict'):

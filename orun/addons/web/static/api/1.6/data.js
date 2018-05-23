@@ -450,7 +450,8 @@
               s = error.message;
             else if (error.messages) {
               let elfield;
-              for (let fld in error.messages) {
+              for (let fld of Object.keys(error.messages)) {
+                console.log(fld, error.messages);
                 const msgs = error.messages[fld];
                 const field = this.scope.view.fields[fld];
                 elfield = el.find(`.form-field[name="${field.name}"]`);
