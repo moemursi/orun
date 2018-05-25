@@ -175,13 +175,15 @@
     }
 
     deleteSelection() {
-      if (confirm(Katrid.i18n.gettext('Confirm delete record?'))) {
-        this.scope.model.destroy(this.scope.record.id);
+      let sel = this.selection;
+      if (
+        ((sel.length === 1) && confirm(Katrid.i18n.gettext('Confirm delete record?'))) ||
+        ((sel.length > 1) && confirm(Katrid.i18n.gettext('Confirm delete records?')))
+      ) {
+        this.scope.model.destroy(sel);
         const i = this.scope.records.indexOf(this.scope.record);
-        if (i) {
-          this.scope.dataSource.search({});
-        }
-        return this.setViewType('list');
+        this.setViewType('list');
+        this.scope.dataSource.refresh();
       }
     }
 

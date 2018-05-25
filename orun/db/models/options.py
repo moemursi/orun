@@ -195,8 +195,6 @@ class Options(object):
                         if f.related_name and f.related_name != '+':
                             kwargs['backref'] = backref(f.related_name, lazy='dynamic')
                         kwargs['remote_side'] = fk.column
-                        if f.cascade:
-                            kwargs['cascade'] = f.cascade
                         props[f.name] = relationship(
                             lambda fk=fk: fk.column.table.__model__._meta.mapped,
                             foreign_keys=[f.column],

@@ -152,7 +152,9 @@
     }
 
     destroy(id) {
-      return this.post('destroy', { kwargs: {ids: [id]} });
+      if (!_.isArray(id))
+        id = [id];
+      return this.post('destroy', { kwargs: {ids: id} });
     }
 
     getById(id) {

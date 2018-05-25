@@ -47,9 +47,8 @@ class RelatedField(Field):
 
 class ForeignKey(RelatedField):
     def __init__(self, to, related_name=None, to_field=None, db_constraint=True, parent_link=False,
-                 cascade=None, on_delete=None, on_update=None, label_from_instance=None, name_fields=None,
+                 on_delete=None, on_update=None, label_from_instance=None, name_fields=None,
                  *args, **kwargs):
-        self.cascade = cascade
         self.on_delete = on_delete
         self.on_update = on_update
         self.to = to
@@ -177,7 +176,8 @@ class OneToManyField(RelatedField):
     one_to_many = True
     child_field = True
 
-    def __init__(self, to, to_field=None, lazy='dynamic', primary_join=None, *args, **kwargs):
+    def __init__(self, to, to_field=None, lazy='dynamic', primary_join=None, cascade=None, *args, **kwargs):
+        self.cascade = cascade
         self.to = to
         self.to_field = to_field
         self.primary_join = primary_join
@@ -208,13 +208,16 @@ class OneToManyField(RelatedField):
     def related(self):
         self.to = app.get_model(self.to)
         _app = app
+        kwargs = {}
+        if self.cascade is None:
+            kwargs['passive_deletes'] = True
         if self.primary_join:
             return relationship(
                 self.to,
                 lazy=self.lazy,
-                primaryjoin=self.primary_join(self.model, self.to),
+                primaryjoin=self.primary_join(self.model, self.to), **kwargs
             )
-        return relationship(app.get_model(self.to), foreign_keys=[self.rel_field.column], lazy=self.lazy)
+        return relationship(app.get_model(self.to), foreign_keys=[self.rel_field.column], lazy=self.lazy, **kwargs)
 
     def serialize(self, value, instance=None):
         value = value.options(load_only('pk'))

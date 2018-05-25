@@ -42,6 +42,9 @@ msgstr "Atalhos"
 msgid "Confirm delete record?"
 msgstr "Confirma a exclusão do registro?"
 
+msgid "Confirm delete records?"
+msgstr "Confirma a exclusão dos registros?"
+
 msgid "Confirm delete attachment?"
 msgstr "Confirma a exclusão do anexo?"
 

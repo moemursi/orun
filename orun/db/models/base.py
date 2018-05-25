@@ -686,11 +686,11 @@ class Model(Service):
         self.check_permission('delete')
         ids = [v for v in self._search((self._meta.pk.column.in_(ids),), fields=[self._meta.pk.name])]
         r = []
+        if not ids:
+            raise ObjectDoesNotExist()
         for obj in ids:
             r.append(obj.pk)
             obj._destroy()
-        if not ids:
-            raise ObjectDoesNotExist()
         return {
             'ids': r,
         }
