@@ -615,6 +615,7 @@
     }
 
     insert() {
+      this._clearCache();
       let rec = {};
       rec.$created = true;
       this.record = rec;
