@@ -1,3 +1,4 @@
+from collections import defaultdict
 import sqlalchemy as sa
 from sqlalchemy.orm import mapper, relationship, deferred, backref, synonym
 
@@ -37,14 +38,16 @@ class Options(object):
     proxy = None
     fixtures = None
     virtual = False
-    on_field_change = None
+    field_change_event = None
 
     def __init__(self, attrs, app_config=None, bases=None):
+        if self.field_change_event is None:
+            self.__class__.field_change_event = defaultdict(list)
         self.meta_attrs = attrs
         if 'abstract' not in attrs:
             self.abstract = False
         self.app_config = app_config
-        self.fields = []
+        self.fields = Fields(self)
         self.private_fields = []
         self.local_fields = []
         self.pk = None
@@ -69,7 +72,9 @@ class Options(object):
             opts.verbose_name_plural = camel_case_to_spaces(self.object_name + 's')
 
         # Get the app_label
-        self.app_label = self.meta_attrs.get('app_label', cls.__module__ and cls.__module__.split('.')[0]) or self.app_label
+        self.app_label = self.meta_attrs.get(
+            'app_label', cls.__module__ and cls.__module__.split('.')[0]
+        ) or self.app_label
 
         # Load main meta settings
         name = self.meta_attrs.get('name', None)
@@ -117,10 +122,11 @@ class Options(object):
             self.private_fields.append(field)
         else:
             #self.fields.insert(bisect(self.fields, field), field)
-            if field.creation_counter < 0 and field.local:
-                self.fields.insert(0, field)
-            else:
-                self.fields.append(field)
+            # if field.creation_counter < 0 and field.local:
+            #     self.fields.insert(0, field)
+            # else:
+            #     self.fields.append(field)
+            self.fields.append(field)
             if field.local:
                 if field.creation_counter < 0:
                     self.local_fields.insert(0, field)
@@ -132,6 +138,7 @@ class Options(object):
     def setup_pk(self, field):
         if self.pk is None and field.primary_key:
             self.pk = field
+            self.fields['pk'] = field
 
     @property
     def model_name(self):
@@ -195,11 +202,13 @@ class Options(object):
                         if f.related_name and f.related_name != '+':
                             kwargs['backref'] = backref(f.related_name, lazy='dynamic')
                         kwargs['remote_side'] = fk.column
-                        props[f.name] = relationship(
+                        prop_name = f"_{f.name}__fk"
+                        prop = props[prop_name] = relationship(
                             lambda fk=fk: fk.column.table.__model__._meta.mapped,
                             foreign_keys=[f.column],
                             **kwargs
                         )
+                        props[f.name] = synonym(prop_name, descriptor=ForeignKeyDescriptor(prop_name, f, prop))
                     if f.deferred:
                         props[f.name] = deferred(f.column)
                 elif f.related:
@@ -256,17 +265,17 @@ class Options(object):
         cls = type(self.object_name, tuple(bases), {'__app__': registry, '__model__': model, '__module__': self.app_label})
         return cls
 
-    @cached_property
+    @property
     def concrete_fields(self):
         return [f for f in self.local_fields if f.concrete]
 
-    @cached_property
+    @property
     def deferred_fields(self):
         return [f for f in self.fields if f.deferred]
 
-    @cached_property
+    @property
     def fields_dict(self):
-        return self._get_fields_dict()
+        return self.fields
 
     @property
     def editable_fields(self):
@@ -275,49 +284,42 @@ class Options(object):
     @property
     def searchable_fields(self):
         if self.field_groups and 'searchable_fields' in self.field_groups:
-            return [self.fields_dict[field_name] for field_name in self.field_groups['searchable_fields']]
+            return [self.fields[field_name] for field_name in self.field_groups['searchable_fields']]
         elif self.title_field:
             return [self.get_title_field()]
         return []
 
     @property
-    def groupable_fields(self):
-        if self.field_groups and 'groupable_fields' in self.field_groups:
-            return [self.fields_dict[field_name] for field_name in self.field_groups['groupable_fields']]
+    def grouping_fields(self):
+        if self.field_groups and 'grouping_fields' in self.field_groups:
+            return [self.fields[field_name] for field_name in self.field_groups['grouping_fields']]
 
     @property
     def list_fields(self):
         if self.field_groups and 'list_fields' in self.field_groups:
-            return [self.fields_dict[field_name] for field_name in self.field_groups['list_fields']]
+            return [self.fields[field_name] for field_name in self.field_groups['list_fields']]
         else:
             return self.editable_fields
 
     @property
     def form_fields(self):
         if self.field_groups and 'form_fields' in self.field_groups:
-            return [self.fields_dict[field_name] for field_name in self.field_groups['form_fields']]
+            return [self.fields[field_name] for field_name in self.field_groups['form_fields']]
         else:
             return self.editable_fields
 
     @property
     def auto_report_fields(self):
         if self.field_groups and 'auto_report' in self.field_groups:
-            return [self.fields_dict[field_name] for field_name in self.field_groups['auto_report']]
+            return [self.fields[field_name] for field_name in self.field_groups['auto_report']]
         else:
             return self.list_fields
 
-    def _get_fields_dict(self):
-        fields = {f.name: f for f in self.fields}
-        fields['pk'] = self.pk
-        return fields
-
     def __getitem__(self, item):
-        if item == 'pk':
-            return self.pk
-        return self.fields_dict[item]
+        return self.fields[item]
 
     def get_field(self, field):
-        return self.fields_dict[field]
+        return self.fields[field]
 
     def can_migrate(self, connection):
         """
@@ -336,12 +338,12 @@ class Options(object):
         return True
 
     def get_title_field(self):
-        return self.fields_dict[self.title_field]
+        return self.fields[self.title_field]
 
     def get_name_fields(self):
         if self.field_groups and 'name_fields' in self.field_groups:
-            return [self.fields_dict[field_name] for field_name in self.field_groups['name_fields']]
-        return [self.fields_dict[self.title_field]]
+            return [self.fields[field_name] for field_name in self.field_groups['name_fields']]
+        return [self.fields[self.title_field]]
 
 
 def normalize_together(option_together):
@@ -383,3 +385,7 @@ def normalize_ordering(opts, ordering):
             o = o.desc()
         r.append(o)
     return r
+
+
+from orun.db.models.fields import Fields
+from orun.db.models.fields.related_descriptors import ForeignKeyDescriptor

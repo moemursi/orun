@@ -15,9 +15,8 @@ from orun.db.models import signals
 from orun.utils.translation import gettext
 from orun.utils.xml import etree
 from orun.utils.xml import get_xml_fields
-from .fields import (
-    Field, OneToOneField, CASCADE, ForeignKey, BooleanField, NOT_PROVIDED,
-)
+from .fields import Field, BooleanField, NOT_PROVIDED
+from .fields.related import OneToOneField, ForeignKey, CASCADE
 from .options import Options
 from .query import QuerySet, Insert, Update, Delete
 from orun.api import Environment
@@ -39,7 +38,7 @@ def get_current_user():
 
 
 def _add_auto_field(meta, name, field):
-    if name not in meta._get_fields_dict():
+    if name not in meta.fields:
         meta.model.add_to_class(name, field)
 
 
@@ -168,9 +167,9 @@ class ModelBase(type):
             else:
                 if module != '__fake__':
                     if opts.log_changes and not opts.extension and not parents:
-                        _add_auto_field(opts, 'created_by', ForeignKey('auth.user', auto_created=True, editable=False, deferred=True))
+                        _add_auto_field(opts, 'created_by', ForeignKey('auth.user', auto_created=True, editable=False, deferred=True, db_index=False))
                         _add_auto_field(opts, 'created_on', DateTimeField(default=datetime.datetime.now, auto_created=True, editable=False, deferred=True))
-                        _add_auto_field(opts, 'updated_by', ForeignKey('auth.user', auto_created=True, editable=False, deferred=True))
+                        _add_auto_field(opts, 'updated_by', ForeignKey('auth.user', auto_created=True, editable=False, deferred=True, db_index=False))
                         _add_auto_field(opts, 'updated_on', DateTimeField(on_update=datetime.datetime.now, auto_created=True, editable=False, deferred=True))
 
                     if not opts.extension and not parents:
@@ -199,7 +198,7 @@ class ModelBase(type):
 
                     # Clone base local fields to new class local fields
                     for f in base._meta.fields:
-                        if f.name not in opts._get_fields_dict():
+                        if f.name not in opts.fields:
                             new_field = copy.copy(f)
                             new_field.inherited = not base._meta.abstract
                             new_field.local = (extension and f in base._meta.local_fields) or base._meta.abstract
@@ -249,10 +248,6 @@ class ModelBase(type):
                 return issubclass(cls, parent)
         return super(ModelBase, cls).__subclasscheck__(sub)
 
-    @api.method
-    def on_field_change(self, field, *args, **kwargs):
-        return self._meta.fields_dict[field].onchange(self)
-
     # Add DML attributes
     @property
     def select(cls):
@@ -270,6 +265,7 @@ class ModelBase(type):
 
 class Service(metaclass=ModelBase):
     def __init__(self, *args, **kwargs):
+        self._state = ModelState()
         for k, v in kwargs.items():
             setattr(self, k, v)
 
@@ -278,14 +274,23 @@ class Service(metaclass=ModelBase):
         return g.env
 
 
-class ModelState(object):
-    def __init__(self, record=None):
-        if record:
-            self.record = record
-            self.adding = False
-        else:
-            self.record = {}
-            self.adding = True
+class ModelStateFieldsCacheDescriptor:
+    def __get__(self, instance, cls=None):
+        if instance is None:
+            return self
+        res = instance.fields_cache = {}
+        return res
+
+
+class ModelState:
+    """Store model instance state."""
+    db = None
+    # If true, uniqueness validation checks will consider this a new, unsaved
+    # object. Necessary for correct validation of new instances of objects with
+    # explicit (non-auto) PKs. This impacts validation only; it has no effect
+    # on the actual save.
+    adding = True
+    fields_cache = ModelStateFieldsCacheDescriptor()
 
 
 class Model(Service):
@@ -293,23 +298,20 @@ class Model(Service):
     #    if self._state.adding:
     #        self._state.record = self._meta.mapped(**kwargs)
 
+    @orm.reconstructor
+    def _init_from_db(self):
+        self._state = ModelState()
+
     @property
     def objects(self):
         return session.query(self.__class__)
 
     @classmethod
-    def init(self):
+    def init(cls):
         """
         Initialize the model after database upgrade.
         """
         pass
-
-    @classmethod
-    def from_db(cls, record):
-        new = cls(_record=record)
-        #new._state.adding = False
-        #new._state.db = db
-        return new
 
     @classmethod
     def create(cls, **kwargs):
@@ -528,7 +530,6 @@ class Model(Service):
 
     @api.method
     def search_name(self, name=None, count=None, page=None, label_from_instance=None, name_fields=None, *args, **kwargs):
-        print('name fields', name_fields)
         params = kwargs.get('params')
         if name:
             if name_fields is None:
@@ -558,6 +559,12 @@ class Model(Service):
         }
 
     @api.method
+    def field_change_event(self, field, record, *args, **kwargs):
+        for fn in self._meta.field_change_event[field]:
+            record = fn(self, record)
+        return record
+
+    @api.method
     def get_field_choices(self, field, q=None, count=False, ids=None, page=None, **kwargs):
         field_name = field
         field = self._meta.fields_dict[field_name]
@@ -575,6 +582,15 @@ class Model(Service):
             search_params['params'] = [related_model.pk.in_(ids if isinstance(ids, (list, tuple)) else [ids])]
         label_from_instance = kwargs.get('label_from_instance', field.label_from_instance or kwargs.get('name_fields'))
         return related_model.search_name(label_from_instance=label_from_instance, **search_params)
+
+    @api.record
+    def _proxy_field_change(self, field):
+        obj = getattr(self, field.proxy_field[0])
+        if obj is not None:
+            obj = getattr(obj, field.proxy_field[1])
+        return {
+            'value': {field.name: obj}
+        }
 
     @api.method
     def get_formview_id(self):
@@ -786,12 +802,12 @@ class Model(Service):
         return getattr(self, item)
 
     def __call__(self, *args, **kwargs):
-        return self.__class__(self.env, *args, **kwargs)
+        return self.__class__(*args, **kwargs)
 
-    def _get_pk_val(self, meta=None):
-       if not meta:
-           meta = self._meta
-       return getattr(self, meta.pk.attname)
+    # def _get_pk_val(self, meta=None):
+    #    if not meta:
+    #        meta = self._meta
+    #    return getattr(self, meta.pk.attname)
 
     def __setattr__(self, key, value):
         f = self._meta.fields_dict.get(key)
@@ -822,4 +838,5 @@ def _resolve_fk_search(field):
     return [field]
 
 
-from orun.db.models.fields import ForeignKey, DateTimeField
+from orun.db.models.fields import DateTimeField
+from orun.db.models.fields.related import ForeignKey

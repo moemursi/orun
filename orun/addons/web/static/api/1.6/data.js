@@ -17,7 +17,6 @@
     constructor(scope) {
       this.$modifiedRecords = [];
       // this.onFieldChange = this.onFieldChange.bind(this);
-      this.fields = [];
       this.scope = scope;
       this._recordIndex = 0;
       this.recordCount = null;
@@ -41,6 +40,10 @@
 
     addFieldWatcher(field) {
 
+    }
+
+    get fields() {
+      return this.scope.view.fields;
     }
 
     get loadingAction() {
@@ -636,26 +639,8 @@
     }
 
     setValues(values) {
-      for (let attr in values) {
-        let v = values[attr];
-        this.scope.record[attr] = v;
-        continue;
-        const control = this.scope.form[attr];
-        if (control) {
-          if (v) {
-            v = this.toClientValue(attr, v);
-          }
-          control.$setDirty();
-          // Force dirty (bug fix for boolean (false) value
-          if (v === false) {
-            this.scope.record[attr] = v;
-            control.$setDirty();
-          }
-        } else {
-          this._modifiedFields.push(attr);
-        }
-        this.scope.record[attr] = v;
-      }
+      console.log('current record', this.scope.record);
+      Object.entries(values).forEach(([k, v]) => this.scope.record[k] = v);
     }
 
     edit() {
@@ -738,6 +723,8 @@
 
     set recordIndex(index) {
       this._recordIndex = index;
+      this.scope.record = this.scope.records[index];
+      this.scope.recordId = this.record.id;
       if (!this.masterSource)
         this.scope.action.location.search('id', this.scope.records[index].id);
     }
@@ -745,34 +732,6 @@
     get recordIndex() {
       return this._recordIndex;
     }
-
-    // onFieldChange(res) {
-    //   if (res.ok && res.result.fields) {
-    //     return this.scope.$apply(() => {
-    //       return (() => {
-    //         const result = [];
-    //         for (let f in res.result.fields) {
-    //           const v = res.result.fields[f];
-    //           result.push(this.scope.$set(f, v));
-    //         }
-    //         return result;
-    //       })();
-    //     });
-    //   }
-    // }
-
-    // fieldChange(meth, params) {
-    //   return this.scope.model.post(meth, null, { kwargs: params })
-    //   .done(res => {
-    //     return this.scope.$apply(() => {
-    //       if (res.ok) {
-    //         if (res.result.values) {
-    //           return this.setFields(res.result.values);
-    //         }
-    //       }
-    //     });
-    //   });
-    // }
 
     expandGroup(index, row) {
       const rg = row._group;
@@ -794,6 +753,21 @@
       const group = row._group;
       this.scope.records.splice(index + 1, group._children.length);
       return delete group._children;
+    }
+    
+    _applyResponse(res) {
+      if (res.value)
+        this.setValues(res.value);
+      this.scope.$apply();
+    }
+
+    dispatchEvent(name, ...args) {
+      this.model.rpc(name, ...args)
+      .done(res => this._applyResponse(res));
+    }
+
+    get model() {
+      return this.scope.model;
     }
   }
 

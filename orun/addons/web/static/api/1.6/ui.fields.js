@@ -64,6 +64,14 @@
 
       this.cols = cols;
       this.classes = ['form-field'];
+
+      // track field changes
+      if (field.onchange)
+        scope.$watch();
+    }
+
+    fieldChangeEvent() {
+
     }
 
     get caption() {

@@ -729,7 +729,10 @@
           if (value) {
             if (_.isArray(value))
               return value;
-            return [value.id, value.text];
+            else if (_.isObject(value))
+              return [value.id, value.text];
+            else
+              return value;
           }
           return null;
         });

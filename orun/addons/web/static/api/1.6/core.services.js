@@ -110,7 +110,7 @@
         // Else, using ajax
       } else {
         const methName = this.name ? this.name + '/': '';
-        let rpcName = Katrid.Settings.server + this.constructor.url + methName + 'call/';
+        let rpcName = Katrid.Settings.server + this.constructor.url + methName + name + '/';
         if (params) {
           rpcName += `?${$.param(params)}`;
         }
@@ -176,10 +176,6 @@
         Object.values(res.views).map(v => v.fields = Katrid.Data.Fields.Field.fromArray(v.fields));
         Object.keys(res.views).map(k => res.views[k] = new Katrid.Data.View(res.views[k]));
       }
-    }
-
-    fieldChange(methName, values) {
-      return this.post(methName, null);
     }
 
     getViewInfo(data) {

@@ -13,11 +13,11 @@ from orun.auth.decorators import login_required, cross_domain
 class RPC(BaseView):
     route_base = '/api/'
 
-    @route('/rpc/<service>/call/', methods=['GET', 'POST', 'DELETE', 'PUT'])
+    @route('/rpc/<service>/<meth>/', methods=['GET', 'POST', 'DELETE', 'PUT'])
     @transaction.atomic
     @login_required
     @api.jsonrpc
-    def call(self, service, params):
+    def call(self, service, meth, params):
         data = request.json
         method = data['method']
         if method.startswith('_'):

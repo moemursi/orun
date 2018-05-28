@@ -17,6 +17,10 @@
       return r;
     }
 
+    get onChange() {
+      return this._info.onchange;
+    }
+
     get hasChoices() {
       return this._info.choices && this._info.choices.length > 0;
     }

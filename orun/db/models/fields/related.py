@@ -4,7 +4,8 @@ from sqlalchemy.orm import relationship, load_only
 from orun import app
 from orun.apps import apps
 from orun.utils.functional import cached_property
-from .base import Field
+from . import Field
+from .mixins import FieldCacheMixin
 
 
 __all__ = ['ForeignKey', 'OneToManyField', 'ManyToManyField', 'OneToOneField', 'CASCADE', 'SET_NULL']
@@ -16,7 +17,7 @@ CASCADE = 'CASCADE'
 SET_NULL = 'SET NULL'
 
 
-class RelatedField(Field):
+class RelatedField(FieldCacheMixin, Field):
     one_to_many = False
     one_to_one = False
     many_to_many = False
@@ -43,6 +44,9 @@ class RelatedField(Field):
         info = super(RelatedField, self)._get_info()
         info['domain'] = self.domain
         return info
+
+    def get_cache_name(self):
+        return self.name
 
 
 class ForeignKey(RelatedField):

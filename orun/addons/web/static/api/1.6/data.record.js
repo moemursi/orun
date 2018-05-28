@@ -12,6 +12,27 @@
   }
 
 
+  function _prepareRecord(rec) {
+    let res = {};
+    Object.entries(rec).map(obj => {
+      if (!obj[0].startsWith('$'))
+        res[obj[0]] = obj[1]
+    });
+    return res;
+  }
+
+
+  function _dispatchEvent(dataSource, rec, propKey, value) {
+    let oldValue = rec[propKey];
+    console.log('field change', propKey, oldValue, value, oldValue != value);
+    if (oldValue != value) {
+      rec = _prepareRecord(rec);
+      rec[propKey] = value;
+      dataSource.dispatchEvent('field_change_event', [propKey, rec])
+    }
+  }
+
+
   function createRecord(rec, scope) {
     return new Proxy(rec, {
       set(target, propKey, value, receiver) {
@@ -36,6 +57,9 @@
             }
             else if (fld)
               rec.$modifiedData[propKey] = fld.toJson(value);
+
+            if (fld.onChange)
+              _dispatchEvent(scope.dataSource, rec, propKey, fld.toJson(value));
           }
           if (scope.dataSource.$modifiedRecords.indexOf(rec) === -1)
             scope.dataSource.$modifiedRecords.push(rec);

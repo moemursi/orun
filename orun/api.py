@@ -72,6 +72,7 @@ def method(*args, public=False, methods=None):
 
 def records(*args, **kwargs):
     from orun.db import models
+    each = kwargs.get('each', False)
 
     def decorator(fn):
         fn.exposed = True
@@ -86,10 +87,19 @@ def records(*args, **kwargs):
             if not ids and not issubclass(self, models.Model):
                 ids = (self,)
             elif ids:
-                ids = self.objects.filter(self.c.pk.in_(kwargs.pop('ids', ids)))
+                # if the object is a dict
+                # create a new record instance
+                if isinstance(ids, dict):
+                    ids = [self(**ids)]
+                else:
+                    ids = self.objects.filter(self.c.pk.in_(kwargs.pop('ids', ids)))
             if not isinstance(ids, RecordsProxy):
-                ids = RecordsProxy(self,  ids)
-            return fn(ids, *args, **kwargs)
+                ids = RecordsProxy(self, ids)
+            if each:
+                for id in ids:
+                    return fn(id, *args, **kwargs)
+            else:
+                return fn(ids, *args, **kwargs)
         return wrapped
 
     if args and callable(args[0]):
@@ -97,22 +107,23 @@ def records(*args, **kwargs):
     return decorator
 
 
+record = partial(records, each=True)
+
+
 def onchange(fields):
     def decorator(fn):
 
-        def contribute_to_class(fields, cls, name):
-            if not cls._meta.on_field_change:
-                cls._meta.__class__.on_field_change = defaultdict(list)
-            if not isinstance(fields, (list, dict)):
-                fields = [fields]
-            for field in fields:
+        def contribute_to_class(flds, cls, name):
+            if not isinstance(flds, (list, dict)):
+                flds = [flds]
+            for field in flds:
                 if not isinstance(field, str):
                     field = field.name
-                lst = cls._meta.on_field_change[field]
+                lst = cls._meta.field_change_event[field]
                 if fn not in lst:
                     lst.append(fn)
 
-        fn._onchange = fields
+        # fn._onchange = fields
         fn.contribute_to_class = partial(contribute_to_class, fields)
         return fn
 
