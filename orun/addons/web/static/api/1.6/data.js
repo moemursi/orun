@@ -725,13 +725,13 @@
     }
 
     set recordIndex(index) {
+      if (!this.masterSource)
+        this._clearCache();
       this._recordIndex = index;
       this.scope.record = this.scope.records[index];
       this.scope.recordId = this.record.id;
-      if (!this.masterSource) {
+      if (!this.masterSource)
         this.scope.action.location.search('id', this.scope.records[index].id);
-        this._clearCache();
-      }
     }
 
     get recordIndex() {
