@@ -63,6 +63,8 @@
       for (let child of this.children)
         child.cancel();
 
+      this._clearCache();
+
       this._recordIndex = null;
       this._pendingChanges = false;
 
@@ -431,7 +433,7 @@
           this.uploading++;
           return this.scope.model.write([data])
           .done(res => {
-            //this._clearCache();
+            this._clearCache();
             this.scope.action.location.search('id', res[0]);
             this.scope.form.$setPristine();
             this.scope.form.$setUntouched();
