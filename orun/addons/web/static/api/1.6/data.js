@@ -63,7 +63,8 @@
       for (let child of this.children)
         child.cancel();
 
-      this._clearCache();
+      if (!this.masterSource)
+        this._clearCache();
 
       this._recordIndex = null;
       this._pendingChanges = false;
@@ -727,8 +728,10 @@
       this._recordIndex = index;
       this.scope.record = this.scope.records[index];
       this.scope.recordId = this.record.id;
-      if (!this.masterSource)
+      if (!this.masterSource) {
         this.scope.action.location.search('id', this.scope.records[index].id);
+        this._clearCache();
+      }
     }
 
     get recordIndex() {
