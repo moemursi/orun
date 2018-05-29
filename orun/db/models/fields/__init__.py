@@ -558,6 +558,7 @@ class AutoField(Field):
     def __init__(self, *args, **kwargs):
         kwargs['required'] = False
         kwargs.setdefault('editable', False)
+        kwargs.setdefault('readonly', True)
         super(AutoField, self).__init__(*args, **kwargs)
 
     def create_column(self, *args, **kwargs):

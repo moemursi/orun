@@ -64,9 +64,6 @@
       for (let child of this.children)
         child.cancel();
 
-      if (!this.masterSource)
-        this._clearCache();
-
       this._recordIndex = null;
       this._pendingChanges = false;
 
@@ -553,7 +550,6 @@
     }
 
     insert() {
-      this._clearCache();
       let rec = {};
       rec.$created = true;
       this.record = rec;
@@ -657,8 +653,6 @@
     }
 
     set recordIndex(index) {
-      if (!this.masterSource)
-        this._clearCache();
       this._recordIndex = index;
       this.scope.record = this.scope.records[index];
       this.scope.recordId = this.record.id;
