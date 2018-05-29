@@ -15,6 +15,7 @@
 
   class DataSource {
     constructor(scope) {
+      this.readonly = false;
       this.$modifiedRecords = [];
       // this.onFieldChange = this.onFieldChange.bind(this);
       this.scope = scope;
@@ -232,7 +233,7 @@
             if (this.readonly)
               this.scope.records = data;
             else
-              this.scope.records = data.map((obj) => Katrid.Data.createRecord(obj, this.scope));
+              this.scope.records = data.map((obj) => Katrid.Data.createRecord(obj, this));
             if (this.pageIndex === 1) {
               return this.offsetLimit = this.scope.records.length;
             } else {
@@ -391,28 +392,9 @@
       return ret;
     }
 
-    _clearRecordCache(rec) {
-      if (rec) {
-        delete rec.$modified;
-        delete rec.$modifiedData;
-        delete rec.$old;
-        delete rec.$deleted;
-        delete rec.$created;
-      }
-    }
-
-    _clearCache() {
-      this._clearRecordCache(this.record);
-      if (this.scope.records)
-        for (let rec in this.scope.records)
-          this._clearRecordCache(rec);
-      this.$modifiedRecords = [];
-      for (let child of this.children)
-        child._clearCache();
-    }
-
     save(autoRefresh=true) {
       // Submit fields with dirty state only
+      console.log('SUBMIT', this.record.$record.toObject());
 
       // Save pending children
       for (let child of this.children)
@@ -421,7 +403,8 @@
 
       const el = this.scope.formElement;
       if (this.validate()) {
-        const data = this.getModifiedData(this.scope.form, el, this.scope.record);
+        const data = this.record.$record.toObject();
+        // const data = this.getModifiedData(this.scope.form, el, this.scope.record);
         this.scope.form.data = data;
 
         let beforeSubmit = el.attr('before-submit');
@@ -434,7 +417,7 @@
           this.uploading++;
           return this.scope.model.write([data])
           .done(res => {
-            this._clearCache();
+            // this._clearCache();
             this.scope.action.location.search('id', res[0]);
             this.scope.form.$setPristine();
             this.scope.form.$setUntouched();
@@ -533,57 +516,6 @@
       if (this.record.id)
         data['id'] = record.id;
       return data;
-
-      if (form.$dirty || this._modifiedFields.length) {
-        const data = {};
-        for (let el of Array.from($(element).find('.form-field.ng-dirty'))) {
-          const nm = el.name;
-          if (nm) {
-            data[nm] = record[nm];
-          }
-        }
-
-        for (let child of Array.from(this.children)) {
-          const subData = data[child.fieldName] || [];
-          if (child.modifiedData)
-          for (let attr of Array.from(child.modifiedData)) {
-            let obj = child.modifiedData[attr];
-            if (obj.$deleted) {
-              obj = {
-                action: 'DESTROY',
-                id: obj.id
-              };
-            } else if (obj.id) {
-              obj = {
-                action: 'UPDATE',
-                values: obj
-              };
-            } else {
-              obj = {
-                action: 'CREATE',
-                values: obj
-              };
-            }
-            subData.push(obj);
-          }
-          if (subData) {
-            data[child.fieldName] = subData;
-          }
-        }
-
-        // Check invisible fields
-        for (let f of Array.from(this._modifiedFields)) {
-          data[f] = record[f];
-        }
-
-        if (data) {
-          if (record.id) {
-            data.id = record.id;
-          }
-          return data;
-        }
-      }
-
     }
 
     get(id, timeout, apply=true, index=false) {
@@ -638,7 +570,7 @@
     }
 
     _new() {
-      return Katrid.Data.createRecord({}, this.scope);
+      return Katrid.Data.createRecord({}, this);
     }
 
     setValues(values) {
@@ -692,7 +624,7 @@
 
     set record(rec) {
       // Track field changes
-      this.scope.record = Katrid.Data.createRecord(rec, this.scope);
+      this.scope.record = Katrid.Data.createRecord(rec, this);
       this.scope.recordId = rec.id;
       this._pendingChanges = false;
       if (this.scope.form)
@@ -730,6 +662,7 @@
       this._recordIndex = index;
       this.scope.record = this.scope.records[index];
       this.scope.recordId = this.record.id;
+      // set new id on browser address
       if (!this.masterSource)
         this.scope.action.location.search('id', this.scope.records[index].id);
     }
@@ -773,6 +706,14 @@
 
     get model() {
       return this.scope.model;
+    }
+
+    get parent() {
+      return this.masterSource;
+    }
+
+    $setDirty(field) {
+      this.scope.$setDirty(field);
     }
   }
 

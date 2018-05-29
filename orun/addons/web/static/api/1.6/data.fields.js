@@ -53,7 +53,7 @@
       return this._info.type;
     }
 
-    toJson(val) {
+    toJSON(val) {
       return val;
     }
 
@@ -78,7 +78,7 @@
   }
 
   class DateField extends Field {
-    toJson(val) {
+    toJSON(val) {
       return val;
     }
   }
@@ -88,7 +88,7 @@
   }
 
   class NumericField extends Field {
-    toJson(val) {
+    toJSON(val) {
       if (val && _.isString(val))
         return parseFloat(val);
       return val;
@@ -96,7 +96,7 @@
   }
 
   class IntegerField extends Field {
-    toJson(val) {
+    toJSON(val) {
       if (val && _.isString(val))
         return parseInt(val);
       return val;
@@ -110,7 +110,7 @@
   }
 
   class ForeignKey extends Field {
-    toJson(val) {
+    toJSON(val) {
       if (_.isArray(val))
         return val[0];
       return val;
@@ -124,7 +124,7 @@
   }
 
   class ManyToManyField extends ForeignKey {
-    toJson(val) {
+    toJSON(val) {
       if (_.isArray(val))
         return val.map(obj => _.isArray(obj) ? obj[0] : obj);
       return val;

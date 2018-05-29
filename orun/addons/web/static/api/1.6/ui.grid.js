@@ -154,7 +154,7 @@
       };
 
       scope._incChanges = () => {
-        return scope.parent.record[scope.fieldName] = scope.records;
+        //return scope.parent.record[scope.fieldName] = scope.records;
       };
 
       scope.addItem = function () {
@@ -193,9 +193,8 @@
         const rec = scope.records[idx];
         scope.records.splice(idx, 1);
         scope._incChanges();
-        rec.$deleted = true;
-        scope.dataSource.$modifiedRecords.push(rec);
-        scope.$parent.record.$modifiedData[scope.fieldName].$deleted.append(rec);
+        rec.$record.$delete();
+        //scope.$parent.record.$modifiedData[scope.fieldName].$deleted.append(rec);
         // return scope.dataSource.applyModifiedData(null, null, rec);
       };
 
@@ -208,7 +207,8 @@
       scope.save = function () {
         // const data = scope.dataSource.applyModifiedData(scope.form, scope.gridDialog, scope.record);
         if (scope.inline)
-          return scope.$parent.record[scope.fieldName] = scope.records;
+          return;
+          // return scope.$parent.record[scope.fieldName] = scope.records;
         if (scope.recordIndex > -1) {
           let rec = scope.record;
           scope.record = null;
