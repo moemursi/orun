@@ -75,7 +75,14 @@
           if (this.scope.record) {
             const r = this.refresh([this.scope.record.id]);
             if (r && $.isFunction(r.promise))
-              r.done(() => this.state = DataSourceState.browsing);
+              r.done(() => {
+                this.state = DataSourceState.browsing;
+                for (let child of this.children)
+                  if (child.scope.masterChanged) {
+                    child.scope.masterChanged(this.recordId);
+                    child.scope.$apply();
+                  }
+              });
             else
               this.state = DataSourceState.browsing;
           }
