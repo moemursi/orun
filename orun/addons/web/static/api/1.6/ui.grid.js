@@ -149,8 +149,8 @@
 
       scope.doViewAction = (viewAction, target, confirmation) => scope.action._doViewAction(scope, viewAction, target, confirmation);
 
-      let _cacheChildren = (fieldName, records) => {
-        scope.record[fieldName] = records;
+      let _cacheChildren = (fieldName, record, records) => {
+        record[fieldName] = records;
       };
 
       scope._incChanges = () => {
@@ -251,11 +251,13 @@
               scope.dataSource.edit();
 
               // load nested data
-              for (let child of dataSource.children) {
-                child.scope.masterChanged(res.id)
-                .done(res => {
-                  _cacheChildren(child.fieldName, res.data);
-                })
+              let currentRecord = scope.record;
+              if (res.id)
+                for (let child of dataSource.children) {
+                  child.scope.masterChanged(res.id)
+                  .done(res => {
+                    _cacheChildren(child.fieldName, currentRecord, res.data);
+                  })
 
               }
             });

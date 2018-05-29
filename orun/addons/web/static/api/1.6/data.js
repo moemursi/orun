@@ -187,6 +187,7 @@
     }
 
     search(params, page, fields) {
+      let master = this.masterSource;
       if (this.groups && !this.groups.length && this.scope.defaultGrouping) {
         let g = {
           context: {
@@ -320,7 +321,8 @@
     _clearTimeout() {
       this.loading = false;
       this.loadingRecord = false;
-      return clearTimeout(this.pendingRequest);
+      this._canceled = true;
+      clearTimeout(this.pendingRequest);
     }
 
     set masterSource(master) {
@@ -536,6 +538,7 @@
       this.state = DataSourceState.loading;
       this.loadingRecord = true;
       const def = new $.Deferred();
+      this._canceled = false;
 
       const _get = () => {
         return this.scope.model.getById(id)
@@ -543,8 +546,12 @@
           return def.reject(res);
         })
         .done(res => {
+          if (this._canceled)
+            return;
           if (this.state === DataSourceState.loading)
             this.state = DataSourceState.browsing;
+          else if (this.state === DataSourceState.inserting)
+            return;
           this.record = res.data[0];
           if (apply)
             this.scope.$apply();
@@ -566,12 +573,18 @@
     }
 
     insert() {
+      this._clearTimeout();
+      for (let child of this.children)
+        child._clearTimeout();
       let rec = {};
       rec.$created = true;
       this.record = rec;
       return this.scope.model.getDefaults()
       .done(res => {
         this.scope.$apply(() => {
+          for (let child of this.children)
+            child.scope.records = [];
+
           this.state = DataSourceState.inserting;
           this.scope.record.display_name = Katrid.i18n.gettext('(New)');
           if (res.result)
