@@ -39,21 +39,17 @@ class Atomic(ContextDecorator):
         self.trans = begin(self.using)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.trans.commit()
-
-
-@contextmanager
-def _atomic(using, savepoint):
-    trans = begin(using)
-    yield trans
-    trans.commit()
+        if exc_type is not None:
+            self.trans.rollback()
+        else:
+            self.trans.commit()
 
 
 def atomic(fn, using=DEFAULT_DB_ALIAS, savepoint=False):
     if callable(fn):
         @wraps(fn)
         def inner(*args, **kwargs):
-            with _atomic(using, savepoint):
+            with Atomic(using, savepoint):
                 return fn(*args, **kwargs)
         return inner
     else:

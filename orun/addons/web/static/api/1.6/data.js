@@ -430,16 +430,25 @@
 
           })
           .fail(error => {
-
             let s = `<span>${Katrid.i18n.gettext('The following fields are invalid:')}<hr></span>`;
             if (error.message)
               s = error.message;
             else if (error.messages) {
               let elfield;
               for (let fld of Object.keys(error.messages)) {
-                console.log(fld, error.messages);
                 const msgs = error.messages[fld];
-                const field = this.scope.view.fields[fld];
+                let field;
+                // check qualified field name
+                if (fld.indexOf('.') > -1) {
+                  fld = fld.split('.');
+                  let subField = fld[1];
+                  for (let child of this.children)
+                    if (child.scope.fieldName === fld[0]) {
+                      field = child.scope.view.fields[subField];
+                    }
+                } else
+                  field = this.scope.view.fields[fld];
+                console.log('field invalid', field);
                 if (!field || !field.name)
                   continue;
                 elfield = el.find(`.form-field[name="${field.name}"]`);

@@ -14,9 +14,9 @@ class RPC(BaseView):
     route_base = '/api/'
 
     @route('/rpc/<service>/<meth>/', methods=['GET', 'POST', 'DELETE', 'PUT'])
-    @transaction.atomic
     @login_required
     @api.jsonrpc
+    @transaction.atomic
     def call(self, service, meth, params):
         data = request.json
         method = data['method']

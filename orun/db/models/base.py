@@ -480,7 +480,13 @@ class Model(Service):
             instance.save()
 
         for child, v in children.items():
-            child.set(v, instance)
+            try:
+                child.set(v, instance)
+            except ValidationError as e:
+                for k, v in dict(e.error_dict).items():
+                    e.error_dict[f"{child.name}.{k}"] = e.error_dict.pop(k)
+                raise
+
 
         #post_data = cls.post_data.pop(id(instance), None)
 
