@@ -701,7 +701,7 @@
               })*/
             });
 
-          } else if (v && multiple) {
+          } else if (multiple && e.val.length) {
             return controller.$setViewValue(e.val);
           } else {
             controller.$setDirty();
