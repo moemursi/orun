@@ -702,9 +702,7 @@
             });
 
           } else if (v && multiple) {
-            if (!_.isArray(v))
-              v = [v];
-            return controller.$setViewValue(v.map((obj) => _.isArray(obj) ? obj : [obj.id, obj.text]));
+            return controller.$setViewValue(e.val);
           } else {
             controller.$setDirty();
             if (v) {

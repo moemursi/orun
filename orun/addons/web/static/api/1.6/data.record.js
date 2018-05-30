@@ -68,13 +68,20 @@
       }
     }
 
+    compare(oldValue, newValue) {
+      if (_.isArray(oldValue) && _.isArray(newValue))
+        return oldValue.join(',') !== newValue.join(',');
+      return oldValue != newValue;
+    }
+
     set(propKey, value) {
       let field = this.dataSource.fieldByName(propKey);
       if (field) {
         let oldValue = this.raw[propKey];
         value = field.toJSON(value);
+        console.log('set field value', propKey, oldValue, value);
         // check if field value has been changed
-        if (oldValue != value) {
+        if (this.compare(oldValue, value)) {
           this.setModified(propKey);
           this.data[propKey] = value;
           this.modified = true;
@@ -86,6 +93,7 @@
           }
         }
       }
+      return true;
     }
 
     $new() {
@@ -130,7 +138,6 @@
         if (!propKey.startsWith('$$')) {
           if (!propKey.startsWith('$') && scope) {
             rec.$record.set(propKey, value);
-            let fld = scope.dataSource.fieldByName(propKey);
             // if (fld instanceof Katrid.Data.Fields.OneToManyField) {
             //   if (!rec.$modifiedData[propKey]) {
             //     rec.$modifiedData[propKey] = new SubRecords(value);

@@ -127,6 +127,8 @@
     toJSON(val) {
       if (_.isArray(val))
         return val.map(obj => _.isArray(obj) ? obj[0] : obj);
+      else if (_.isString(val))
+        val = val.split(',');
       return val;
     }
   }
