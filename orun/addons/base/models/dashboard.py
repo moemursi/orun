@@ -1,7 +1,8 @@
 from flask import request
+
+from orun import api, g
 from orun.db import models, session
 from orun.utils.translation import gettext_lazy as _
-from orun import api, g
 
 
 class Category(models.Model):
@@ -43,7 +44,7 @@ class Query(models.Model):
         q = session.execute(q.sql, params)
         desc = q.cursor.description
         if with_desc:
-            fields = [{'field': f[0], 'type': str(f[1]).split('.', 1)[0], 'size': f[2]} for f in desc]
+            fields = [{'field': f[0], 'type': str(f[1].__name__).split('.', 1)[0], 'size': f[2]} for f in desc]
         else:
             fields = [f[0] for f in desc]
 
