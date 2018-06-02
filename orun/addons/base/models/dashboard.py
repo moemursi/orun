@@ -44,7 +44,7 @@ class Query(models.Model):
         q = session.execute(q.sql, params)
         desc = q.cursor.description
         if with_desc:
-            fields = [{'field': f[0], 'type': str(f[1].__name__).split('.', 1)[0], 'size': f[2]} for f in desc]
+            fields = [{'field': f[0], 'type': f[1].__name__.lower(), 'size': f[2]} for f in desc]
         else:
             fields = [f[0] for f in desc]
 
