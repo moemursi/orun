@@ -18,7 +18,7 @@
       let me = this;
       // Load remote field model info
 
-      const field = scope.$parent.action.view.fields[attrs.name];
+      const field = scope.$parent.view.fields[attrs.name];
 
       scope.action = scope.$parent.action;
       scope.fieldName = attrs.name;
@@ -119,6 +119,7 @@
             _destroyChildren();
           });
         }
+        el.find('.modal-dialog').addClass('ng-form');
         const def = new $.Deferred();
         el.on('shown.bs.modal', () => def.resolve());
         return def;

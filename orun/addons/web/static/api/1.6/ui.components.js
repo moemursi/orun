@@ -11,7 +11,7 @@
       priority: -1,
       link(scope, element, attrs, ctrl) {
         let inplaceEditor = $(element).closest('.table.dataTable').length > 0;
-        let field = scope.action.view.fields[attrs.name];
+        let field = scope.view.fields[attrs.name];
         if (field && field.visible === false) {
           element.remove();
           return;
