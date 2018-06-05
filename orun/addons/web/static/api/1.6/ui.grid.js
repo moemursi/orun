@@ -295,9 +295,10 @@
 
       const masterChanged = scope.masterChanged = (key) => {
         // Ajax load nested data
+        scope.dataSet = [];
         scope._changeCount = 0;
         scope.records = [];
-        if (key !== null) {
+        if (key != null) {
           const data = {};
           data[field.field] = key;
           if (key)
@@ -308,7 +309,7 @@
 
       if (!scope.$parent.isList) {
         dataSource.invalidate = masterChanged;
-        scope.$parent.$watch('recordId', masterChanged);
+        // scope.$parent.$watch('recordId', masterChanged);
       }
     }
 

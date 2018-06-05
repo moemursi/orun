@@ -58,7 +58,7 @@
       this._loadingAction = v;
     }
 
-    cancel() {
+    async cancel() {
       if (!this.changing)
         return;
 
@@ -74,18 +74,9 @@
       } else {
         if (this.state === DataSourceState.editing) {
           if (this.scope.record) {
-            const r = this.refresh([this.scope.record.id]);
-            if (r && $.isFunction(r.promise))
-              r.then(() => {
-                this.state = DataSourceState.browsing;
-                for (let child of this.children)
-                  if (child.scope.masterChanged) {
-                    child.scope.masterChanged(this.recordId);
-                    child.scope.$apply();
-                  }
-              });
-            else
-              this.state = DataSourceState.browsing;
+            let r = await this.refresh([this.scope.record.id]);
+            this.state = DataSourceState.browsing;
+            this.recordId = this.record.id;
           }
         } else {
           this.record = {};
@@ -430,11 +421,6 @@
             this.scope.action.location.search('id', res[0]);
             this.scope.form.$setPristine();
             this.scope.form.$setUntouched();
-            if (this.children)
-              this.children.map((child) => {
-                child.scope.dataSet = [];
-                child.scope.masterChanged(this.scope.recordId);
-              });
             this._pendingChanges = false;
             this.state = DataSourceState.browsing;
             if (autoRefresh)
@@ -649,6 +635,14 @@
       return this.scope.record;
     }
 
+    set recordId(value) {
+      // refresh record id
+      this.scope.recordId = value;
+      // refresh children
+      for (let child of this.children)
+        child.scope.masterChanged(value);
+    }
+
     get recordId() {
       return this.scope.recordId;
     }
@@ -656,7 +650,7 @@
     set record(rec) {
       // Track field changes
       this.scope.record = Katrid.Data.createRecord(rec, this);
-      this.scope.recordId = rec.id;
+      this.recordId = rec.id;
       this._pendingChanges = false;
       if (this.scope.form)
         this.scope.form.$setPristine();

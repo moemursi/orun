@@ -5306,11 +5306,11 @@ form-view.form-data-changing section[readonly] label.checkbox {
 form-view.form-data-changing section[readonly] label.prepend-icon {
   display: none;
 }
-form-view.form-data-readonly .form-field,
-form-view.form-data-readonly .input-group {
+.ng-form.form-data-readonly .form-field,
+.ng-form.form-data-readonly .input-group {
   display: none;
 }
-form-view.form-data-readonly label.prepend-icon {
+.ng-form.form-data-readonly label.prepend-icon {
   display: none;
 }
 .list-record-selector {
