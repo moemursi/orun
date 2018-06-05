@@ -1,13 +1,13 @@
-import os
-from flask import redirect, send_from_directory, session, url_for, flash
+from flask import redirect, send_from_directory, url_for, flash
+
+from orun import app, auth
+from orun import render_template
+from orun import request
+from orun.auth.decorators import login_required
 from orun.conf import settings
-from orun import request, g
 from orun.utils.json import jsonify
 from orun.utils.translation import gettext
-from orun import app, render_template
 from orun.views import BaseView, route, json_route
-from orun.auth.decorators import login_required
-from orun import app, auth, api
 
 
 class WebClient(BaseView):
@@ -52,12 +52,27 @@ class WebClient(BaseView):
     @route('/login/', methods=['GET', 'POST'])
     def login(self):
         if request.method == 'POST':
-            username = request.form['username']
-            password = request.form['password']
+            if request.is_json:
+                username = request.json['username']
+                password = request.json['password']
+            else:
+                username = request.form['username']
+                password = request.form['password']
             u = auth.authenticate(username=username, password=password)
             if u and u.is_authenticated:
                 auth.login(u)
+                if request.is_xhr:
+                    return jsonify({
+                        'success': True,
+                        'user_id': u.id,
+                        'redirect': request.args.get('next', url_for('WebClient:index'))
+                    })
                 return redirect(request.args.get('next', url_for('WebClient:index')))
+            if request.is_xhr:
+                return jsonify({
+                    'success': False,
+                    'message': gettext('Invalid username and password.'),
+                })
             flash(gettext('Invalid username and password.'), 'danger')
         return render_template('web/login.html', settings=settings)
 

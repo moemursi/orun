@@ -33,13 +33,12 @@
 
   ngApp.config(function($stateProvider) {
     $stateProvider
-    .state('app', {
-      abstract: true,
-      data: {
-        loginRequired: true,
-      }
+    .state('menuEntry', {
+      url: '/menu/:menuId/',
+      controller: 'MenuController',
+      reloadOnSearch: false
     })
-    .state('app.action', {
+    .state('actionView', {
       url: '/action/:actionId/?view_type&id',
       reloadOnSearch: false,
       controller: 'ActionController',
@@ -59,11 +58,11 @@
         ]
       },
       templateProvider: async ($stateParams, $state) => {
-        return $state.$current.data.action.fullTemplate;
+        return $state.$current.data.action.template;
         // return $state.$current.data.action.template;
       }
     })
-    .state('app.view', {
+    .state('modelView', {
       url: '/action/:service/view/?view_type&id',
       controller: 'ActionController',
       reloadOnSearch: false,
@@ -145,11 +144,30 @@
     return $scope.Katrid = Katrid;
   });
 
-  ngApp.controller('MenuController', function($scope, menu) {
-    console.log('menu controller');
-    let action = $(`#left-side-menu[data-menu-id='${ menu }']`).find('.menu-item-action').first();
-    $scope.$parent.current_menu = parseInt(menu);
-    action.click();
+  ngApp.controller('MenuController', function($scope, $stateParams) {
+    setTimeout(() => {
+      let menu = $stateParams.menuId;
+      let action = $(`#left-side-menu[data-menu-id='${ menu }']`).find('.menu-item-action').first();
+      $scope.$parent.current_menu = parseInt(menu);
+      action.click();
+    }, 0);
+  });
+
+
+  ngApp.controller('LoginController', function($scope, $location) {
+    $scope.login = async (username, password) => {
+      let res = await Katrid.Services.Auth.login(username, password);
+      if (res.success) {
+        $scope.messages = [{ message: res.message, type: 'success' }];
+        if ($location.$$url)
+          window.location.href = '/web/#' + $location.$$url;
+        else if (res.redirect)
+          window.location.href = res.redirect;
+      } else {
+        $scope.messages = [{ message: res.message, type: 'danger' }];
+      }
+      $scope.$apply();
+    }
   });
 
 
@@ -165,18 +183,17 @@
     $scope.$setDirty(field);
   };
 
-  ngApp.controller('ActionController', function($scope, $state, $location, $transitions, $element, action) {
-    console.log('init controller', action);
+  ngApp.controller('ActionController', function($scope, $compile, $state, $location, $transitions, $element, action) {
+    Katrid.core.compile = $compile;
     action.scope = $scope;
     action.$element = $element;
-    action.viewType = $location.$$search.view_type || action.viewModes[0];
-    action.location = $location;
+    if (action instanceof Katrid.Actions.WindowAction)
+      action.viewType = $location.$$search.view_type || action.viewModes[0];
     $scope.action = action;
     $scope.model = action.model;
 
     $scope._ = _;
     $scope.data = null;
-    $scope.location = $location;
     $scope.record = null;
     Object.defineProperty($scope, 'self', {
       get: () => ($scope.record)

@@ -5000,6 +5000,7 @@ table tbody tr td.bool-text {
   margin-bottom: 0;
 }
 #loading-msg {
+  display: none;
   position: fixed;
   border-radius: 2px;
   top: 0;
@@ -5640,5 +5641,24 @@ th.ForeignKey {
 }
 #main-content ui-view ui-view > div {
   height: 100%;
+}
+.action-view {
+  height: 100%;
+  display: flex;
+  flex: 1 1 auto;
+  flex-flow: column nowrap;
+}
+.params-params .form-group {
+  margin-bottom: .5rem;
+}
+.params-params .control-label {
+  margin-bottom: .3rem;
+}
+input[type=date].form-control,
+input[type=datetime-local] {
+  padding: 2px 0 2px 8px;
+}
+[ng-cloak] {
+  display: none !important;
 }
 /*# sourceMappingURL=style.map */

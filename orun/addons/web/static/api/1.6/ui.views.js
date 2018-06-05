@@ -12,13 +12,25 @@
   }
   Katrid.uiKatrid.directive('toolbar', ToolbarComponent);
 
+
+  class ClientView {
+    constructor(action) {
+      this.action = action;
+    }
+
+    get template() {
+      return Katrid.$templateCache.get(this.templateUrl);
+    }
+  }
+
+
   class BaseView {
     constructor(scope) {
       this.scope = scope;
     }
 
     render() {
-      return sprintf(Katrid.$templateCache.get(this.templateUrl));
+      return Katrid.$templateCache.get(this.templateUrl);
     }
   }
 
@@ -167,7 +179,7 @@
   CardView.type = 'card';
 
 
-  class FormView2 {
+  class Form {
     constructor() {
       this.restrict = 'E';
       this.scope = false;
@@ -217,7 +229,7 @@
   }
 
 
-  Katrid.uiKatrid.directive('formView', FormView2);
+  Katrid.uiKatrid.directive('formView', Form);
 
 
   Katrid.UI.Views = {
@@ -227,6 +239,7 @@
     FormView,
     ListView,
     CardView,
+    ClientView,
     searchModes: [ListView.type, CardView.type]
   };
 

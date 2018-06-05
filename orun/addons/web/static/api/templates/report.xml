@@ -108,19 +108,17 @@
         <div class="clearfix"></div>
         <hr>
       </div>
-      <div id="params-params">
-        <div class="col-sm-12">
-          <div ng-repeat="param in report.params" ng-controller="ReportParamController" class="row form-group">
-            <div class="col-sm-12">
-              <label class="control-label">{{ param.label }}</label>
-            </div>
-            <div class="col-sm-4" ng-if="param.operationsVisible">
-              <select ng-model="param.operation" class="form-control" ng-change="param.setOperation(param.operation)">
-                <option ng-repeat="op in param.operations" value="{{op.id}}">{{op.text}}</option>
-              </select>
-            </div>
-            <div class="col param-widget"></div>
+      <div id="params-params" class="params-params margin-top-8 row">
+        <div ng-repeat="param in report.params" ng-controller="ReportParamController" class="col-lg-6 form-group">
+          <div class="col-12">
+            <label class="control-label">{{ param.label }}</label>
           </div>
+          <div class="col-4" ng-if="param.operationsVisible">
+            <select ng-model="param.operation" class="form-control" ng-change="param.setOperation(param.operation)">
+              <option ng-repeat="op in param.operations" value="{{op.id}}">{{op.text}}</option>
+            </select>
+          </div>
+          <div class="col param-widget"></div>
         </div>
       </div>
       </form>

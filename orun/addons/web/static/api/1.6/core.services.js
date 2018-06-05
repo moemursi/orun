@@ -62,6 +62,16 @@
       // });
     }
 
+    static _post(url, data, params) {
+      return $.ajax({
+        method: 'POST',
+        url: url,
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json'
+      });
+    }
+
     delete(name, params, data) {
     }
 
@@ -292,12 +302,21 @@
     }
   }
 
+
   class Actions extends Model {
     static load(action) {
       let svc = new Model('ir.action');
       return svc.post('load', { args: [action] });
     }
   }
+
+
+  class Auth extends Service {
+    static login(username, password) {
+      return this._post('/web/login/', { username: username, password: password });
+    }
+  }
+
 
   this.Katrid.Services = {
     Data,
@@ -307,6 +326,7 @@
     Service,
     Model,
     Query,
+    Auth,
     Actions
   };
 

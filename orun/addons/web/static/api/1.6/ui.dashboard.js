@@ -1,15 +1,8 @@
 (function() {
 
-  class DashboardView extends Katrid.UI.Views.ActionView {
-    constructor(...args) {
-      super(...args);
-      this.templateUrl = 'view.dashboard';
-    }
-
-    getTemplateContext() {
-      let ctx = super.getTemplateContext();
-      ctx.dashboard = this.scope.action.info.id;
-      return ctx;
+  class DashboardView extends Katrid.UI.Views.ClientView {
+    get templateUrl() {
+      return 'view.dashboard';
     }
   }
 
@@ -21,17 +14,15 @@
       this.scope = false;
     }
 
-    link(scope, el, attrs, controller) {
+    async link(scope, el, attrs, controller) {
       let dashboardId = attrs.dashboardId;
       let model = new Katrid.Services.Model('ir.dashboard.settings');
-      model.search({ dashboard_id: dashboardId })
-      .done(res => {
-        if (res.data) {
-          let content = res.data[0].content;
-          content = this.$compile(content)(scope);
-          el.append(content);
-        }
-      });
+      let res = await model.search({ dashboard_id: dashboardId });
+      if (res.data) {
+        let content = res.data[0].content;
+        content = this.$compile(content)(scope);
+        el.append(content);
+      }
     }
   }
 
@@ -42,24 +33,22 @@
       this.template = '<div></div>';
     }
 
-    link(scope, el, attrs) {
-      let r;
+    async link(scope, el, attrs) {
+      let res;
       if (_.isUndefined(attrs.url))
-        r = Katrid.Services.Query.read(attrs.queryId);
+        res = await Katrid.Services.Query.read(attrs.queryId);
       else
-        r = $.ajax({
+        res = await $.ajax({
           url: attrs.url,
           type: 'get',
         });
 
-      r.done(res => {
-        c3.generate({
-          bindto: el[0],
-          data: {
-            type: 'donut',
-            columns: res.data
-          }
-        });
+      c3.generate({
+        bindto: el[0],
+        data: {
+          type: 'donut',
+          columns: res.data
+        }
       });
     }
   }

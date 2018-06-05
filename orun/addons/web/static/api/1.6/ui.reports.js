@@ -368,24 +368,17 @@
         DateTimeField(param) {
           let secondField = '';
           if (param.operation === 'between') {
-            secondField = `<div class="col-xs-6">
-  <div class="input-group date"><input id="rep-param-id-${param.id}-2" datepicker ng-model="param.value2" class="form-control">
-  <div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div>
-  </div>
-  </div>
-  `;
+            secondField = `<div class="col-xs-6"><input id="rep-param-id-${param.id}-2" type="datetime-local" ng-model="param.value2" class="form-control"></div>`;
           }
-          return `<div class="row"><div class="col-xs-6"><div class="input-group date"><input id="rep-param-id-${param.id}" datepicker ng-model="param.value1" class="form-control"><div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div></div></div>${secondField}</div>`;
+          return `<div class="row"><div class="col-xs-6"><input id="rep-param-id-${param.id}" type="date" ng-model="param.value1" class="form-control"></div>${secondField}</div>`;
         },
 
         DateField(param) {
           let secondField = '';
           if (param.operation === 'between') {
-            secondField = `<div class="col-xs-6"><div class="input-group date"><input id="rep-param-id-${param.id}-2" datepicker ng-model="param.value2" class="form-control"><div class="input-group-append"><span class="btn btn-default" type="button"><span class="fa fa-calendar"></span></span></div></div></div>`;
+            secondField = `<div class="col-xs-6"><input id="rep-param-id-${param.id}-2" type="date" ng-model="param.value2" class="form-control"></div>`;
           }
-          return `<div class="col-sm-12 row"><div class="col-xs-6">
-<div class="input-group date"><input id="rep-param-id-${param.id}" datepicker ng-model="param.value1" class="form-control"><div class="input-group-append"><span class="btn btn-default" type="button"><span class="fa fa-calendar"></span></span></div></div>
-</div>${secondField}</div>`;
+          return `<div class="col-sm-12 row"><div class="col-xs-6"><input id="rep-param-id-${param.id}" type="date" ng-model="param.value1" class="form-control"></div>${secondField}</div>`;
         },
 
         ForeignKey(param) {
@@ -440,7 +433,6 @@
     createControls(scope) {
       const el = this.el.find(".param-widget");
       el.empty();
-      console.log('create controls', this.el[0].innerHTML);
       let widget = Params.Widgets[this.type](this);
       widget = Katrid.core.compile(widget)(scope);
       return el.append(widget);

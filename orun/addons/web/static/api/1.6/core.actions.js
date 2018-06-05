@@ -276,15 +276,31 @@
     }
 
     apply() {
-      // this.render(this.scope, this.scope.view.content, this.viewType);
-      let viewCls = Katrid.UI.Views[this.viewType];
-      let view = new viewCls(this, this.scope, this.view, this.view.content);
+      if (this.viewModes.length) {
+        let templ = [];
+        for (let [k, v] of Object.entries(this.views)) {
+          let viewCls = Katrid.UI.Views[k];
+          if (viewCls) {
+            let view = new viewCls(this, this.scope, v, v.content);
+            this._cachedViews[k] = view;
+            let s = view.render();
+            if (!_.isString(s))
+              s = s[0].outerHTML;
+            templ.push(`<div class="action-view" ng-if="action.viewType === '${k}'">${s}</div>`);
+          }
+        }
+        this._template = templ.join('');
+      } else {
+        // this.render(this.scope, this.scope.view.content, this.viewType);
+        let viewCls = Katrid.UI.Views[this.viewType];
+        let view = new viewCls(this, this.scope, this.view, this.view.content);
 
-      this._cachedViews[this.viewType] = view;
-      this._template = view.render();
-       // Katrid.core.setContent(cache, this.scope);
-      // if (Katrid.UI.Views.searchModes.includes(this.viewType)) this.lastViewType = this.viewType;
-      // return this.routeUpdate(this.location.$$search);
+        this._cachedViews[this.viewType] = view;
+        this._template = view.render();
+        // Katrid.core.setContent(cache, this.scope);
+        // if (Katrid.UI.Views.searchModes.includes(this.viewType)) this.lastViewType = this.viewType;
+        // return this.routeUpdate(this.location.$$search);
+      }
     }
 
     async execute() {
@@ -334,22 +350,6 @@
       if (!this._template)
         this.apply();
       return this._template;
-    }
-
-    get fullTemplate() {
-      let templ = [];
-      for (let [k, v] of Object.entries(this.views)) {
-        let viewCls = Katrid.UI.Views[k];
-        if (viewCls) {
-          let view = new viewCls(this, this.scope, v, v.content);
-          this._cachedViews[k] = view;
-          let s = view.render();
-          if (!_.isString(s))
-            s = s[0].outerHTML;
-          templ.push(`<div ng-if="action.viewType === '${k}'">${s}</div>`);
-        }
-      }
-      return templ.join('');
     }
 
     render(scope, html, viewType) {
@@ -430,9 +430,9 @@
     async formButtonClick(self) {
       const btn = $(self);
       const meth = btn.prop('name');
-      const res = await scope.model.post(meth, { kwargs: { id: scope.record.id } });
+      const res = await this.scope.model.post(meth, { kwargs: { id: this.scope.record.id } });
       if (res.ok && res.result.type) {
-        const act = new (Katrid.Actions[res.result.type])(res.result, scope, scope.location);
+        const act = new (Katrid.Actions[res.result.type])(res.result, this.scope, this.scope.location);
         act.execute();
       }
     };
@@ -516,18 +516,16 @@
       this.actionType = 'ir.action.report';
     }
 
-    static dispatchBindingAction(parent, action) {
+    static async dispatchBindingAction(parent, action) {
       let format = localStorage.katridReportViewer || 'pdf';
       let sel = parent.selection;
       if (sel)
         sel = sel.join(',');
       let params = { data: [{ name: 'id', value: sel }] };
       const svc = new Katrid.Services.Model('ir.action.report');
-      return svc.post('export_report', { args: [action.id], kwargs: { format, params } })
-      .done(res => {
-        if (res.open)
-          return window.open(res.open);
-      });
+      let res = await svc.post('export_report', { args: [action.id], kwargs: { format, params } });
+      if (res.open)
+        return window.open(res.open);
     }
 
     constructor(info, scope, location) {
@@ -540,18 +538,19 @@
         user_report: report});
     }
 
-    routeUpdate(search) {
+    async routeUpdate(search) {
       this.userReport.id = search.user_report;
       if (this.userReport.id) {
         const svc = new Katrid.Services.Model('ir.action.report');
-        svc.post('load_user_report', { kwargs: { user_report: this.userReport.id } })
-        .done(res => {
-          this.userReport.params = res.result;
-          return Katrid.core.setContent(this.info.content, this.scope);
-        });
+        let res = await svc.post('load_user_report', { kwargs: { user_report: this.userReport.id } });
+        this.userReport.params = res.result;
       } else {
-        Katrid.core.setContent(Katrid.Reports.Reports.renderDialog(this), this.scope);
+        // Katrid.core.setContent(, this.scope);
       }
+    }
+
+    get template() {
+      return Katrid.Reports.Reports.renderDialog(this);
     }
   }
   ReportAction.initClass();
@@ -602,27 +601,24 @@
       else console.log('is a function');
     }
 
-    constructor(info, scope, location) {
-      super(info, scope, location);
-      this.info = info;
-      this.scope = scope;
-      this.location = location;
-    }
     tag_refresh() {
       this.dataSource.refresh();
     }
 
     execute() {
       let tag = ClientAction.registry[this.info.tag];
-      if (tag.prototype instanceof Katrid.UI.Views.ActionView) {
-        tag = new tag(this.scope);
-        tag.renderTo();
-      } else if (_.isString(tag))
+      if (tag.prototype instanceof Katrid.UI.Views.ClientView)
+        this.tag = new tag(this);
+      else if (_.isString(tag))
         this[tag].apply(this);
     }
 
-    routeUpdate(location) {
-      this.execute();
+    async routeUpdate(location) {
+      // this.execute();
+    }
+
+    get template() {
+      return this.tag.template;
     }
   }
   ClientAction.initClass();

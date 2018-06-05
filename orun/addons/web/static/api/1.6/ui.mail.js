@@ -68,7 +68,7 @@
       replace: true,
       template: '<div class="content"><div class="comments"><mail-comments/></div></div>',
       link(scope, element, attrs) {
-        $(element).closest('div[ng-form=form]').find('.content-scroll>.content').append(element);
+        $(element).closest('form-view[ng-form=form]').find('.content-scroll>.content').append(element);
       }
     })
   );
