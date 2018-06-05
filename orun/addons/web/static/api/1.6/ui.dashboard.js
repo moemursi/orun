@@ -1,8 +1,8 @@
 (function() {
 
   class DashboardView extends Katrid.UI.Views.ActionView {
-    constructor(scope) {
-      super(scope);
+    constructor(...args) {
+      super(...args);
       this.templateUrl = 'view.dashboard';
     }
 

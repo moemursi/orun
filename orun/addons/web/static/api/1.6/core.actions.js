@@ -617,7 +617,8 @@
       if (tag.prototype instanceof Katrid.UI.Views.ActionView) {
         tag = new tag(this.scope);
         tag.renderTo();
-      } else if (_.isString(tag)) this[tag].apply(this);
+      } else if (_.isString(tag))
+        this[tag].apply(this);
     }
 
     routeUpdate(location) {

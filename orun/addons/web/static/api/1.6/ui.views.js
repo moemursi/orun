@@ -150,8 +150,8 @@
   ListView.type = 'list';
 
   class CardView extends View {
-    constructor(action, scope, content) {
-      super(action, scope, content);
+    constructor(action, scope, view, content) {
+      super(action, scope, view, content);
       this.templateUrl = 'view.card';
     }
 
@@ -160,6 +160,7 @@
       let fieldList = Array.from(content.children('field')).map((el) => $(el).attr('name'));
       content.children('field').remove();
       content.find('field').each((idx, el) => $(el).replaceWith(`{{ ::record.${ $(el).attr('name') } }}`));
+      console.log(this.content);
       return sprintf(Katrid.$templateCache.get(this.templateUrl), { content: content.html() });
     }
   }
