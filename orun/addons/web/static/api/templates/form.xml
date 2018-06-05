@@ -1,6 +1,6 @@
 <templates>
   <script id="view.form" type="text/ng-template">
-    <div ng-form="form" class="data-form"
+    <form-view ng-form="form" class="data-form"
          ng-class="{'form-data-changing': dataSource.changing, 'form-data-readonly': !dataSource.changing}"
     >
       <toolbar>
@@ -105,6 +105,6 @@
           </div>
         </div>
       </div>
-    </div>
+    </form-view>
   </script>
 </templates>

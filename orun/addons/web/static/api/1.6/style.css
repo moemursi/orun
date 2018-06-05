@@ -379,6 +379,9 @@ body.page .login-logo {
 .status-field {
   margin: 6px 0 13px 0;
 }
+.status-field .steps {
+  float: right;
+}
 .status-field .steps > a {
   padding: 20px 12px 20px;
   position: relative;
@@ -5165,6 +5168,9 @@ table.grid.inline-editor .form-data-changing section[readonly] label.checkbox {
 table.grid.inline-editor .form-data-changing section[readonly] label.prepend-icon {
   display: none;
 }
+table.grid .form-data-readonly .form-field {
+  display: none;
+}
 table.grid .form-data-readonly td {
   padding: 4px;
 }
@@ -5276,14 +5282,14 @@ table.grid.inline-editor .grid-field-readonly {
 .form-label-checkbox {
   display: block;
 }
-div.form-data-changing .form-field-readonly {
+form-view.form-data-changing .form-field-readonly {
   display: none;
   margin: 0;
 }
-div.form-data-changing .form-label-checkbox span {
+form-view.form-data-changing .form-label-checkbox span {
   display: none;
 }
-div.form-data-changing section[readonly] .form-field-readonly {
+form-view.form-data-changing section[readonly] .form-field-readonly {
   min-height: 26px;
   display: block;
   border: 1px solid #e6e6e6;
@@ -5292,19 +5298,19 @@ div.form-data-changing section[readonly] .form-field-readonly {
   font-weight: normal;
   border-radius: 3px;
 }
-div.form-data-changing section[readonly] .form-field,
-div.form-data-changing section[readonly] .input-group,
-div.form-data-changing section[readonly] label.checkbox {
+form-view.form-data-changing section[readonly] .form-field,
+form-view.form-data-changing section[readonly] .input-group,
+form-view.form-data-changing section[readonly] label.checkbox {
   display: none;
 }
-div.form-data-changing section[readonly] label.prepend-icon {
+form-view.form-data-changing section[readonly] label.prepend-icon {
   display: none;
 }
-div.form-data-readonly .form-field,
-div.form-data-readonly .input-group {
+form-view.form-data-readonly .form-field,
+form-view.form-data-readonly .input-group {
   display: none;
 }
-div.form-data-readonly label.prepend-icon {
+form-view.form-data-readonly label.prepend-icon {
   display: none;
 }
 .list-record-selector {
@@ -5631,5 +5637,8 @@ select.form-control {
 td.ForeignKey,
 th.ForeignKey {
   width: 25%;
+}
+#main-content ui-view ui-view > div {
+  height: 100%;
 }
 /*# sourceMappingURL=style.map */

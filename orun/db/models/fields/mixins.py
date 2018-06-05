@@ -23,4 +23,5 @@ class FieldCacheMixin:
         instance._state.fields_cache[self.get_cache_name()] = value
 
     def delete_cached_value(self, instance):
-        del instance._state.fields_cache[self.get_cache_name()]
+        if self.get_cache_name() in instance._state.fields_cache:
+            del instance._state.fields_cache[self.get_cache_name()]

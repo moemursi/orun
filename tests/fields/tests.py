@@ -1,4 +1,5 @@
 from unittest import TestCase
+
 from orun import app
 from orun.db import models
 
@@ -26,17 +27,7 @@ class ProxyFieldTestCase(TestCase):
         app.models['Author'] = Author
         app.models['Book'] = Book
 
-        Author._meta._build_table(app.meta)
-        Book._meta._build_table(app.meta)
-        Author._meta._build_mapper()
-        Book._meta._build_mapper()
-
         app.create_all()
 
         cls.Author = Author
         cls.Book = Book
-
-    def test_proxy_field(self):
-        author = self.Author.create(name='William')
-        book = self.Book.create(name='New Book', author=author)
-        self.assertEqual(book.author_name, 'William')

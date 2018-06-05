@@ -1,6 +1,6 @@
 (() => {
 
-  const uiKatrid = angular.module('ui-katrid', []);
+  const uiKatrid = angular.module('ui.katrid', []);
 
   Katrid.UI = {
     Keyboard: {

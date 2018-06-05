@@ -19,6 +19,7 @@
       this.$modifiedRecords = [];
       // this.onFieldChange = this.onFieldChange.bind(this);
       this.scope = scope;
+      this.action = scope.action;
       this._recordIndex = 0;
       this.recordCount = null;
       this.loading = false;
@@ -75,7 +76,7 @@
           if (this.scope.record) {
             const r = this.refresh([this.scope.record.id]);
             if (r && $.isFunction(r.promise))
-              r.done(() => {
+              r.then(() => {
                 this.state = DataSourceState.browsing;
                 for (let child of this.children)
                   if (child.scope.masterChanged) {
@@ -97,7 +98,7 @@
       // Save changes and close dialog
       const r = this.saveChanges(false);
       if (r && $.isFunction(r.promise)) {
-        return r.done(res => {
+        return r.then(res => {
           if (res.ok && res.result)
             this.scope.result = res.result;
 
@@ -107,14 +108,13 @@
     }
 
 
-    copy(id) {
-      return this.scope.model.copy(id)
-      .done(res => {
-        this.record = {};
-        this.state = DataSourceState.inserting;
-        this.setValues(res);
-        this.scope.$apply();
-      });
+    async copy(id) {
+      let res = await this.model.copy(id);
+      this.record = {};
+      this.state = DataSourceState.inserting;
+      this.setValues(res);
+      this.scope.$apply();
+      return res;
     }
 
     findById(id) {
@@ -138,7 +138,7 @@
       } else {
         r = this.search(this._params, this._page);
       }
-      r.done(() => {
+      r.then(() => {
         for (let child in this.children)
           if (child.invalidate) {
             child.invalidate(this.recordId);
@@ -186,7 +186,7 @@
       return this.scope.records.indexOf(this.findById(obj.id));
     }
 
-    search(params, page, fields) {
+    search(params, page, fields, timeout) {
       let master = this.masterSource;
       if (this.groups && !this.groups.length && this.scope.defaultGrouping) {
         let g = {
@@ -217,48 +217,50 @@
         limit: this.limit
       };
 
-      const def = new $.Deferred();
+      return new Promise(
+        (resolve, reject) => {
 
-      let req = () => {
-        this.scope.model.search(params)
-        .fail(res => {
-          return def.reject(res);
-        })
-        .done(res => {
-          if (this.pageIndex > 1) {
-            this.offset = ((this.pageIndex - 1) * this.pageLimit) + 1;
-          } else {
-            this.offset = 1;
-          }
-          this.scope.$apply(() => {
-            if (res.count != null)
-              this.recordCount = res.count;
+          let req = () => {
+            this.model.search(params)
+            .catch(res => {
+              return reject(res);
+            })
+            .then(res => {
+              if (this.pageIndex > 1) {
+                this.offset = ((this.pageIndex - 1) * this.pageLimit) + 1;
+              } else {
+                this.offset = 1;
+              }
+              this.scope.$apply(() => {
+                if (res.count != null)
+                  this.recordCount = res.count;
 
-            let data = res.data;
-            if (this.readonly)
-              this.scope.records = data;
-            else
-              this.scope.records = data.map((obj) => Katrid.Data.createRecord(obj, this));
-            if (this.pageIndex === 1) {
-              return this.offsetLimit = this.scope.records.length;
-            } else {
-              return this.offsetLimit = (this.offset + this.scope.records.length) - 1;
-            }
-          });
-          return def.resolve(res);
-        })
-        .always(() => {
-          this.pendingRequest = false;
-          this.scope.$apply(() => {
-            return this.loading = false;
-          });
-        });
-      };
+                let data = res.data;
+                if (this.readonly)
+                  this.scope.records = data;
+                else
+                  this.scope.records = data.map((obj) => Katrid.Data.createRecord(obj, this));
+                if (this.pageIndex === 1) {
+                  return this.offsetLimit = this.scope.records.length;
+                } else {
+                  return this.offsetLimit = (this.offset + this.scope.records.length) - 1;
+                }
+              });
+              return resolve(res);
+            })
+            .finally(() => {
+              this.pendingRequest = false;
+              this.scope.$apply(() => {
+                this.loading = false;
+              });
+            });
+          };
 
-      if (this.requestInterval > 0) this.pendingRequest = setTimeout(req, this.requestInterval);
-      else req();
-
-      return def.promise();
+          if (((this.requestInterval > 0) || timeout) && (timeout !== false))
+            this.pendingRequest = setTimeout(req, this.requestInterval);
+          else req();
+        }
+      );
     }
 
     groupBy(group) {
@@ -268,7 +270,7 @@
       }
       this.scope.groupings = [];
       this.groups = [group];
-      return this.scope.model.groupBy(group.context)
+      return this.model.groupBy(group.context)
       .then(res => {
         this.scope.records = [];
         const groupName = group.context.grouping[0];
@@ -296,7 +298,7 @@
           // auto load records
           if (this.autoLoadGrouping) {
             ((grouping) => {
-            this.scope.model.search({params: r._domain})
+            this.model.search({params: r._domain})
             .then(res => {
               if (res.ok) this.scope.$apply(() => {grouping.records = res.result.data});
             })})(grouping);
@@ -421,9 +423,10 @@
 
         if (data) {
           this.uploading++;
-          return this.scope.model.write([data])
-          .done(res => {
+          return this.model.write([data])
+          .then(res => {
             // this._clearCache();
+            console.log('saved', res);
             this.scope.action.location.search('id', res[0]);
             this.scope.form.$setPristine();
             this.scope.form.$setUntouched();
@@ -438,7 +441,7 @@
               return this.refresh(res);
 
           })
-          .fail(error => {
+          .catch(error => {
             let s = `<span>${Katrid.i18n.gettext('The following fields are invalid:')}<hr></span>`;
             if (error.message)
               s = error.message;
@@ -475,7 +478,7 @@
             return Katrid.Dialogs.Alerts.error(s);
 
           })
-          .always(() => this.scope.$apply(() => this.uploading-- ) );
+          .finally(() => this.scope.$apply(() => this.uploading-- ) );
         } else
           Katrid.Dialogs.Alerts.warn(Katrid.i18n.gettext('No pending changes'));
       }
@@ -537,39 +540,42 @@
       this._clearTimeout();
       this.state = DataSourceState.loading;
       this.loadingRecord = true;
-      const def = new $.Deferred();
       this._canceled = false;
 
-      const _get = () => {
-        return this.scope.model.getById(id)
-        .fail(res => {
-          return def.reject(res);
-        })
-        .done(res => {
-          if (this._canceled)
-            return;
-          if (this.state === DataSourceState.loading)
-            this.state = DataSourceState.browsing;
-          else if (this.state === DataSourceState.inserting)
-            return;
-          this.record = res.data[0];
-          if (apply)
-            this.scope.$apply();
-          if (index !== false)
-            this.scope.records[index] = this.record;
-          return def.resolve(this.record);
-        })
-        .always(() => {
-          return this.scope.$apply(() => {
-            return this.loadingRecord = false;
-          });
-        });
-      };
+      return new Promise(
+        (resolve, reject) => {
+          const _get = () => {
+            return this.model.getById(id)
+            .catch(res => {
+              return reject(res);
+            })
+            .then(res => {
+              if (this._canceled || !res)
+                return;
+              if (this.state === DataSourceState.loading)
+                this.state = DataSourceState.browsing;
+              else if (this.state === DataSourceState.inserting)
+                return;
+              this.record = res.data[0];
+              if (apply)
+                this.scope.$apply();
+              if (index !== false)
+                this.scope.records[index] = this.record;
+              return resolve(this.record);
+            })
+            .finally(() => {
+              return this.scope.$apply(() => {
+                return this.loadingRecord = false;
+              });
+            });
+          };
+          if (!timeout && !this.requestInterval)
+            return _get();
+          else
+            this.pendingRequest = setTimeout(_get, timeout || this.requestInterval);
 
-      if (!timeout && !this.requestInterval) return _get();
-      else this.pendingRequest = setTimeout(_get, timeout || this.requestInterval);
-
-      return def.promise();
+        }
+      );
     }
 
     insert() {
@@ -579,8 +585,8 @@
       let rec = {};
       rec.$created = true;
       this.record = rec;
-      return this.scope.model.getDefaults()
-      .done(res => {
+      return this.model.getDefaults()
+      .then(res => {
         this.scope.$apply(() => {
           for (let child of this.children)
             child.scope.records = [];
@@ -683,11 +689,12 @@
 
     set recordIndex(index) {
       this._recordIndex = index;
-      this.scope.record = this.scope.records[index];
-      this.scope.recordId = this.record.id;
-      // set new id on browser address
       if (!this.masterSource)
-        this.scope.action.location.search('id', this.scope.records[index].id);
+        return this.action.location.search('id', this.scope.records[index].id);
+      this.scope.record = this.scope.records[index];
+      // load record
+      this.scope.recordId = null;
+      // set new id on browser address
     }
 
     get recordIndex() {
@@ -699,12 +706,12 @@
       const params =
         {params: {}};
       params.params[rg._paramName] = rg._paramValue;
-      return this.scope.model.search(params)
+      return this.model.search(params)
       .then(res => {
         if (res.ok && res.result.data) {
-          return this.scope.$apply(() => {
+          return this.action.scope.$apply(() => {
             rg._children = res.result.data;
-            return this.scope.records.splice.apply(this.scope.records, [index + 1, 0].concat(res.result.data));
+            return this.action.scope.records.splice.apply(this.scope.records, [index + 1, 0].concat(res.result.data));
           });
         }
       });
@@ -724,7 +731,7 @@
 
     dispatchEvent(name, ...args) {
       this.model.rpc(name, ...args)
-      .done(res => this._applyResponse(res));
+      .then(res => this._applyResponse(res));
     }
 
     get model() {

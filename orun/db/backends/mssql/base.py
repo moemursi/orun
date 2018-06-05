@@ -3,5 +3,5 @@ from .schema import DatabaseSchemaEditor
 
 
 class Backend(BaseBackend):
-    schemas_allowed = True
+    schema_allowed = True
     SchemaEditorClass = DatabaseSchemaEditor

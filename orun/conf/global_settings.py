@@ -2,6 +2,7 @@ settings = {
     'INSTALLED_APPS': [],
     'DEFAULT_INDEX_TABLESPACE': None,
     'DEBUG': True,
+    'SQL_DEBUG': False,
     'WEBSOCKET': False,
 
     'LOCALE_PATHS': [],

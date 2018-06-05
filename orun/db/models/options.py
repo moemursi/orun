@@ -1,14 +1,12 @@
 from collections import defaultdict
+
 import sqlalchemy as sa
 from sqlalchemy.orm import mapper, relationship, deferred, backref, synonym
 
 from orun import app
-from orun.db import connections
+from orun.db import connection, connections
 from orun.utils.text import camel_case_to_spaces
-from orun.utils.functional import cached_property
 from .fields import BigAutoField
-from .record import Record
-
 
 DEFAULT_NAMES = ('unique_together', 'index_together', 'fixtures')
 
@@ -110,7 +108,7 @@ class Options(object):
 
     @property
     def table_name(self):
-        if app and app.config['DATABASE_SCHEMA_SUPPORT']:
+        if app and connection.backend.schema_allowed:
             if self.db_schema:
                 return '"%s"."%s"' % (self.db_schema, self.db_table)
         if self.db_schema:
@@ -179,7 +177,7 @@ class Options(object):
         for f in self.concrete_fields:
             f._prepare()
             args.append(f.column)
-        if self.app and self.app.config['DATABASE_SCHEMA_SUPPORT']:
+        if self.app and connection.backend.schema_allowed:
             self.table = sa.Table(self.db_table.split('.')[-1], meta, *args, schema=self.db_schema)
         else:
             self.table = sa.Table(self.table_name, meta, *args)

@@ -1,12 +1,13 @@
 import hashlib
 import logging
 from datetime import datetime
+
 import sqlalchemy as sa
 from sqlalchemy.schema import CreateColumn
 
 from orun.db import models
 from orun.db.backends.utils import truncate_name
-from orun.db.transaction import atomic
+from orun.db.transaction import begin
 from orun.utils import timezone
 from orun.utils.encoding import force_bytes
 
@@ -89,7 +90,7 @@ class BaseDatabaseSchemaEditor(object):
     def __enter__(self):
         self.deferred_sql = []
         if self.atomic_migration:
-            self.atomic = atomic(self.connection.alias)
+            self.atomic = begin(self.connection.alias)
             self.atomic.__enter__()
         return self
 

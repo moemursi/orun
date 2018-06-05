@@ -23,7 +23,7 @@
     get action() {
       return this.actions[this.actions.length-1];
     }
-    set action(v) {
+    set action(action) {
       this.actions.splice(this.actions.indexOf(action) + 1, this.actions.length);
     }
 
@@ -39,7 +39,6 @@
 
   class Action {
     static initClass() {
-      this.history = [];
       this.actionType = null;
     }
     constructor(info, scope, location) {
@@ -47,10 +46,7 @@
       this.info = info;
       this.scope = scope;
       this.location = location;
-      this.currentUrl = {
-        path: this.location.$$path,
-        params: this.location.$$search
-      };
+      this.currentUrl = this.location.$$path;
     }
 
     getContext() {
@@ -59,7 +55,7 @@
         ctx = JSON.parse(this.info.context);
       if (!ctx)
         ctx = {};
-      ctx['params'] = this.location.$$search;
+      // ctx['params'] = this.location.$$search;
       return ctx;
     }
 
@@ -69,6 +65,9 @@
     }
 
     openObject(service, id, evt) {
+      if (this._unregisterHook)
+        this._unregisterHook();
+
       evt.preventDefault();
       evt.stopPropagation();
       if (evt.ctrlKey) {
@@ -87,32 +86,35 @@
 
     apply() {}
     backTo(index, viewType) {
-      if ((index === 0) && (Action.history.length === 1) && (viewType === 0 || Katrid.UI.Views.searchModes.includes(viewType)))
-        return this.restore(viewType);
+      if (this._unregisterHook && (Katrid.Actions.actionManager.actions.length > 1))
+        this._unregisterHook();
 
-      let h, location;
-      if (index === -1) {
-        h = Action.history[0];
-        if (h.backUrl) location = h.backUrl;
-        else location = h.currentUrl;
-      } else {
-        h = Action.history[index];
-        location = h.currentUrl;
-        Action.history.splice(index + 1);
-      }
-      const { path } = location;
-      const params = location.search;
-      if (viewType) params['view_type'] = viewType;
-      h.info.__cached = true;
-      return this.location.path(path, true, h.info).search(params);
+      // restore to query view
+      let action = Katrid.Actions.actionManager.action = Katrid.Actions.actionManager.actions[index];
+      if ((index === 0) && (viewType === 0))
+        return action.restore(action.searchViewType);
+
+      if (!viewType)
+        viewType = 'form';
+
+      let location;
+      location = action.currentUrl;
+      action.info.__cached = true;
+      let p = this.location.path(location, true, action.info);
+      let search = action._currentParams[viewType];
+      console.log('search', search);
+      if (search)
+        p.search(search);
     }
+
     execute() {}
+
     getCurrentTitle() {
       return this.info.display_name;
     }
+
     search() {
       if (!this.isDialog) {
-        console.log(arguments);
         return this.location.search.apply(null, arguments);
       }
     }
@@ -129,9 +131,9 @@
       this.notifyFields = [];
       this.viewMode = info.view_mode;
       this.viewModes = this.viewMode.split(',');
-      this.viewType = null;
       this.selectionLength = 0;
       this._cachedViews = {};
+      this._currentParams = {};
       this.searchView = null;
     }
 
@@ -147,8 +149,8 @@
 
     restore(viewType) {
       // restore the last search mode view type
-      if (viewType === 0 && this.lastViewType) viewType = this.lastViewType;
-      this.setViewType(viewType);
+      this.setViewType(viewType, this._currentParams[viewType]);
+
     }
 
     registerFieldNotify(field) {
@@ -170,7 +172,7 @@
       Katrid.Dialogs.WaitDialog.show();
       this.setViewType('form');
       setTimeout(() => {
-        this.scope.dataSource.insert();
+        this.dataSource.insert();
       }, 10);
     }
 
@@ -180,66 +182,66 @@
         ((sel.length === 1) && confirm(Katrid.i18n.gettext('Confirm delete record?'))) ||
         ((sel.length > 1) && confirm(Katrid.i18n.gettext('Confirm delete records?')))
       ) {
-        this.scope.model.destroy(sel);
+        this.model.destroy(sel);
         const i = this.scope.records.indexOf(this.scope.record);
         this.setViewType('list');
-        this.scope.dataSource.refresh();
+        this.dataSource.refresh();
       }
     }
 
     copy() {
       this.setViewType('form');
-      this.scope.dataSource.copy(this.scope.record.id);
+      this.dataSource.copy(this.scope.record.id);
       return false;
     }
 
-    routeUpdate(search) {
-      const viewType = search.view_type;
+    async routeUpdate(search) {
+      console.log('route update', search);
+      const viewType = this.viewType;
+      let oldViewType = this._currentViewType;
 
       if (viewType != null) {
         if ((this.scope.records == null)) {
           this.scope.records = [];
         }
-        if (this.viewType !== viewType) {
-          this.scope.dataSource.pageIndex = null;
-          this.scope.record = Katrid.Data.createRecord({}, this.scope);
+        if (this.viewType !== oldViewType) {
+          this.dataSource.pageIndex = null;
+          this.dataSource.record = {};
           this.viewType = viewType;
-          let r = this.execute();
-          if (_.isObject(r))
-            return r.done(() => this.routeUpdate(this.location.$$search));
+          let r = await this.execute();
+          this._currentViewType = this.viewType;
+          //if (r !== true)
+          //  return this.routeUpdate(this.location.$$search);
         }
 
-        if (!this.scope.view) return;
-
-        if (Katrid.UI.Views.searchModes.includes(search.view_type) && (search.page !== this.scope.dataSource.pageIndex)) {
+        if (Katrid.UI.Views.searchModes.includes(this.viewType) && (search.page !== this.dataSource.pageIndex)) {
           const filter = this.searchParams || {};
-          const fields = Object.keys(this.scope.view.fields);
-          this.scope.dataSource.pageIndex = parseInt(search.page);
-          this.scope.dataSource.limit = parseInt(search.limit || this.info.limit);
-          this.scope.dataSource.search(filter, search.page || 1, fields);
-        } else if (search.id && (((this.scope.record != null) && (this.scope.record.id !== search.id)) || (this.scope.record == null))) {
+          const fields = Object.keys(this.view.fields);
+          this.dataSource.pageIndex = parseInt(search.page);
+          this.dataSource.limit = parseInt(search.limit || this.info.limit);
+          await this.dataSource.search(filter, this.dataSource.pageIndex || 1, fields);
+        } else if (search.id && (this.dataSource.recordId !== search.id)) {
           this.scope.record = null;
-          this.scope.dataSource.get(search.id);
+          this.dataSource.get(search.id);
         }
 
-        if (search.page == null) {
+        if ((search.page == null) && (this.viewType !== 'form')) {
           this.location.search('page', 1);
           this.location.search('limit', this.info.limit);
         }
 
 
       } else {
-        this.setViewType(this.viewModes[0]);
+        // this.setViewType(this.viewType);
       }
-      this.currentUrl = {
-        url: this.location.$$url,
-        path: this.location.$$path,
-        search: this.location.$$search
-      };
-      if (search.title) this.info.display_name = search.title;
+
+      this._currentParams[this.viewType] = jQuery.extend({}, search);
+
+      if (search.title)
+        this.info.display_name = search.title;
     }
 
-    setViewType(viewType) {
+    _setViewType(viewType) {
       // TODO optimize the view transitions: if oldview in searchModes and newview in searchModes change content only
       let saveState = this.viewType && this.searchView;
 
@@ -269,42 +271,86 @@
         setTimeout(() => this.searchView.load(data), 0);
     }
 
+    get dataSource() {
+      return this.scope.dataSource;
+    }
+
     apply() {
       // this.render(this.scope, this.scope.view.content, this.viewType);
       let viewCls = Katrid.UI.Views[this.viewType];
-      let view = new viewCls(this.scope, this.scope.view.content);
-      let cache;// TODO cache
-      if (!cache) cache = this._cachedViews[this.viewType] = view.render();
-      Katrid.core.setContent(cache, this.scope);
-      if (Katrid.UI.Views.searchModes.includes(this.viewType)) this.lastViewType = this.viewType;
+      let view = new viewCls(this, this.scope, this.view, this.view.content);
+
+      this._cachedViews[this.viewType] = view;
+      this._template = view.render();
+       // Katrid.core.setContent(cache, this.scope);
+      // if (Katrid.UI.Views.searchModes.includes(this.viewType)) this.lastViewType = this.viewType;
       // return this.routeUpdate(this.location.$$search);
     }
 
-    execute() {
-      if (this.views != null) {
-        this.scope.view = this.views[this.viewType];
-        this.apply();
-        return true;
-      } else {
-        return this.scope.model.loadViews({
+    async execute() {
+      if (!this.views) {
+        let res = await this.model.loadViews({
           views: this.info.views,
           action: this.info.id,
           toolbar: true
-        })
-        .done(res => {
-          this.fields = res.fields;
-          const views = res.views;
-          this.views = views;
-          let viewType = this.viewType;
-          this.scope.$apply(() => {
-            this.scope.views = views;
-            this.scope.view = views[viewType];
-            this.apply();
-          });
         });
+        this.fields = res.fields;
+        this.views = res.views;
       }
     }
 
+    get viewType() {
+      return this._viewType;
+    }
+
+    set viewType(value) {
+      if (value === this._viewType)
+        return;
+      if (!this._viewType)
+        this.searchViewType = this.viewModes[0];
+      console.log('set view', value);
+      this.view = this.views[value];
+      this._viewType = value;
+    }
+
+    setViewType(type, search) {
+      this.viewType = type;
+      if (!search)
+        search = { view_type: type };
+      this.location.search(search);
+    }
+
+    set view(value) {
+      this._view = value;
+      if (this.scope)
+        this.scope.view = value;
+    }
+
+    get view() {
+      return this._view;
+    }
+
+    get template() {
+      if (!this._template)
+        this.apply();
+      return this._template;
+    }
+
+    get fullTemplate() {
+      let templ = [];
+      for (let [k, v] of Object.entries(this.views)) {
+        let viewCls = Katrid.UI.Views[k];
+        if (viewCls) {
+          let view = new viewCls(this, this.scope, v, v.content);
+          this._cachedViews[k] = view;
+          let s = view.render();
+          if (!_.isString(s))
+            s = s[0].outerHTML;
+          templ.push(`<div ng-if="action.viewType === '${k}'">${s}</div>`);
+        }
+      }
+      return templ.join('');
+    }
 
     render(scope, html, viewType) {
       if (!this.isDialog) {
@@ -338,11 +384,11 @@
         arg[k] = v;
         params.push(arg);
       }
-      return this.scope.dataSource.search(params);
+      return this.dataSource.search(params);
     }
 
     applyGroups(groups) {
-      return this.scope.dataSource.groupBy(groups[0]);
+      return this.dataSource.groupBy(groups[0]);
     }
 
     doViewAction(viewAction, target, confirmation, prompt) {
@@ -355,7 +401,7 @@
         promptValue = window.prompt(prompt);
       }
       if (!confirmation || (confirmation && confirm(confirmation))) {
-        return scope.model.doViewAction({ action_name: viewAction, target, prompt: promptValue })
+        return this.model.doViewAction({ action_name: viewAction, target, prompt: promptValue })
         .done(function(res) {
           let msg, result;
           if (res.status === 'open') {
@@ -380,6 +426,16 @@
         });
       }
     }
+
+    async formButtonClick(self) {
+      const btn = $(self);
+      const meth = btn.prop('name');
+      const res = await scope.model.post(meth, { kwargs: { id: scope.record.id } });
+      if (res.ok && res.result.type) {
+        const act = new (Katrid.Actions[res.result.type])(res.result, scope, scope.location);
+        act.execute();
+      }
+    };
 
     doBindingAction(evt) {
       this.selection;
@@ -406,18 +462,18 @@
         row._group.expanded = !row._group.expanded;
         row._group.collapsed = !row._group.expanded;
         if (row._group.expanded) {
-          this.scope.dataSource.expandGroup(index, row);
+          this.dataSource.expandGroup(index, row);
         } else {
-          this.scope.dataSource.collapseGroup(index, row);
+          this.dataSource.collapseGroup(index, row);
         }
       } else {
-        this.scope.dataSource.recordIndex = index;
-        this.location.search(search);
+        this.dataSource.recordIndex = index;
+        this.setViewType('form', search);
       }
     }
 
     autoReport() {
-      return this.scope.model.autoReport()
+      return this.model.autoReport()
       .done(function(res) {
         if (res.ok && res.result.open) {
           return window.open(res.result.open);
@@ -553,7 +609,7 @@
       this.location = location;
     }
     tag_refresh() {
-      this.scope.dataSource.refresh();
+      this.dataSource.refresh();
     }
 
     execute() {

@@ -1,7 +1,8 @@
+from contextlib import ContextDecorator
 from functools import wraps
-from contextlib import ContextDecorator, contextmanager
+
 from orun.db import (
-    DEFAULT_DB_ALIAS, DatabaseError, Error, ProgrammingError, connections,
+    DEFAULT_DB_ALIAS, ProgrammingError, connections,
 )
 
 
@@ -53,4 +54,5 @@ def atomic(fn, using=DEFAULT_DB_ALIAS, savepoint=False):
                 return fn(*args, **kwargs)
         return inner
     else:
-        return _atomic(fn, False)
+        return lambda x: atomic(x, using=fn, savepoint=savepoint)
+

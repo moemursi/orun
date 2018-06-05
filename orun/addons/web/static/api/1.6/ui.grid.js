@@ -18,7 +18,7 @@
       let me = this;
       // Load remote field model info
 
-      const field = scope.$parent.view.fields[attrs.name];
+      const field = scope.$parent.action.view.fields[attrs.name];
 
       scope.action = scope.$parent.action;
       scope.fieldName = attrs.name;
@@ -65,7 +65,7 @@
       let lst = element.find('list');
       if (lst.length)
         scope.model.getFieldsInfo({view_type: 'list'})
-        .done(res => {
+        .then(res => {
           loadViews({
             list: {
               content: lst,
@@ -75,16 +75,14 @@
         });
       else {
         scope.model.loadViews()
-        .done(res => {
-          console.log(res);
-            // detects the relational field
-            let fld = res.views.list.fields[scope.field.field];
-            if (fld)
-              fld.visible = false;
-            loadViews(res.views);
-            scope.$apply();
-          }
-        )
+        .then(res => {
+          // detects the relational field
+          let fld = res.views.list.fields[scope.field.field];
+          if (fld)
+            fld.visible = false;
+          loadViews(res.views);
+          scope.$apply();
+        })
       }
 
       let renderDialog = function () {
@@ -245,7 +243,7 @@
 
           if (scope.records[index] && !scope.records[index].$loaded) {
             scope.dataSource.get(scope.records[index].id, 0, false, index)
-            .done(res => {
+            .then(res => {
               res.$loaded = true;
               scope.records[index] = res;
               scope.dataSource.edit();
@@ -255,7 +253,7 @@
               if (res.id)
                 for (let child of dataSource.children) {
                   child.scope.masterChanged(res.id)
-                  .done(res => {
+                  .then(res => {
                     _cacheChildren(child.fieldName, currentRecord, res.data);
                   })
 
@@ -281,13 +279,13 @@
         };
 
         if (scope._cachedViews.form) {
-          renderDialog().done(done);
+          renderDialog().then(done);
         } else {
           scope.model.getViewInfo({view_type: 'form'})
-          .done(function (res) {
+          .then(function (res) {
             if (res.result) {
               scope._cachedViews.form = res.result;
-              return renderDialog().done(done);
+              return renderDialog().then(done);
             }
           });
         }
@@ -303,7 +301,7 @@
           data[field.field] = key;
           if (key)
             return scope.dataSource.search(data)
-            .always(() => scope.dataSource.state = Katrid.Data.DataSourceState.browsing);
+            .finally(() => scope.dataSource.state = Katrid.Data.DataSourceState.browsing);
         }
       };
 

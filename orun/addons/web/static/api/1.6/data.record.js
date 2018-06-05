@@ -79,7 +79,6 @@
       if (field) {
         let oldValue = this.raw[propKey];
         value = field.toJSON(value);
-        console.log('set field value', propKey, oldValue, value);
         // check if field value has been changed
         if (this.compare(oldValue, value)) {
           this.setModified(propKey);

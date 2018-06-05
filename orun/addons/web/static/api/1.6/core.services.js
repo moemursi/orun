@@ -18,7 +18,6 @@
 
 
   if (Katrid.socketio) {
-    console.log('socketio defined');
     requestManager = new RequestManager();
 
     Katrid.socketio.on('connect', () => console.log("I'm connected!"));
@@ -114,22 +113,26 @@
         if (params) {
           rpcName += `?${$.param(params)}`;
         }
-        let def = $.Deferred();
-        $.ajax({
-          method: 'POST',
-          url: rpcName,
-          data: JSON.stringify(data),
-          contentType: "application/json; charset=utf-8",
-          dataType: 'json'
-        })
-        .done(res => {
-          if (res.error)
-            def.reject(res.error);
-          else
-            def.resolve(res.result);
-        })
-        .fail(res => def.reject(res));
-        return def;
+        return new Promise(
+          (resolve, reject) => {
+
+            $.ajax({
+              method: 'POST',
+              url: rpcName,
+              data: JSON.stringify(data),
+              contentType: "application/json; charset=utf-8",
+              dataType: 'json'
+            })
+            .then(res => {
+              if (res.error)
+                reject(res.error);
+              else
+                resolve(res.result);
+            })
+            .fail(res => reject(res));
+
+          }
+        );
       }
     }
   }
@@ -170,27 +173,27 @@
     }
 
     static _prepareFields(res) {
-
       if (res) {
         res.fields = Katrid.Data.Fields.Field.fromArray(res.fields);
         Object.values(res.views).map(v => v.fields = Katrid.Data.Fields.Field.fromArray(v.fields));
         Object.keys(res.views).map(k => res.views[k] = new Katrid.Data.View(res.views[k]));
       }
+      return res;
     }
 
     getViewInfo(data) {
       return this.post('get_view_info', { kwargs: data })
-      .done(this.constructor._prepareFields);
+      .then(this.constructor._prepareFields);
     }
 
-    loadViews(data) {
+    async loadViews(data) {
       return this.post('load_views', { kwargs: data })
-      .done(this.constructor._prepareFields);
+      .then(this.constructor._prepareFields);
     }
 
     getFieldsInfo(data) {
       return this.post('get_fields_info', { kwargs: data })
-      .done(this.constructor._prepareFields);
+      .then(this.constructor._prepareFields);
     }
 
     getFieldChoices(field, term) {
@@ -203,12 +206,16 @@
 
     write(data, params) {
       return this.post('write', { kwargs: {data} }, params)
-      .done(() => Katrid.Dialogs.Alerts.success(Katrid.i18n.gettext('Record saved successfully.')))
-      .fail(res => {
+      .then((res) => {
+        Katrid.Dialogs.Alerts.success(Katrid.i18n.gettext('Record saved successfully.'));
+        return res;
+      })
+      .catch(res => {
         if ((res.status === 500) && res.responseText)
-          return alert(res.responseText);
+          alert(res.responseText);
         else
-          return Katrid.Dialogs.Alerts.error(Katrid.i18n.gettext('Error saving record changes'));
+          Katrid.Dialogs.Alerts.error(Katrid.i18n.gettext('Error saving record changes'));
+        return res;
       });
     }
 
@@ -291,8 +298,6 @@
       return svc.post('load', { args: [action] });
     }
   }
-
-
 
   this.Katrid.Services = {
     Data,

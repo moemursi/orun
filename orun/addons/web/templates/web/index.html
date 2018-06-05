@@ -114,9 +114,14 @@
 
   <!-- End Left Menu -->
 
-  <div id="main-content" role="main" ng-view ng-cloak>
-    <div id="katrid-action-view">&nbsp;</div>
-  </div> <!-- /container -->
+  <div id="main-content" role="main">
+    <ui-view/>
+{#    <div ui-view id="katrid-action-view">#}
+{#      <h4 id="h-loading" class="ajax-loading-animation"><i class="fa fa-refresh fa-spin"></i> <span ng-bind="::_.gettext('Loading...')"></span></h4>#}
+{#    </div>#}
+  </div>
+  <!-- /container -->
+
   <footer id="footer" class="page-footer" ng-if="false">
     <div class="pull-right">
       Log History

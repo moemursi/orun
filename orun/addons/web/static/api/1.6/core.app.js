@@ -2,11 +2,14 @@
 
   Katrid.bootstrap();
 
-  const ngApp = angular.module('katridApp', ['ngRoute', 'ngCookies', 'ngSanitize', 'cfp.hotkeys', 'ui-katrid'].concat(Katrid.Settings.additionalModules));
+  const ngApp = angular.module('katridApp', ['ui.router', 'ngRoute', 'ngCookies', 'ngSanitize', 'cfp.hotkeys', 'ui.katrid'].concat(Katrid.Settings.additionalModules));
 
   ngApp.config(['$locationProvider', function($locationProvider) {
     $locationProvider.hashPrefix('');
   }]);
+
+  ngApp.run(function ($rootScope, $state, $transitions) {
+  });
 
   ngApp.run(
     ['$route', '$rootScope', '$location', '$templateCache', ($route, $rootScope, $location, $templateCache) => {
@@ -16,7 +19,7 @@
         if (info) {
           let un = $rootScope.$on('$locationChangeSuccess', function () {
             // use cached action info
-            $route.current.actionInfo = info;
+            // $route.current.actionInfo = info;
             un();
           });
         }
@@ -26,70 +29,75 @@
     }]
   );
 
-  let setContent = function(content, scope) {
-    const doButtonClick = function() {
-      const btn = $(this);
-      const meth = btn.prop('name');
-      return scope.model.post(meth, { kwargs: { id: scope.record.id } })
-      .done(function(res) {
-        if (res.ok) {
-          if (res.result.type) {
-            const act = new (Katrid.Actions[res.result.type])(res.result, scope, scope.location);
-            return act.execute();
+  // const actionTempl = `<ui-view><h4 id="h-loading" class="ajax-loading-animation"><i class="fa fa-refresh fa-spin"></i> <span ng-bind="::_.gettext('Loading...')"></span></h4></ui-view>`;
+
+  ngApp.config(function($stateProvider) {
+    $stateProvider
+    .state('app', {
+      abstract: true,
+      data: {
+        loginRequired: true,
+      }
+    })
+    .state('app.action', {
+      url: '/action/:actionId/?view_type&id',
+      reloadOnSearch: false,
+      controller: 'ActionController',
+      resolve: {
+        action: ['$stateParams', '$state', '$location',
+          async ($stateParams, $state, $location) => {
+            let params = $stateParams;
+            Katrid.Actions.actionManager.clear();
+            let info = await Katrid.Services.Actions.load(params.actionId);
+            let model = new Katrid.Services.Model(info.model);
+            let action = new (Katrid.Actions[info.action_type])(info, null, $location);
+            action.model = model;
+            $state.$current.data = { action };
+            await action.execute();
+            return action;
           }
-        }
-      });
-    };
+        ]
+      },
+      templateProvider: async ($stateParams, $state) => {
+        return $state.$current.data.action.fullTemplate;
+        // return $state.$current.data.action.template;
+      }
+    })
+    .state('app.view', {
+      url: '/action/:service/view/?view_type&id',
+      controller: 'ActionController',
+      reloadOnSearch: false,
+      resolve: {
+        action: ['$stateParams', '$state', '$location',
+          async function($stateParams, $state, $location) {
+            let info = await (
+              new Katrid.Services.Model($stateParams.service))
+              .rpc('get_formview_action', [$stateParams.id]
+            );
 
-    $('html, body').animate({ scrollTop: 0 }, 'fast');
-    content = scope.content = $(content);
+            let model = info.model;
+            if (model instanceof Array)
+              model = model[1];
+            model = new Katrid.Services.Model(model);
+            let action = new (Katrid.Actions[info.action_type])(info, null, $location);
+            action.model = model;
+            $state.$current.data = { action };
+            await action.execute();
+            action.viewType = $stateParams.view_type;
+            return action;
 
-    //# Prepare form special elements
-    // Prepare form header
-    const header = content.find('form header').first();
-    // Create a new scope for the new form element
-    // const newScope = scope.$new(false);
-    let el = Katrid.core.compile(scope.content)(scope);
-    el.find('form.full-width').closest('.container').removeClass('container').find('.card').first().addClass('full-width no-border');
-    el = Katrid.core.rootElement.html(el);
-
-    // Get the first form controller
-    scope.formElement = el.find('form').first();
-    scope.form = scope.formElement.controller('form');
-
-    // Add form header
-    if (header.length) {
-      let newHeader = Katrid.core.compile(header)(scope);
-      el.find('header').first().replaceWith(newHeader);
-      newHeader.addClass('content-container-heading');
-      let headerButtons = $('<div class="header-buttons"></div>');
-      newHeader.prepend(headerButtons);
-      (() => {
-        const result = [];
-        for (let child of header.children()) {
-          child = $(child);
-          if (!child.attr('class')) {
-            child.addClass('btn btn-default');
           }
-          if (child.prop('tagName') === 'BUTTON') headerButtons.append(child);
-          if ((child.prop('tagName') === 'BUTTON') && (child.attr('type') === 'object')) {
-            child.attr('type', 'button');
-            child.attr('button-type', 'object');
-            result.push(child.click(doButtonClick));
-          } else if ((child.prop('tagName') === 'BUTTON') && !child.attr('type')) {
-            result.push(child.attr('type', 'button'));
-          } else {
-            result.push(undefined);
-          }
-        }
-        return result;
-      })();
-    }
-  };
+        ],
+      },
+      templateProvider: ($stateParams, $state) => {
+        return $state.$current.data.action.template;
+      }
 
-  const actionTempl = `<div id="katrid-action-view"><h4 id="h-loading" class="ajax-loading-animation"><i class="fa fa-refresh fa-spin"></i> <span ng-bind="::_.gettext('Loading...')"></span></h4></div>`;
+    });
+  });
 
   ngApp.config(function($routeProvider) {
+    return;
     $routeProvider
     .when('/client/action/:actionName/', {
 
@@ -114,13 +122,8 @@
       controller: 'ActionController',
       reloadOnSearch: false,
       resolve: {
-        action: ['$route', function($route) {
-          let act = $.post(
-            '/api/rpc/' + $route.current.params.service + '/get_formview_action/', { id: $route.current.params.id }
-          );
-          let defer = $.Deferred();
-          act.done(res => defer.resolve(res.result));
-          return defer;
+        action: ['$route', async function($route) {
+          return await (new Katrid.Services.Model($route.current.params.service)).rpc('get_formview_action', [$route.current.params.id]);
         }],
         reset: () => false
       },
@@ -162,32 +165,45 @@
     $scope.$setDirty(field);
   };
 
-  function prepareScope(scope, $location) {
-    scope._ = _;
-    scope.data = null;
-    scope.location = $location;
-    scope.record = null;
-    Object.defineProperty(scope, 'self', {
-      get: () => (scope.record)
+  ngApp.controller('ActionController', function($scope, $state, $location, $transitions, $element, action) {
+    console.log('init controller', action);
+    action.scope = $scope;
+    action.$element = $element;
+    action.viewType = $location.$$search.view_type || action.viewModes[0];
+    action.location = $location;
+    $scope.action = action;
+    $scope.model = action.model;
+
+    $scope._ = _;
+    $scope.data = null;
+    $scope.location = $location;
+    $scope.record = null;
+    Object.defineProperty($scope, 'self', {
+      get: () => ($scope.record)
     });
-    scope.recordIndex = null;
-    scope.recordId = null;
-    scope.records = null;
-    scope.viewType = null;
-    scope.recordCount = 0;
-    scope.dataSource = new Katrid.Data.DataSource(scope);
-    scope.$set = $set;
-    scope.$setDirty = (field) => {
-      const control = scope.form[field];
+    $scope.recordIndex = null;
+    $scope.recordId = null;
+    $scope.records = null;
+    $scope.recordCount = 0;
+    $scope.dataSource = new Katrid.Data.DataSource($scope);
+    $scope.$setDirty = (field) => {
+      const control = $scope.form[field];
       if (control) {
         control.$setDirty();
       }
     };
 
-  }
+    action.routeUpdate($location.$$search)
+    .then(() => {
+      action._unregisterHook = $transitions.onStart({}, (trans) => {
+        console.log($location.$$search);
+        action.routeUpdate($location.$$search);
+      });
+    })
+  });
 
 
-  ngApp.controller('ActionController', function($scope, $compile, $location, $route, action, reset, hotkeys) {
+  ngApp.controller('ActionController1', function($scope, $compile, $location, $route, action, reset, hotkeys) {
     prepareScope($scope, $location);
     Katrid.core.setContent = setContent;
     Katrid.core.compile = $compile;

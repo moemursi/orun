@@ -23,29 +23,27 @@
       this.items = [];
     }
 
-    masterChanged(key) {
+    async masterChanged(key) {
       if (key) {
         const svc = new Katrid.Services.Model('mail.message');
         if (this.scope.$parent.record)
         return svc.post('get_messages', { args: [this.scope.$parent.record.messages] })
-        .done(res => {
+        .then(res => {
           this.items = res;
           this.scope.$apply();
         });
       }
     }
 
-    _sendMesage(msg, attachments) {
-      if (attachments) attachments = attachments.map((obj) => obj.id);
-      this.model.post('post_message', { args: [[this.scope.$parent.recordId]], kwargs: { content: msg, content_subtype: 'html', format: true, attachments: attachments } })
-      .done(res => {
-        const msgs = res;
-        this.scope.message = '';
-        this.items = msgs.concat(this.items);
-        this.scope.$apply();
-        this.scope.files = null;
-        this.scope.hideEditor();
-      });
+    async _sendMesage(msg, attachments) {
+      if (attachments)
+        attachments = attachments.map((obj) => obj.id);
+      let msgs = await this.model.post('post_message', { args: [[this.scope.$parent.recordId]], kwargs: { content: msg, content_subtype: 'html', format: true, attachments: attachments } });
+      this.scope.message = '';
+      this.items = msgs.concat(this.items);
+      this.scope.$apply();
+      this.scope.files = null;
+      this.scope.hideEditor();
     }
 
     postMessage(msg) {

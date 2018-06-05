@@ -202,8 +202,9 @@
       return `<li>${s}</li>`;
     }
 
-    link(scope, $compile, parent) {
-      const html = $compile(this.template())(scope);
+    link(action, $compile, parent) {
+      return '';
+      const html = $compile(this.template())(action);
       if (parent != null) {
         html.insertAfter(parent.element);
         parent.children.push(this);
@@ -398,6 +399,7 @@
   class SearchView extends Katrid.UI.Widgets.Widget {
     constructor(scope) {
       super(scope);
+      this.action = scope.action;
       scope.search = {};
       this.inputKeyDown = this.inputKeyDown.bind(this);
       this.onSelectItem = this.onSelectItem.bind(this);
@@ -406,7 +408,7 @@
       this.query = new SearchQuery(this);
       this.items = [];
       this.filters = [];
-      this.scope.action.searchView = this;
+      this.action.searchView = this;
     }
 
     createMenu(scope, el, parent) {
@@ -579,7 +581,7 @@
       this.$compile = $compile;
     }
     link(scope, el, attrs, controller) {
-      (new SearchView(scope, {})).link(scope, el, attrs, controller, this.$compile);
+      (new SearchView(scope, {})).link(scope.action, el, attrs, controller, this.$compile);
     }
   }
 

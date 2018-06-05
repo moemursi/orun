@@ -1,5 +1,5 @@
-from sqlalchemy.engine.url import URL, make_url
 from sqlalchemy import create_engine
+from sqlalchemy.engine.url import URL, make_url
 
 from orun.core.management import commands
 from orun.db import connections, DEFAULT_DB_ALIAS
@@ -60,7 +60,7 @@ def create(db):
         conn.execute("""CREATE DATABASE %s""" % db_name)
     elif db_engine == 'mssql':
         conn.autocommit = True
-        conn.execute("""ROLLBACK; CREATE DATABASE [%s]""" % db_name)
+        conn.execute("""CREATE DATABASE [%s]""" % db_name)
         conn.autocommit = False
     elif db_engine == 'oracle':
         conn.execute('create user usr_%s identified by %s' % (db, db_settings.password))

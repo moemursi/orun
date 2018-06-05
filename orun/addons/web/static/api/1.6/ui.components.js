@@ -11,7 +11,7 @@
       priority: -1,
       link(scope, element, attrs, ctrl) {
         let inplaceEditor = $(element).closest('.table.dataTable').length > 0;
-        let field = scope.view.fields[attrs.name];
+        let field = scope.action.view.fields[attrs.name];
         if (field && field.visible === false) {
           element.remove();
           return;
@@ -32,7 +32,7 @@
           let templ = widget.renderTo('section', inplaceEditor);
           templ = $compile(templ)(scope);
           element.replaceWith(templ);
-          if (!inplaceEditor) templ.addClass(`col-md-${widget.cols}`);
+          if (!inplaceEditor && widget.col) templ.addClass(`col-md-${widget.col}`);
 
           // Add input field for tracking on FormController
           let fcontrol = templ.find('.form-field');
@@ -224,7 +224,7 @@
         let el = element;
         const dateFmt = Katrid.i18n.gettext('yyyy-mm-dd');
         const shortDate = dateFmt.replace(/[m]/g, 'M');
-        var calendar = element.parent('div').bootstrapDatePicker({
+        var calendar = element.parent('div').datePicker({
           format: dateFmt,
           keyboardNavigation: false,
           language: Katrid.i18n.languageCode,
@@ -517,7 +517,7 @@
         if (attrs.serviceName)
           serviceName = attrs;
         else
-          serviceName = scope.model.name;
+          serviceName = scope.action.model.name;
 
         const newItem = function () {};
         const newEditItem = function () {};
@@ -544,7 +544,7 @@
                 svc = scope.model.getFieldChoices(field.name, query.term);
               else
                 svc = (new Katrid.Services.Model(field.model)).searchName(data);
-              svc.done(res => {
+              svc.then(res => {
 
                 let data = res.items;
                 const r = data.map(item => ({ id: item[0], text: item[1] }));
@@ -723,7 +723,6 @@
         });
 
         controller.$parsers.push((value) => {
-          console.log('parser', value);
           if (value) {
             if (_.isArray(value))
               return value;
@@ -902,27 +901,63 @@
   );
 
 
+  uiKatrid.directive('dateInput', ['$filter', ($filter) => ({
+    restrict: 'A',
+    require: 'ngModel',
+    link(scope, element, attrs, controller) {
+
+      element
+      .keypress(function(evt) {
+        if (evt.key.toLowerCase() === 'h') {
+          let value;
+          if (attrs['type'] === 'date')
+            value = (new Date()).toISOString().split('T')[0];
+          else
+            value = (new Date()).toISOString().split('.')[0];
+          $(element).val(value);
+          controller.$setViewValue(value);
+          evt.stopPropagation();
+          evt.preventDefault();
+        }
+      });
+
+      controller.$formatters.push(function(value) {
+        if (value) {
+          if (attrs['type'] === 'date')
+            return new Date(moment.utc(value).format('YYYY-MM-DD') + 'T00:00');
+          else
+            return new Date(value);
+        }
+      });
+
+      controller.$parsers.push(function (value) {
+        if (_.isDate(value)) {
+          if (attrs['type'] === 'date')
+            return moment.utc(value).format('YYYY-MM-DD');
+          else
+            return moment.utc(value).format('YYYY-MM-DDTHH:mm:ss');
+        }
+      });
+
+    }
+  })]);
+
+
   uiKatrid.directive('statusField', ['$compile', '$timeout', ($compile, $timeout) =>
     ({
-      restrict: 'A',
+      restrict: 'E',
       require: 'ngModel',
+      replace: true,
       scope: {},
       link(scope, element, attrs, controller) {
         const field = scope.$parent.view.fields[attrs.name];
-        const html = $compile(sprintf(Katrid.$templateCache.get('view.field.StatusField'), { fieldName: attrs.name }))(scope);
         scope.choices = field.choices;
-        // add status delayed by the header bar
-        $timeout(function () {
-          // append element into header bar
-          let hEl = element.closest('.content-scroll').find('header.content-container-heading').first();
-          hEl.prepend(html);
-          // remove old element
-          element.closest('section').remove();
-        });
-
         if (!attrs.readonly) {
-          return scope.itemClick = () => console.log('status field item click');
+          scope.itemClick = () => console.log('status field item click');
         }
+      },
+      template(element, attrs) {
+        return sprintf(Katrid.$templateCache.get('view.field.StatusField'), { fieldName: attrs.name });
       }
     })
 
@@ -1000,12 +1035,11 @@
         scope.$parent.attachments = [];
         clearTimeout(_pendingOperation);
         _pendingOperation = setTimeout(() => {
-          attachment.search({ params: { model: scope.model.name, object_id: key }, count: false })
-          .done((res) => {
+          attachment.search({ params: { model: scope.action.model.name, object_id: key }, count: false })
+          .then(res => {
             let r = null;
             if (res && res.data)
               r = res.data;
-            console.log('attachments', r);
             scope.$apply(() => scope.attachments = r );
           });
         }, 1000);
@@ -1051,7 +1085,7 @@
 
       $scope.cardAddGroup = (event, name) => {
         let gname = $(event.target).closest('.card-add-group').data('group-name');
-        let field = $scope.view.fields[gname];
+        let field = $scope.action.view.fields[gname];
         let svc = new Katrid.Services.Model(field.model);
         console.log('the name is', name);
         svc.createName(name)

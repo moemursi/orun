@@ -1,12 +1,12 @@
-import collections
 import copy
 import datetime
 import inspect
 import os
+
 import sqlalchemy as sa
 from sqlalchemy import orm, func
 
-from orun import api, render_template, SUPERUSER
+from orun import api, render_template
 from orun import app, g
 from orun.apps import apps
 from orun.core.exceptions import ObjectDoesNotExist, ValidationError, PermissionDenied
@@ -16,10 +16,9 @@ from orun.utils.translation import gettext
 from orun.utils.xml import etree
 from orun.utils.xml import get_xml_fields
 from .fields import Field, BooleanField, NOT_PROVIDED
-from .fields.related import OneToOneField, ForeignKey, CASCADE
+from .fields.related import OneToOneField, CASCADE
 from .options import Options
 from .query import QuerySet, Insert, Update, Delete
-from orun.api import Environment
 
 CHOICES_PAGE_LIMIT = 10
 
@@ -248,13 +247,6 @@ class ModelBase(type):
                 return issubclass(cls, parent)
         return super(ModelBase, cls).__subclasscheck__(sub)
 
-    # Add DML attributes
-    @property
-    def select(cls):
-        if not cls._meta.app:
-            cls = cls._meta.app[cls._meta.name]
-        return QuerySet(cls)
-
     @property
     def objects(cls):
         if cls._meta.app:
@@ -305,6 +297,13 @@ class Model(Service):
     @property
     def objects(self):
         return session.query(self.__class__)
+
+    # Add DML attributes
+    @property
+    def select(cls):
+        if not cls._meta.app:
+            cls = cls._meta.app[cls._meta.name]
+        return QuerySet(cls)
 
     @classmethod
     def init(cls):

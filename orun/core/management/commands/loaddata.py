@@ -3,7 +3,6 @@ import os
 from orun import app
 from orun.apps import apps
 from orun.core.management import commands
-from orun.apps import apps
 from orun.core.serializers import get_deserializer
 
 
@@ -29,5 +28,5 @@ def load_fixture(app_config, filename, **options):
         try:
             deserializer(f, app, app_config=app_config, app_label=app_config.schema, **options)
         except:
-            print('Error loading the file', filename)
+            print('Error loading the file', filename, app_config)
             raise

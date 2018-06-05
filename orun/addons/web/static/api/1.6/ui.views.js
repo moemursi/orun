@@ -23,11 +23,12 @@
   }
 
   class ActionView extends BaseView{
-    constructor(scope, content) {
+    constructor(action, scope, view, content) {
       super(scope);
+      this.action = action;
+      this.view = view;
       this.templateUrl = 'view.basic';
       this.toolbar = true;
-      this.action = scope.action;
       this.content = content;
     }
 
@@ -48,15 +49,15 @@
     getBreadcrumb() {
       let html = `<ol class="breadcrumb">`;
       let i = 0;
-      for (let h of Katrid.Actions.Action.history) {
+      for (let h of Katrid.Actions.actionManager.actions) {
         if (i === 0 && h.viewModes.length > 1)
           html += `<li class="breadcrumb-item"><a href="javascript:void(0)" ng-click="action.backTo(0, 0)">${ h.info.display_name }</a></li>`;
         i++;
-        if (Katrid.Actions.Action.history.length > i && h.viewType === 'form')
+        if (Katrid.Actions.actionManager.actions.length > i && h.viewType === 'form')
           html += `<li class="breadcrumb-item"><a href="javascript:void(0)" ng-click="action.backTo(${i-1})">${ h.scope.record.display_name }</a></li>`;
       }
-      if (this.scope.action.viewType === 'form')
-          html += `<li class="breadcrumb-item">{{ record.display_name }}</li>`;
+      if (this.constructor.type === 'form')
+          html += `<li class="breadcrumb-item">{{ self.display_name }}</li>`;
       return html + '</ol>';
     }
 
@@ -65,7 +66,7 @@
     }
 
     getViewButtons() {
-      let btns = Object.entries(View.buttons).map((btn) => this.scope.action.viewModes.includes(btn[0]) ? btn[1] : '').join('');
+      let btns = Object.entries(View.buttons).map((btn) => this.view.viewModes.includes(btn[0]) ? btn[1] : '').join('');
       if (btns) btns = `<div class="btn-group">${btns}</div>`;
       return btns;
     }
@@ -74,8 +75,8 @@
 
 
   class FormView extends View {
-    constructor(scope, content) {
-      super(scope, content);
+    constructor(action, scope, view, content) {
+      super(action, scope, view, content);
       this.templateUrl = 'view.form';
     }
 
@@ -86,6 +87,7 @@
         actions: ''
       }));
       let frm = el.find('form').first().addClass('row');
+      // this.buildHeader(frm);
       return el;
     }
   }
@@ -93,8 +95,8 @@
 
 
   class ListView extends View {
-    constructor(scope, content) {
-      super(scope, content);
+    constructor(action, scope, view, content) {
+      super(action, scope, view, content);
       this.templateUrl = 'view.list';
     }
 
@@ -119,7 +121,7 @@
           continue;
         }
 
-        const fieldInfo = this.scope.view.fields[name];
+        const fieldInfo = this.view.fields[name];
 
         if (!fieldInfo || (col.attr('visible') === 'False') || (fieldInfo.visible === false))
           continue;
@@ -148,8 +150,8 @@
   ListView.type = 'list';
 
   class CardView extends View {
-    constructor(scope, content) {
-      super(scope, content);
+    constructor(action, scope, content) {
+      super(action, scope, content);
       this.templateUrl = 'view.card';
     }
 
@@ -162,6 +164,59 @@
     }
   }
   CardView.type = 'card';
+
+
+  class FormView2 {
+    constructor() {
+      this.restrict = 'E';
+      this.scope = false;
+    }
+
+    buildHeader(form) {
+      let newHeader = form.find('form header').first();
+      form.find('form.full-width').closest('.container').removeClass('container').find('.card').first().addClass('full-width no-border');
+
+      // Add form header
+      if (newHeader.length) {
+        let headerButtons = $('<div class="header-buttons"></div>');
+        newHeader.prepend(headerButtons);
+        for (let child of newHeader.children()) {
+          child = $(child);
+          if (!child.attr('class'))
+            child.addClass('btn btn-default');
+          if (child.prop('tagName') === 'BUTTON')
+            headerButtons.append(child);
+          if ((child.prop('tagName') === 'BUTTON') && (child.attr('type') === 'object')) {
+            child.attr('type', 'button');
+            child.attr('button-type', 'object');
+            child.attr('ng-click', 'action.formButtonClick($event.target)');
+          } else if ((child.prop('tagName') === 'BUTTON') && !child.attr('type')) {
+            child.attr('type', 'button');
+          }
+        }
+        newHeader.addClass('content-container-heading');
+      }
+      let header = form.find('header').first();
+      header.replaceWith(newHeader);
+      form.find('field[name=status]').prependTo(newHeader);
+    }
+
+    link(scope, element) {
+      element.find('form.full-width').closest('.container').removeClass('container').find('.card').first().addClass('full-width no-border');
+      scope.$parent.formElement = element.find('form').first();
+      scope.$parent.form = angular.element(scope.formElement).controller('form');
+      console.log(scope);
+    }
+
+    template(element, attrs) {
+      this.buildHeader(element);
+      element.addClass('ng-form');
+      return element.html();
+    }
+  }
+
+
+  Katrid.uiKatrid.directive('formView', FormView2);
 
 
   Katrid.UI.Views = {

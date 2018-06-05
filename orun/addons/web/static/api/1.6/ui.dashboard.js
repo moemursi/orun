@@ -91,5 +91,4 @@
   Katrid.uiKatrid.directive('chart', Chart);
   Katrid.uiKatrid.directive('query', Query);
 
-  console.log('ui dashboard');
 })();

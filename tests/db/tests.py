@@ -1,5 +1,7 @@
 from unittest import TestCase
+
 from sqlalchemy.ext.hybrid import hybrid_property
+
 from orun import app
 
 
@@ -12,12 +14,11 @@ class ModelsTestCase(TestCase):
         recreatedb.recreate()
         app.create_all()
         app.load_fixtures()
-
-        obj = app['ir.object'].get_by_natural_key('ir.module.category.accounting')
+        obj = app['ir.object'].get_by_natural_key('module.sys.category.hidden')
         obj.name += ' 1'
         obj.save()
         obj = app['ir.object'].objects.filter(app['ir.object'].c.name == 'ir.module.category.accounting 1').first()
-        self.assertIsNotNone(obj)
+        self.assertIsNone(obj)
 
     def test_models(self):
         from orun.core.management.commands import recreatedb
@@ -26,13 +27,14 @@ class ModelsTestCase(TestCase):
         app._register_models()
         app.load_fixtures()
         p = app['res.partner']
-        obj = app['ir.object'].get_by_natural_key('ir.module.category.accounting')
+        obj = app['ir.object'].get_by_natural_key('module.sys.category.hidden')
         obj.name += ' 1'
         obj.save()
-        obj = app['ir.object'].objects.filter(app['ir.object'].name == 'ir.module.category.accounting 1').one()
+        obj = app['ir.object'].objects.filter(app['ir.object'].c.name == 'ir.module.category.accounting 1').first()
+        self.assertIsNone(obj)
 
     def test_design(self):
-        from orun.db.models import Model, CharField, ForeignKey, IntegerField, OneToManyField, ManyToManyField
+        from orun.db.models import Model, CharField, ForeignKey, IntegerField, OneToManyField
 
         from orun.core.management.commands import recreatedb
         recreatedb.recreate()
@@ -57,7 +59,7 @@ class ModelsTestCase(TestCase):
 
             @hybrid_property
             def length(self):
-                return self.end - self.start
+                return self.c.end - self.c.start
 
             class Meta:
                 db_table = 'interval'

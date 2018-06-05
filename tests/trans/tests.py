@@ -1,4 +1,5 @@
 from unittest import TestCase
+
 from orun import app
 from orun.utils.translation import gettext
 
