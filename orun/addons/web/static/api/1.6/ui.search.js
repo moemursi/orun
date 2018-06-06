@@ -38,18 +38,13 @@
 
     close() {
       this.element.hide();
-      return this.reset();
+      this.reset();
     }
 
-    expand(item) {
-      const { scope } = this.searchView;
-      return scope.model.getFieldChoices(item.ref.name, scope.search.text)
-      .then(res => {
-        if (res.ok) {
-          return Array.from(res.result).map((obj) =>
-            this.searchView.loadItem(item.item, obj, item));
-        }
-      });
+    async expand(item) {
+      let res = await this.searchView.scope.model.getFieldChoices(item.ref.name, this.searchView.scope.search.text);
+      console.log(res);
+      return res.items.map((obj) => this.searchView.loadItem(item.item, obj, item));
     }
 
     collapse(item) {
@@ -61,9 +56,9 @@
 
     reset() {
       for (let i of this.searchView.items)
-        if (i.children && i.children.length) {
+        if (i.children) {
           this.collapse(i);
-          result.push(i.reset());
+          i.reset();
         }
     }
 

@@ -33,8 +33,11 @@
 
           <div class="float-right">
             <div class="btn-group pagination-area">
-              <span class="paginator">{{dataSource.offset|number}} - {{dataSource.offsetLimit|number}}</span> /
-              <span class="total-pages">{{dataSource.recordCount|number}}</span>
+              <span ng-show="action.dataSource.pendingRequest">Carregando...</span>
+              <div ng-show="!action.dataSource.pendingRequest">
+                <span class="paginator">{{dataSource.offset|number}} - {{dataSource.offsetLimit|number}}</span> /
+                <span class="total-pages">{{dataSource.recordCount|number}}</span>
+              </div>
             </div>
             <div class="btn-group">
               <button class="btn btn-secondary" type="button" ng-click="dataSource.prevPage()">
