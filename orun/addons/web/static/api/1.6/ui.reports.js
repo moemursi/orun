@@ -177,11 +177,12 @@
 
 
     export(format) {
-      if (format == null) { format = localStorage.katridReportViewer || 'pdf'; }
+      if (format == null)
+        format = localStorage.katridReportViewer || 'pdf';
       const params = this.getUserParams();
       const svc = new Katrid.Services.Model('ir.action.report');
       svc.post('export_report', { args: [this.info.id], kwargs: { format, params } })
-      .done(function(res) {
+      .then(function(res) {
         if (res.open) {
           return window.open(res.open);
         }
