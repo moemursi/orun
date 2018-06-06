@@ -402,7 +402,7 @@
       }
       if (!confirmation || (confirmation && confirm(confirmation))) {
         return this.model.doViewAction({ action_name: viewAction, target, prompt: promptValue })
-        .done(function(res) {
+        .then(function(res) {
           let msg, result;
           if (res.status === 'open') {
             return window.open(res.open);
@@ -440,7 +440,7 @@
     doBindingAction(evt) {
       this.selection;
       Katrid.Services.Actions.load($(evt.currentTarget).data('id'))
-      .done(action => {
+      .then(action => {
 
         if (action.action_type === 'ir.action.report')
           ReportAction.dispatchBindingAction(this, action);
@@ -474,7 +474,7 @@
 
     autoReport() {
       return this.model.autoReport()
-      .done(function(res) {
+      .then(function(res) {
         if (res.ok && res.result.open) {
           return window.open(res.result.open);
         }
