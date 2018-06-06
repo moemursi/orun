@@ -212,8 +212,8 @@
 
     action.routeUpdate($location.$$search)
     .then(() => {
-      action._unregisterHook = $transitions.onStart({}, (trans) => {
-        console.log($location.$$search);
+      action._unregisterHook = $scope.$on('$locationChangeSuccess', () => {
+        console.log(action._unregisterHook);
         action.routeUpdate($location.$$search);
       });
     })

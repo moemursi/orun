@@ -203,7 +203,6 @@
     }
 
     link(action, $compile, parent) {
-      return '';
       const html = $compile(this.template())(action);
       if (parent != null) {
         html.insertAfter(parent.element);
@@ -493,10 +492,13 @@
       this.scope.search.viewMoreButtons = Katrid.localSettings.searchMenuVisible;
 
       // wait for view loaded
+      console.log(this.viewContent.children());
+      for (let item of Array.from(this.viewContent.children()))
+        this.loadItem($(item));
+
       setTimeout(() => {
-        for (let item of Array.from(this.viewContent.children()))
-          this.loadItem($(item));
-      }, 100);
+
+      }, 0);
 
     }
 
