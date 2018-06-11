@@ -9,7 +9,7 @@ class BaseBackend(object):
     SchemaEditorClass = BaseDatabaseSchemaEditor
 
     @classmethod
-    def create_engine(cls, db, url):
-        eng = sa.create_engine(str(url), echo=settings.SQL_DEBUG)
+    def create_engine(cls, db, url, **kwargs):
+        eng = sa.create_engine(str(url), echo=settings.SQL_DEBUG, **kwargs)
         eng.backend = cls
         return eng

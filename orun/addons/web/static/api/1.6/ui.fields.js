@@ -507,7 +507,7 @@
 
   class DateTimeField extends TextField {
     static get tag() {
-      return 'input date-input';
+      return 'input date-input max="2099-12-31" min="1899-12-31"';
     }
 
     get type() {

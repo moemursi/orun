@@ -762,8 +762,8 @@ class Model(Service):
         if fields:
             if 'display_name' in fields:
                 fields.append(self._meta.title_field)
-            fields = [f.db_column for f in [self._meta.fields_dict[f] for f in fields] if f.concrete]
-            pk = self._meta.pk.column.name
+            fields = [f.attname for f in [self._meta.fields_dict[f] for f in fields] if f.concrete]
+            pk = self._meta.pk.attname
             if pk not in fields:
                 fields.append(pk)
             if fields:

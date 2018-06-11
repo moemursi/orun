@@ -66,7 +66,7 @@
           html += `<li class="breadcrumb-item"><a href="javascript:void(0)" ng-click="action.backTo(0, 0)">${ h.info.display_name }</a></li>`;
         i++;
         if (Katrid.Actions.actionManager.actions.length > i && h.viewType === 'form')
-          html += `<li class="breadcrumb-item"><a href="javascript:void(0)" ng-click="action.backTo(${i-1})">${ h.scope.record.display_name }</a></li>`;
+          html += `<li class="breadcrumb-item"><a href="javascript:void(0)" ng-click="action.backTo(${i-1}, 'form')">${ h.scope.record.display_name }</a></li>`;
       }
       if (this.constructor.type === 'form')
           html += `<li class="breadcrumb-item">{{ self.display_name }}</li>`;
@@ -218,7 +218,6 @@
       element.find('form.full-width').closest('.container').removeClass('container').find('.card').first().addClass('full-width no-border');
       scope.$parent.formElement = element.find('form').first();
       scope.$parent.form = angular.element(scope.formElement).controller('form');
-      console.log(scope);
     }
 
     template(element, attrs) {

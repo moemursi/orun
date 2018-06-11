@@ -191,6 +191,8 @@ class Options(object):
         # Build the orm mapper
         props = {}
         for f in self.local_fields:
+            if f.name != f.db_column and f.column is not None and not f.column.foreign_keys:
+                props[f.name] = f.column
             if not f.primary_key:
                 if f.column is not None:
                     for fk in f.column.foreign_keys:
@@ -212,7 +214,7 @@ class Options(object):
                 elif f.related:
                     props[f.name] = f.related
 
-        props['pk'] = synonym(self.pk.column.name)
+        props['pk'] = synonym(self.pk.attname)
 
         table = self.table
         mapped = self.model
@@ -231,6 +233,7 @@ class Options(object):
         elif not self.parents:
             additional_args['order_by'] = normalize_ordering(self, 'pk')
 
+        additional_args = {}
         if self.parents:
             for parent, field in self.parents.items():
                 parent = self.app.models[parent._meta.name]

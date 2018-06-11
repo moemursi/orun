@@ -906,18 +906,35 @@
     require: 'ngModel',
     link(scope, element, attrs, controller) {
 
+      let setNow = () => {
+        let value;
+        if (attrs['type'] === 'date')
+           value = (new Date()).toISOString().split('T')[0];
+        else
+          value = moment(new Date()).format('YYYY-MM-DD HH:mm').replace(' ', 'T');  // remove timezone info
+        $(element).val(value);
+        controller.$setViewValue(value);
+        _focus = false;
+      };
+
+      let _focus = true;
+
       element
+      .focus(function() {
+        if (($(this).val() === ''))
+          _focus = true;
+      })
       .keypress(function(evt) {
         if (evt.key.toLowerCase() === 'h') {
-          let value;
-          if (attrs['type'] === 'date')
-            value = (new Date()).toISOString().split('T')[0];
-          else
-            value = (new Date()).toISOString().split('.')[0];
-          $(element).val(value);
-          controller.$setViewValue(value);
+          setNow();
           evt.stopPropagation();
           evt.preventDefault();
+        }
+      })
+      .keydown(function(evt) {
+        if (/\d/.test(evt.key)) {
+          if (($(this).val() === '') && (_focus))
+            setNow();
         }
       });
 

@@ -1,12 +1,8 @@
-from sqlalchemy import Table, Column, Integer, String, DateTime, MetaData, PrimaryKeyConstraint
 import sqlalchemy as sa
+from sqlalchemy import Table, Column, Integer, String, DateTime, MetaData, PrimaryKeyConstraint
 
-from orun.apps.registry import Registry as Apps
-from orun.db import models
 from orun.db.utils import DatabaseError
 from orun.utils.timezone import now
-
-from .exceptions import MigrationSchemaMissing
 
 
 class MigrationRecorder(object):
@@ -24,14 +20,7 @@ class MigrationRecorder(object):
 
     migration_metadata = MetaData()
 
-    Migration = Table(
-        'ir_migration', migration_metadata,
-        Column('id', Integer, primary_key=True),
-        Column('app', String(255), nullable=False),
-        Column('name', String(255), nullable=False),
-        Column('applied', DateTime, default=now),
-        PrimaryKeyConstraint('id', name='pk_sys_migration')
-    )
+    Migration = None
 
     def __init__(self, connection):
         self.connection = connection
@@ -44,6 +33,22 @@ class MigrationRecorder(object):
         """
         Ensures the table exists and has the correct schema.
         """
+        if self.Migration is None:
+            pk_type = Integer
+
+            if self.connection.engine.name == 'oracle':
+                import orun.db.backends.oracle.fields
+                pk_type = orun.db.backends.oracle.fields.Identity()
+
+            MigrationRecorder.Migration = Table(
+                'ir_migration', self.migration_metadata,
+                Column('id', pk_type, primary_key=True),
+                Column('app', String(255), nullable=False),
+                Column('name', String(255), nullable=False),
+                Column('applied', DateTime, default=now),
+                PrimaryKeyConstraint('id', name='pk_sys_migration')
+            )
+
         # If the table's there, that's fine - we've never changed its schema
         # in the codebase.
         insp = sa.inspect(self.connection)

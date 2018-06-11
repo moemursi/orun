@@ -95,54 +95,6 @@
     });
   });
 
-  ngApp.config(function($routeProvider) {
-    return;
-    $routeProvider
-    .when('/client/action/:actionName/', {
-
-    })
-    .when('/action/:actionId/', {
-      controller: 'ActionController',
-      reloadOnSearch: false,
-      resolve: {
-        action: ['$route',
-          ($route) => {
-            if ($route.current.actionInfo)
-              return $route.current.actionInfo;
-            Katrid.Actions.actionManager.clear();
-            return Katrid.Services.Actions.load($route.current.params.actionId);
-          }
-        ],
-        reset: () => true
-      },
-      template: actionTempl
-    })
-    .when('/action/:service/view/', {
-      controller: 'ActionController',
-      reloadOnSearch: false,
-      resolve: {
-        action: ['$route', async function($route) {
-          return await (new Katrid.Services.Model($route.current.params.service)).rpc('get_formview_action', [$route.current.params.id]);
-        }],
-        reset: () => false
-      },
-      template: actionTempl
-    }).when('/menu/:menuId/', {
-      controller: 'MenuController',
-      resolve: {
-        menu: ['$route', ($route) => {
-          return $route.current.params.menuId;
-        }]
-      },
-      reloadOnSearch: false,
-      template: actionTempl
-    });
-  });
-
-  ngApp.controller('BasicController', function($scope, $compile, $location) {
-    $scope.compile = $compile;
-    return $scope.Katrid = Katrid;
-  });
 
   ngApp.controller('MenuController', function($scope, $stateParams) {
     setTimeout(() => {
@@ -155,18 +107,27 @@
 
 
   ngApp.controller('LoginController', function($scope, $location) {
-    $scope.login = async (username, password) => {
-      let res = await Katrid.Services.Auth.login(username, password);
-      if (res.success) {
-        $scope.messages = [{ message: res.message, type: 'success' }];
-        if ($location.$$url)
-          window.location.href = '/web/#' + $location.$$url;
-        else if (res.redirect)
-          window.location.href = res.redirect;
-      } else {
-        $scope.messages = [{ message: res.message, type: 'danger' }];
-      }
-      $scope.$apply();
+    $scope.login = (username, password) => {
+      $scope.loading = true;
+      Katrid.Services.Auth.login(username, password)
+      .then(res => {
+        if (res.success) {
+          console.log(res.redirect);
+          $scope.messages = [{ message: _.gettext('Loading...'), type: 'success' }];
+          if ($location.$$url)
+            window.location.href = '/web/#' + $location.$$url;
+          else if (res.redirect)
+            window.location.href = res.redirect;
+        } else {
+          $scope.loading = false;
+          $scope.messages = [{ message: res.message, type: 'danger' }];
+        }
+        $scope.$apply();
+      })
+      .catch(() => {
+        $scope.loading = false;
+        $scope.$apply();
+      });
     }
   });
 
@@ -183,10 +144,12 @@
     $scope.$setDirty(field);
   };
 
-  ngApp.controller('ActionController', function($scope, $compile, $state, $location, $transitions, $element, action) {
+  ngApp.controller('ActionController', function($scope, $compile, $state, $location, hotkeys, $element, action) {
     Katrid.core.compile = $compile;
+    action.$state = $state;
     action.scope = $scope;
     action.$element = $element;
+    console.log('action controller', $location);
     if (action instanceof Katrid.Actions.WindowAction)
       action.viewType = $location.$$search.view_type || action.viewModes[0];
     $scope.action = action;
@@ -213,25 +176,8 @@
     action.routeUpdate($location.$$search)
     .then(() => {
       action._unregisterHook = $scope.$on('$locationChangeSuccess', () => {
-        console.log(action._unregisterHook);
         action.routeUpdate($location.$$search);
       });
-    })
-  });
-
-
-  ngApp.controller('ActionController1', function($scope, $compile, $location, $route, action, reset, hotkeys) {
-    prepareScope($scope, $location);
-    Katrid.core.setContent = setContent;
-    Katrid.core.compile = $compile;
-    $scope.Katrid = Katrid;
-
-    $scope.$on('$locationChangeStart', function(event) {
-      if ($scope.dataSource && $scope.dataSource._pendingChanges) {
-        let answer = confirm(Katrid.i18n.gettext("You still have pending changes, are you sure you want to leave this page?"));
-        if (!answer)
-          event.preventDefault();
-      }
     });
 
     hotkeys.bindTo($scope)
@@ -269,6 +215,22 @@
             btn.click();
           }
         }
+      }
+    });
+  });
+
+
+  ngApp.controller('ActionController1', function($scope, $compile, $location, $route, action, reset, hotkeys) {
+    prepareScope($scope, $location);
+    Katrid.core.setContent = setContent;
+    Katrid.core.compile = $compile;
+    $scope.Katrid = Katrid;
+
+    $scope.$on('$locationChangeStart', function(event) {
+      if ($scope.dataSource && $scope.dataSource._pendingChanges) {
+        let answer = confirm(Katrid.i18n.gettext("You still have pending changes, are you sure you want to leave this page?"));
+        if (!answer)
+          event.preventDefault();
       }
     });
 

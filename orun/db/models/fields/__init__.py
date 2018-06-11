@@ -1,19 +1,19 @@
-import warnings
-import decimal
-import datetime
 import collections
+import datetime
+import decimal
 import itertools
+import warnings
 from functools import partial
+
 import sqlalchemy as sa
 from sqlalchemy.schema import FetchedValue
 
-from orun import api, app
 from orun.conf import settings
 from orun.core import exceptions
 from orun.core import validators
-from orun.utils.text import capfirst
 from orun.utils.encoding import force_text, force_str
 from orun.utils.functional import cached_property
+from orun.utils.text import capfirst
 from orun.utils.translation import gettext, gettext_lazy as _
 
 
@@ -561,8 +561,14 @@ class AutoField(Field):
         kwargs.setdefault('readonly', True)
         super(AutoField, self).__init__(*args, **kwargs)
 
-    def create_column(self, *args, **kwargs):
-        return super(AutoField, self).create_column(autoincrement=True, *args, **kwargs)
+    def create_column(self, bind=None, *args, **kwargs):
+        if bind and bind.name == 'oracle':
+            if self.primary_key:
+                import orun.db.backends.oracle.fields
+                self._db_type = orun.db.backends.oracle.fields.Identity()
+            else:
+                self._db_type = sa.Numeric()
+        return super(AutoField, self).create_column(*args, **kwargs)
 
 
 class BigAutoField(AutoField):

@@ -61,14 +61,14 @@ class WebClient(BaseView):
             u = auth.authenticate(username=username, password=password)
             if u and u.is_authenticated:
                 auth.login(u)
-                if request.is_xhr:
+                if request.is_json:
                     return jsonify({
                         'success': True,
                         'user_id': u.id,
                         'redirect': request.args.get('next', url_for('WebClient:index'))
                     })
                 return redirect(request.args.get('next', url_for('WebClient:index')))
-            if request.is_xhr:
+            if request.is_json:
                 return jsonify({
                     'success': False,
                     'message': gettext('Invalid username and password.'),

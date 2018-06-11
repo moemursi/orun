@@ -3,11 +3,10 @@ import logging
 from datetime import datetime
 
 import sqlalchemy as sa
-from sqlalchemy.schema import CreateColumn
+from sqlalchemy.schema import CreateColumn, CreateTable
 
 from orun.db import models
 from orun.db.backends.utils import truncate_name
-from orun.db.transaction import begin
 from orun.utils import timezone
 from orun.utils.encoding import force_bytes
 
@@ -90,7 +89,7 @@ class BaseDatabaseSchemaEditor(object):
     def __enter__(self):
         self.deferred_sql = []
         if self.atomic_migration:
-            self.atomic = begin(self.connection.alias)
+            self.atomic = self.connection.session.begin()
             self.atomic.__enter__()
         return self
 
@@ -116,7 +115,7 @@ class BaseDatabaseSchemaEditor(object):
             else:
                 self.collected_sql.append(sql + ending)
         else:
-            self.connection.execute(sql)
+            self.connection.session.execute(sql)
             # with self.connection.raw_connection().cursor() as cursor:
             #     if params:
             #         cursor.execute(sql, params)
@@ -274,9 +273,9 @@ class BaseDatabaseSchemaEditor(object):
                     "table": self.quote_name(model._meta.table_name),
                     "definition": ", ".join([self.sql_alter_table_add_column % {'column': CreateColumn(col).compile(bind=self.connection)} for col in cols])
                 }
-                self.connection.execute(sql)
+                self.connection.session.execute(sql)
             else:
-                table.create(bind=self.connection)
+                self.connection.session.execute(str(CreateTable(table).compile(self.connection)))
 
         self.deferred_sql.extend(self._model_indexes_sql(model))
 

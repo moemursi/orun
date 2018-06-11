@@ -37,39 +37,26 @@
 
     constructor(name, scope) {
       this.name = name;
-      var me = this;
-      // return new Proxy(this, {
-      //   get(target, name, receiver) {
-      //     if (Reflect.has(target, name)) return Reflect.get(target, name, receiver);
-      //     if (name !== 'toJSON') {
-      //       // RPC
-      //       return function (...args) {
-      //         let data = {};
-      //         if (_.isObject(args[0])) data['kwargs'] = args[0];
-      //         me.post(name, null, data)
-      //         .done((res) => {
-      //           scope.$apply(() => {
-      //             if (res.ok && res.result) {
-      //               if (res.result.values) {
-      //                 for (let attr of Object.keys(res.result.values)) scope.$set(attr, res.result.values[attr]);
-      //               }
-      //             }
-      //           });
-      //         });
-      //       };
-      //     }
-      //   }
-      // });
+    }
+
+    static _fetch(url, config, params) {
+      if (params) {
+        url = new URL(url);
+        Object.entries(params).map((k, v) => url.searchParams.append(k, v));
+      }
+      return fetch(url, config);
     }
 
     static _post(url, data, params) {
-      return $.ajax({
+      return this._fetch(url, {
         method: 'POST',
-        url: url,
-        data: JSON.stringify(data),
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json'
-      });
+        credentials: "same-origin",
+        body: JSON.stringify(data),
+        headers: {
+          'content-type': 'application/json',
+        }
+      }, params)
+      .then(res => res.json());
     }
 
     delete(name, params, data) {

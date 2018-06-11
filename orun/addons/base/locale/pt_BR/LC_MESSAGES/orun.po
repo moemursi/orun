@@ -350,6 +350,9 @@ msgstr "É uma empresa"
 msgid "Persons"
 msgstr "Pessoas"
 
+msgid "Sign in"
+msgstr "Entrar"
+
 msgid "Sign out"
 msgstr "Sair"
 

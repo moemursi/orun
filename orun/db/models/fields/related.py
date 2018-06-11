@@ -2,11 +2,9 @@ import sqlalchemy as sa
 from sqlalchemy.orm import relationship, load_only
 
 from orun import app
-from orun.apps import apps
 from orun.utils.functional import cached_property
 from . import Field
 from .mixins import FieldCacheMixin
-
 
 __all__ = ['ForeignKey', 'OneToManyField', 'ManyToManyField', 'OneToOneField', 'CASCADE', 'SET_NULL']
 
@@ -60,7 +58,7 @@ class ForeignKey(RelatedField):
         self.parent_link = parent_link
         self.label_from_instance = label_from_instance
         self.name_fields = name_fields
-        kwargs.setdefault('db_index', True)
+        kwargs.setdefault('db_index', False)
         super(ForeignKey, self).__init__(to_fields=[to_field], related_name=related_name, *args, **kwargs)
 
     @property
@@ -97,7 +95,7 @@ class ForeignKey(RelatedField):
             return rel_model._meta.pk.column.type, sa.ForeignKey(fk_name)
 
     def get_attname(self):
-        return '%s_id' % self.name
+        return self.db_column or '%s_id' % self.name
 
     def _get_info(self):
         info = super(ForeignKey, self)._get_info()
@@ -123,10 +121,6 @@ class ForeignKey(RelatedField):
             kwargs['to'] = self.to._meta.name
 
         # Handle the simpler arguments
-        if self.db_index:
-            del kwargs['db_index']
-        else:
-            kwargs['db_index'] = False
         if self.db_constraint is not True:
            kwargs['db_constraint'] = self.db_constraint
         if self.on_delete is not None:

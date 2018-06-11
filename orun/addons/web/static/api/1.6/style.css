@@ -5661,4 +5661,7 @@ input[type=datetime-local] {
 [ng-cloak] {
   display: none !important;
 }
+h3 .form-control-lg {
+  font-size: 1.3rem;
+}
 /*# sourceMappingURL=style.map */

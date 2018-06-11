@@ -1,21 +1,19 @@
 import time
 from collections import OrderedDict
-from importlib import import_module
 
 from orun import app as main_app
 from orun.apps import apps
-from orun.conf import settings
 from orun.core.management import commands
 from orun.core.management.commands import CommandError
-from orun.db import connections, transaction, DEFAULT_DB_ALIAS
-from orun.db.migrations.executor import MigrationExecutor
-from orun.db.migrations.state import ModelState, ProjectState
-from orun.db.migrations.exceptions import AmbiguityError
-from orun.db.migrations.autodetector import MigrationAutodetector
-#from orun.db import router
+# from orun.db import router
 from orun.core.management.sql import (
     emit_post_migrate_signal, emit_pre_migrate_signal,
 )
+from orun.db import connections, transaction
+from orun.db.migrations.autodetector import MigrationAutodetector
+from orun.db.migrations.exceptions import AmbiguityError
+from orun.db.migrations.executor import MigrationExecutor
+from orun.db.migrations.state import ProjectState
 
 
 @commands.command('migrate', short_help="Updates database schema. Manages both apps with migrations and those without.")
@@ -210,7 +208,9 @@ class Migrate(object):
                 if model_name not in content_types
             ]
             if cts:
-                ContentType.insert.values(cts)
+                # TODO optimize it for oracle and mysql database
+                for ct in cts:
+                    ContentType.insert.values(ct)
 
     def migration_progress_callback(self, action, migration=None, fake=False):
         if self.verbosity >= 1:

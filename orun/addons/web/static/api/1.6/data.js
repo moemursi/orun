@@ -621,6 +621,17 @@
       this.editing = state === DataSourceState.editing;
       this.loading = state === DataSourceState.loading;
       this.changing =  [DataSourceState.editing, DataSourceState.inserting].includes(this.state);
+      if (this.changing)
+        setTimeout(() => {
+          if (this.action.$element)
+            for (let el of Array.from(this.action.$element.find("input[type!=hidden].form-field:visible"))) {
+              el = $(el);
+              if (!el.attr('readonly')) {
+                $(el).focus();
+                return;
+              }
+            }
+        });
     }
 
     get browsing() {

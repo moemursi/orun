@@ -9,8 +9,8 @@ class Backend(BaseBackend):
 
     @classmethod
     def create_engine(cls, db, url):
-        db = 'usr_' + db
+        # db = 'usr_' + db
         new_url = URL(
             url.drivername, username=db, password=url.password, host=url.host, port=url.port, database=url.database
         )
-        return super(Backend, cls).create_engine(db, new_url)
+        return super(Backend, cls).create_engine(db, url, coerce_to_unicode=True)

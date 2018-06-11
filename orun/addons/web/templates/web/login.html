@@ -54,11 +54,6 @@ body {
 {% block body_class %}text-center{% endblock %}
 {% block content %}
   <div style="width: 100%; max-width: 330px; padding: 15px;margin: 0 auto;">
-    {% for category, msg in get_flashed_messages(with_categories=True) %}
-      <div class="alert alert-{{ category }}">
-      {{ msg }}
-      </div>
-    {% endfor %}
     <img class="mb-4" src="/static/web/assets/img/logo.png" alt="" style="max-height: 80px;">
     <form class="form-signin" method="post" ng-submit="login(username, password)" ng-controller="LoginController">
       {% raw %}
@@ -71,7 +66,7 @@ body {
         <input id="id-password" class="form-control form-control-lg" type="password" ng-model="password" name="password" placeholder="{{ gettext('Password') }}">
       </div>
       <div class="form-group">
-        <button type="submit" class="btn btn-primary btn-block btn-lg">Sign in</button>
+        <button ng-disabled="loading" type="submit" class="btn btn-primary btn-block btn-lg">{{ gettext('Sing in') }}</button>
       </div>
     </form>
   </div>

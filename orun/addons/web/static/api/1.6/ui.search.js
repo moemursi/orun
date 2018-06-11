@@ -487,7 +487,6 @@
       this.scope.search.viewMoreButtons = Katrid.localSettings.searchMenuVisible;
 
       // wait for view loaded
-      console.log(this.viewContent.children());
       for (let item of Array.from(this.viewContent.children()))
         this.loadItem($(item));
 

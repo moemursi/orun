@@ -86,13 +86,18 @@
 
     apply() {}
     backTo(index, viewType) {
-      if (this._unregisterHook && (Katrid.Actions.actionManager.actions.length > 1))
+      console.log(Katrid.Actions.actionManager.actions.length);
+      if (this._currentPath !==  this._unregisterHook && (Katrid.Actions.actionManager.actions.length > 1))
         this._unregisterHook();
 
       // restore to query view
-      let action = Katrid.Actions.actionManager.action = Katrid.Actions.actionManager.actions[index];
+      let action = Katrid.Actions.actionManager.actions[index];
       if ((index === 0) && (viewType === 0))
-        return action.restore(action.searchViewType);
+        return action.restore(action.searchViewType || action.viewModes[0]);
+      else if ((index === 0) && (viewType === 'form'))
+        return action.restore('form');
+
+      Katrid.Actions.actionManager.action = action;
 
       if (!viewType)
         viewType = 'form';
@@ -134,6 +139,7 @@
       this.selectionLength = 0;
       this._cachedViews = {};
       this._currentParams = {};
+      this._currentPath = null;
       this.searchView = null;
     }
 
@@ -149,8 +155,22 @@
 
     restore(viewType) {
       // restore the last search mode view type
-      this.setViewType(viewType, this._currentParams[viewType]);
-
+      let url = this._currentPath || this.location.$$path;
+      let params = this._currentParams[viewType] || {};
+      params['view_type'] = viewType;
+      console.log('restore', url, params);
+      console.log(Katrid.Actions.actionManager.actions.length);
+      if (Katrid.Actions.actionManager.actions.length > 1) {
+        console.log(this.info);
+        params['actionId'] = this.info.id;
+        this.$state.go('actionView', params);
+        // this.location.path(url);
+        // this.location.search(params);
+      } else {
+        this.setViewType(viewType);
+      }
+      // window.location.href = '/web/#' + url + '?view_type=list';
+      // this.setViewType(viewType, this._currentParams[viewType]);
     }
 
     registerFieldNotify(field) {
@@ -196,7 +216,6 @@
     }
 
     async routeUpdate(search) {
-      console.log('route update', search);
       const viewType = this.viewType;
       let oldViewType = this._currentViewType;
 
@@ -205,11 +224,13 @@
           this.scope.records = [];
         }
         if (this.viewType !== oldViewType) {
+          console.log('change route', viewType);
           this.dataSource.pageIndex = null;
           this.dataSource.record = {};
           this.viewType = viewType;
-          let r = await this.execute();
+          // let r = await this.execute();
           this._currentViewType = this.viewType;
+          this.setViewType(viewType, search);
           //if (r !== true)
           //  return this.routeUpdate(this.location.$$search);
         }
@@ -236,9 +257,11 @@
       }
 
       this._currentParams[this.viewType] = jQuery.extend({}, search);
+      this._currentPath = this.location.$$path;
 
       if (search.title)
         this.info.display_name = search.title;
+
     }
 
     _setViewType(viewType) {
@@ -324,7 +347,6 @@
         return;
       if (!this._viewType)
         this.searchViewType = this.viewModes[0];
-      console.log('set view', value);
       this.view = this.views[value];
       this._viewType = value;
     }
