@@ -17,6 +17,10 @@
       return r;
     }
 
+    fromJSON(value, dataSource) {
+      dataSource.record[this.name] = value;
+    }
+
     get onChange() {
       return this._info.onchange;
     }
@@ -120,6 +124,17 @@
   class OneToManyField extends Field {
     get field() {
       return this._info.field;
+    }
+
+    fromJSON(val, dataSource) {
+      if (val && val instanceof Array) {
+        val.map((obj) => {
+          if (obj.action === 'CREATE') {
+            let child = dataSource.childByName(this.name);
+            child.scope.records.push(obj.values);
+          }
+        });
+      }
     }
   }
 

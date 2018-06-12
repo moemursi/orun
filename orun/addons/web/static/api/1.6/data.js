@@ -591,8 +591,16 @@
     }
 
     setValues(values) {
-      console.log('current record', this.scope.record);
-      Object.entries(values).forEach(([k, v]) => this.scope.record[k] = v);
+      Object.entries(values).forEach(([k, v]) => {
+        let fld = this.action.view.fields[k];
+        if (fld)
+          fld.fromJSON(v, this);
+        else
+          this.scope.record[k] = v
+      });
+      for (let child of this.children)
+        child.scope.$apply();
+      this.scope.$apply();
     }
 
     edit() {
@@ -636,6 +644,13 @@
 
     get browsing() {
       return this._state === DataSourceState.browsing;
+    }
+
+    childByName(fieldName) {
+      for (let child of this.children) {
+        if (child.fieldName === fieldName)
+          return child;
+      }
     }
 
     get state() {
