@@ -5664,4 +5664,7 @@ input[type=datetime-local] {
 h3 .form-control-lg {
   font-size: 1.3rem;
 }
+.header-buttons .btn {
+  margin-right: 8px;
+}
 /*# sourceMappingURL=style.map */

@@ -369,8 +369,7 @@ class Model(Service):
             fields = get_xml_fields(xml)
             return {
                 f.name: self.get_field_info(f, view_type)
-                for f in [opts.fields_dict.get(f.attrib['name']) for f in fields]
-                if f
+                for f in [opts.fields_dict.get(f.attrib['name']) for f in fields if 'name' in f.attrib] if f
             }
         if view_type == 'search':
             searchable_fields = opts.searchable_fields

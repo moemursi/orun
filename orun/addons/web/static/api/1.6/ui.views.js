@@ -124,12 +124,12 @@
       }
 
       for (let col of content.children()) {
-        let colHtml = col.outerHTML;
         col = $(col);
+        let html = col.html();
         let name = col.attr('name');
         if (!name) {
-          cols += `<td>${col.html()}</td>`;
-          ths += `<th><span>${col.attr('caption')}</span></th>`;
+          cols += `<td>${html}</td>`;
+          ths += `<th><span>${col.attr('caption') || ''}</span></th>`;
           continue;
         }
 
@@ -137,6 +137,12 @@
 
         if (!fieldInfo || (col.attr('visible') === 'False') || (fieldInfo.visible === false))
           continue;
+
+        if (html) {
+          cols += `<td>${html}</td>`;
+          ths += `<th><span>${col.attr('caption')||fieldInfo.caption}</span></th>`;
+          continue;
+        }
 
         if (fieldInfo.choices) {
           fieldInfo._listChoices = {};
@@ -196,7 +202,7 @@
         for (let child of newHeader.children()) {
           child = $(child);
           if (!child.attr('class'))
-            child.addClass('btn btn-default');
+            child.addClass('btn btn-outline-secondary');
           if (child.prop('tagName') === 'BUTTON')
             headerButtons.append(child);
           if ((child.prop('tagName') === 'BUTTON') && (child.attr('type') === 'object')) {
