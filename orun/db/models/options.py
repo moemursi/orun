@@ -233,7 +233,6 @@ class Options(object):
         elif not self.parents:
             additional_args['order_by'] = normalize_ordering(self, 'pk')
 
-        additional_args = {}
         if self.parents:
             for parent, field in self.parents.items():
                 parent = self.app.models[parent._meta.name]
