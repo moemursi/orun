@@ -417,7 +417,6 @@
           return this.model.write([data])
           .then(res => {
             // this._clearCache();
-            console.log('saved', res);
             this.scope.action.location.search('id', res[0]);
             this.scope.form.$setPristine();
             this.scope.form.$setUntouched();
@@ -433,7 +432,6 @@
               s = error.message;
             else if (error.messages) {
               let elfield;
-              console.log(error.messages);
               for (let fld of Object.keys(error.messages)) {
                 const msgs = error.messages[fld];
                 let field;

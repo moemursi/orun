@@ -165,6 +165,13 @@
           return scope.showDialog();
       };
 
+      scope.addRecord = function (rec) {
+        let record = Katrid.Data.createRecord({}, scope.dataSource);
+        for (let [k, v] of Object.entries(rec))
+          record[k] = v;
+        scope.records.push(record);
+      };
+
       scope.cancelChanges = () => scope.dataSource.setState(Katrid.Data.DataSourceState.browsing);
 
       scope.openItem = index => {

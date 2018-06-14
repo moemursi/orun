@@ -131,7 +131,7 @@
         val.map((obj) => {
           if (obj.action === 'CREATE') {
             let child = dataSource.childByName(this.name);
-            child.scope.records.push(obj.values);
+            child.scope.addRecord(obj.values);
           }
         });
       }
