@@ -433,6 +433,7 @@
               s = error.message;
             else if (error.messages) {
               let elfield;
+              console.log(error.messages);
               for (let fld of Object.keys(error.messages)) {
                 const msgs = error.messages[fld];
                 let field;

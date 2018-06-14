@@ -202,17 +202,19 @@
     }
 
     write(data, params) {
-      return this.post('write', { kwargs: {data} }, params)
-      .then((res) => {
-        Katrid.Dialogs.Alerts.success(Katrid.i18n.gettext('Record saved successfully.'));
-        return res;
-      })
-      .catch(res => {
-        if ((res.status === 500) && res.responseText)
-          alert(res.responseText);
-        else
-          Katrid.Dialogs.Alerts.error(Katrid.i18n.gettext('Error saving record changes'));
-        return res;
+      return new Promise((resolve, reject) => {
+        this.post('write', {kwargs: {data}}, params)
+          .then((res) => {
+            Katrid.Dialogs.Alerts.success(Katrid.i18n.gettext('Record saved successfully.'));
+            resolve(res);
+          })
+          .catch(res => {
+            if ((res.status === 500) && res.responseText)
+              alert(res.responseText);
+            else
+              Katrid.Dialogs.Alerts.error(Katrid.i18n.gettext('Error saving record changes'));
+            reject(res);
+          });
       });
     }
 
