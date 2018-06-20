@@ -4127,6 +4127,14 @@ fieldset legend {
   color: #3c3c3c;
   cursor: pointer;
 }
+.dropdown-search-item .expandable {
+  position: absolute;
+  top: auto;
+  left: 6px;
+  bottom: auto;
+  right: auto;
+  padding: 3px 5px;
+}
 .dashboard-panel h1,
 .dashboard-panel h2 {
   margin: 4px 0;

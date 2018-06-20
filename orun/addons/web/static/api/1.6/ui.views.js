@@ -83,6 +83,19 @@
       return btns;
     }
 
+    compileButtons(container) {
+      return container.find('button').each((idx, btn) => {
+      console.log('compile buttons', btn);
+        btn = $(btn);
+        if (!btn.attr('type') || (btn.attr('type') === 'object'))
+          btn.attr('type', 'button');
+        btn.attr('button-object', btn.attr('name'));
+        btn.attr('ng-click', `action.formButtonClick(record.id, '${ btn.attr('name') }', $event.target);$event.stopPropagation();`);
+        if (!btn.attr('class'))
+          btn.addClass('btn btn-outline-secondary');
+      });
+    }
+
   }
 
 
@@ -122,6 +135,8 @@
         ths += Katrid.$templateCache.get('view.list.th.selector');
         cols += Katrid.$templateCache.get('view.list.td.selector');
       }
+
+      this.compileButtons(content);
 
       for (let col of content.children()) {
         col = $(col);
@@ -199,20 +214,8 @@
       if (newHeader.length) {
         let headerButtons = $('<div class="header-buttons"></div>');
         newHeader.prepend(headerButtons);
-        for (let child of newHeader.children()) {
-          child = $(child);
-          if (!child.attr('class'))
-            child.addClass('btn btn-outline-secondary');
-          if (child.prop('tagName') === 'BUTTON')
-            headerButtons.append(child);
-          if ((child.prop('tagName') === 'BUTTON') && (child.attr('type') === 'object')) {
-            child.attr('type', 'button');
-            child.attr('button-type', 'object');
-            child.attr('ng-click', 'action.formButtonClick($event.target)');
-          } else if ((child.prop('tagName') === 'BUTTON') && !child.attr('type')) {
-            child.attr('type', 'button');
-          }
-        }
+        this.compileButtons(newHeader)
+        .each((btn) => headerButton.append(btn));
         newHeader.addClass('content-container-heading');
       }
       let header = form.find('header').first();

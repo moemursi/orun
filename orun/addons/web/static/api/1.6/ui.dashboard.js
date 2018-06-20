@@ -34,22 +34,31 @@
     }
 
     async link(scope, el, attrs) {
-      let res;
-      if (_.isUndefined(attrs.url))
-        res = await Katrid.Services.Query.read(attrs.queryId);
-      else
-        res = await $.ajax({
-          url: attrs.url,
-          type: 'get',
-        });
+      let res, chart;
 
-      c3.generate({
-        bindto: el[0],
-        data: {
-          type: 'donut',
-          columns: res.data
-        }
-      });
+      let observe = async () => {
+        if (_.isUndefined(attrs.url))
+          res = await Katrid.Services.Query.read(attrs.queryId);
+        else
+          res = await $.ajax({
+            url: attrs.url,
+            type: 'get',
+          });
+
+        if (chart)
+          chart.destroy();
+
+        chart = c3.generate({
+          bindto: el[0],
+          data: {
+            type: 'donut',
+            columns: res.data
+          }
+        });
+      };
+
+      attrs.$observe('url', observe);
+
     }
   }
 

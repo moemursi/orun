@@ -334,6 +334,8 @@
           toolbar: true
         });
         this.fields = res.fields;
+        this.fieldList = res.fieldList;
+        console.log(this.fieldList);
         this.views = res.views;
       }
     }
@@ -449,10 +451,8 @@
       }
     }
 
-    async formButtonClick(self) {
-      const btn = $(self);
-      const meth = btn.prop('name');
-      const res = await this.scope.model.post(meth, { kwargs: { id: this.scope.record.id } });
+    async formButtonClick(id, meth, self) {
+      const res = await this.scope.model.post(meth, { kwargs: { id: id } });
       if (res.ok && res.result.type) {
         const act = new (Katrid.Actions[res.result.type])(res.result, this.scope, this.scope.location);
         act.execute();

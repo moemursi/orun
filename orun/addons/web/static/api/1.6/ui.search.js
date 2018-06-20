@@ -490,10 +490,6 @@
       for (let item of Array.from(this.viewContent.children()))
         this.loadItem($(item));
 
-      setTimeout(() => {
-
-      }, 0);
-
     }
 
     loadItem(item, value, parent, cls) {
