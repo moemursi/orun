@@ -84,8 +84,8 @@
     }
 
     compileButtons(container) {
+      console.log('teste');
       return container.find('button').each((idx, btn) => {
-      console.log('compile buttons', btn);
         btn = $(btn);
         if (!btn.attr('type') || (btn.attr('type') === 'object'))
           btn.attr('type', 'button');
