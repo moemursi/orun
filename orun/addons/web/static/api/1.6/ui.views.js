@@ -214,7 +214,7 @@
         let headerButtons = $('<div class="header-buttons"></div>');
         newHeader.prepend(headerButtons);
         compileButtons(newHeader)
-        .each((btn) => headerButtons.append(btn));
+        .each((idx, btn) => headerButtons.append(btn));
         newHeader.addClass('content-container-heading');
       }
       let header = form.find('header').first();
