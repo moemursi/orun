@@ -1,5 +1,17 @@
 (() => {
 
+  let compileButtons = (container) => {
+    return container.find('button').each((idx, btn) => {
+      btn = $(btn);
+      if (!btn.attr('type') || (btn.attr('type') === 'object'))
+        btn.attr('type', 'button');
+      btn.attr('button-object', btn.attr('name'));
+      btn.attr('ng-click', `action.formButtonClick(record.id, '${ btn.attr('name') }', $event.target);$event.stopPropagation();`);
+      if (!btn.attr('class'))
+        btn.addClass('btn btn-outline-secondary');
+    });
+  };
+
   class ToolbarComponent extends Katrid.UI.Widgets.Component {
     constructor() {
       super();
@@ -83,19 +95,6 @@
       return btns;
     }
 
-    compileButtons(container) {
-      console.log('teste');
-      return container.find('button').each((idx, btn) => {
-        btn = $(btn);
-        if (!btn.attr('type') || (btn.attr('type') === 'object'))
-          btn.attr('type', 'button');
-        btn.attr('button-object', btn.attr('name'));
-        btn.attr('ng-click', `action.formButtonClick(record.id, '${ btn.attr('name') }', $event.target);$event.stopPropagation();`);
-        if (!btn.attr('class'))
-          btn.addClass('btn btn-outline-secondary');
-      });
-    }
-
   }
 
 
@@ -136,7 +135,7 @@
         cols += Katrid.$templateCache.get('view.list.td.selector');
       }
 
-      this.compileButtons(content);
+      compileButtons(content);
 
       for (let col of content.children()) {
         col = $(col);
@@ -214,8 +213,8 @@
       if (newHeader.length) {
         let headerButtons = $('<div class="header-buttons"></div>');
         newHeader.prepend(headerButtons);
-        this.compileButtons(newHeader)
-        .each((btn) => headerButton.append(btn));
+        compileButtons(newHeader)
+        .each((btn) => headerButtons.append(btn));
         newHeader.addClass('content-container-heading');
       }
       let header = form.find('header').first();
