@@ -34,17 +34,14 @@
                 </select>
               </div>
               <div class="form-group">
-                <select class="form-control">
-                  <option value="=">É igual</option>
-                  <option value="!=">É diferente</option>
-                </select>
+                <ng-include src=""/>
               </div>
               <div class="form-group">
                 <ng-include src="action.fields[customSearchFieldName].paramTemplate"/>
               </div>
               <div class="form-group">
-                <button class="btn btn-primary">Adicionar</button>
-                <button class="btn btn-secondary">Aplicar</button>
+                <button class="btn btn-primary">{{ ::_.gettext('Apply') }}</button>
+                <button class="btn btn-outline-secondary">{{ ::_.gettext('Add a condition') }}</button>
               </div>
             </div>
           </div>

@@ -1,0 +1,29 @@
+<templates>
+  <script id="view.param.String" type="text/ng-template">
+    <div class="form-group">
+      <input class="form-control" placeholder="{{ ::_.gettext('Field Value') }}">
+    </div>
+  </script>
+  <script id="view.param.Integer" type="text/ng-template">
+    <div class="form-group">
+      <input class="form-control" type="number" step="1" placeholder="{{ ::_.gettext('Field Value') }}">
+    </div>
+  </script>
+  <script id="view.param.Boolean" type="text/ng-template"></script>
+  <script id="view.param.Date" type="text/ng-template">
+    <div class="form-group">
+      <input class="form-control" date-input type="date" step="1" placeholder="{{ ::_.gettext('Field Value') }}" ng-model="customSearchValue">
+    </div>
+  </script>
+  <script id="view.param.DateTime" type="text/ng-template">
+    <div class="form-group">
+      <input class="form-control" date-input type="datetime-local" step="1" placeholder="{{ ::_.gettext('Field Value') }}" ng-model="customSearchValue">
+    </div>
+  </script>
+  <script id="view.param.Boolean.conditions" type="text/ng-template">
+    <select class="form-control">
+      <option value="=">É igual</option>
+      <option value="!=">É diferente</option>
+    </select>
+  </script>
+</templates>
