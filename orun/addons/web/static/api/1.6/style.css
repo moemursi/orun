@@ -5619,7 +5619,7 @@ select.form-control {
 }
 .pwa-form {
   background-color: #ffffff;
-  opacity: 0.9;
+  opacity: 0.97;
   padding: 8px 8px 16px 8px;
 }
 .pwa-menu .btn {
@@ -5674,5 +5674,8 @@ h3 .form-control-lg {
 }
 .header-buttons .btn {
   margin-right: 8px;
+}
+.search-view-filter-menu .form-group {
+  margin-bottom: 4px;
 }
 /*# sourceMappingURL=style.map */

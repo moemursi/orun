@@ -379,3 +379,15 @@ msgstr "Senha"
 
 msgid "Superuser"
 msgstr "Super Usuário"
+
+msgid "Created by"
+msgstr "Criado por"
+
+msgid "Updated by"
+msgstr "Atualizado por"
+
+msgid "Created on"
+msgstr "Criado em"
+
+msgid "Updated on"
+msgstr "Atualizado em"

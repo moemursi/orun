@@ -23,12 +23,13 @@
         <div class="dropdown-menu search-view-filter-menu">
           <div class="dropdown-divider"></div>
           <a class="dropdown-item dropdown-search-item" onclick="event.stopPropagation();event.preventDefault();" ng-click="customSearchExpanded=!customSearchExpanded">
-            <i ng-class="{ 'fa-caret-right': !customSearchExpanded, 'fa-caret-down': customSearchExpanded }" class="fa expandable"></i> Add Custom Filter
+            <i ng-class="{ 'fa-caret-right': !customSearchExpanded, 'fa-caret-down': customSearchExpanded }" class="fa expandable"></i>
+            {{ ::_.gettext('Add Custom Filter') }}
           </a>
-          <div ng-if="customSearchExpanded" onclick="event.stopPropagation();event.preventDefault();">
+          <div ng-if="customSearchExpanded" onclick="event.stopPropagation();event.preventDefault();" ng-scope>
             <div class="col-12">
               <div class="form-group">
-                <select class="form-control">
+                <select class="form-control" ng-model="customSearchFieldName">
                   <option ng-repeat="field in action.fieldList|orderBy:'caption'" value="{{ field.name }}">{{ field.caption }}</option>
                 </select>
               </div>
@@ -39,7 +40,11 @@
                 </select>
               </div>
               <div class="form-group">
-                <input class="form-control" placeholder="Field Value">
+                <ng-include src="action.fields[customSearchFieldName].paramTemplate"/>
+              </div>
+              <div class="form-group">
+                <button class="btn btn-primary">Adicionar</button>
+                <button class="btn btn-secondary">Aplicar</button>
               </div>
             </div>
           </div>

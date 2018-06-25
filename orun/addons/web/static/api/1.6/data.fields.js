@@ -57,6 +57,10 @@
       return this._info.type;
     }
 
+    get paramTemplate() {
+      return 'view.param.String';
+    }
+
     toJSON(val) {
       return val;
     }
@@ -85,10 +89,16 @@
     toJSON(val) {
       return val;
     }
+
+    get paramTemplate() {
+      return 'view.param.Date';
+    }
   }
 
   class DateTimeField extends DateField {
-
+    get paramTemplate() {
+      return 'view.param.DateTime';
+    }
   }
 
   class NumericField extends Field {
@@ -104,6 +114,10 @@
       if (val && _.isString(val))
         return parseInt(val);
       return val;
+    }
+
+    get paramTemplate() {
+      return 'view.param.Integer';
     }
   }
 

@@ -221,3 +221,6 @@ msgstr "Deletar anexo"
 
 msgid "Search <i>%(caption)s</i> by: <strong>%(text)s</strong>"
 msgstr "Pesquisar <i>%(caption)s</i> por: <strong>%(text)s</strong>"
+
+msgid "Add Custom Filter"
+msgstr "Adicionar Filtro Personalizado"

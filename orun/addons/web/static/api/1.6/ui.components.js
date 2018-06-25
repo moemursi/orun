@@ -903,7 +903,7 @@
 
   uiKatrid.directive('dateInput', ['$filter', ($filter) => ({
     restrict: 'A',
-    require: 'ngModel',
+    require: '?ngModel',
     link(scope, element, attrs, controller) {
 
       let setNow = () => {

@@ -215,8 +215,9 @@
         newHeader.prepend(headerButtons);
         compileButtons(newHeader)
         .each((idx, btn) => headerButtons.append(btn));
-        newHeader.addClass('content-container-heading');
-      }
+      } else
+        newHeader = $('<header></header>');
+      newHeader.addClass('content-container-heading');
       let header = form.find('header').first();
       header.replaceWith(newHeader);
       form.find('field[name=status]').prependTo(newHeader);

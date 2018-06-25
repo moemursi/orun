@@ -12,7 +12,7 @@ from orun.apps import apps
 from orun.core.exceptions import ObjectDoesNotExist, ValidationError, PermissionDenied
 from orun.db import session
 from orun.db.models import signals
-from orun.utils.translation import gettext
+from orun.utils.translation import gettext, gettext_lazy
 from orun.utils.xml import etree
 from orun.utils.xml import get_xml_fields
 from .fields import Field, BooleanField, NOT_PROVIDED
@@ -166,10 +166,10 @@ class ModelBase(type):
             else:
                 if module != '__fake__':
                     if opts.log_changes and not opts.extension and not parents:
-                        _add_auto_field(opts, 'created_by', ForeignKey('auth.user', auto_created=True, editable=False, deferred=True, db_index=False))
-                        _add_auto_field(opts, 'created_on', DateTimeField(default=datetime.datetime.now, auto_created=True, editable=False, deferred=True))
-                        _add_auto_field(opts, 'updated_by', ForeignKey('auth.user', auto_created=True, editable=False, deferred=True, db_index=False))
-                        _add_auto_field(opts, 'updated_on', DateTimeField(on_update=datetime.datetime.now, auto_created=True, editable=False, deferred=True))
+                        _add_auto_field(opts, 'created_by', ForeignKey('auth.user', label=gettext_lazy('Created by'), auto_created=True, editable=False, deferred=True, db_index=False))
+                        _add_auto_field(opts, 'created_on', DateTimeField(default=datetime.datetime.now, label=gettext_lazy('Created on'), auto_created=True, editable=False, deferred=True))
+                        _add_auto_field(opts, 'updated_by', ForeignKey('auth.user', auto_created=True, label=gettext_lazy('Updated by'), editable=False, deferred=True, db_index=False))
+                        _add_auto_field(opts, 'updated_on', DateTimeField(on_update=datetime.datetime.now, label=gettext_lazy('Updated on'), auto_created=True, editable=False, deferred=True))
 
                     if not opts.extension and not parents:
                         from orun.db.models import CharField
