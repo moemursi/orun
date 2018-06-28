@@ -224,3 +224,12 @@ msgstr "Pesquisar <i>%(caption)s</i> por: <strong>%(text)s</strong>"
 
 msgid "Add Custom Filter"
 msgstr "Adicionar Filtro Personalizado"
+
+msgid "Add a condition"
+msgstr "Adicionar uma condição"
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "Remove item"
+msgstr "Remover item"

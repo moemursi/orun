@@ -4807,6 +4807,9 @@ h3.popover-title {
 .margin-top-16 {
   margin-top: 16px;
 }
+.margin-left-8 {
+  margin-left: 8px;
+}
 .margin-bottom-8 {
   margin-bottom: 8px;
 }
@@ -5279,10 +5282,10 @@ table.grid.inline-editor .grid-field-readonly {
   color: #fff;
   background-color: #3276b1;
 }
-.search-view-filter-menu li.selected a {
+.search-view-filter-menu a.selected {
   font-weight: bold;
 }
-.search-view-filter-menu li.selected a:before {
+.search-view-filter-menu a.selected:before {
   font-family: FontAwesome;
   position: absolute;
   left: 6px;
@@ -5674,6 +5677,12 @@ h3 .form-control-lg {
 }
 .header-buttons .btn {
   margin-right: 8px;
+}
+.search-view-facets {
+  display: flex;
+}
+.search-view-filter-menu {
+  min-width: 270px;
 }
 .search-view-filter-menu .form-group {
   margin-bottom: 4px;

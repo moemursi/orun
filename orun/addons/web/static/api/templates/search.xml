@@ -2,50 +2,31 @@
   <script id="view.search" type="text/ng-template">
     <div class="search-area">
       <div class="search-view">
-        <div class="search-view-facets"></div>
+        <div class="search-view-facets">
+          <div class="facet-view" ng-repeat="facet in search.facets">
+            <span class="facet-label" ng-bind-html="facet.item.getFacetLabel()"></span>
+            <span class="facet-value" ng-bind-html="facet.templateValue()"></span>
+            <span class="fa fa-sm fa-remove facet-remove" ng-click="$parent.search.remove($index)"></span>
+          </div>
+        </div>
         <input class="search-view-input" role="search" placeholder="{{ ::_.gettext('Search...') }}" ng-model="search.text">
         <span
             ng-class="{'fa-search-plus': !search.viewMoreButtons, 'fa-search-minus': search.viewMoreButtons}"
-            class="search-view-more fa"></span>
+            class="search-view-more fa" ng-click="search.viewMoreButtons=!search.viewMoreButtons"></span>
       </div>
       <div class="col-sm-12">
         <ul class="search-dropdown-menu search-view-menu" role="menu"></ul>
       </div>
     </div>
   </script>
+
   <script id="view.search.buttons" type="text/ng-template">
     <div class="btn-group search-view-more-area" ng-show="search.viewMoreButtons">
-      {{ fieldList|json }}
-      <div class="btn-group">
+      <div custom-filter class="btn-group">
         <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" type="button" aria-expanded="false">
           <span class="fa fa-filter"></span> {{ ::_.gettext('Filters') }} <span class="caret"></span>
         </button>
-        <div class="dropdown-menu search-view-filter-menu">
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item dropdown-search-item" onclick="event.stopPropagation();event.preventDefault();" ng-click="customSearchExpanded=!customSearchExpanded">
-            <i ng-class="{ 'fa-caret-right': !customSearchExpanded, 'fa-caret-down': customSearchExpanded }" class="fa expandable"></i>
-            {{ ::_.gettext('Add Custom Filter') }}
-          </a>
-          <div ng-if="customSearchExpanded" onclick="event.stopPropagation();event.preventDefault();" ng-scope>
-            <div class="col-12">
-              <div class="form-group">
-                <select class="form-control" ng-model="customSearchFieldName">
-                  <option ng-repeat="field in action.fieldList|orderBy:'caption'" value="{{ field.name }}">{{ field.caption }}</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <ng-include src=""/>
-              </div>
-              <div class="form-group">
-                <ng-include src="action.fields[customSearchFieldName].paramTemplate"/>
-              </div>
-              <div class="form-group">
-                <button class="btn btn-primary">{{ ::_.gettext('Apply') }}</button>
-                <button class="btn btn-outline-secondary">{{ ::_.gettext('Add a condition') }}</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ng-include src="'view.search.menu'"/>
       </div>
       <div class="btn-group">
         <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" type="button">
@@ -56,6 +37,56 @@
       <button class="btn btn-secondary">
         <span class="fa fa-star"></span> {{ ::_.gettext('Favorites') }} <span class="caret"></span>
       </button>
+    </div>
+  </script>
+
+  <script id="view.search.menu" type="text/ng-template">
+    <div class="dropdown-menu search-view-filter-menu">
+      <div>
+        <div ng-repeat="group in search.filterGroups">
+          <a class="dropdown-item" ng-class="{'selected': filter.selected}" ng-repeat="filter in group" ng-click="filter.toggle();$event.stopPropagation();">
+            {{ filter.toString() }}
+          </a>
+          <div class="dropdown-divider"></div>
+        </div>
+      </div>
+      <div ng-controller="CustomFilterController">
+        <div ng-repeat="filter in customFilter">
+          <a class="dropdown-item" ng-class="{'selected': filterItem.selected}" ng-click="filterItem.toggle();$event.stopPropagation();$event.preventDefault();" ng-repeat="filterItem in filter" ng-bind-html="filterItem.toString()"></a>
+          <div class="dropdown-divider"></div>
+        </div>
+        <a class="dropdown-item dropdown-search-item" onclick="event.stopPropagation();event.preventDefault();" ng-click="customSearchExpanded=!customSearchExpanded">
+          <i ng-class="{ 'fa-caret-right': !customSearchExpanded, 'fa-caret-down': customSearchExpanded }" class="fa expandable"></i>
+          {{ ::_.gettext('Add Custom Filter') }}
+        </a>
+        <div ng-if="customSearchExpanded" onclick="event.stopPropagation();event.preventDefault();">
+          <div ng-show="tempFilter.length" class="margin-bottom-8">
+            <a href="javascript:void(0)" class="dropdown-item" ng-repeat="filter in tempFilter" ng-bind-html="filter.toString()" title="{{ ::_.gettext('Remove item') }}"></a>
+          </div>
+          <div class="col-12">
+            <div class="form-group">
+              <select class="form-control" ng-model="fieldName" ng-change="fieldChange(action.fields[fieldName])">
+                <option value=""></option>
+                <option ng-repeat="field in action.fieldList|orderBy:'caption'" value="{{ field.name }}">{{ field.caption }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <ng-include src="field.paramTemplate + '.conditions'"/>
+            </div>
+            <div class="form-group">
+              <ng-include src="field.paramTemplate" ng-show="controlVisible"/>
+            </div>
+            <div class="form-group">
+              <button class="btn btn-primary" type="button" ng-click="applyFilter()" ng-show="searchValue!==undefined">
+                {{ ::_.gettext('Apply') }}
+              </button>
+              <button class="btn btn-outline-secondary" type="button" ng-click="addCondition(field, condition, searchValue);fieldName='';" ng-show="searchValue">
+                {{ ::_.gettext('Add a condition') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </script>
 </templates>

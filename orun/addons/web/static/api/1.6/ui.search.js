@@ -91,14 +91,15 @@
         this.items.push(item);
         this.searchView.renderFacets();
       }
-      if (item instanceof SearchGroup) this.groups.push(item);
+      if (item instanceof SearchGroup)
+        this.groups.push(item);
       this.searchView.change();
-      item.onSelect();
     }
 
     loadItem(item) {
       this.items.push(item);
-      if (item instanceof SearchGroup) this.groups.push(item);
+      if (item instanceof SearchGroup)
+        this.groups.push(item);
     }
 
     remove(item) {
@@ -106,7 +107,6 @@
       if (item instanceof SearchGroup) {
         this.groups.splice(this.groups.indexOf(item), 1);
       }
-      item.onRemove();
       this.searchView.change();
     }
 
@@ -120,10 +120,17 @@
 
 
   class FacetView {
-    constructor(item, values) {
+    constructor(item) {
       this.item = item;
-      if (values) this.values = values;
-      else this.values = [{searchString: this.item.getDisplayValue(), value: this.item.value}];
+      this.values = [];
+    }
+
+    init(item, values) {
+      this.item = item;
+      if (values)
+        this.values = values;
+      else
+        this.values = [{searchString: this.item.getDisplayValue(), value: this.item.value}];
     }
 
     addValue(item) {
@@ -136,14 +143,14 @@
       return (Array.from(this.values).map((s) => s.searchString)).join(sep);
     }
 
-    template() {
-      const s = `<span class="facet-label">${this.item.getFacetLabel()}</span>`;
-      return `<div class="facet-view">
-  ${s}
-  <span class="facet-value">${this.templateValue()}</span>
-  <span class="fa fa-sm fa-remove facet-remove"></span>
-  </div>`;
-    }
+  //   template() {
+  //     const s = `<span class="facet-label">${this.item.getFacetLabel()}</span>`;
+  //     return `<div class="facet-view">
+  // ${s}
+  // <span class="facet-value">${this.templateValue()}</span>
+  // <span class="fa fa-sm fa-remove facet-remove"></span>
+  // </div>`;
+  //   }
 
     link(searchView) {
       const html = $(this.template());
@@ -163,13 +170,24 @@
       this.render(searchView);
     }
 
-    render(searchView) {
-      this.link(searchView).insertBefore(searchView.menu.input);
+    destroy() {
+      this.item.clear();
+    }
+
+    getParamValues() {
+      const r = [];
+      for (let v of this.values) {
+        r.push(this.item.getParamValue(this.item.name, v));
+      }
+      if (r.length > 1) {
+        return [{'OR': r}];
+      }
+      return r;
     }
   }
 
 
-  class SearchItem {
+  class _SearchItem {
     constructor(name, item, parent, ref, menu) {
       this.name = name;
       this.item = item;
@@ -304,7 +322,7 @@
   }
 
 
-  class SearchField extends SearchItem {
+  class SearchField extends _SearchItem {
     constructor(name, item, parent, ref, menu) {
       super(name, item, parent, ref, menu);
       if (ref.type === 'ForeignKey') {
@@ -317,16 +335,16 @@
   }
 
 
-  class SearchFilter extends SearchItem {
+  class _SearchFilter extends _SearchItem {
     constructor(name, item, parent, ref, menu) {
       super(name, item, parent, ref, menu);
       this.domain = JSON.parse(item.attr('domain').replace(/'/g, '"'));
     }
     link(scope, $compile, parent) {
       const ul = this.searchView.toolbar.find('.search-view-filter-menu');
-      var el = $(`<a class="dropdown-item" href="javascript:void(0)">${this.label}</a>`);
+      let el = $(`<a class="dropdown-item" href="javascript:void(0)">${this.label}</a>`);
       this._toggleMenuEl = el;
-      var me = this;
+      let me = this;
       el.click(function(evt) {
         evt.preventDefault();
         let e = $(this);
@@ -364,7 +382,7 @@
   }
 
 
-  class SearchGroup extends SearchItem {
+  class SearchGroup extends _SearchItem {
     constructor(name, item, parent, ref, menu) {
       super(name, item, parent, ref, menu);
       const ctx = item.attr('context');
@@ -390,7 +408,7 @@
   }
 
 
-  class SearchView extends Katrid.UI.Widgets.Widget {
+  class SearchView1 extends Katrid.UI.Widgets.Widget {
     constructor(scope) {
       super(scope);
       this.action = scope.action;
@@ -493,6 +511,7 @@
     }
 
     loadItem(item, value, parent, cls) {
+      console.log('load item', item, value);
       const tag = item.prop('tagName');
       if (cls == null) {
         if (tag === 'FIELD') {
@@ -562,6 +581,284 @@
     }
   }
 
+  class SearchItem {
+    constructor(view, name, el) {
+      this.view = view;
+      this.name = name;
+      this.el = el;
+    }
+
+    getDisplayValue() {
+      if (this.value) {
+        return this.value[1];
+      }
+      return this.searchString;
+    }
+
+    getParamValue(name, value) {
+      const r = {};
+      if (_.isArray(value)) {
+        r[name] = value[0];
+      } else {
+        r[name + '__icontains'] = value;
+      }
+      return r;
+    }
+
+    _doChange() {
+      this.view.update();
+    }
+  }
+
+  class SearchFilter extends SearchItem {
+    constructor(view, name, label, domain, group, el) {
+      super(view, name, el);
+      this.group = group;
+      this.label = label;
+      if (_.isString(domain))
+        domain = JSON.parse(domain.replace(/'/g, '"'));
+      this.domain = domain;
+      this._selected = false;
+    }
+
+    static fromItem(view, el, group) {
+      return new SearchFilter(view, el.attr('name'), el.attr('label'), el.attr('domain'), group, el);
+    }
+
+    toString() {
+      return this.label;
+    }
+
+    toggle() {
+      this.selected = !this.selected;
+    }
+
+    get selected() {
+      return this._selected;
+    }
+
+    set selected(value) {
+      this._selected = value;
+      if (value)
+        this.group.addValue(this);
+      else
+        this.group.removeValue(this);
+      this._doChange();
+    }
+
+    getDisplayValue() {
+      return this.label;
+    }
+
+    get facet() {
+      return this.group.facet;
+    }
+
+    getParamValue() {
+      return this.domain;
+    }
+
+    get value() {
+      return this.domain;
+    }
+  }
+
+  class SearchFilterGroup extends Array {
+    constructor(view) {
+      super();
+      this.view = view;
+      this._selection = [];
+      this._facet = new FacetView(this);
+    }
+
+    static fromItem(view, el) {
+      let group = new SearchFilterGroup(view);
+      group.push(SearchFilter.fromItem(view, el, group));
+      return group;
+    }
+
+    static fromGroup(view, el) {
+      let group = new SearchFilterGroup(view);
+      for (let child of el.children())
+        group.push(SearchFilter.fromItem(view, $(child), group));
+      return group;
+    }
+
+    addValue(item) {
+      this._selection.push(item);
+      // this._facet.addValue(item);
+      this._facet.values = this._selection.map(item => ({ searchString: item.getDisplayValue(), value: item.value }));
+      this._refresh();
+    }
+
+    removeValue(item) {
+      this._selection.splice(this._selection.indexOf(item), 1);
+      this._facet.values = this._selection.map(item => ({ searchString: item.getDisplayValue(), value: item.value }));
+      this._refresh();
+    }
+
+    selectAll() {
+      for (let item of this)
+        this.addValue(item);
+      this.view.update();
+    }
+
+    getFacetLabel() {
+      return '<span class="fa fa-filter"></span>';
+    }
+
+    _refresh() {
+      if (this._selection.length) {
+        if (this.view.facets.indexOf(this._facet) === -1)
+          this.view.facets.push(this._facet);
+      } else if (this.view.facets.indexOf(this._facet) > -1)
+        this.view.facets.splice(this.view.facets.indexOf(this._facet), 1);
+      console.log(this.view.facets);
+    }
+
+    getParamValue(name, v) {
+      return v.value;
+    }
+
+    clear() {
+      this._selection = [];
+    }
+
+  }
+
+  class CustomFilterItem extends SearchFilter {
+    constructor(view, field, condition, value, group) {
+      super(view, field.name, field.caption, null, group);
+      console.log('group', group);
+      this.field = field;
+      this.condition = condition;
+      this._value = value;
+      this._selected = true;
+    }
+
+    toString() {
+      let conditions = {
+        '=': Katrid.i18n.gettext('Is equal'),
+        '!=': Katrid.i18n.gettext('Is different'),
+      };
+
+      let s = this.field.format(this._value);
+
+      return this.field.caption + ' ' + conditions[this.condition].toLowerCase() + ' "' + s + '"';
+    }
+
+    getParamValue() {
+      console.log('search param', this.searchValue);
+    }
+
+    get value() {
+      let r = {};
+      r[this.field.name] = this._value;
+      return r;
+    }
+
+  }
+
+  Katrid.uiKatrid.controller('CustomFilterController', function ($scope, $element, $filter) {
+    $scope.tempFilter = null;
+    $scope.customFilter = [];
+
+    $scope.fieldChange = function (field) {
+      $scope.field = field;
+      $scope.condition = field.defaultCondition;
+      $scope.conditionChange($scope.condition);
+    };
+
+    $scope.conditionChange = (condition) => {
+      $scope.controlVisible = $scope.field.isControlVisible(condition);
+    };
+
+    $scope.valueChange = (value) => {
+      $scope.searchValue = value;
+    };
+
+    $scope.addCondition = (field, condition, value) => {
+      if (!$scope.tempFilter)
+        $scope.tempFilter = new SearchFilterGroup($scope.$parent.search);
+      $scope.tempFilter.push(new CustomFilterItem($scope.$parent.search, field, condition, value, $scope.tempFilter));
+      $scope.field = null;
+      $scope.condition = null;
+      $scope.controlVisible = false;
+      $scope.searchValue = undefined;
+    };
+
+    $scope.applyFilter = () => {
+      if ($scope.searchValue)
+        $scope.addCondition($scope.field, $scope.condition, $scope.searchValue);
+      $scope.customFilter.push($scope.tempFilter);
+      $scope.tempFilter.selectAll();
+      $scope.tempFilter = null;
+      $scope.customSearchExpanded = false;
+    };
+  })
+
+  .directive('customFilter', () => (
+    {
+      restrict: 'A',
+      scope: {
+        action: '=',
+      },
+    }
+  ));
+
+  class SearchView {
+    constructor(scope, view) {
+      this.scope = scope;
+      this.query = new SearchQuery(this);
+      this.viewMoreButtons = false;
+      this.items = [];
+      this.filterGroups = [];
+      this.groups = [];
+      this.facets = [];
+
+      this.view = view;
+      this.el = $(view.content);
+
+      for (let child of this.el.children()) {
+        child = $(child);
+        let tag = child.prop('tagName');
+        let obj;
+        if (tag === 'FILTER') {
+          obj = SearchFilterGroup.fromItem(this, child);
+          this.filterGroups.push(obj);
+        }
+        else if (tag === 'FILTER-GROUP') {
+          obj = SearchFilterGroup.fromGroup(this, child);
+          this.filterGroups.push(obj);
+        }
+        this.append(obj);
+      }
+      console.log(this.filterGroups);
+
+    }
+
+    append(item) {
+      this.items.push(item);
+    }
+
+    remove(index) {
+      let facet = this.facets[index];
+      facet.destroy();
+      this.facets.splice(index, 1);
+    }
+
+    getParams() {
+      let r = [];
+      for (let i of this.facets)
+        r = r.concat(i.getParamValues());
+      return r;
+    }
+
+    update() {
+      this.scope.action.setSearchParams(this.getParams());
+    }
+  }
+
   class SearchViewComponent extends Katrid.UI.Widgets.Component {
     constructor($compile) {
       super();
@@ -572,10 +869,19 @@
 
       this.$compile = $compile;
     }
+
+
     link(scope, el, attrs, controller) {
-      (new SearchView(scope, {})).link(scope.action, el, attrs, controller, this.$compile);
+      let view = scope.action.views.search;
+      let elView = $(view.content);
+      scope.search = new SearchView(scope, view);
+      // (new SearchView(scope, {})).link(scope.action, el, attrs, controller, this.$compile);
     }
   }
+
+  Katrid.uiKatrid.controller('SearchMenuController', function($scope) {
+
+  });
 
   Katrid.uiKatrid.directive('searchView', SearchViewComponent);
 

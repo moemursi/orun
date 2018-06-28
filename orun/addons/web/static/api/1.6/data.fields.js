@@ -61,6 +61,10 @@
       return 'view.param.String';
     }
 
+    format(value) {
+      return value.toString();
+    }
+
     toJSON(val) {
       return val;
     }
@@ -80,9 +84,29 @@
     validate() {
 
     }
+
+    get defaultCondition() {
+      return '=';
+    }
+    
+    isControlVisible(condition) {
+      switch (condition) {
+        case 'is null':
+          return false;
+        case 'is not null':
+          return false;
+      }
+      return true;
+    }
   }
 
   class StringField extends Field {
+  }
+
+  class BooleanField extends Field {
+    get paramTemplate() {
+      return 'view.param.Boolean';
+    }
   }
 
   class DateField extends Field {
@@ -92,6 +116,12 @@
 
     get paramTemplate() {
       return 'view.param.Date';
+    }
+
+    format(value) {
+      if (_.isString(value))
+        return moment(value).format(Katrid.i18n.gettext('yyyy-mm-dd').toUpperCase());
+      return '';
     }
   }
 
@@ -172,7 +202,8 @@
     ForeignKey,
     OneToManyField,
     ManyToManyField,
-    DateField
+    DateField,
+    BooleanField,
   }
 
 
