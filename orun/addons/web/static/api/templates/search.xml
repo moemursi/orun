@@ -17,11 +17,12 @@
       <div class="col-sm-12">
         <ul class="search-dropdown-menu search-view-menu" role="menu">
           <li ng-repeat="item in ::search.fields">
-            <a href="javascript:void(0)" class="search-menu-item" ng-mousedown="$event.preventDefault();$event.stopPropagation();" ng-click="item.select()" ng-bind-html="item.template"></a>
-            <a ng-if="::item.expandable" class="expandable" href="javascript:void(0)" ng-mousedown="item.expanded=!item.expanded;$event.preventDefault();$event.stopPropagation();">
+            <a ng-if="item.expandable" class="expandable" href="javascript:void(0)" ng-mousedown="item.expanded=!item.expanded;$event.preventDefault();$event.stopPropagation();">
               <i class="fa" ng-class="{'fa-angle-down': item.expanded, 'fa-angle-right': !item.expanded}"></i>
             </a>
-            <a class="search-menu-item indent" href="#" ng-mousedown="$parent.select($parent.item, value)" ng-bind="value[1]" ng-repeat="value in item.values"></a>
+            <a href="javascript:void(0)" class="search-menu-item" ng-mousedown="$event.preventDefault();$event.stopPropagation();" ng-click="item.select()" ng-bind-html="item.template"></a>
+            <a ng-if="item.loading" class="search-menu-item"><i>{{ ::_.gettext('Loading...') }}</i></a>
+            <a class="search-menu-item indent" href="javascript:void(0)" ng-mousedown="$parent.item.selectItem(value)" ng-bind="value[1]" ng-repeat="value in item.children"></a>
           </li>
         </ul>
       </div>
