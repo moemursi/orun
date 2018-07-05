@@ -76,7 +76,7 @@ class UserReport(models.Model):
 
 class AutoReport(models.Model):
     name = models.CharField(128, null=False)
-    model = models.ForeignKey('ir.model', null=False, db_index=True)
+    model = models.ForeignKey('ir.model', null=False)
     content = models.TextField()
 
     class Meta:

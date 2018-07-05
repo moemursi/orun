@@ -15,9 +15,15 @@
             class="search-view-more fa" ng-click="search.viewMoreButtons=!search.viewMoreButtons"></span>
       </div>
       <div class="col-sm-12">
-        <div class="search-dropdown-menu search-view-menu" role="menu">
-          <a href="javascript:void(0)" class="dropdown-item search-menu-item" ng-mousedown="$event.preventDefault()" ng-click="item.select()" ng-repeat="item in search.fields" ng-bind-html="item.template"></a>
-        </div>
+        <ul class="search-dropdown-menu search-view-menu" role="menu">
+          <li ng-repeat="item in ::search.fields">
+            <a href="javascript:void(0)" class="search-menu-item" ng-mousedown="$event.preventDefault();$event.stopPropagation();" ng-click="item.select()" ng-bind-html="item.template"></a>
+            <a ng-if="::item.expandable" class="expandable" href="javascript:void(0)" ng-mousedown="item.expanded=!item.expanded;$event.preventDefault();$event.stopPropagation();">
+              <i class="fa" ng-class="{'fa-angle-down': item.expanded, 'fa-angle-right': !item.expanded}"></i>
+            </a>
+            <a class="search-menu-item indent" href="#" ng-mousedown="$parent.select($parent.item, value)" ng-bind="value[1]" ng-repeat="value in item.values"></a>
+          </li>
+        </ul>
       </div>
     </div>
   </script>

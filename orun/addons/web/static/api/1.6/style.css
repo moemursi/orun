@@ -4063,17 +4063,6 @@ fieldset legend {
   right: auto;
   padding: 3px 5px;
 }
-.search-area .search-view-menu li .expandable::before {
-  content: "";
-  display: inline-block;
-  width: 0;
-  height: 0;
-  vertical-align: middle;
-  border-bottom: 4px solid transparent;
-  border-left: 4px solid;
-  border-right: 0;
-  border-top: 4px solid transparent;
-}
 .search-area .search-view-menu li .expanded {
   position: absolute;
   top: auto;
@@ -4081,18 +4070,6 @@ fieldset legend {
   bottom: auto;
   right: auto;
   padding: 3px;
-}
-.search-area .search-view-menu li .expanded::before {
-  content: "";
-  display: inline-block;
-  width: 0;
-  height: 0;
-  vertical-align: middle;
-  border-bottom: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 4px solid;
-  -moz-transform: scale(0.9999);
 }
 .comments {
   background-color: #ffffff;
@@ -5270,7 +5247,7 @@ table.grid.inline-editor .grid-field-readonly {
 }
 .search-dropdown-menu > li > a {
   display: block;
-  padding: 3px 20px;
+  padding: 3px 20px 3px 25px;
   clear: both;
   font-weight: 400;
   line-height: 1.42857143;
