@@ -1,13 +1,11 @@
-from functools import wraps, partial
-from urllib.parse import urlparse, urlunparse
 from datetime import timedelta
-from flask import request, redirect, make_response, session, url_for
+from functools import wraps, partial
+
+from flask import request, redirect, make_response, session, url_for, abort
 
 from orun import app
-from orun.utils.decorators import available_attrs
-from orun.conf import settings
-from orun.auth import REDIRECT_FIELD_NAME
 from orun.auth import AUTH_SESSION_KEY, SITE_SESSION_KEY
+from orun.auth import REDIRECT_FIELD_NAME
 
 
 def _login_required(fn=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None, session_key=AUTH_SESSION_KEY):
@@ -21,6 +19,8 @@ def _login_required(fn=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=
             # Disable decorator for testing framework
             if user or app.config['TESTING']:
                 return view_func(*args, **kwargs)
+            if request.is_json:
+                abort(403)
             return redirect(
                 url_for(
                     login_url, _external=True, _scheme=request.environ.get('HTTP_X_FORWARDED_PROTO', 'http'),

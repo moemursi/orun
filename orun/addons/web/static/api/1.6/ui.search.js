@@ -1,5 +1,25 @@
 (function() {
 
+  let conditionsLabels = {
+    '=': Katrid.i18n.gettext('Is equal'),
+    '!=': Katrid.i18n.gettext('Is different'),
+    '>': Katrid.i18n.gettext('Greater-than'),
+    '<': Katrid.i18n.gettext('Less-than'),
+  };
+
+  let conditionSuffix = {
+    '=': '',
+    '!=': '__isnot',
+    'like': '__icontains',
+    'not like': '__not_icontains',
+    '>': '__gt',
+    '>=': '__gte',
+    '<': '__lt',
+    '<=': '__lte',
+    'in': '__in',
+    'not in': '__not_in',
+  };
+
   class SearchMenu {
     constructor(element, parent, options) {
       this.element = element;
@@ -737,14 +757,9 @@
     }
 
     toString() {
-      let conditions = {
-        '=': Katrid.i18n.gettext('Is equal'),
-        '!=': Katrid.i18n.gettext('Is different'),
-      };
-
       let s = this.field.format(this._value);
 
-      return this.field.caption + ' ' + conditions[this.condition].toLowerCase() + ' "' + s + '"';
+      return this.field.caption + ' ' + conditionsLabels[this.condition].toLowerCase() + ' "' + s + '"';
     }
 
     getParamValue() {
@@ -753,7 +768,7 @@
 
     get value() {
       let r = {};
-      r[this.field.name] = this._value;
+      r[this.field.name + conditionSuffix[this.condition]] = this._value;
       return r;
     }
 

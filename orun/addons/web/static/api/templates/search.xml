@@ -1,11 +1,11 @@
 <templates>
   <script id="view.search" type="text/ng-template">
-    <div class="search-area">
+    <div search-view-area class="search-area">
       <div class="search-view">
         <div class="search-view-facets">
           <div class="facet-view" ng-repeat="facet in search.facets">
-            <span class="facet-label" ng-bind-html="facet.item.getFacetLabel()"></span>
-            <span class="facet-value" ng-bind-html="facet.templateValue()"></span>
+            <span class="facet-label" ng-bind-html="facet.caption"></span>
+            <span class="facet-value" ng-bind-html="facet.templateValue"></span>
             <span class="fa fa-sm fa-remove facet-remove" ng-click="$parent.search.remove($index)"></span>
           </div>
         </div>
@@ -15,7 +15,9 @@
             class="search-view-more fa" ng-click="search.viewMoreButtons=!search.viewMoreButtons"></span>
       </div>
       <div class="col-sm-12">
-        <ul class="search-dropdown-menu search-view-menu" role="menu"></ul>
+        <div class="search-dropdown-menu search-view-menu" role="menu">
+          <a href="javascript:void(0)" class="dropdown-item search-menu-item" ng-mousedown="$event.preventDefault()" ng-click="item.select()" ng-repeat="item in search.fields" ng-bind-html="item.template"></a>
+        </div>
       </div>
     </div>
   </script>

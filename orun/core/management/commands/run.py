@@ -1,4 +1,5 @@
 import os
+
 from orun.core.management import commands
 
 
@@ -65,7 +66,7 @@ def command(host, port, reload, debugger, eager_loading, with_threads, websocket
         from gevent import monkey
         monkey.patch_all()
 
-        from gevent.wsgi import WSGIServer
+        from gevent.pywsgi import WSGIServer
 
         WSGIServer((host, port), app.wsgi_app).serve_forever()
     else:

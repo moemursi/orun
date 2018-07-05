@@ -1,8 +1,7 @@
 from functools import partial
-from orun import app, session
-from orun.utils.crypto import constant_time_compare
-from .anonymous import AnonymousUser
 
+from orun import app, session
+from .anonymous import AnonymousUser
 
 # Define session tokens
 AUTH_SESSION_KEY = '_auth_user_id'
