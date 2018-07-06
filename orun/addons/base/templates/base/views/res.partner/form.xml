@@ -5,8 +5,9 @@
     </div>
     <div class="media-body">
       <h3>
-      <field name="name" cols="12" class="form-control-lg" nolabel="placeholder"/>
+        <field name="name" cols="12" class="form-control-lg" nolabel="placeholder"/>
       </h3>
+      <field name="is_employee"/>
     </div>
   </div>
 
