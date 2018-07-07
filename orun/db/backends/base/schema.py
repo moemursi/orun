@@ -630,7 +630,7 @@ class BaseDatabaseSchemaEditor(object):
                 self.execute(self._delete_constraint_sql(self.sql_delete_check, model, constraint_name))
         # Have they renamed the column?
         if old_field.db_column != new_field.db_column:
-            self.execute(self._rename_field_sql(model._meta.db_table, old_field, new_field, new_type))
+            self.execute(self._rename_field_sql(model._meta.table_name, old_field, new_field, new_type))
         # Next, start accumulating actions to do
         actions = []
         null_actions = []
@@ -638,7 +638,7 @@ class BaseDatabaseSchemaEditor(object):
         # Type change?
         if old_type != new_type:
             fragment, other_actions = self._alter_column_type_sql(
-                model._meta.db_table, old_field, new_field, new_type
+                model._meta.table_name, old_field, new_field, new_type
             )
             actions.append(fragment)
             post_actions.extend(other_actions)
@@ -711,14 +711,14 @@ class BaseDatabaseSchemaEditor(object):
                 # directly run a (NOT) NULL alteration
                 actions = actions + null_actions
             # Combine actions together if we can (e.g. postgres)
-            if self.connection.features.supports_combined_alters and actions:
-                sql, params = tuple(zip(*actions))
-                actions = [(", ".join(sql), sum(params, []))]
+            # if self.connection.features.supports_combined_alters and actions:
+            #     sql, params = tuple(zip(*actions))
+            #     actions = [(", ".join(sql), sum(params, []))]
             # Apply those actions
             for sql, params in actions:
                 self.execute(
                     self.sql_alter_column % {
-                        "table": self.quote_name(model._meta.db_table),
+                        "table": model._meta.table_name,
                         "changes": sql,
                     },
                     params,
@@ -727,7 +727,7 @@ class BaseDatabaseSchemaEditor(object):
                 # Update existing rows with default value
                 self.execute(
                     self.sql_update_with_default % {
-                        "table": self.quote_name(model._meta.db_table),
+                        "table": model._meta.table_name,
                         "column": self.quote_name(new_field.db_column),
                         "default": "%s",
                     },
@@ -832,8 +832,8 @@ class BaseDatabaseSchemaEditor(object):
             }
             self.execute(sql)
         # Reset connection if required
-        if self.connection.features.connection_persists_old_columns:
-            self.connection.close()
+        # if self.connection.features.connection_persists_old_columns:
+        #     self.connection.close()
 
     def _alter_column_type_sql(self, table, old_field, new_field, new_type):
         """
@@ -970,7 +970,7 @@ class BaseDatabaseSchemaEditor(object):
 
     def _rename_field_sql(self, table, old_field, new_field, new_type):
         return self.sql_rename_column % {
-            "table": self.quote_name(table),
+            "table": table,
             "old_column": self.quote_name(old_field.db_column),
             "new_column": self.quote_name(new_field.db_column),
             "type": new_type,
@@ -1023,22 +1023,12 @@ class BaseDatabaseSchemaEditor(object):
         Returns all constraint names matching the columns and conditions
         """
         column_names = list(column_names) if column_names else None
-        with self.connection.session.cursor() as cursor:
-            constraints = self.connection.introspection.get_constraints(cursor, model._meta.db_table)
+        insp = sa.inspect(self.connection)
+        fks = insp.dialect.get_foreign_keys(self.connection.session, model._meta.db_table, model._meta.db_schema)
         result = []
-        for name, infodict in constraints.items():
-            if column_names is None or column_names == infodict['columns']:
-                if unique is not None and infodict['unique'] != unique:
-                    continue
-                if primary_key is not None and infodict['primary_key'] != primary_key:
-                    continue
-                if index is not None and infodict['index'] != index:
-                    continue
-                if check is not None and infodict['check'] != check:
-                    continue
-                if foreign_key is not None and not infodict['foreign_key']:
-                    continue
-                result.append(name)
+        for constraint in fks:
+            if column_names is None or column_names == constraint['constrained_columns']:
+                result.append(constraint['name'])
         return result
 
     def load_fixtures(self, model, fixtures):

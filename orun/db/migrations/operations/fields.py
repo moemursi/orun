@@ -188,11 +188,11 @@ class AlterField(Operation):
             # If the field is a relatedfield with an unresolved rel.to, just
             # set it equal to the other field side. Bandaid fix for AlterField
             # migrations that are part of a RenameModel change.
-            if from_field.remote_field and from_field.remote_field.model:
-                if isinstance(from_field.remote_field.model, str):
-                    from_field.remote_field.model = to_field.remote_field.model
-                elif to_field.remote_field and isinstance(to_field.remote_field.model, str):
-                    to_field.remote_field.model = from_field.remote_field.model
+            if getattr(from_field, 'to', None):
+                if isinstance(from_field.to, str):
+                    from_field.to = to_field.related_model
+                elif isinstance(to_field.to, str):
+                    to_field.to = from_field.to
             if not self.preserve_default:
                 to_field.default = self.field.default
             schema_editor.alter_field(from_model, from_field, to_field)
