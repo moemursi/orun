@@ -1,6 +1,3 @@
-#from orun.db import router
-
-
 class Operation(object):
     """
     Base class for migration operations.

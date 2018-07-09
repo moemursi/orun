@@ -1,10 +1,10 @@
-import collections
 import datetime
 import decimal
 import itertools
 import warnings
 from functools import partial
 
+import collections
 import sqlalchemy as sa
 from sqlalchemy.schema import FetchedValue
 
@@ -15,6 +15,10 @@ from orun.utils.encoding import force_text, force_str
 from orun.utils.functional import cached_property
 from orun.utils.text import capfirst
 from orun.utils.translation import gettext, gettext_lazy as _
+
+# The values to use for "blank" in SelectFields. Will be appended to the start
+# of most "choices" lists.
+BLANK_CHOICE_DASH = [("", "---------")]
 
 
 class NOT_PROVIDED:
@@ -89,7 +93,7 @@ class Field:
 
     def __init__(self, label=None, db_column=None, db_index=False, primary_key=False,
                  concrete=None, readonly=None, null=True, required=None, widget_attrs=None,
-                 auto_created=False, default=NOT_PROVIDED, choices=None,
+                 auto_created=False, default=NOT_PROVIDED, choices=None, rel=None,
                  deferred=False, copy=None, serializable=True, editable=True, help_text=None, validators=[],
                  error_messages=None, compute=None,
                  unique=False, db_tablespace=None, getter=None, setter=None, proxy=None, onchange=None, *args, **kwargs):
@@ -131,6 +135,7 @@ class Field:
         self.getter = getter
         self.setter = setter
         self.compute = compute
+        self.remote_field = rel
 
         if null is None:
             self.null = True

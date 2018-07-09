@@ -5,11 +5,11 @@ def get_dependencies(addon):
     r = []
     if isinstance(addon, str):
         addon = registry.app_configs[addon]
-    deps = addon.depends
+    deps = addon.dependencies
     if deps:
-        for dep in addon.depends:
+        for dep in addon.dependencies:
             r += get_dependencies(dep)
-        return r + list(addon.depends)
+        return r + list(addon.dependencies)
     return []
 
 

@@ -1,5 +1,6 @@
 import os
 from importlib import import_module
+
 import flask
 
 from .registry import apps
@@ -9,7 +10,7 @@ class AppConfig(flask.Blueprint):
     name = None
     description = None
     short_description = None
-    depends = ['base']
+    dependencies = ['base']
     version = None
     fixtures = []
     demo = []
@@ -51,6 +52,10 @@ class AppConfig(flask.Blueprint):
     @property
     def label(self):
         return self.schema
+
+    @label.setter
+    def label(self, value):
+        self.schema = value
 
     def init_addon(self):
         print('Loading module', self.name)

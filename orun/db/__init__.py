@@ -1,7 +1,7 @@
 from orun import app
 from orun.core import signals
-from .utils import (ConnectionHandler, DEFAULT_DB_ALIAS, DatabaseError, DataError, Error, IntegrityError,
-    InterfaceError, InternalError, NotSupportedError, OperationalError, ProgrammingError,)
+from .utils import (ConnectionHandler, DEFAULT_DB_ALIAS, DataError, Error, IntegrityError,
+                    InterfaceError, InternalError, NotSupportedError, OperationalError, ProgrammingError, ConnectionRouter)
 
 
 class Connections:
@@ -11,9 +11,10 @@ class Connections:
     def __getattr__(self, item):
         return getattr(app.connections, item)
 
+
 connections = Connections()
 
-#router = ConnectionRouter()
+router = ConnectionRouter()
 
 
 # `connection`, `DatabaseError` and `IntegrityError` are convenient aliases

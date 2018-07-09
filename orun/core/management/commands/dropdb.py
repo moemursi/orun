@@ -1,4 +1,5 @@
 import os
+
 from sqlalchemy.engine.url import make_url
 
 from orun.core.management import commands
@@ -44,7 +45,7 @@ def drop(db):
             commands.echo(e, err=True)
     elif db_engine == 'mssql':
         try:
-            conn.execute('''ROLLBACK; DROP DATABASE [%s]''' % db_name)
+            conn.execute('''DROP DATABASE [%s]''' % db_name)
         except Exception as e:
             commands.echo(e, err=True)
         conn.autocommit = False

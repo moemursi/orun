@@ -105,7 +105,10 @@ class ModelBase(type):
         if 'app_label' in meta_attrs:
             app_label = meta_attrs['app_label']
         if app_label:
-            app_config = _apps.app_configs.get(module.split('.')[0])
+            m = module.split('.')[0]
+            if m == '__fake__':
+                m = app_label
+            app_config = _apps.app_configs.get(m, apps.get_app_config(m))
 
         parents = [b for b in parents if hasattr(b, '_meta')]
         meta_parents = [b._meta.__class__ for b in parents]

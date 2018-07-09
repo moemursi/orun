@@ -2,17 +2,22 @@ import sqlalchemy as sa
 from sqlalchemy.orm import relationship, load_only
 
 from orun import app
+from orun.apps import apps
 from orun.utils.functional import cached_property
 from . import Field
 from .mixins import FieldCacheMixin
+from .reverse_related import (
+    ManyToManyRel, )
 
-__all__ = ['ForeignKey', 'OneToManyField', 'ManyToManyField', 'OneToOneField', 'CASCADE', 'SET_NULL']
+__all__ = [
+    'ForeignKey', 'OneToManyField', 'ManyToManyField', 'OneToOneField', 'CASCADE', 'SET_NULL',
+    'RECURSIVE_RELATIONSHIP_CONSTANT'
+]
 
 
 CASCADE = 'CASCADE'
-
-
 SET_NULL = 'SET NULL'
+RECURSIVE_RELATIONSHIP_CONSTANT = 'self'
 
 
 class RelatedField(FieldCacheMixin, Field):
@@ -67,10 +72,16 @@ class ForeignKey(RelatedField):
         if model == 'self':
             model = self.model
         if self.model._meta.app:
-            model = self.model._meta.app.get_model(model)
+            if self.model.__module__ == '__fake__':
+                if not isinstance(model, str):
+                    print('model name', model, model._meta.name)
+                    model = model._meta.name
+                model = self.model._meta.apps.all_models.get(model, apps.all_models.get(model))
+            if model is None or isinstance(model, str):
+                model = self.model._meta.app.get_model(self.to)
         # is a migration
         if model and self.model.__module__ == '__fake__' and model._meta.extension:
-            model = model._meta.base_model
+            model = model._meta.base_model or model
         return model
 
     @property
@@ -80,7 +91,9 @@ class ForeignKey(RelatedField):
             if isinstance(to_field, str):
                 return self.related_model._meta.fields_dict[to_field]
             return to_field
-        return self.related_model._meta.pk
+        model = self.related_model
+        if not isinstance(model, str):
+            return self.related_model._meta.pk
 
     def db_type(self, bind=None):
         rel_model = self.related_model
@@ -246,12 +259,26 @@ class ManyToManyField(RelatedField):
     many_to_many = True
     child_field = True
 
-    def __init__(self, to, through=None, through_fields=None, lazy='dynamic', *args, **kwargs):
+    rel_class = ManyToManyRel
+
+    def __init__(self, to, through=None, through_fields=None, related_name=None, related_query_name=None,
+                 limit_choices_to=None, symmetrical=None, db_constraint=None, db_table=None,
+                 lazy='dynamic', *args, **kwargs):
         self.to = to
         self.through = through
         self.through_fields = through_fields
         self._rel_model = None
         self.through_model = None
+        kwargs['rel'] = self.rel_class(
+            self, to,
+            related_name=related_name,
+            related_query_name=related_query_name,
+            limit_choices_to=limit_choices_to,
+            symmetrical=symmetrical,
+            through=through,
+            through_fields=through_fields,
+            db_constraint=db_constraint,
+        )
         super(ManyToManyField, self).__init__(lazy=lazy, *args, **kwargs)
 
     def get_attname(self):

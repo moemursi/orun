@@ -11,7 +11,6 @@ from orun.db.migrations.operations.models import AlterModelOptions
 from orun.db.migrations.optimizer import MigrationOptimizer
 from orun.db.migrations.questioner import MigrationQuestioner
 from orun.db.migrations.utils import COMPILED_REGEX_TYPE, RegexObject
-
 from .topological_sort import stable_topological_sort
 
 
@@ -537,7 +536,7 @@ class MigrationAutodetector(object):
             # Generate operations for each related field
             for name, field in sorted(related_fields.items()):
                 # Account for FKs to swappable models
-                if field.rel_field.model._meta.extension:
+                if field.rel_field.model._meta.extension and field.rel_field.model._meta.base_model:
                     dep_app_label = field.rel_field.model._meta.base_model._meta.app_label
                     dep_object_name = field.rel_field.model._meta.base_model._meta.model_name
                 else:
@@ -705,7 +704,7 @@ class MigrationAutodetector(object):
             # This depends on both the removal/alteration of all incoming fields
             # and the removal of all its own related fields, and if it's
             # a through model the field that references it.
-            return
+
             dependencies = []
             for related_object in model._meta.related_objects:
                 related_object_app_label = related_object.related_model._meta.app_label

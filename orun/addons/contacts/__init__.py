@@ -9,7 +9,7 @@ class AppConfig(orun.AppConfig):
     installable = True
     fixtures = ['actions.xml', 'menu.xml']
     #demo = ['demo.json']
-    depends = ['base']
+    dependencies = ['base']
 
 
 addon = AppConfig()

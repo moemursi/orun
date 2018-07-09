@@ -1,14 +1,13 @@
 import os
+import pkgutil
 import sys
 from collections import defaultdict, OrderedDict
-from threading import Lock
-import pkgutil
 from importlib import import_module
-from functools import partial
+from threading import Lock
 
 import orun
-from orun.core.exceptions import AppRegistryNotReady
 from orun.conf import ADDONS_ENVIRONMENT_VARIABLE
+from orun.core.exceptions import AppRegistryNotReady
 
 
 class Registry(object):
@@ -17,6 +16,8 @@ class Registry(object):
         self.ready = False
         self.apps_loaded = False
         self.models_ready = False
+        if app_configs and isinstance(app_configs, list):
+            app_configs = {app_config.app_label: app_config for app_config in app_configs}
         self.app_configs = app_configs or {}
         self.modules = {}
         self.basic_commands = []
@@ -111,6 +112,18 @@ class Registry(object):
         if model_name is None:
             app_label, model_name = app_label.split('.')
         return self.module_models[app_label][model_name]
+
+    def do_pending_operations(self, model):
+        """
+        Take a newly-prepared model and pass it to each function waiting for
+        it. This is called at the very end of Apps.register_model().
+        """
+        key = model._meta.app_label, model._meta.model_name
+        for function in self._pending_operations.pop(key, []):
+            function(model)
+
+    def clear_cache(self):
+        ...
 
 # Start main registry
 apps = registry = Registry()

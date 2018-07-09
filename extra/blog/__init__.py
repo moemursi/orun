@@ -1,5 +1,4 @@
 import orun
-from orun.utils.translation import gettext_lazy as _
 
 
 class AppConfig(orun.AppConfig):
@@ -9,7 +8,7 @@ class AppConfig(orun.AppConfig):
     installable = True
     fixtures = []
     #demo = ['demo.json']
-    depends = ['base']
+    dependencies = ['base']
 
 
 addon = AppConfig()

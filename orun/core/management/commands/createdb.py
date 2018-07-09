@@ -33,7 +33,7 @@ def _create_connection(db):
         database = connections.databases[DEFAULT_DB_ALIAS].get('SYSTEM_DB', 'SYSTEM')
 
     url = URL(url.drivername, url.username, url.password, url.host, url.port, database, url.query)
-    return create_engine(url).connect()
+    return create_engine(url).connect().execution_options(autocommit=True, isolation_level='AUTOCOMMIT')
 
 
 def create(db):
@@ -59,6 +59,7 @@ def create(db):
     elif 'mysql' == db_engine:
         conn.execute("""CREATE DATABASE %s""" % db_name)
     elif db_engine == 'mssql':
+        conn.detach()
         conn.execute("""CREATE DATABASE [%s]""" % db_name)
     elif db_engine == 'oracle':
         conn.execute('create user usr_%s identified by %s' % (db, db_settings.password))

@@ -345,6 +345,23 @@ class Options(object):
             return [self.fields[field_name] for field_name in self.field_groups['name_fields']]
         return [self.fields[self.title_field]]
 
+    @property
+    def related_objects(self):
+        """
+        Return all related objects pointing to the current model. The related
+        objects can come from a one-to-one, one-to-many, or many-to-many field
+        relation type.
+
+        Private API intended only to be used by Django itself; get_fields()
+        combined with filtering of field properties is the public API for
+        obtaining this field list.
+        """
+        return ()
+        return (
+            "related_objects",
+            tuple()
+            # (obj for obj in self.local_fields if not obj.hidden or obj.field.many_to_many)
+        )
 
 def normalize_together(option_together):
     """

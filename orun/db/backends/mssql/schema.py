@@ -12,6 +12,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     sql_rename_table = "SP_RENAME '%(old_table)s', '%(new_table)s'"
     sql_rename_column = "SP_RENAME '%(table)s.%(old_column)s', %(new_column)s, 'COLUMN'"
     sql_delete_column = "ALTER TABLE %(table)s DROP COLUMN %(column)s"
+    sql_delete_table = "DROP TABLE %(table)s"
 
     def _create_fk_sql(self, model, field, suffix):
         sql = super(DatabaseSchemaEditor, self)._create_fk_sql(model, field, suffix)

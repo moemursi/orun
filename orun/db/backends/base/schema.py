@@ -368,13 +368,14 @@ class BaseDatabaseSchemaEditor(object):
         Deletes a model from the database.
         """
         # Handle auto-created intermediary models
-        for field in model._meta.local_many_to_many:
-            if field.rel_field.through._meta.auto_created:
-                self.delete_model(field.rel_field.through)
+        for field in model._meta.local_fields:
+            if field.many_to_many:
+                if field.rel_field.through._meta.auto_created:
+                    self.delete_model(field.rel_field.through)
 
         # Delete the table
         self.execute(self.sql_delete_table % {
-            "table": self.quote_name(model._meta.db_table),
+            "table": model._meta.table_name,
         })
 
     def add_index(self, index):
@@ -520,13 +521,13 @@ class BaseDatabaseSchemaEditor(object):
                 self.execute(self._delete_constraint_sql(self.sql_delete_fk, model, fk_name))
         # Delete the column
         sql = self.sql_delete_column % {
-            "table": self.quote_name(model._meta.db_table),
+            "table": model._meta.table_name,
             "column": self.quote_name(field.db_column),
         }
         self.execute(sql)
         # Reset connection if required
-        if self.connection.features.connection_persists_old_columns:
-            self.connection.close()
+        # if self.connection.features.connection_persists_old_columns:
+        #     self.connection.close()
 
     def alter_field(self, model, old_field, new_field, strict=False):
         """
@@ -1027,6 +1028,7 @@ class BaseDatabaseSchemaEditor(object):
         fks = insp.dialect.get_foreign_keys(self.connection.session, model._meta.db_table, model._meta.db_schema)
         result = []
         for constraint in fks:
+            print(column_names, constraint['constrained_columns'])
             if column_names is None or column_names == constraint['constrained_columns']:
                 result.append(constraint['name'])
         return result

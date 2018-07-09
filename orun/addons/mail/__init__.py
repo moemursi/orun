@@ -10,7 +10,7 @@ class AppConfig(orun.AppConfig):
     installable = True
     application = True
     fixtures = ['mail.xml', 'views.xml']
-    depends = ['base']
+    dependencies = ['base']
 
 
 addon = AppConfig()

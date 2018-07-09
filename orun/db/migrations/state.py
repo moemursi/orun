@@ -5,14 +5,12 @@ from contextlib import contextmanager
 from orun import app
 from orun.apps import AppConfig
 from orun.apps import Registry as Apps, apps as global_apps
-from orun.conf import settings
 from orun.db import models
 from orun.db.models.options import DEFAULT_NAMES, normalize_together
 from orun.utils.encoding import force_text, smart_text
 from orun.utils.functional import cached_property
 from orun.utils.module_loading import import_string
 from orun.utils.version import get_docs_version
-
 from .exceptions import InvalidBasesError
 
 
@@ -507,7 +505,7 @@ class ModelState(object):
     def render(self, apps):
         "Creates a Model object from our current state into the given apps"
         # First, make a Meta object
-        meta_contents = {'app_label': self.app_label, "apps": apps}
+        meta_contents = {'app_label': self.app_label, "apps": apps, "__register__": True}
         meta_contents.update(self.options)
         meta = type(str("Meta"), tuple(), meta_contents)
         # Then, work out our bases
@@ -533,6 +531,7 @@ class ModelState(object):
             body,
         )
         model._meta.app = app
+        return model
 
     def get_field_by_name(self, name):
         for fname, field in self.fields:

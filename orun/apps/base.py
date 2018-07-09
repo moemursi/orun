@@ -1,21 +1,21 @@
-import os
 import inspect
 from contextlib import contextmanager
+
 import flask
-from flask import Flask, session
-from flask_mail import Mail
 import sqlalchemy as sa
+from flask import Flask
+from flask_mail import Mail
+from sqlalchemy.engine.url import make_url
 from sqlalchemy.schema import CreateSchema
-from sqlalchemy.engine.url import URL, make_url
 
 from orun import g, SUPERUSER
+from orun.auth.request import auth_before_request
 from orun.conf import global_settings
 from orun.db import (connection, DEFAULT_DB_ALIAS)
-from orun.utils.functional import SimpleLazyObject
 from orun.utils import translation
+from orun.utils.functional import SimpleLazyObject
 from .registry import registry
 from .utils import adjust_dependencies
-from orun.auth.request import auth_before_request
 
 
 class Application(Flask):
@@ -94,7 +94,6 @@ class Application(Flask):
                 # Initialize addon on current instance
                 if hasattr(addon, 'init_app'):
                     addon.init_app(self)
-
 
     def build_models(self):
         print('Building models')
