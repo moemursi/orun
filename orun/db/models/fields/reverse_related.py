@@ -260,8 +260,8 @@ class ManyToManyRel(ForeignObjectRel):
             limit_choices_to=limit_choices_to,
         )
 
-        if through and not db_constraint:
-            raise ValueError("Can't supply a through model and db_constraint=False")
+        # if through and not db_constraint:
+        #     raise ValueError("Can't supply a through model and db_constraint=False")
         self.through = through
 
         if through_fields and not through:
