@@ -233,3 +233,6 @@ msgstr "Aplicar"
 
 msgid "Remove item"
 msgstr "Remover item"
+
+msgid "Paste"
+msgstr "Colar"
