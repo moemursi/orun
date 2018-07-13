@@ -536,13 +536,19 @@ class Model(Service):
         return (self.pk, str(self))
 
     @api.method
-    def search_name(self, name=None, count=None, page=None, label_from_instance=None, name_fields=None, *args, **kwargs):
+    def search_name(
+            self, name=None, count=None, page=None, label_from_instance=None, name_fields=None, *args, exact: False,
+            **kwargs
+    ):
         params = kwargs.get('params')
         if name:
             if name_fields is None:
                 name_fields = self._meta.get_name_fields()
                 # name_fields = [_resolve_fk_search(f) for f in self._meta.get_name_fields()]
-            q = [sa.or_(*[fld.column.ilike('%' + name + '%') for fld in name_fields])]
+            if exact:
+                q = [sa.or_(*[fld.column == name for fld in name_fields])]
+            else:
+                q = [sa.or_(*[fld.column.ilike('%' + name + '%') for fld in name_fields])]
             if params:
                 q.append(params)
             kwargs = {'params': q}
@@ -572,7 +578,7 @@ class Model(Service):
         return record
 
     @api.method
-    def get_field_choices(self, field, q=None, count=False, ids=None, page=None, **kwargs):
+    def get_field_choices(self, field, q=None, count=False, ids=None, page=None, exact=False, **kwargs):
         field_name = field
         field = self._meta.fields_dict[field_name]
         related_model = self.env[field.related_model]
@@ -588,7 +594,7 @@ class Model(Service):
         else:
             search_params['params'] = [related_model.pk.in_(ids if isinstance(ids, (list, tuple)) else [ids])]
         label_from_instance = kwargs.get('label_from_instance', field.label_from_instance or kwargs.get('name_fields'))
-        return related_model.search_name(label_from_instance=label_from_instance, **search_params)
+        return related_model.search_name(label_from_instance=label_from_instance, exact=exact, **search_params)
 
     @api.record
     def _proxy_field_change(self, field):
