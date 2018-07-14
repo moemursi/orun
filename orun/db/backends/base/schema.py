@@ -681,15 +681,14 @@ class BaseDatabaseSchemaEditor(object):
                 ))
         # Nullability change?
         if old_field.null != new_field.null:
-            if (self.connection.features.interprets_empty_strings_as_nulls and
-                    new_field.get_internal_type() in ("CharField", "TextField")):
+            if new_field.get_internal_type() in ("CharField", "TextField"):
                 # The field is nullable in the database anyway, leave it alone
                 pass
             elif new_field.null:
                 null_actions.append((
                     self.sql_alter_column_null % {
                         "column": self.quote_name(new_field.db_column),
-                        "type": new_type,
+                        "definition": new_type,
                     },
                     [],
                 ))
