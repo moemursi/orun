@@ -255,7 +255,7 @@ class ModelBase(type):
         if cls._meta.app:
             return session.query(cls)
         else:
-            return session.query(app[cls._meta.name])
+            return session.query(app[cls._meta.name].__class__)
 
 
 class Service(metaclass=ModelBase):
