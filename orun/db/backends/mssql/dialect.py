@@ -27,17 +27,17 @@ class MSSQLDialect(sqlalchemy.dialects.mssql.pyodbc.dialect):
 
     @sqlalchemy.dialects.mssql.base._db_plus_owner
     def get_foreign_keys(self, connection, tablename, dbname, owner, schema, **kw):
+        if schema:
+            tablename = schema + '.' + tablename
         sql = '''select fk.name constraint_name, cols.name as column_name, schemas.name as schema_name, rt.name as table_name
 from sys.foreign_keys fk
 inner join sys.tables rt on fk.referenced_object_id = rt.object_id
 inner join sys.foreign_key_columns fkc on fkc.constraint_object_id = fk.object_id
 inner join sys.columns cols on cols.object_id = fk.parent_object_id and cols.column_id = fkc.parent_column_id
 inner join sys.schemas schemas on schemas.schema_id = rt.schema_id
-where fk.parent_object_id = OBJECT_ID(:table)
-'''
-        if schema:
-            tablename = schema + '.' + tablename
-        for fk in connection.execute(sql, {'table': tablename}).fetchall():
+where fk.parent_object_id = OBJECT_ID('%s')
+''' % tablename
+        for fk in connection.execute(sql).fetchall():
             yield {
                 'name': fk.constraint_name,
                 'constrained_columns': [fk.column_name],
