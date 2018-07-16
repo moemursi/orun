@@ -537,7 +537,7 @@ class Model(Service):
 
     @api.method
     def search_name(
-            self, name=None, count=None, page=None, label_from_instance=None, name_fields=None, *args, exact: False,
+            self, name=None, count=None, page=None, label_from_instance=None, name_fields=None, *args, exact=False,
             **kwargs
     ):
         params = kwargs.get('params')
