@@ -194,8 +194,8 @@
       .then(this.constructor._prepareFields);
     }
 
-    getFieldChoices(field, term) {
-      return this.post('get_field_choices', { args: [ field, term ]} );
+    getFieldChoices(field, term, kwargs) {
+      return this.post('get_field_choices', { args: [ field, term ], kwargs: kwargs } );
     }
 
     doViewAction(data) {
@@ -308,6 +308,25 @@
   }
 
 
+  class Upload {
+    static sendFile(service, file) {
+      let form = new FormData();
+      form.append('files', file.files[0]);
+      let scope = angular.element(file).scope();
+      $.ajax({
+        url: `/web/file/upload/${scope.model.name}/${service}/?id=${scope.record.id}`,
+        data: form,
+        processData: false,
+        contentType: false,
+        type: 'POST',
+        success: (data) => {
+          console.log(data);
+        }
+      });
+    }
+  }
+
+
   this.Katrid.Services = {
     Data,
     View,
@@ -317,6 +336,7 @@
     Model,
     Query,
     Auth,
+    Upload,
     Actions
   };
 

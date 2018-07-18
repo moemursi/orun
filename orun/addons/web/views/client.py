@@ -108,6 +108,13 @@ class WebClient(BaseView):
             res.append({'id': obj.pk, 'name': obj.name})
         return jsonify(res)
 
+    @route('/file/upload/<model>/<meth>/', methods=['POST'])
+    def upload_file(self, model, meth):
+        model = app[model]
+        meth = getattr(model, meth)
+        if meth.exposed:
+            meth([file for file in request.files.getlist('files')])
+
     @json_route('/data/reorder/', methods=['POST'])
     def reorder(self, model, ids, field='sequence', offset=0):
         cls = app[model]

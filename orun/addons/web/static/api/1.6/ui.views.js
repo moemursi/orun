@@ -3,10 +3,14 @@
   let compileButtons = (container) => {
     return container.find('button').each((idx, btn) => {
       btn = $(btn);
+      let type = btn.attr('type');
+
       if (!btn.attr('type') || (btn.attr('type') === 'object'))
         btn.attr('type', 'button');
-      btn.attr('button-object', btn.attr('name'));
-      btn.attr('ng-click', `action.formButtonClick(record.id, '${ btn.attr('name') }', $event.target);$event.stopPropagation();`);
+      if (type === 'object') {
+        btn.attr('button-object', btn.attr('name'));
+        btn.attr('ng-click', `action.formButtonClick(record.id, '${ btn.attr('name') }', $event.target);$event.stopPropagation();`);
+      }
       if (!btn.attr('class'))
         btn.addClass('btn btn-outline-secondary');
     });
@@ -73,11 +77,11 @@
     getBreadcrumb() {
       let html = `<ol class="breadcrumb">`;
       let i = 0;
-      for (let h of Katrid.Actions.actionManager.actions) {
+      for (let h of Katrid.Actions.actionManager) {
         if (i === 0 && h.viewModes.length > 1)
           html += `<li class="breadcrumb-item"><a href="javascript:void(0)" ng-click="action.backTo(0, 0)">${ h.info.display_name }</a></li>`;
         i++;
-        if (Katrid.Actions.actionManager.actions.length > i && h.viewType === 'form')
+        if (Katrid.Actions.actionManager.length > i && h.viewType === 'form')
           html += `<li class="breadcrumb-item"><a href="javascript:void(0)" ng-click="action.backTo(${i-1}, 'form')">${ h.scope.record.display_name }</a></li>`;
       }
       if (this.constructor.type === 'form')
@@ -192,7 +196,6 @@
       let fieldList = Array.from(content.children('field')).map((el) => $(el).attr('name'));
       content.children('field').remove();
       content.find('field').each((idx, el) => $(el).replaceWith(`{{ ::record.${ $(el).attr('name') } }}`));
-      console.log(this.content);
       return sprintf(Katrid.$templateCache.get(this.templateUrl), { content: content.html() });
     }
   }
