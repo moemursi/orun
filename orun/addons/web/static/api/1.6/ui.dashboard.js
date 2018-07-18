@@ -75,7 +75,7 @@
         r = Katrid.Services.Query.read(attrs.id);
       else
         r = $.get(attrs.url);
-      r.done(res => {
+      r.then(res => {
         let data = res.data.map((row) => (_.object(res.fields, row)));
         scope.$apply(() => scope[attrs.name] = data);
       });
