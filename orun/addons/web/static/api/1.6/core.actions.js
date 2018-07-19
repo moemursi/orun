@@ -1,34 +1,30 @@
 (function () {
 
-
-  class ActionManager {
-    static initClass() {
-    }
-
+  class ActionManager extends Array {
     constructor() {
-      this.actions = [];
+      super();
       this.mainAction = null;
     }
 
     addAction(action) {
       if (!this.mainAction)
         this.mainAction = action;
-      this.actions.push(action);
+      this.push(action);
     }
 
     removeAction(action) {
-      this.actions.splice(this.actions.indexOf(action), this.actions.length);
+      this.splice(this.indexOf(action), this.length);
     }
 
     get action() {
-      return this.actions[this.actions.length-1];
+      return this[this.length-1];
     }
     set action(action) {
-      this.actions.splice(this.actions.indexOf(action) + 1, this.actions.length);
+      this.splice(this.indexOf(action) + 1, this.length);
     }
 
     clear() {
-      this.actions = [];
+      this.length = 0;
       this.mainAction = null;
     }
 
@@ -86,12 +82,11 @@
 
     apply() {}
     backTo(index, viewType) {
-      console.log(Katrid.Actions.actionManager.actions.length);
-      if (this._currentPath !==  this._unregisterHook && (Katrid.Actions.actionManager.actions.length > 1))
+      if (this._currentPath !==  this._unregisterHook && (Katrid.Actions.actionManager.length > 1))
         this._unregisterHook();
 
       // restore to query view
-      let action = Katrid.Actions.actionManager.actions[index];
+      let action = Katrid.Actions.actionManager[index];
       if ((index === 0) && (viewType === 0))
         return action.restore(action.searchViewType || action.viewModes[0]);
       else if ((index === 0) && (viewType === 'form'))
@@ -158,9 +153,7 @@
       let url = this._currentPath || this.location.$$path;
       let params = this._currentParams[viewType] || {};
       params['view_type'] = viewType;
-      console.log('restore', url, params);
-      console.log(Katrid.Actions.actionManager.actions.length);
-      if (Katrid.Actions.actionManager.actions.length > 1) {
+      if (Katrid.Actions.actionManager.length > 1) {
         console.log(this.info);
         params['actionId'] = this.info.id;
         this.$state.go('actionView', params);
@@ -173,13 +166,13 @@
       // this.setViewType(viewType, this._currentParams[viewType]);
     }
 
-    registerFieldNotify(field) {
-      // Add field to notification list
-      if (this.notifyFields.indexOf(field.name) === -1) {
-        this.scope.$watch(`record.${field.name}`, () => console.log('field changed', field));
-        return this.notifyFields.push(fields);
-      }
-    }
+    // registerFieldNotify(field) {
+    //   // Add field to notification list
+    //   if (this.notifyFields.indexOf(field.name) === -1) {
+    //     this.scope.$watch(`record.${field.name}`, () => console.log('field changed', field));
+    //     return this.notifyFields.push(fields);
+    //   }
+    // }
 
     getCurrentTitle() {
       if (this.viewType === 'form') {
@@ -198,6 +191,8 @@
 
     deleteSelection() {
       let sel = this.selection;
+      if (!sel)
+        return false;
       if (
         ((sel.length === 1) && confirm(Katrid.i18n.gettext('Confirm delete record?'))) ||
         ((sel.length > 1) && confirm(Katrid.i18n.gettext('Confirm delete records?')))
@@ -335,7 +330,6 @@
         });
         this.fields = res.fields;
         this.fieldList = res.fieldList;
-        console.log(this.fieldList);
         this.views = res.views;
       }
     }
@@ -518,6 +512,12 @@
     }
 
     get selection() {
+      if (this.viewType === 'form') {
+        if (this.dataSource.id)
+          return [this.dataSource.id];
+        else
+          return;
+      }
       if (this._selection)
         return Array.from(this._selection).map((el) => ($(el).data('id')));
     }
@@ -652,11 +652,11 @@
     ReportAction,
     ViewAction,
     UrlAction,
-    ClientAction
+    ClientAction,
+    ActionManager,
+    actionManager: new ActionManager()
   };
 
-  this.Katrid.Actions.ActionManager = ActionManager;
-  this.Katrid.Actions.actionManager = new ActionManager();
   this.Katrid.Actions[WindowAction.actionType] = WindowAction;
   this.Katrid.Actions[ReportAction.actionType] = ReportAction;
   this.Katrid.Actions[ViewAction.actionType] = ViewAction;
