@@ -113,7 +113,7 @@ class WebClient(BaseView):
         model = app[model]
         meth = getattr(model, meth)
         if meth.exposed:
-            meth([file for file in request.files.getlist('files')])
+            return meth([file for file in request.files.getlist('files')])
 
     @json_route('/data/reorder/', methods=['POST'])
     def reorder(self, model, ids, field='sequence', offset=0):
