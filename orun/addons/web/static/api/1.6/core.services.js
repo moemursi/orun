@@ -320,7 +320,8 @@
         contentType: false,
         type: 'POST',
         success: (data) => {
-          console.log(data);
+          scope.dataSource.refresh();
+          Katrid.Dialogs.Alerts.success('Operação realizada com sucesso.')
         }
       });
     }
