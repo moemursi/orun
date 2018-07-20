@@ -985,15 +985,31 @@
       require: 'ngModel',
       replace: true,
       scope: {},
-      link(scope, element, attrs, controller) {
-        const field = scope.$parent.view.fields[attrs.name];
-        scope.choices = field.choices;
-        if (!attrs.readonly) {
-          scope.itemClick = () => console.log('status field item click');
+      link: {
+        post: function (scope, el, attrs) {
+          let tbl = el.closest('tbody');
+          var fixHelperModified = function (e, tr) {
+              var $originals = tr.children();
+              var $helper = tr.clone();
+              $helper.children().each(function (index) {
+                $(this).width($originals.eq(index).width())
+              });
+              return $helper;
+            },
+            updateIndex = function (e, ui) {
+              $('td.list-column-handle', ui.item.parent()).each(function (i) {
+                // $(this).html(i + 1);
+              });
+            };
+
+          tbl.sortable({
+            helper: fixHelperModified,
+            stop: updateIndex
+          }).disableSelection();
         }
       },
       template(element, attrs) {
-        return sprintf(Katrid.$templateCache.get('view.field.StatusField'), { fieldName: attrs.name });
+        return sprintf(Katrid.$templateCache.get('view.field.HandleField'), { fieldName: attrs.name });
       }
     })
 

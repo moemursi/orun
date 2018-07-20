@@ -668,7 +668,16 @@
       return 'hidden';
     }
 
-    renderTo() {
+    _td(cls) {
+      return `<td onclick="event.preventDefault();event.stopPropagation();" class="list-column-handle">${ this.spanTemplate() }</td>`;
+    }
+
+    th() {
+      return `<th class="list-column-handle" name="${this.field.name}"></th>`;
+    }
+
+    spanTemplate() {
+      console.log('render to');
       return `<handle-field id="${this.id}" name="${this.field.name}" ng-model="record.${this.field.name}"/>`;
     }
   }
@@ -693,7 +702,9 @@
       FileField,
       PasswordField,
       ImageField,
-      StatusField
+      StatusField,
+      HandleField,
+      handle: HandleField,
     }
   );
 })();
