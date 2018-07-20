@@ -654,6 +654,24 @@
     }
   }
 
+  class HandleField extends Field {
+    constructor(...args) {
+      super(...args);
+      this.col = null;
+    }
+    static get tag() {
+      return 'handle-field';
+    }
+
+
+    get type() {
+      return 'hidden';
+    }
+
+    renderTo() {
+      return `<handle-field id="${this.id}" name="${this.field.name}" ng-model="record.${this.field.name}"/>`;
+    }
+  }
 
   Object.assign(this.Katrid.UI.Widgets,
     {

@@ -57,6 +57,7 @@
         });
       };
 
+      observe();
       attrs.$observe('url', observe);
 
     }

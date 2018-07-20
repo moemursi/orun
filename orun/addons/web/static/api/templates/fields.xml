@@ -36,4 +36,10 @@
       </div>
     </div>
   </script>
+  <script id="view.field.HandleField" type="text/ng-template">
+    <div class="handle-field">
+      <input type="hidden" ng-model="self.%(fieldName)s"/>
+      <i class="fa fa-arrows"></i>
+    </div>
+  </script>
 </templates>

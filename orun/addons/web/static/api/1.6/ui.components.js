@@ -489,7 +489,6 @@
 
   }
 
-
   uiKatrid.directive('decimal', Decimal);
 
 
@@ -541,7 +540,7 @@
             const f = () => {
               let svc;
               if (scope.model)
-                svc = scope.model.getFieldChoices(field.name, query.term);
+                svc = scope.model.getFieldChoices(field.name, query.term, data.kwargs);
               else
                 svc = (new Katrid.Services.Model(field.model)).searchName(data);
               svc.then(res => {
@@ -961,6 +960,26 @@
 
 
   uiKatrid.directive('statusField', ['$compile', '$timeout', ($compile, $timeout) =>
+    ({
+      restrict: 'E',
+      require: 'ngModel',
+      replace: true,
+      link(scope, element, attrs, controller) {
+        const field = scope.$parent.view.fields[attrs.name];
+        scope.choices = field.choices;
+        if (!attrs.readonly) {
+          scope.itemClick = () => console.log('status field item click');
+        }
+      },
+      template(element, attrs) {
+        return sprintf(Katrid.$templateCache.get('view.field.StatusField'), { fieldName: attrs.name });
+      }
+    })
+
+  ]);
+  
+  
+  uiKatrid.directive('handleField', ['$compile', '$timeout', ($compile, $timeout) =>
     ({
       restrict: 'E',
       require: 'ngModel',
