@@ -8,9 +8,12 @@ from orun.utils.encoding import force_text
 
 
 class RPCError(Exception):
-    def __init__(self, code, *args):
-        self.code = code
-        super(RPCError, self).__init__(*args)
+    code = None
+
+    def __init__(self, message=None, code=-32601, *args):
+        if self.code is None:
+            self.code = code
+        super(RPCError, self).__init__(message, *args)
 
 
 class MethodNotFound(RPCError):
@@ -19,7 +22,7 @@ class MethodNotFound(RPCError):
         if message is None:
             message = 'Requested method not found'
         self.message = message
-        super(MethodNotFound, self).__init__(code, message, *args)
+        super(MethodNotFound, self).__init__(message, code, *args)
 
 
 class FieldDoesNotExist(Exception):
@@ -68,9 +71,9 @@ class DisallowedRedirect(SuspiciousOperation):
     pass
 
 
-class PermissionDenied(Exception):
+class PermissionDenied(RPCError):
     """The user did not have permission to do that"""
-    pass
+    code = -32603
 
 
 class ViewDoesNotExist(Exception):

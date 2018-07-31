@@ -43,6 +43,7 @@ site_authenticate = partial(authenticate, model_name='res.partner')
 def login(user, session_key=AUTH_SESSION_KEY):
     session[session_key] = user.id
 
+
 site_login = partial(login, session_key=SITE_SESSION_KEY)
 
 

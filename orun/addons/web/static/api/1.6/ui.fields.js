@@ -654,13 +654,13 @@
     }
   }
 
-  class HandleField extends Field {
+  class SortableField extends Field {
     constructor(...args) {
       super(...args);
       this.col = null;
     }
     static get tag() {
-      return 'handle-field';
+      return 'sortable-field';
     }
 
 
@@ -669,16 +669,15 @@
     }
 
     _td(cls) {
-      return `<td onclick="event.preventDefault();event.stopPropagation();" class="list-column-handle">${ this.spanTemplate() }</td>`;
+      return `<td onclick="event.preventDefault();event.stopPropagation();" class="list-column-sortable">${ this.spanTemplate() }</td>`;
     }
 
     th() {
-      return `<th class="list-column-handle" name="${this.field.name}"></th>`;
+      return `<th class="list-column-sortable" name="${this.field.name}"></th>`;
     }
 
     spanTemplate() {
-      console.log('render to');
-      return `<handle-field id="${this.id}" name="${this.field.name}" ng-model="record.${this.field.name}"/>`;
+      return `<sortable-field id="${this.id}" name="${this.field.name}" ng-model="record.${this.field.name}"/>`;
     }
   }
 
@@ -703,8 +702,19 @@
       PasswordField,
       ImageField,
       StatusField,
-      HandleField,
-      handle: HandleField,
+      SortableField,
+      input: InputWidget,
+      string: StringField,
+      integer: IntegerField,
+      selection: SelectionField,
+      text: TextField,
+      decimal: DecimalField,
+      float: FloatField,
+      file: FileField,
+      boolean: BooleanField,
+      password: PasswordField,
+      image: ImageField,
+      sortable: SortableField,
     }
   );
 })();

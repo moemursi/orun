@@ -1,8 +1,9 @@
-from orun import app, g, SUPERUSER
+from orun import app, api, g, SUPERUSER
+from orun import auth
+from orun.auth.hashers import check_password
+from orun.core.exceptions import PermissionDenied
 from orun.db import models, session
 from orun.utils.translation import gettext_lazy as _
-from orun.auth.hashers import check_password
-
 from .partner import Partner
 
 
@@ -92,6 +93,17 @@ class User(Partner):
         usr = cls.objects.filter(cls.c.username == username, cls.c.active == True, cls.c.is_staff == True).first()
         if usr and check_password(password, usr.password):
             return usr
+
+    @api.method
+    def change_password(self, old_password, new_password):
+        # check user password
+        print(self.env.user)
+        user = auth.authenticate(username=self.env.user.username, password=old_password)
+        if user and new_password:
+            user.password = new_password
+            user.save()
+            return self.env.user_id
+        raise PermissionDenied(_('Invalid password!'))
 
 
 class Rule(models.Model):

@@ -10,6 +10,9 @@
       if (type === 'object') {
         btn.attr('button-object', btn.attr('name'));
         btn.attr('ng-click', `action.formButtonClick(record.id, '${ btn.attr('name') }', $event.target);$event.stopPropagation();`);
+      } else if (type === 'tag') {
+        btn.attr('button-tag', btn.attr('name'));
+        btn.attr('onclick', `Katrid.Actions.ClientAction.tagButtonClick($(this))`);
       }
       if (!btn.attr('class'))
         btn.addClass('btn btn-outline-secondary');
@@ -36,6 +39,10 @@
 
     get template() {
       return Katrid.$templateCache.get(this.templateUrl);
+    }
+
+    render() {
+      return $(this.template);
     }
   }
 
@@ -216,7 +223,7 @@
       if (newHeader.length) {
         let headerButtons = $('<div class="header-buttons"></div>');
         newHeader.prepend(headerButtons);
-        compileButtons(newHeader)
+        newHeader.filter('button')
         .each((idx, btn) => headerButtons.append(btn));
       } else
         newHeader = $('<header></header>');
@@ -233,6 +240,7 @@
     }
 
     template(element, attrs) {
+      compileButtons(element);
       this.buildHeader(element);
       element.addClass('ng-form');
       return element.html();

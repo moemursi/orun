@@ -19,6 +19,7 @@
     get action() {
       return this[this.length-1];
     }
+
     set action(action) {
       this.splice(this.indexOf(action) + 1, this.length);
     }
@@ -30,6 +31,10 @@
 
     get path() {
       return this.action.path;
+    }
+
+    doAction(action) {
+
     }
   }
 
@@ -623,15 +628,33 @@
       else console.log('is a function');
     }
 
+    static tagButtonClick(btn) {
+      let action = {
+        type: 'ir.action.client',
+        tag: btn.attr('name'),
+        target: btn.attr('target') || 'new',
+      };
+
+      action = new ClientAction(action, Katrid.Actions.actionManager.action.scope, Katrid.Actions.actionManager.action.location);
+      action.execute();
+    }
+
     tag_refresh() {
       this.dataSource.refresh();
     }
 
     execute() {
+      console.log(this.info, ClientAction.registry);
       let tag = ClientAction.registry[this.info.tag];
-      if (tag.prototype instanceof Katrid.UI.Views.ClientView)
+      if (tag.prototype instanceof Katrid.UI.Views.ClientView) {
         this.tag = new tag(this);
-      else if (_.isString(tag))
+        console.log(this.scope);
+        let el = this.tag.render();
+        if (this.info.target === 'new') {
+          el = el.modal();
+          el = Katrid.core.compile(el)(this.scope);
+        }
+      } else if (_.isString(tag))
         this[tag].apply(this);
     }
 

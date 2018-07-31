@@ -391,3 +391,9 @@ msgstr "Criado em"
 
 msgid "Updated on"
 msgstr "Atualizado em"
+
+msgid "Invalid password!"
+msgstr "Senha inválida!"
+
+msgid "Permission denied!"
+msgstr "Permissão negada!"

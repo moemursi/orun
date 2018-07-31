@@ -145,11 +145,11 @@
   };
 
   ngApp.controller('ActionController', function($scope, $compile, $state, $location, hotkeys, $element, action) {
+    console.log('action controller');
     Katrid.core.compile = $compile;
     action.$state = $state;
     action.scope = $scope;
     action.$element = $element;
-    console.log('action controller', $location);
     if (action instanceof Katrid.Actions.WindowAction)
       action.viewType = $location.$$search.view_type || action.viewModes[0];
     $scope.action = action;

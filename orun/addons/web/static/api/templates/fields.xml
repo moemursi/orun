@@ -36,8 +36,8 @@
       </div>
     </div>
   </script>
-  <script id="view.field.HandleField" type="text/ng-template">
-    <div class="handle-field">
+  <script id="view.field.SortableField" type="text/ng-template">
+    <div class="sortable-field">
       <input type="hidden" ng-model="self.%(fieldName)s"/>
       <i class="fa fa-arrows"></i>
     </div>

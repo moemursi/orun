@@ -5067,7 +5067,7 @@ section div.checkbox {
   text-align: center;
   width: 1px;
 }
-.table > tbody > tr {
+.dataTable.table > tbody > tr {
   cursor: pointer;
   background-color: #ffffff;
 }
@@ -5664,10 +5664,13 @@ h3 .form-control-lg {
 .search-view-filter-menu .form-group {
   margin-bottom: 4px;
 }
-.list-column-handle {
+.list-column-sortable {
   width: 1px;
 }
-td.list-column-handle {
+td.list-column-sortable {
   cursor: all-scroll;
+}
+table.table.table-no-border td {
+  border: none;
 }
 /*# sourceMappingURL=style.map */

@@ -237,5 +237,20 @@ msgstr "Remover item"
 msgid "Paste"
 msgstr "Colar"
 
+msgid "Change Password"
+msgstr "Mudar Senha"
+
+msgid "Old Password"
+msgstr "Senha Anterior"
+
+msgid "New Password"
+msgstr "Nova Senha"
+
+msgid "Confirm New Password"
+msgstr "Confirmar a Nova Senha"
+
 msgid "View more..."
 msgstr "Ver mais..."
+
+msgid "The password and confirmation does not match!"
+msgstr "A senha e a confirmation não correspondem!"
