@@ -5597,14 +5597,6 @@ select.form-control {
 .dataTable span a:hover {
   color: #007bff;
 }
-.pwa-form {
-  background-color: #ffffff;
-  opacity: 0.97;
-  padding: 8px 8px 16px 8px;
-}
-.pwa-menu .btn {
-  margin-bottom: 8px;
-}
 .comments .comment {
   margin-bottom: 10px;
 }

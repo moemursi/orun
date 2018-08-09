@@ -410,7 +410,7 @@
       this.field = this.params.info.fields && this.params.info.fields[this.name];
       this.static = this.info.param === 'static' || this.field.param === 'static';
       this.type = this.info.type || (this.field && this.field.type) || 'CharField';
-      this.defaultOperation = this.info.default_operation || Params.DefaultOperations[this.type];
+      this.defaultOperation = this.info.operation || Params.DefaultOperations[this.type];
       this.operation = this.defaultOperation;
       // @operations = @info.operations or Params.TypeOperations[@type]
       this.operations = this.getOperations();
