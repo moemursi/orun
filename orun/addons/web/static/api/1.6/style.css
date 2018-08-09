@@ -5403,7 +5403,7 @@ form-view.form-data-changing section[readonly] label.prepend-icon {
 .left-menu-content {
   position: absolute;
   top: 0;
-  bottom: 0;
+  bottom: 51px;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
@@ -5488,7 +5488,6 @@ body {
 .left-menu-content {
   position: absolute;
   top: 0;
-  bottom: 0;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
