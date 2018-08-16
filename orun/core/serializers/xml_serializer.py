@@ -1,17 +1,16 @@
 """
 A XML Deserializer. Shortcut to deserialize complex structured Xml files.
 """
-import os
 import functools
+import os
 from xml.etree import ElementTree as etree
 
 from orun import app
-from orun.db import DEFAULT_DB_ALIAS, session
-from orun.db import models
-from orun.utils.translation import gettext as _
+from orun.core.exceptions import ObjectDoesNotExist
 from orun.core.serializers import base
 from orun.core.serializers.python import get_prep_value
-from orun.core.exceptions import ObjectDoesNotExist
+from orun.db import models
+from orun.utils.translation import gettext as _
 
 
 def ref(app, xml_id):
@@ -199,6 +198,7 @@ class Deserializer(base.Deserializer):
             'model': 'ui.view',
             'id': obj.attrib.get('view-id'),
             'fields': {
+                'view_type': 'report',
                 'template_name': obj.attrib.get('template'),
                 'name': obj.attrib.get('view-id'),
                 'model': (model and ct.objects.only('pk').filter(ct.c.name == model).one()) or None,

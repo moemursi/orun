@@ -512,6 +512,17 @@
     }
   }
 
+  class ReportEngine {
+    static load(el) {
+      $('row').each((idx, el) => {
+        el.addClass('row');
+      });
+      $('column').each((idx, el) => {
+        el.addClass('col');
+      })
+    }
+  }
+
 
   this.Katrid.Reports = {
     Reports,

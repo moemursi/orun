@@ -45,6 +45,10 @@ class WebClient(BaseView):
         from .i18n import javascript_catalog
         return javascript_catalog(request, packages=[addon.name for addon in app.addons])
 
+    @route('/reports/download/')
+    def report_download(self):
+        pass
+
     @route('/reports/<path:path>')
     def report(self, path):
         return send_from_directory(settings.REPORT_PATH, path)

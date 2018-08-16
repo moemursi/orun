@@ -5,6 +5,7 @@ import flask
 import sqlalchemy as sa
 from flask import Flask
 from flask_mail import Mail
+from jinja2 import Undefined
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.schema import CreateSchema
 
@@ -18,8 +19,14 @@ from .registry import registry
 from .utils import adjust_dependencies
 
 
+class SilentUndefined(Undefined):
+    def _fail_with_undefined_error(self, *args, **kwargs):
+        return ''
+
+
 class Application(Flask):
     jinja_options = Flask.jinja_options.copy()
+    jinja_options['undefined'] = SilentUndefined
     jinja_options['extensions'] = ['jinja2.ext.autoescape', 'jinja2.ext.with_', 'jinja2.ext.i18n']
 
     def __init__(self, *args, **kwargs):
@@ -217,6 +224,11 @@ class Application(Flask):
         g.env = new_env
         yield
         g.env = old_env
+
+    def static_reverse(self, url):
+        _, _, addon, url = url.split('/', 3)
+        fn = self.view_functions[f'{addon}.static']
+        return fn(url).response.file.name
 
 
 class AppContext(flask.app.AppContext):

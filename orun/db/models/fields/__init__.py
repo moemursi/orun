@@ -1,10 +1,10 @@
+import collections
 import datetime
 import decimal
 import itertools
 import warnings
-from functools import partial
+from functools import partial, partialmethod
 
-import collections
 import sqlalchemy as sa
 from sqlalchemy.schema import FetchedValue
 
@@ -188,8 +188,8 @@ class Field:
         #    if not getattr(cls, self.attname, None):
         #        setattr(cls, self.attname, self)
 
-        #if self.choices:
-        #    setattr(cls, 'get_%s_display' % self.name, curry(cls._get_FIELD_display, field=self))
+        if self.choices:
+           setattr(cls, 'get_%s_display' % self.name, partialmethod(cls._get_FIELD_display, field=self))
 
         # Initialize the primary key sqlalchemy column
         if self.primary_key and self.model._meta.app:
@@ -476,6 +476,17 @@ class Field:
         Converts a python value to a serializable value.
         """
         return value
+
+    def _get_flatchoices(self):
+        """Flattened version of choices tuple."""
+        flat = []
+        for choice, value in self.choices:
+            if isinstance(value, (list, tuple)):
+                flat.extend(value)
+            else:
+                flat.append((choice, value))
+        return flat
+    flatchoices = property(_get_flatchoices)
 
     def db_parameters(self, connection):
         """

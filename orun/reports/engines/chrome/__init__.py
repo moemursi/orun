@@ -1,10 +1,102 @@
+import base64
+import json
+import os
+import uuid
+
+import mako.lookup
+import mako.template
+
+from orun import app
+from orun.conf import settings
+from orun.core.serializers.json import OrunJSONEncoder
+from orun.utils.xml import etree
 
 
-class ReportEngine:
-    def from_xml(xml):
-        pass
+class ChromeEngine:
+    def __init__(self):
+        self.token = uuid.uuid4().hex
+
+    def auto_report(self, xml, **kwargs):
+        return self.from_xml(xml, **kwargs)
+
+    def from_file(self, file):
+        with open(file) as f:
+            self.from_xml(f.read())
+
+    def prepare_data(self, xml, data, source, parent=None, children=None):
+        children_fields = {}
+
+        def prepare_nested(row):
+            data = row.serialize(field_names)
+            for child in children:
+                if 'field' in child.attrib:
+                    field_name = child.attrib['field']
+                    if field_name not in children_fields:
+                        name = child.attrib['name']
+                        field = model._meta.fields[field_name]
+                        fields = field.related_model.get_fields_info(field.related_model)
+                        children_fields[name] = fields
+                        for field in fields.values():
+                            field = {k: str(v) for k, v in field.items() if v is not None and not k.startswith('_')}
+                            print('field', field)
+                            child.append(etree.Element(
+                                'field',
+                                **field
+                            ))
+                    data[child.attrib['field']] = [s.serialize() for s in getattr(row, field_name)]
+            return data
+
+        model = source.attrib.get('model')
+        if model:
+            model = app[model]
+
+        if parent is None:
+            if model is not None:
+                fields = [f for f in model._meta.fields if f.concrete]
+                field_names = [f.name for f in fields]
+                rows = model.objects.all()[:10]
+            result = [prepare_nested(row) for row in rows]
+            source.text = json.dumps(result, cls=OrunJSONEncoder)
+        else:
+            pass
+
+    def _from_xml(self, xml, **kwargs):
+        lookup = mako.lookup.TemplateLookup(
+            default_filters=['default_filter'],
+            imports=['from orun.reports.engines.chrome.filters import default_filter'],
+            directories=[os.path.join(os.path.dirname(__file__), 'templates')],
+            input_encoding='utf-8',
+        )
+        templ = mako.template.Template(
+            xml, lookup=lookup,
+            default_filters=['default_filter'],
+            imports=['from orun.reports.engines.chrome.filters import default_filter'],
+        )
+        return templ.render(models=app, **kwargs).encode('utf-8')
+
+    def from_xml(self, xml, **kwargs):
+        import gevent
+        import pychrome
+        xml = self._from_xml(xml, **kwargs)
+        fname = uuid.uuid4().hex + '.html'
+        fname = 'report.html'
+        file_path = os.path.join(settings.REPORT_PATH, fname)
+        with open(file_path, 'wb') as tmp:
+            tmp.write(xml)
+            tmp.close()
+
+            browser = pychrome.Browser(url="http://127.0.0.1:9222")
+            tab = browser.new_tab()
+            tab.start()
+            tab.call_method("Network.enable")
+            tab.call_method("Page.navigate", url='file://' + file_path)
+            gevent.sleep(.9)
+            with open(file_path + '.pdf', 'wb') as f:
+                f.write(base64.decodestring(tab.call_method(
+                    'Page.printToPDF',
+                )['data'].encode('utf-8')))
+            tab.stop()
+            browser.close_tab(tab)
+            return fname + '.pdf'
 
 
-if __name__ == '__main__':
-    rep = ReportEngine()
-    rep.from_xml()

@@ -25,30 +25,56 @@ class ReportAction(Action):
         xml = self.view.get_xml(model)
         if model:
             data['fields'] = model.get_fields_info(xml=xml)
+        params = xml.find('params')
+        if params is not None:
+            xml = params
         data['content'] = etree.tostring(xml, encoding='utf-8').decode('utf-8')
         return data
 
     def _export_report(self, format='pdf', params=None):
-        engine = get_engine()
         qs = model = None
         if self.model:
             model = app[self.model]
             qs = model.objects.all()
-        xml = self.view.get_xml(model)
         _params = defaultdict(list)
-        for crit in params['data']:
-            for k, v in crit.items():
-                if k.startswith('value'):
-                    _params[crit['name']].append(v)
-        where = {}
-        for k, v in _params.items():
-            if len(v) > 1:
-                for i, val in enumerate(v):
-                    where[k + str(i + 1)] = val
-            else:
-                where[k] = v[0]
+        if 'data' in params:
+            for crit in params['data']:
+                for k, v in crit.items():
+                    if k.startswith('value'):
+                        _params[crit['name']].append(v)
 
+            where = {}
+            for k, v in _params.items():
+                if len(v) > 1:
+                    for i, val in enumerate(v):
+                        where[k + str(i + 1)] = val
+                else:
+                    where[k] = v[0]
+        elif params:
+            where = params
+
+        rep_type = None
+        if self.view and self.view.template_name:
+            rep_type = self.view.template_name.rsplit('.', 1)[1]
+        types = {
+            'html': 'orun.reports.engines.chrome.ChromeEngine',
+            'mako': 'orun.reports.engines.chrome.ChromeEngine',
+            'frx': 'orun.reports.engines.fastreports.FastReports',
+            None: 'orun.reports.engines.fastreports.FastReports',
+        }
+
+        if rep_type == 'frx':
+            xml = self.view.get_xml(model)
+        else:
+            xml = self.view.render({})
+
+        engine = get_engine(types[rep_type])
         rep = engine.auto_report(xml, format=format, model=model, query=qs, report_title=self.name, params=where)
+        if isinstance(rep, str):
+            return {
+                'open': '/web/reports/' + rep,
+                'name': self.name,
+            }
         if rep:
             if not isinstance(rep, str):
                 rep = rep.export(format=format)

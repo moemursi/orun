@@ -12,6 +12,7 @@ from orun.apps import apps
 from orun.core.exceptions import ObjectDoesNotExist, ValidationError, PermissionDenied
 from orun.db import session
 from orun.db.models import signals
+from orun.utils.encoding import force_text
 from orun.utils.translation import gettext, gettext_lazy
 from orun.utils.xml import etree
 from orun.utils.xml import get_xml_fields
@@ -493,6 +494,10 @@ class Model(Service):
 
         #for k, v in children.items():
         #    instance._deserialize_value(k, v)
+
+    def _get_FIELD_display(self, field):
+        value = getattr(self, field.attname)
+        return force_text(dict(field.flatchoices).get(value, value), strings_only=True)
 
     def serialize(self, fields=None, exclude=None, view_type=None):
         opts = self._meta

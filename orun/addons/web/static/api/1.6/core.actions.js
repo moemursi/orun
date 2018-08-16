@@ -452,6 +452,8 @@
 
     async formButtonClick(id, meth, self) {
       const res = await this.scope.model.post(meth, { kwargs: { id: id } });
+      if (res.open)
+        return window.open(res.open);
       if (res.ok && res.result.type) {
         const act = new (Katrid.Actions[res.result.type])(res.result, this.scope, this.scope.location);
         act.execute();

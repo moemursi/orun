@@ -1,5 +1,5 @@
-from collections import Mapping, defaultdict
 import inspect
+from collections import Mapping
 from functools import wraps, partial
 
 from orun import app, request
@@ -56,7 +56,7 @@ class Environment(Mapping):
         return len(app.models)
 
     def ref(self, name):
-        pass
+        return self['ir.object'].get_object(name).object_id
 
 
 def method(*args, public=False, methods=None):
