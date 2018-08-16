@@ -4,7 +4,7 @@ import locale
 
 
 def default_filter(value):
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8}')
+    # locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8}')
     if value is None:
         return ''
     elif isinstance(value, decimal.Decimal):
