@@ -71,11 +71,6 @@ class ReportAction(Action):
 
         engine = get_engine(types[rep_type])
         rep = engine.auto_report(xml, format=format, model=model, query=qs, report_title=self.name, params=where)
-        if isinstance(rep, str):
-            return {
-                'open': '/web/reports/' + rep,
-                'name': self.name,
-            }
         if rep:
             if not isinstance(rep, str):
                 rep = rep.export(format=format)
