@@ -64,7 +64,7 @@ class ReportAction(Action):
             None: 'orun.reports.engines.fastreports.FastReports',
         }
 
-        if rep_type == 'frx':
+        if rep_type in ['frx', 'xml']:
             xml = self.view.get_xml(model)
         else:
             xml = self.view.render({})
