@@ -59,6 +59,7 @@ class ReportAction(Action):
         types = {
             'html': 'orun.reports.engines.chrome.ChromeEngine',
             'mako': 'orun.reports.engines.chrome.ChromeEngine',
+            'xml': 'orun.reports.engines.fastreports.FastReports',
             'frx': 'orun.reports.engines.fastreports.FastReports',
             None: 'orun.reports.engines.fastreports.FastReports',
         }
