@@ -53,6 +53,8 @@ class RelatedField(FieldCacheMixin, Field):
 
 
 class ForeignKey(RelatedField):
+    many_to_one = True
+
     def __init__(self, to, related_name=None, to_field=None, db_constraint=True, parent_link=False,
                  on_delete=None, on_update=None, label_from_instance=None, name_fields=None,
                  *args, **kwargs):
@@ -103,6 +105,8 @@ class ForeignKey(RelatedField):
 
         fk_name = rel_model._meta.table_name.replace('"', '') + '.' + rel_model._meta.pk.db_column
         if bind:
+            if hasattr(rel_model._meta.pk.column.type, 'fk_type'):
+                return rel_model._meta.pk.column.type.fk_type
             return rel_model._meta.pk.column.type
         else:
             return rel_model._meta.pk.column.type, sa.ForeignKey(fk_name)
@@ -175,7 +179,7 @@ class OneToOneField(ForeignKey):
 
     def create_column(self, bind=None, *args, **kwargs):
         kwargs['autoincrement'] = False
-        return super(OneToOneField, self).create_column(bind=bind, *args, **kwargs)
+        return super().create_column(bind=bind, *args, **kwargs)
 
 
 CREATE_CHILD = 'CREATE'

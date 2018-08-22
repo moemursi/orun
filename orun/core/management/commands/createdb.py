@@ -20,12 +20,14 @@ def _create_connection(db):
 
     db_engine = url.drivername.split('+')[0]
     database = url.database
+    kwargs = {'autocommit': True}
 
     if db_engine == 'sqlite':
         return
     elif db_engine == 'postgresql':
         database = 'postgres'
     elif db_engine == 'mssql':
+        kwargs['isolation_level'] = 'AUTOCOMMIT'
         database = 'master'
     elif db_engine == 'mysql':
         database = None
@@ -33,12 +35,13 @@ def _create_connection(db):
         database = connections.databases[DEFAULT_DB_ALIAS].get('SYSTEM_DB', 'SYSTEM')
 
     url = URL(url.drivername, url.username, url.password, url.host, url.port, database, url.query)
-    return create_engine(url).connect().execution_options(autocommit=True, isolation_level='AUTOCOMMIT')
+    return create_engine(url).connect().execution_options(**kwargs)
 
 
 def create(db):
     commands.echo('Creating database "%s"' % db)
-    url = make_url(connections.databases[db]['ENGINE'])
+    db_info = connections.databases[db]
+    url = make_url(db_info['ENGINE'])
 
     # sqlite create database bug fix
     if url.drivername == 'sqlite':
@@ -62,7 +65,8 @@ def create(db):
         conn.detach()
         conn.execute("""CREATE DATABASE [%s]""" % db_name)
     elif db_engine == 'oracle':
-        conn.execute('create user usr_%s identified by %s' % (db, db_settings.password))
-        conn.execute('grant all privilege to usr_%s' % db)
+        conn.execute('create user usr_%s identified by %s' % (db_settings.username, db_settings.password))
+        conn.commit()
+        conn.execute('grant all privilege to usr_%s' % db_settings.username)
 
     commands.echo('Database "%s" has been created succesfully' % db)

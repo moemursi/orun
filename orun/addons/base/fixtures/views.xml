@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<data translate="true">
+<data>
   <object id="view.res.partner.list" model="ui.view">
     <field name="name">res.partner.list</field>
     <field name="model">res.partner</field>

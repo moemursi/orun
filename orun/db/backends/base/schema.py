@@ -146,8 +146,12 @@ class BaseDatabaseSchemaEditor(object):
         The field must already have had set_attributes_from_name called.
         """
         # Get the column's type and use that as the basis of the SQL
-        db_params = field.db_parameters(connection=self.connection)
-        sql = db_params['type']
+        db_type = field.db_type(bind=self.connection)
+        if field.many_to_one and hasattr(db_type, 'fk_type'):
+            sql = str(db_type.fk_type)
+        else:
+            db_params = field.db_parameters(connection=self.connection)
+            sql = db_params['type']
         params = []
         # Check for fields that aren't actually columns (e.g. M2M)
         if sql is None:

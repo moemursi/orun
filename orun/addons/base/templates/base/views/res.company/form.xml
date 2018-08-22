@@ -1,3 +1,11 @@
 <form>
+  <field name="image"/>
   <field name="name"/>
+  <fieldset class="col-12">
+    <legend>Report Settings</legend>
+    <div class="row">
+      <field name="report_footer"/>
+      <field name="report_header"/>
+    </div>
+  </fieldset>
 </form>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<data translate="true">
+<data>
   <menuitem id="menu.settings" name="Settings" sequence="999">
     <menuitem id="menu.settings.auth" name="Authentication">
       <menuitem id="menu.settings.auth.user" name="Users" action="action.view.auth.user"/>

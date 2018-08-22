@@ -835,7 +835,9 @@ class Model(Service):
             # in special cases the field needs to be deserialized by itself
             # if deserialize returns any value, use it as the current field value
             if f.set:
-                return f.set(value, self)
+                value = f.set(value, self)
+                if value is None:
+                    return
         super(Model, self).__setattr__(key, value)
 
     def save(self, update_fields=None, force_insert=False):

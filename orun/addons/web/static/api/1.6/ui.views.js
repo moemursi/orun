@@ -223,7 +223,7 @@
       if (newHeader.length) {
         let headerButtons = $('<div class="header-buttons"></div>');
         newHeader.prepend(headerButtons);
-        newHeader.filter('button')
+        newHeader.find('button')
         .each((idx, btn) => headerButtons.append(btn));
       } else
         newHeader = $('<header></header>');

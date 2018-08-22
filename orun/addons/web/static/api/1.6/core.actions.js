@@ -613,14 +613,13 @@
     static initClass() {
       this.actionType = 'ir.action.client';
       this.registry = {};
-      this.register('refresh', 'tag_refresh');
     }
 
     static register(tag, obj) {
       this.registry[tag] = obj;
     }
 
-    static dispatchAction(parent, act) {
+    static executeTag(parent, act) {
       // get action
       let action = this.registry[act.tag];
       if (action.prototype instanceof Katrid.UI.Views.ActionView) {

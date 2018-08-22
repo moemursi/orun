@@ -1,8 +1,9 @@
 import os
+import re
 
 from jinja2 import Environment, FunctionLoader
 
-from orun import g
+from orun import g, app
 from orun import render_template
 from orun import render_template_string
 from orun.apps import registry
@@ -98,11 +99,16 @@ class View(models.Model):
 
     def merge(self, source, dest):
         for child in dest:
-            if child.tag == 'xpath':
+            if child.tag == 'view':
+                self.merge(source, child)
+            elif child.tag == 'xpath':
                 self.xpath(source, child)
 
     def compile(self, context, parent=None):
-        xml = etree.fromstring(self.render(context))
+        # TODO report inheritance
+        if self.view_type == 'report':
+            return self._get_content()
+        xml = etree.fromstring(self._get_content())
         if self.parent and self.mode == 'primary':
             parent_xml = etree.fromstring(self.parent.render(context))
             self.merge(parent_xml, xml)
@@ -111,8 +117,13 @@ class View(models.Model):
         view_cls = self.__class__
         children = view_cls.objects.filter(view_cls.c.parent_id == self.pk, view_cls.c.mode == 'extension')
         for child in children:
-            self.merge(xml, etree.fromstring(child.render(context)))
+            self.merge(xml, etree.fromstring(child._get_content()))
         return xml
+
+    def _get_content(self):
+        templ = app.jinja_env.get_or_select_template(self.template_name.split(':')[-1])
+        res = open(templ.filename).read()
+        return res
 
     def render(self, context):
         context['_'] = gettext

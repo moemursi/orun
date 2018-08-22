@@ -1,17 +1,9 @@
 (() => {
-  class BaseObject {
-    doAction(act) {
-    }
+
+  class Widget {
   }
 
-  class Widget extends BaseObject {
-
-  }
-
-  class Component extends BaseObject {
-    controller($scope) {
-      $scope.doAction = this.doAction;
-    }
+  class Component {
   }
 
   Katrid.UI.Widgets = {

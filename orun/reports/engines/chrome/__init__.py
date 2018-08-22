@@ -2,9 +2,9 @@ import base64
 import json
 import os
 import uuid
-
-import mako.lookup
+import re
 import mako.template
+import mako.lookup
 
 from orun import app
 from orun.conf import settings
@@ -61,16 +61,18 @@ class ChromeEngine:
             pass
 
     def _from_xml(self, xml, **kwargs):
+        imports = ['from orun.reports.engines.chrome.filters import localize, linebreaks']
+        default_filters = ['localize']
         lookup = mako.lookup.TemplateLookup(
-            default_filters=['default_filter'],
-            imports=['from orun.reports.engines.chrome.filters import default_filter'],
+            default_filters=default_filters,
+            imports=imports,
             directories=[os.path.join(os.path.dirname(__file__), 'templates')],
             input_encoding='utf-8',
         )
         templ = mako.template.Template(
             xml, lookup=lookup,
-            default_filters=['default_filter'],
-            imports=['from orun.reports.engines.chrome.filters import default_filter'],
+            default_filters=default_filters,
+            imports=imports,
         )
         return templ.render(models=app, **kwargs).encode('utf-8')
 

@@ -974,8 +974,9 @@ class Migration(migrations.Migration):
                 ('partner_ptr', models.OneToOneField(on_delete='CASCADE', primary_key=True, to='res.partner', unique=True)),
                 ('report_header', models.TextField()),
                 ('report_footer', models.TextField()),
-                ('report_paper', models.CharField(max_length=32)),
+                ('report_paper', models.SelectionField(max_length=32)),
                 ('currency', models.ForeignKey(to='res.currency')),
+                ('company_logo', models.fields.BinaryField()),
                 ('parent', models.ForeignKey(to='self')),
             ],
             options={

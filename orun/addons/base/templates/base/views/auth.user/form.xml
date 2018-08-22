@@ -3,7 +3,7 @@
   <field name="username" />
   <field name="email"/>
   <field name="password" cols="3"/>
-  <button type="tag" name="change_password" target="new">{{ gettext('Change password') }}</button>
+  <button type="tag" name="auth.ChangePassword" target="new">{{ gettext('Change password') }}</button>
   <field name="active" cols="3"/>
   <field name="is_staff" />
   <field name="is_superuser" />

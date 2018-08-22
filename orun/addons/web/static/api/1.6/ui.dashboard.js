@@ -1,6 +1,6 @@
 (function() {
 
-  class DashboardView extends Katrid.UI.Views.ClientView {
+  class Dashboard extends Katrid.UI.Views.ClientView {
     get templateUrl() {
       return 'view.dashboard';
     }

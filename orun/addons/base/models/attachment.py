@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 import hashlib
 from orun import app, g
 from orun.conf import settings
@@ -54,16 +55,20 @@ class Attachment(models.Model):
             return storage.open(self.stored_file_name)
 
     def set_content(self, value):
-        v = value.read()
+        if isinstance(value, bytes):
+            v = value
+            value = BytesIO(value)
+        else:
+            v = value.read()
         checksum = hashlib.sha1(v or b'').hexdigest()
         self.checksum = checksum
         storage = self.storage
-        self.file_size = len(v)
         if storage is None:
             # store directly on db_content field
             self.stored_file_name = None
-            self.db_content = value.read()
+            self.db_content = v
         else:
+            self.file_size = len(v)
             self.stored_file_name = (storage.store_file_name and checksum) or None
             if not storage.exists(checksum):
                 storage.save(checksum, value)

@@ -1,3 +1,5 @@
+import os
+import base64
 import collections
 import datetime
 import decimal
@@ -70,6 +72,7 @@ class Field:
     max_length = None
     is_relation = None
     many_to_many = False
+    many_to_one = False
     rel_field = None
     set = None
 
@@ -498,6 +501,8 @@ class Field:
         db_type = self.db_type()
         if isinstance(db_type, tuple):
             db_type = db_type[0]
+            if self.many_to_one and hasattr(db_type, 'fk_type'):
+                db_type = db_type.fk_type()
         type_string = db_type.compile(connection.dialect)
         check_string = self.db_check(connection)
         return {
@@ -715,6 +720,27 @@ class BinaryField(Field):
         super(BinaryField, self).__init__(*args, **kwargs)
         self.attachment = attachment
         self.storage = storage
+
+    def to_python(self, value):
+        from orun import app
+        if value and self.attachment:
+            # check if value is base64 encoded
+            if value.startswith('data:'):
+                value = value.split('data:', 1)[1]
+                mime, value = value.split(';', 1)
+                value = value.split('base64,')[1]
+                value = base64.decodebytes(value.encode('utf-8'))
+                value = app['ir.attachment'].create(
+                    name=self.name, mimetype=mime, content=value, model=self.model._meta.name, field=self.name,
+                ).id
+                return str(value).encode('utf-8')
+        return value
+
+    def serialize(self, value, instance):
+        # TODO adjust image download url f'/web/image/{self.model._meta.name}/{self.name}/{instance.pk}/'
+        if self.attachment:
+            if value:
+                return f'/web/content/{value.decode("utf-8")}/?download'
 
 
 class FileField(BinaryField):

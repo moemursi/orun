@@ -1,16 +1,21 @@
+import markupsafe
 import datetime
 import decimal
-import locale
+
+from orun.utils import formats
 
 
-def default_filter(value):
-    # locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8}')
+def localize(value):
     if value is None:
         return ''
-    elif isinstance(value, decimal.Decimal):
-        return locale.format('%.2f', value)
+    elif isinstance(value, (decimal.Decimal, float)):
+        return formats.number_format(value, 2)
     elif isinstance(value, datetime.datetime):
-        return value.strftime('%x %H:%M')
+        return formats.date_format(value, 'SHORT_DATETIME_FORMAT')
     elif isinstance(value, datetime.date):
-        return value.strftime('%x')
+        return formats.date_format(value, 'SHORT_DATE_FORMAT')
     return str(value)
+
+
+def linebreaks(text):
+    return text.replace('\n', markupsafe.Markup('<br/>'))

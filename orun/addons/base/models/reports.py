@@ -64,10 +64,7 @@ class ReportAction(Action):
             None: 'orun.reports.engines.fastreports.FastReports',
         }
 
-        if rep_type in ['frx', 'xml']:
-            xml = self.view.get_xml(model)
-        else:
-            xml = self.view.render({})
+        xml = self.view.get_xml(model)
 
         engine = get_engine(types[rep_type])
         rep = engine.auto_report(xml, format=format, model=model, query=qs, report_title=self.name, params=where)

@@ -1,9 +1,9 @@
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.types import Integer
+from sqlalchemy.types import Integer, Numeric
 
 
 class Identity(Integer):
-    pass
+    fk_type = Numeric
 
 
 @compiles(Identity, 'oracle')

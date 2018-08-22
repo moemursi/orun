@@ -37,7 +37,7 @@
 
       if (attrs.ngShow)
         this.templAttrs['ng-show'] = attrs.ngShow;
-      
+
       if (attrs.ngReadonly || field.readonly)
         this.templAttrs['ng-readonly'] = attrs.ngReadonly || field.readonly;
 
@@ -610,7 +610,7 @@
 
     widgetTemplate() {
       let html = super.widgetTemplate();
-      let imgSrc = this.attrs.ngEmptyImage || (this.attrs.emptyImage && ("'" + this.attrs.emptyImage + "'")) || "'/static/web/static/assets/img/no-image.png'";
+      let imgSrc = this.attrs.ngEmptyImage || (this.attrs.emptyImage && ("'" + this.attrs.emptyImage + "'")) || "'/static/web/assets/img/no-image.png'";
       html = `<div class="image-box image-field">
   <img ng-src="{{ record.${this.field.name} || ${imgSrc} }}" />
     <div class="text-right image-box-buttons">

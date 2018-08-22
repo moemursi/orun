@@ -1,6 +1,6 @@
 from flask import redirect, send_from_directory, url_for, flash
 
-from orun import app, auth
+from orun import app, auth, g
 from orun import render_template
 from orun import request
 from orun.auth.decorators import login_required
@@ -45,9 +45,12 @@ class WebClient(BaseView):
         from .i18n import javascript_catalog
         return javascript_catalog(request, packages=[addon.name for addon in app.addons])
 
-    @route('/reports/download/')
-    def report_download(self):
-        pass
+    @route('/company/logo/')
+    def company_logo(self):
+        company = app['auth.user'].objects.get(g.user_id).user_company
+        if company and company.image:
+            return redirect(f'/web/content/{company.image.decode("utf-8")}/?download')
+        return redirect('/static/web/assets/img/katrid-logo.png')
 
     @route('/reports/<path:path>')
     def report(self, path):
@@ -130,6 +133,11 @@ class WebClient(BaseView):
             'ok': True,
             'result': True,
         }
+
+    @route('/image/<model>/<field>/<id>/')
+    def image(self, model, field, id):
+        return redirect(app['ir.attachment'].objects.filter(id=id).one().get_download_url())
+
 
 # @app.errorhandler(500)
 # def error(e):
