@@ -1,5 +1,4 @@
 import os
-import re
 
 from jinja2 import Environment, FunctionLoader
 
@@ -106,7 +105,7 @@ class View(models.Model):
 
     def compile(self, context, parent=None):
         # TODO report inheritance
-        if self.view_type == 'report':
+        if self.view_type == 'report' and self.template_name and self.template_name.endswith('.mako'):
             return self._get_content()
         xml = etree.fromstring(self._get_content())
         if self.parent and self.mode == 'primary':
