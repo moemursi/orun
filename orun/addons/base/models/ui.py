@@ -121,7 +121,7 @@ class View(models.Model):
 
     def _get_content(self):
         templ = app.jinja_env.get_or_select_template(self.template_name.split(':')[-1])
-        res = open(templ.filename).read()
+        res = open(templ.filename, encoding='utf-8').read()
         return res
 
     def render(self, context):
