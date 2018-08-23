@@ -84,7 +84,7 @@
     }
   }
 
-  Katrid.Actions.ClientAction.register('dashboard', DashboardView);
+  Katrid.Actions.ClientAction.register('dashboard', Dashboard);
 
   Katrid.uiKatrid.directive('dashboard', DashboardComponent);
   Katrid.uiKatrid.directive('chart', Chart);
