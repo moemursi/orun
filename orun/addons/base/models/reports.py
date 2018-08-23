@@ -1,4 +1,5 @@
 import os
+import re
 from collections import defaultdict
 
 from orun import app, api
@@ -28,7 +29,9 @@ class ReportAction(Action):
         params = xml.find('params')
         if params is not None:
             xml = params
-        data['content'] = etree.tostring(xml, encoding='utf-8').decode('utf-8')
+            data['content'] = etree.tostring(xml, encoding='utf-8').decode('utf-8')
+        else:
+            data['content'] = '<params/>'
         return data
 
     def _export_report(self, format='pdf', params=None):
@@ -65,6 +68,10 @@ class ReportAction(Action):
         }
 
         xml = self.view.get_xml(model)
+
+        if rep_type == 'mako':
+            xml = etree.tostring(xml).decode('utf-8')
+            xml = re.sub(r'<(/?)mako-(\w+)', r'<\1%\2', xml).replace('<!--%', '<%').replace('%-->', '%>')
 
         engine = get_engine(types[rep_type])
         rep = engine.auto_report(xml, format=format, model=model, query=qs, report_title=self.name, params=where)

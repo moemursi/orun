@@ -2,9 +2,9 @@ import base64
 import json
 import os
 import uuid
-import re
-import mako.template
+
 import mako.lookup
+import mako.template
 
 from orun import app
 from orun.conf import settings

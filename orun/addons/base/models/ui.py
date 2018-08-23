@@ -1,4 +1,5 @@
 import os
+import re
 
 from jinja2 import Environment, FunctionLoader
 
@@ -98,23 +99,18 @@ class View(models.Model):
 
     def merge(self, source, dest):
         for child in dest:
-            if child.tag == 'view':
-                self.merge(source, child)
-            elif child.tag == 'xpath':
+            if child.tag == 'xpath':
                 self.xpath(source, child)
 
     def compile(self, context, parent=None):
-        # TODO report inheritance
-        if self.view_type == 'report' and self.template_name and self.template_name.endswith('.mako'):
-            return self._get_content()
+        view_cls = self.__class__
+        children = view_cls.objects.filter(view_cls.c.parent_id == self.pk, view_cls.c.mode == 'extension')
         xml = etree.fromstring(self._get_content())
         if self.parent and self.mode == 'primary':
             parent_xml = etree.fromstring(self.parent.render(context))
             self.merge(parent_xml, xml)
             xml = parent_xml
 
-        view_cls = self.__class__
-        children = view_cls.objects.filter(view_cls.c.parent_id == self.pk, view_cls.c.mode == 'extension')
         for child in children:
             self.merge(xml, etree.fromstring(child._get_content()))
         return xml
@@ -122,6 +118,9 @@ class View(models.Model):
     def _get_content(self):
         templ = app.jinja_env.get_or_select_template(self.template_name.split(':')[-1])
         res = open(templ.filename, encoding='utf-8').read()
+        # prepare mako tags
+        if self.template_name and self.template_name.endswith('.mako') and '<%' in res:
+            res = re.sub(r'<(/?)%(\w+)', r'<\1mako-\2', res).replace('<%', '<!--%').replace('%>', '%-->')
         return res
 
     def render(self, context):
