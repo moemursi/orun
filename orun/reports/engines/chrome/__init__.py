@@ -1,10 +1,10 @@
-import base64
 import json
 import os
 import uuid
 
 import mako.lookup
 import mako.template
+from gevent import subprocess
 
 from orun import app
 from orun.conf import settings
@@ -77,28 +77,15 @@ class ChromeEngine:
         return templ.render(models=app, **kwargs).encode('utf-8')
 
     def from_xml(self, xml, **kwargs):
-        import gevent
-        import pychrome
         xml = self._from_xml(xml, **kwargs)
         fname = uuid.uuid4().hex + '.html'
-        fname = 'report.html'
         file_path = os.path.join(settings.REPORT_PATH, fname)
+        output_path = file_path + '.pdf'
         with open(file_path, 'wb') as tmp:
             tmp.write(xml)
             tmp.close()
-
-            browser = pychrome.Browser(url="http://127.0.0.1:9222")
-            tab = browser.new_tab()
-            tab.start()
-            tab.call_method("Network.enable")
-            tab.call_method("Page.navigate", url='file://' + file_path)
-            gevent.sleep(.9)
-            with open(file_path + '.pdf', 'wb') as f:
-                f.write(base64.decodestring(tab.call_method(
-                    'Page.printToPDF',
-                )['data'].encode('utf-8')))
-            tab.stop()
-            browser.close_tab(tab)
+            # TODO run print to pdf using CEF
+            subprocess.call([app.config['CHROME_PATH'], '--headless', '--disable-gpu', '--print-to-pdf=' + output_path, 'file://' + file_path])
             return fname + '.pdf'
 
 
