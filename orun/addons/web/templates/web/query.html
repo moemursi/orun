@@ -60,6 +60,8 @@
         $(this).html('<input class="search-col-' + idx + '" type="text" placeholder="Pesquisar ' + title + '" />');
       });
 
+      let timeout;
+
       let table = $('#table').DataTable({
         paging: false,
         dom: 'Bfrtip',
@@ -74,9 +76,12 @@
         $('input.search-col-' + idx).on('keyup change', function () {
           console.log('key up', that);
           if (that.search() !== this.value) {
-            that
-            .search(this.value)
-            .draw();
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+              that
+              .search(this.value)
+              .draw();
+            }, 1000);
           }
         });
       });
