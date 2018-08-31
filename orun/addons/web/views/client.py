@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from flask import redirect, send_from_directory, url_for, flash
 
 from orun import app, auth, g
@@ -137,6 +139,19 @@ class WebClient(BaseView):
     @route('/image/<model>/<field>/<id>/')
     def image(self, model, field, id):
         return redirect(app['ir.attachment'].objects.filter(id=id).one().get_download_url())
+
+    @route('/query/')
+    def query(self):
+        id = request.args.get('id')
+        queries = app['ir.query']
+        query = None
+        if id:
+            query = queries.read(id, return_cursor=True)
+        queries = queries.objects.all()
+        cats = defaultdict(list)
+        for q in queries:
+            cats[q.category].append(q)
+        return render_template('/web/query.html', categories=cats, query=query)
 
 
 # @app.errorhandler(500)
