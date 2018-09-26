@@ -269,12 +269,11 @@ class Migrate(object):
             model = table.__model__
             cols = insp.get_columns(table.name, schema=table.schema)
             cols = {col['name']: col for col in cols}
-            with connection.backend.schema_editor() as editor:
-                for f in model._meta.local_fields:
-                    if f.column is None:
-                        continue
-                    c = f.column
-                    if c.name not in cols:
-                        connection.execute(CreateColumn(c))
-                        # editor.add_field(model, f)
+            for f in model._meta.local_fields:
+                if f.column is None:
+                    continue
+                c = f.column
+                if c.name not in cols:
+                    connection.execute(CreateColumn(c))
+                    # editor.add_field(model, f)
 
