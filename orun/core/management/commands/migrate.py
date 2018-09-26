@@ -258,7 +258,12 @@ class Migrate(object):
                 except:
                     pass
         main_app.meta.create_all(connection)
-        tables = main_app.meta.tables
+
+        tables = [
+            table
+            for table in main_app.meta.tables.values()
+            if connection.dialect.has_table(connection, table.name, schema=table.schema)
+        ]
 
         for table in tables:
             model = table.__model__
