@@ -41,7 +41,7 @@ from orun.db.migrations.state import ProjectState
          'flag. Orun will only check for an existing table name.',
 )
 @commands.option(
-    '--run-syncdb',
+    '--run-syncdb', default=False,
     help='Creates tables for apps without migrations.',
 )
 def command(app_label, migration_name, noinput, database, fake, fake_initial, run_syncdb, **options):
@@ -70,7 +70,7 @@ class Migrate(object):
         connection = connections[db]
 
         if self.run_syncdb:
-            self.sync_apps(connection)
+            self.sync_apps(connection, None)
 
         # Hook for backends needing any database preparation
         #connection.prepare_database()
