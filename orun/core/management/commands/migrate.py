@@ -1,5 +1,7 @@
 import time
 from collections import OrderedDict
+from sqlalchemy.engine import reflection
+from sqlalchemy.schema import CreateSchema, CreateColumn
 
 from orun import app as main_app
 from orun.apps import apps
@@ -70,7 +72,7 @@ class Migrate(object):
         connection = connections[db]
 
         if self.run_syncdb:
-            self.sync_apps(connection, None)
+            return self.sync_apps(connection, None)
 
         # Hook for backends needing any database preparation
         #connection.prepare_database()
@@ -248,64 +250,26 @@ class Migrate(object):
 
     def sync_apps(self, connection, app_labels):
         "Runs the old syncdb-style operation on a list of app_labels."
+        insp = reflection.Inspector.from_engine(connection.engine)
+        for app in main_app.addons:
+            if app.db_schema:
+                try:
+                    connection.execute(CreateSchema(app.db_schema))
+                except:
+                    pass
         main_app.meta.create_all(connection)
-        return
-        cursor = connection.cursor()
+        tables = main_app.meta.tables
 
-        try:
-            # Get a list of already installed *models* so that references work right.
-            tables = connection.introspection.table_names(cursor)
-            created_models = set()
+        for table in tables:
+            model = table.__model__
+            cols = insp.get_columns(table.name, schema=table.schema)
+            cols = {col['name']: col for col in cols}
+            with connection.backend.schema_editor() as editor:
+                for f in model._meta.local_fields:
+                    if f.column is None:
+                        continue
+                    c = f.column
+                    if c.name not in cols:
+                        connection.execute(CreateColumn(c))
+                        # editor.add_field(model, f)
 
-            # Build the manifest of apps and models that are to be synchronized
-            all_models = [
-                (
-                    app_config.label,
-                    True,
-                    #router.get_migratable_models(app_config, connection.alias, include_auto_created=False)
-                 )
-                for app_config in apps.get_app_configs()
-                if app_config.models_module is not None and app_config.label in app_labels
-            ]
-
-            def model_installed(model):
-                opts = model._meta
-                converter = connection.introspection.table_name_converter
-                # Note that if a model is unmanaged we short-circuit and never try to install it
-                return not ((converter(opts.db_table) in tables) or
-                    (opts.auto_created and converter(opts.auto_created._meta.db_table) in tables))
-
-            manifest = OrderedDict(
-                (app_name, list(filter(model_installed, model_list)))
-                for app_name, model_list in all_models
-            )
-
-            # Create the tables for each model
-            if self.verbosity >= 1:
-                commands.echo("  Creating tables...")
-            with transaction.atomic(using=connection.alias, savepoint=connection.features.can_rollback_ddl):
-                deferred_sql = []
-                for app_name, model_list in manifest.items():
-                    for model in model_list:
-                        if not model._meta.can_migrate(connection):
-                            continue
-                        if self.verbosity >= 3:
-                            commands.echo(
-                                "    Processing %s.%s model" % (app_name, model._meta.object_name)
-                            )
-                        with connection.schema_editor() as editor:
-                            if self.verbosity >= 1:
-                                commands.echo("    Creating table %s" % model._meta.db_table)
-                            editor.create_model(model)
-                            deferred_sql.extend(editor.deferred_sql)
-                            editor.deferred_sql = []
-                        created_models.add(model)
-
-                if self.verbosity >= 1:
-                    commands.echo("    Running deferred SQL...")
-                for statement in deferred_sql:
-                    cursor.execute(statement)
-        finally:
-            cursor.close()
-
-        return created_models
