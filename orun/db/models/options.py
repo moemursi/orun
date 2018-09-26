@@ -240,7 +240,7 @@ class Options(object):
                     parent._meta._build_mapper()
                 col = self.fields_dict[field.name].column
                 mapped.c = mapper(
-                    mapped, table, inherits=parent, properties=props,
+                    mapped, table, inherits=parent, properties=props, concrete=True,
                     inherit_condition=col == list(col.foreign_keys)[0].column, **additional_args).c
         else:
             mapped.c = mapper(mapped, table, properties=props, **additional_args).c
