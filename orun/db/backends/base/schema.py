@@ -89,7 +89,7 @@ class BaseDatabaseSchemaEditor(object):
     def __enter__(self):
         self.deferred_sql = []
         if self.atomic_migration:
-            self.atomic = self.connection.session.begin()
+            self.atomic = self.connection.engine.session.begin()
             self.atomic.__enter__()
         return self
 
@@ -115,7 +115,7 @@ class BaseDatabaseSchemaEditor(object):
             else:
                 self.collected_sql.append(sql + ending)
         else:
-            self.connection.session.execute(sql)
+            self.connection.engine.session.execute(sql)
             # with self.connection.raw_connection().cursor() as cursor:
             #     if params:
             #         cursor.execute(sql, params)
@@ -899,7 +899,7 @@ class BaseDatabaseSchemaEditor(object):
                 name = '%s%s_%s"' % (prefix, name[:-1], ix_name)
             else:
                 name = '%s%s_%s' % (prefix, name, ix_name)
-            return truncate_name(name, self.connection.conn_info.ops.max_name_length())
+            return truncate_name(name, 127)
         # Else generate the name for the index using a different algorithm
         table_name = model._meta.db_table.replace('"', '').replace('.', '_')
         index_unique_name = '_%s' % self._digest(table_name, *column_names)

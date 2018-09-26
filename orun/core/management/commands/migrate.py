@@ -1,7 +1,7 @@
 import time
 from collections import OrderedDict
 from sqlalchemy.engine import reflection
-from sqlalchemy.schema import CreateSchema, CreateColumn
+from sqlalchemy.schema import CreateSchema
 
 from orun import app as main_app
 from orun.apps import apps
@@ -257,23 +257,24 @@ class Migrate(object):
                     connection.execute(CreateSchema(app.db_schema))
                 except:
                     pass
-        main_app.meta.create_all(connection)
 
         tables = [
             table
             for table in main_app.meta.tables.values()
             if connection.dialect.has_table(connection, table.name, schema=table.schema)
         ]
+        main_app.meta.create_all(connection)
 
         for table in tables:
             model = table.__model__
             cols = insp.get_columns(table.name, schema=table.schema)
             cols = {col['name']: col for col in cols}
-            for f in model._meta.local_fields:
-                if f.column is None:
-                    continue
-                c = f.column
-                if c.name not in cols:
-                    connection.execute(CreateColumn(c))
-                    # editor.add_field(model, f)
+            with connection.backend.schema_editor() as editor:
+                for f in model._meta.local_fields:
+                    if f.column is None:
+                        continue
+                    c = f.column
+                    if c.name not in cols:
+                        # connection.execute(CreateColumn(c))
+                        editor.add_field(model, f)
 

@@ -505,7 +505,7 @@ class Field:
             db_type = db_type[0]
             if self.many_to_one and hasattr(db_type, 'fk_type'):
                 db_type = db_type.fk_type()
-        type_string = db_type.compile(connection.dialect)
+        type_string = db_type.compile(connection.engine.dialect)
         check_string = self.db_check(connection)
         return {
             "type": type_string,

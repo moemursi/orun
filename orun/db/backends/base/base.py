@@ -11,5 +11,11 @@ class BaseBackend(object):
     @classmethod
     def create_engine(cls, db, url, **kwargs):
         eng = sa.create_engine(str(url), echo=settings.SQL_DEBUG, **kwargs)
-        eng.backend = cls
+        conn = cls()
+        eng.backend = conn
+        conn.engine = eng
         return eng
+
+    def schema_editor(self):
+        return self.SchemaEditorClass(self)
+
