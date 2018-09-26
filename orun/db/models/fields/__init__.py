@@ -207,6 +207,8 @@ class Field:
         pass
 
     def create_column(self, bind=None, *args, **kwargs):
+        if self.db_index:
+            kwargs['index'] = True
         if self.primary_key:
             kwargs['primary_key'] = self.primary_key
         if self.null is False:
