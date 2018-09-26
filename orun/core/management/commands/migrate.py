@@ -69,6 +69,9 @@ class Migrate(object):
         db = self.database
         connection = connections[db]
 
+        if self.run_syncdb:
+            self.sync_apps(connection)
+
         # Hook for backends needing any database preparation
         #connection.prepare_database()
         # Work out which apps have migrations and which do not
@@ -245,6 +248,8 @@ class Migrate(object):
 
     def sync_apps(self, connection, app_labels):
         "Runs the old syncdb-style operation on a list of app_labels."
+        main_app.meta.create_all(connection)
+        return
         cursor = connection.cursor()
 
         try:
