@@ -43,27 +43,27 @@ from orun.db.migrations.state import ProjectState
          'flag. Orun will only check for an existing table name.',
 )
 @commands.option(
-    '--run-syncdb', default=False,
+    '--sync', is_flag=True,
     help='Creates tables for apps without migrations.',
 )
-def command(app_label, migration_name, noinput, database, fake, fake_initial, run_syncdb, **options):
-    migrate(app_label, migration_name, noinput, database, fake, fake_initial, run_syncdb, **options)
+def command(app_label, migration_name, noinput, database, fake, fake_initial, sync, **options):
+    migrate(app_label, migration_name, noinput, database, fake, fake_initial, sync, **options)
 
 
-def migrate(app_label, migration_name, noinput, database, fake, fake_initial, run_syncdb, **options):
-    migrate = Migrate(app_label, migration_name, noinput, database, fake, fake_initial, run_syncdb, **options)
+def migrate(app_label, migration_name, noinput, database, fake, fake_initial, sync, **options):
+    migrate = Migrate(app_label, migration_name, noinput, database, fake, fake_initial, sync, **options)
     migrate.handle()
 
 
 class Migrate(object):
-    def __init__(self, app_label, migration_name, noinput, database, fake, fake_initial, run_syncdb, **options):
+    def __init__(self, app_label, migration_name, noinput, database, fake, fake_initial, sync, **options):
         self.app_label = app_label
         self.migration_name = migration_name
         self.interactive = not noinput
         self.database = database
         self.fake = fake
         self.fake_initial = fake_initial
-        self.run_syncdb = run_syncdb
+        self.sync = sync
         self.verbosity = options['verbosity']
 
     def handle(self, *args, **options):
@@ -71,7 +71,7 @@ class Migrate(object):
         db = self.database
         connection = connections[db]
 
-        if self.run_syncdb:
+        if self.sync:
             return self.sync_apps(connection, None)
 
         # Hook for backends needing any database preparation
