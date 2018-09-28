@@ -73,6 +73,8 @@ class Field:
     is_relation = None
     many_to_many = False
     many_to_one = False
+    one_to_many = False
+    one_to_one = False
     rel_field = None
     set = None
 

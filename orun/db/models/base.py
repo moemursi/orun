@@ -5,6 +5,7 @@ import os
 
 import sqlalchemy as sa
 from sqlalchemy import orm, func
+from sqlalchemy.ext.declarative import declarative_base
 
 from orun import api, render_template
 from orun import app, g
@@ -258,6 +259,8 @@ class ModelBase(type):
         else:
             return session.query(app[cls._meta.name].__class__)
 
+
+Model = declarative_base(metaclass=ModelBase)
 
 class Service(metaclass=ModelBase):
     def __init__(self, *args, **kwargs):
