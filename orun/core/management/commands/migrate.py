@@ -1,5 +1,6 @@
 import time
-from collections import OrderedDict
+
+import sqlalchemy as sa
 from sqlalchemy.engine import reflection
 from sqlalchemy.schema import CreateSchema
 
@@ -11,7 +12,7 @@ from orun.core.management.commands import CommandError
 from orun.core.management.sql import (
     emit_post_migrate_signal, emit_pre_migrate_signal,
 )
-from orun.db import connections, transaction
+from orun.db import connections
 from orun.db.migrations.autodetector import MigrationAutodetector
 from orun.db.migrations.exceptions import AmbiguityError
 from orun.db.migrations.executor import MigrationExecutor
@@ -269,12 +270,17 @@ class Migrate(object):
             model = table.__model__
             cols = insp.get_columns(table.name, schema=table.schema)
             cols = {col['name']: col for col in cols}
+            tbl = sa.Table(table.name, main_app.meta, schema=table.schema, autoload=True)
             with connection.backend.schema_editor() as editor:
                 for f in model._meta.local_fields:
                     if f.column is None:
                         continue
                     c = f.column
+                    old_col = tbl.c[c.name]
                     if c.name not in cols:
                         # connection.execute(CreateColumn(c))
                         editor.add_field(model, f)
+                    elif c.nullable != old_col.nullable:
+                        if c.nullable:
+                            editor.alter_field(c)
 

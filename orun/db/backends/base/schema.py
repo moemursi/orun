@@ -146,44 +146,20 @@ class BaseDatabaseSchemaEditor(object):
         The field must already have had set_attributes_from_name called.
         """
         # Get the column's type and use that as the basis of the SQL
-        db_type = field.db_type(bind=self.connection)
-        if field.many_to_one and hasattr(db_type, 'fk_type'):
-            sql = str(db_type.fk_type)
-        else:
-            db_params = field.db_parameters(connection=self.connection)
-            sql = db_params['type']
+        sql = field.column.type.compile(self.connection.engine.dialect)
         params = []
         # Check for fields that aren't actually columns (e.g. M2M)
-        if sql is None:
-            return None, None
         # Work out nullability
-        null = field.null
         # If we were told to include a default value, do so
-        include_default = include_default and not self.skip_default(field)
-        if include_default:
-            default_value = self.effective_default(field)
-            if default_value is not None:
-                if self.connection.features.requires_literal_defaults:
-                    # Some databases can't take defaults as a parameter (oracle)
-                    # If this is the case, the individual schema backend should
-                    # implement prepare_default
-                    sql += " DEFAULT %s" % self.prepare_default(default_value)
-                else:
-                    sql += " DEFAULT %s"
-                    params += [default_value]
-        if null and not field.primary_key:
+        if not field.primary_key:
             sql += " NULL"
-        if not null:
-            sql += " NOT NULL"
         # Primary key/unique outputs
-        if field.primary_key and null:
+        if field.primary_key:
             sql += " NOT NULL"
-        #elif field.unique:
-        #    sql += " UNIQUE"
-        # Optionally add the tablespace if it's an implicitly indexed column
+
         tablespace = field.db_tablespace or model._meta.db_tablespace
         if tablespace and self.connection.features.supports_tablespaces and field.unique:
-            sql += " %s" % self.connection.conn_info.ops.tablespace_sql(tablespace, inline=True)
+            sql += " %s" % self.connection.ops.tablespace_sql(tablespace, inline=True)
         # Return the sql
         return sql, params
 
@@ -472,14 +448,14 @@ class BaseDatabaseSchemaEditor(object):
         if field.many_to_many:
             return
         # Get the column's definition
-        definition, params = self.column_sql(model, field, include_default=True)
+        definition, params = self.column_sql(model, field)
         # It might not actually have a column behind it
         if definition is None:
             return
         # Check constraints can go on the column SQL here
-        db_params = field.db_parameters(connection=self.connection)
-        if db_params['check']:
-            definition += " CHECK (%s)" % db_params['check']
+        # db_params = field.db_parameters(connection=self.connection)
+        # if db_params['check']:
+        #     definition += " CHECK (%s)" % db_params['check']
         # Build the SQL and run it
         sql = self.sql_create_column % {
             "table": self.quote_name(model._meta.table_name),
@@ -532,6 +508,11 @@ class BaseDatabaseSchemaEditor(object):
         # Reset connection if required
         # if self.connection.features.connection_persists_old_columns:
         #     self.connection.close()
+
+    def alter_column(self, column):
+        sql = self.sql_alter_column_null % {'column': column.name}
+        sql = self.sql_alter_column % {'table': column.table.name, 'changes': sql}
+        self.execute(sql)
 
     def alter_field(self, model, old_field, new_field, strict=False):
         """
@@ -998,7 +979,7 @@ class BaseDatabaseSchemaEditor(object):
             "column": self.quote_name(from_column),
             "to_table": self.quote_name(to_table),
             "to_column": self.quote_name(to_column),
-            "deferrable": self.connection.conn_info.ops.deferrable_sql(),
+            "deferrable": '', #self.connection.conn_info.ops.deferrable_sql(),
         }
 
         if field.on_delete is not None:
