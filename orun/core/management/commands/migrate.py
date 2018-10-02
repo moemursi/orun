@@ -280,7 +280,6 @@ class Migrate(object):
                     if c.name not in cols:
                         # connection.execute(CreateColumn(c))
                         editor.add_field(model, f)
-                    elif c.nullable != old_col.nullable:
-                        if c.nullable:
-                            editor.alter_field(c)
+                    elif c.nullable != old_col.nullable and c.nullable:
+                        editor.alter_column(c)
 
