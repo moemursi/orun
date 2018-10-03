@@ -266,20 +266,30 @@ class Migrate(object):
         ]
         main_app.meta.create_all(connection)
 
+        meta = sa.MetaData(connection.engine)
+
         for table in tables:
             model = table.__model__
-            cols = insp.get_columns(table.name, schema=table.schema)
-            cols = {col['name']: col for col in cols}
-            tbl = sa.Table(table.name, main_app.meta, schema=table.schema, autoload=True)
-            with connection.backend.schema_editor() as editor:
-                for f in model._meta.local_fields:
-                    if f.column is None:
-                        continue
-                    c = f.column
-                    old_col = tbl.c[c.name]
-                    if c.name not in cols:
-                        # connection.execute(CreateColumn(c))
-                        editor.add_field(model, f)
-                    elif c.nullable != old_col.nullable and c.nullable:
-                        editor.alter_column(c)
+            if model._meta.managed:
+                cols = insp.get_columns(table.name, schema=table.schema)
+                cols = {col['name']: col for col in cols}
+                tbl = sa.Table(table.name, meta, schema=table.schema, autoload=True)
+                indexes = None
+                with connection.backend.schema_editor() as editor:
+                    for f in model._meta.local_fields:
+                        if f.column is None:
+                            continue
+                        c = f.column
+                        old_col = tbl.c.get(c.name)
+                        if old_col is None:
+                            if c.name not in cols:
+                                # connection.execute(CreateColumn(c))
+                                editor.add_field(model, f)
+                            elif old_col.foreign_keys and not editor.compare_fks(old_col.foreign_keys, c.foreign_keys):
+                                if indexes is None:
+                                    indexes = insp.get_indexes(tbl.name, tbl.schema)
+                                editor.safe_alter_column(c, old_col, indexes=indexes)
+                                editor.add_field(model, f)
+                            elif c.nullable != old_col.nullable and c.nullable:
+                                editor.alter_column_null(c)
 

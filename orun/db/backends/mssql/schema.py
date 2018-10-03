@@ -13,7 +13,12 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     sql_rename_column = "EXEC SP_RENAME '%(table)s.%(old_column)s', '%(new_column)s', 'COLUMN'"
     sql_delete_column = "ALTER TABLE %(table)s DROP COLUMN %(column)s"
     sql_delete_table = "DROP TABLE %(table)s"
+    sql_delete_index = "DROP INDEX %(table)s.%(name)s"
 
     def _create_fk_sql(self, model, field, suffix):
         sql = super(DatabaseSchemaEditor, self)._create_fk_sql(model, field, suffix)
         return sql
+
+    def compare_fks(self, fk1, fk2):
+        return ','.join(fk._colspec if not fk._colspec.startswith('dbo.') else fk._colspec[4:] for fk in fk1) == ','.join(fk._colspec for fk in fk2)
+

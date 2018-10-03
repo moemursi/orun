@@ -509,10 +509,40 @@ class BaseDatabaseSchemaEditor(object):
         # if self.connection.features.connection_persists_old_columns:
         #     self.connection.close()
 
-    def alter_column(self, column):
-        sql = self.sql_alter_column_null % {'column': column.name}
-        sql = self.sql_alter_column % {'table': column.table.name, 'changes': sql}
+    def alter_column_null(self, column):
+        sql = self.sql_alter_column_null % {
+            'column': column.name, 'definition': column.type.compile(self.connection.engine.dialect),
+        }
+        sql = self.sql_alter_column % {'table': column.table.fullname, 'changes': sql}
         self.execute(sql)
+
+    def safe_alter_column(self, column, old, indexes=None):
+        table_name = column.table.fullname
+        # rename the old column
+        old_name = f'old__{column.name}'
+        s = ''
+        i = 0
+        while old_name + s in old.table.c:
+            i += 1
+            s = '_' + str(i)
+        old_name += s
+        new_name = column.name
+        db_type = old.type.compile(dialect=self.connection.engine.dialect)
+        sql = self.sql_create_column % {'table': table_name, 'column': old_name, 'definition': db_type}
+        self.execute(sql)
+        self.execute(f"UPDATE {table_name} SET {old_name} = {column.compile(dialect=self.connection.engine.dialect)}")
+
+        if indexes is not None:
+            for idx in indexes:
+                if old.name in idx['column_names']:
+                    self.execute(self.sql_delete_index % {'table': table_name, 'name': idx['name']})
+        for fk in old.foreign_keys:
+            self.execute(self.sql_delete_fk % {'table': table_name, 'name': fk.name})
+        sql = self.sql_delete_column % {'table': table_name, 'column': new_name}
+        self.execute(sql)
+
+    def compare_fks(self, fk1, fk2):
+        return ','.join(fk._colspec for fk in fk1.foreign_keys) == ','.join(fk._colspec for fk in fk2.foreign_keys)
 
     def alter_field(self, model, old_field, new_field, strict=False):
         """

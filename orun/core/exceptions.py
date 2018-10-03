@@ -120,7 +120,7 @@ class ValidationError(RPCError):
         """
 
         # PY2 can't pickle naive exception: http://bugs.python.org/issue1692335.
-        super(ValidationError, self).__init__(code, message, params)
+        super().__init__(message, code, params)
 
         if isinstance(message, ValidationError):
             if hasattr(message, 'error_dict'):

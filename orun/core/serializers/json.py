@@ -7,12 +7,14 @@ import json
 import sys
 import uuid
 from types import GeneratorType
+
 import sqlalchemy.orm.query
 
+from orun.core.exceptions import ValidationError
+from orun.core.serializers import python
+from orun.core.serializers.base import DeserializationError
 from orun.db import models
 from orun.utils import reraise
-from orun.core.serializers.base import DeserializationError
-from orun.core.serializers import python
 from orun.utils.functional import Promise
 from orun.utils.timezone import is_aware
 
@@ -120,6 +122,8 @@ class OrunJSONEncoder(json.JSONEncoder):
             return str(o)
         elif isinstance(o, GeneratorType):
             return [obj for obj in o]
+        elif isinstance(o, ValidationError):
+            return ValidationError
         else:
             return super(OrunJSONEncoder, self).default(o)
 
