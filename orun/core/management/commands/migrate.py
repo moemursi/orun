@@ -265,33 +265,31 @@ class Migrate(object):
             if connection.dialect.has_table(connection, table.name, schema=table.schema) and table.__model__._meta.managed
         ]
 
-        map(lambda tbl: main_app.meta.remove(tbl) if tbl not in tables else None, main_app.meta.tables)
-        main_app.meta.create_all(connection)
+        main_app.meta.create_all(connection, tables=[tbl for tbl in main_app.meta.tables.values() if tbl.__model__._meta.managed])
 
         meta = sa.MetaData(connection.engine)
 
         for table in tables:
             model = table.__model__
-            if model._meta.managed:
-                cols = insp.get_columns(table.name, schema=table.schema)
-                cols = {col['name']: col for col in cols}
-                tbl = sa.Table(table.name, meta, schema=table.schema, autoload=True)
-                indexes = None
-                with connection.backend.schema_editor() as editor:
-                    for f in model._meta.local_fields:
-                        if f.column is None:
-                            continue
-                        c = f.column
-                        old_col = tbl.c.get(c.name)
-                        if old_col is None:
-                            if c.name not in cols:
-                                # connection.execute(CreateColumn(c))
-                                editor.add_field(model, f)
-                            elif old_col.foreign_keys and not editor.compare_fks(old_col.foreign_keys, c.foreign_keys):
-                                if indexes is None:
-                                    indexes = insp.get_indexes(tbl.name, tbl.schema)
-                                editor.safe_alter_column(c, old_col, indexes=indexes)
-                                editor.add_field(model, f)
-                            elif c.nullable != old_col.nullable and c.nullable:
-                                editor.alter_column_null(c)
+            cols = insp.get_columns(table.name, schema=table.schema)
+            cols = {col['name']: col for col in cols}
+            tbl = sa.Table(table.name, meta, schema=table.schema, autoload=True)
+            indexes = None
+            with connection.backend.schema_editor() as editor:
+                for f in model._meta.local_fields:
+                    if f.column is None:
+                        continue
+                    c = f.column
+                    old_col = tbl.c.get(c.name)
+                    if old_col is None:
+                        if c.name not in cols:
+                            # connection.execute(CreateColumn(c))
+                            editor.add_field(model, f)
+                        elif old_col.foreign_keys and not editor.compare_fks(old_col.foreign_keys, c.foreign_keys):
+                            if indexes is None:
+                                indexes = insp.get_indexes(tbl.name, tbl.schema)
+                            editor.safe_alter_column(c, old_col, indexes=indexes)
+                            editor.add_field(model, f)
+                        elif c.nullable != old_col.nullable and c.nullable:
+                            editor.alter_column_null(c)
 
