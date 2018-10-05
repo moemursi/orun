@@ -262,8 +262,10 @@ class Migrate(object):
         tables = [
             table
             for table in main_app.meta.tables.values()
-            if connection.dialect.has_table(connection, table.name, schema=table.schema)
+            if connection.dialect.has_table(connection, table.name, schema=table.schema) and table.__model__._meta.managed
         ]
+
+        map(lambda tbl: main_app.meta.remove(tbl) if tbl not in tables else None, main_app.meta.tables)
         main_app.meta.create_all(connection)
 
         meta = sa.MetaData(connection.engine)
