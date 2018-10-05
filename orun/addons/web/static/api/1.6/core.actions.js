@@ -454,8 +454,10 @@
       const res = await this.scope.model.post(meth, { kwargs: { id: id } });
       if (res.open)
         return window.open(res.open);
-      if (res.ok && res.result.type) {
-        const act = new (Katrid.Actions[res.result.type])(res.result, this.scope, this.scope.location);
+      if (res.tag === 'refresh')
+        this.dataSource.refresh();
+      if (res.type) {
+        const act = new (Katrid.Actions[res.type])(res, this.scope, this.scope.location);
         act.execute();
       }
     };

@@ -113,7 +113,25 @@ class View(models.Model):
 
         for child in children:
             self.merge(xml, etree.fromstring(child._get_content()))
+
+        self._eval_permissions(xml)
         return xml
+
+    def _eval_permissions(self, xml):
+        _groups = {}
+        user = self.env.user
+        if not user.is_superuser:
+            objects = self.env['ir.object']
+            children = xml.xpath("//*[@groups]")
+            for child in children:
+                groups = child.attrib['groups']
+                if groups not in _groups:
+                    has_groups = len(list(objects.objects.only('id').filter(
+                        objects.c.model=='auth.group', objects.c.name.in_(groups.split(',')), objects.c.object_id.in_(user.groups)
+                    )[:1])) > 0
+                    _groups[groups] = has_groups
+                if not _groups[groups]:
+                    child.getparent().remove(child)
 
     def _get_content(self):
         templ = app.jinja_env.get_or_select_template(self.template_name.split(':')[-1])
