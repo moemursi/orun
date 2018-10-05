@@ -15,6 +15,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="katrid" />
     <orderEntry type="module" module-name="myerp" />
+    <orderEntry type="module" module-name="alexandre" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
