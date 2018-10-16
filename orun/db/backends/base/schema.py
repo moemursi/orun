@@ -510,7 +510,7 @@ class BaseDatabaseSchemaEditor(object):
         #     self.connection.close()
 
     def alter_column_null(self, column):
-        sql = self.sql_alter_column_null % {
+        sql = self.sql_alter_column_not_null % {
             'column': column.name, 'definition': column.type.compile(self.connection.engine.dialect),
         }
         sql = self.sql_alter_column % {'table': column.table.fullname, 'changes': sql}

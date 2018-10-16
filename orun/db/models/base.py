@@ -2,6 +2,7 @@ import copy
 import datetime
 import inspect
 import os
+from itertools import chain
 
 import sqlalchemy as sa
 from sqlalchemy import orm, func
@@ -549,10 +550,10 @@ class Model(Service):
             **kwargs
     ):
         params = kwargs.get('params')
+        join = []
         if name:
             if name_fields is None:
-                name_fields = self._meta.get_name_fields()
-                # name_fields = [_resolve_fk_search(f) for f in self._meta.get_name_fields()]
+                name_fields = chain(*(_resolve_fk_search(f, join) for f in self._meta.get_name_fields()))
             if exact:
                 q = [sa.or_(*[fld.column == name for fld in name_fields])]
             else:
@@ -560,6 +561,7 @@ class Model(Service):
             if params:
                 q.append(params)
             kwargs = {'params': q}
+        kwargs['join'] = join
         qs = self._search(*args, **kwargs)
         if count:
             count = qs.count()
@@ -764,9 +766,11 @@ class Model(Service):
             for row in session.query(col, func.count(col)).group_by(col).all():
                 yield row
 
-    def _search(self, params=None, fields=None, domain=None, *args, **kwargs):
+    def _search(self, params=None, fields=None, domain=None, join=None, *args, **kwargs):
         self.check_permission('read')
         qs = self.objects
+        if join:
+            qs = qs.join(*join)
         if isinstance(params, dict):
             if isinstance(domain, dict):
                 params.update(domain)
@@ -855,9 +859,11 @@ def unpickle_inner_exception(klass, exception_name):
     return exception.__new__(exception)
 
 
-def _resolve_fk_search(field):
+def _resolve_fk_search(field, join_list):
     if isinstance(field, ForeignKey):
-        return field.related_model._meta.get_name_fields()
+        rel_model = app[field.related_model]
+        join_list.append(rel_model)
+        return rel_model._meta.get_name_fields()
     return [field]
 
 

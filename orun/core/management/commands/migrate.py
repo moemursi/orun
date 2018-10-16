@@ -285,11 +285,11 @@ class Migrate(object):
                         if c.name not in cols:
                             # connection.execute(CreateColumn(c))
                             editor.add_field(model, f)
-                        elif old_col.foreign_keys and not editor.compare_fks(old_col.foreign_keys, c.foreign_keys):
-                            if indexes is None:
-                                indexes = insp.get_indexes(tbl.name, tbl.schema)
-                            editor.safe_alter_column(c, old_col, indexes=indexes)
-                            editor.add_field(model, f)
-                        elif c.nullable != old_col.nullable and c.nullable:
-                            editor.alter_column_null(c)
+                    elif old_col.foreign_keys and not editor.compare_fks(old_col.foreign_keys, c.foreign_keys):
+                        if indexes is None:
+                            indexes = insp.get_indexes(tbl.name, tbl.schema)
+                        editor.safe_alter_column(c, old_col, indexes=indexes)
+                        editor.add_field(model, f)
+                    elif c.nullable != old_col.nullable and c.nullable:
+                        editor.alter_column_null(c)
 
