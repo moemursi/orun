@@ -639,9 +639,6 @@
         else if (field.domain)
           domain = field.domain;
 
-        if (_.isString(domain))
-          domain = $.parseJSON(domain);
-
         el.addClass('form-field');
 
         if (attrs.serviceName)
@@ -660,12 +657,17 @@
 
           query(query) {
 
+            let limitChoicesTo;
+            if (domain)
+              limitChoicesTo = scope.$eval(domain);
+
+            console.log('limit choices', limitChoicesTo, el);
             let data = {
               args: [query.term],
               kwargs: {
                 count: 1,
                 page: query.page,
-                domain,
+                domain: limitChoicesTo,
                 name_fields: (attrs.nameFields && attrs.nameFields.split(',')) || null
               }
             };

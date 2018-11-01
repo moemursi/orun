@@ -15,11 +15,13 @@
     }
 
     link(scope, element, attrs) {
+      let templ = Katrid.$templateCache.get('view.grid');
       let me = this;
       // Load remote field model info
 
       const field = scope.$parent.view.fields[attrs.name];
 
+      scope.totalDisplayed = 1000;
       scope.action = scope.$parent.action;
       scope.fieldName = attrs.name;
       scope.field = field;
@@ -64,14 +66,11 @@
       // check if element already has the list view template
       let lst = element.find('list');
       if (lst.length)
-        scope.model.getFieldsInfo({view_type: 'list'})
+        scope.model.loadViews()
         .then(res => {
-          loadViews({
-            list: {
-              content: lst,
-              fields: res.result
-            }
-          })
+          res.views.list.content = $('<div>').append(lst).html();
+          loadViews(res.views);
+          scope.$apply();
         });
       else {
         scope.model.loadViews()
@@ -225,7 +224,7 @@
           });
         } else if (scope.recordIndex === -1) {
           scope.records.push(scope.record);
-          scope.$parent.record[scope.fieldName] = scope.records;
+          // scope.$parent.record[scope.fieldName] = scope.records;
         }
         if (!scope.inline) {
           scope.gridDialog.modal('toggle');
@@ -238,6 +237,66 @@
         if (scope.record.hasOwnProperty(child.fieldName)) {
           child.scope.records = scope.record[child.fieldName];
         }
+      };
+
+      function trim (str) {
+        str = str.replace(/^\s+/, '');
+        for (let i = str.length - 1; i >= 0; i--) {
+          if (/\S/.test(str.charAt(i))) {
+            str = str.substring(0, i + 1);
+            break;
+          }
+        }
+        return str;
+      }
+
+      scope.pasteData = async function () {
+        let cache = {};
+
+        let _queryForeignKeyField = async function(field, val) {
+          return new Promise(async (resolve, reject) =>  {
+
+            if (!cache[field.name])
+              cache[field.name] = {};
+            if (cache[field.name][val] === undefined) {
+              let res = await scope.model.getFieldChoices(field.name, val, { exact: true });
+              if (res.items && res.items.length)
+                cache[field.name][val] = res.items[0];
+              else
+                cache[field.name][val] = null;
+            }
+            resolve(cache[field.name][val]);
+
+          });
+        };
+
+        let fields = [];
+        for (let f of $(scope.view.content).find('field')) {
+          let field = scope.view.fields[$(f).attr('name')];
+          if (field && (_.isUndefined(field.visible) || field.visible))
+            fields.push(field);
+        }
+        let txt = await navigator.clipboard.readText();
+
+        // read lines
+        let rowNo = 0;
+        for (let row of txt.split(/\r?\n/)) {
+          rowNo++;
+          if (row) {
+            let i = 0;
+            let newObj = {};
+            for (let col of row.split(/\t/)) {
+              let field = fields[i];
+              if (field instanceof Katrid.Data.Fields.ForeignKey)
+                newObj[field.name] = await _queryForeignKeyField(field, trim(col));
+              else
+                newObj[field.name] = trim(col);
+              i++;
+            }
+            scope.addRecord(newObj);
+          }
+        }
+        scope.$apply();
       };
 
 

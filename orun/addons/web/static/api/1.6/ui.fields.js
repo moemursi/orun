@@ -43,7 +43,7 @@
 
       if (field.attrs)
         for (let k of field.attrs) {
-          v = field.attrs[k];
+          let v = field.attrs[k];
           if (k.startsWith('container') || ((k === 'ng-show') && !attrs.ngShow)) {
             this.templAttrs[k] = v;
           }

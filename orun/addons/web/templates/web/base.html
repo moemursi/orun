@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="katridApp">
+<html>
 <head>
   <title>Orun Business Framework</title>
   <meta charset="UTF-8">
@@ -27,7 +27,7 @@
   <link href="/static/web/libs/plugins/select2/select2.css" type="text/css" rel="stylesheet">
 
   <!-- Katrid style -->
-  <link href="/static/web/api/1.6/style.css" rel="stylesheet" type="text/css">
+  <link href="/static/web/api/theme/style.css" rel="stylesheet" type="text/css">
 
   <link href="/static/web/assets/plugins/c3/c3.min.css" rel="stylesheet"/>
 
@@ -39,29 +39,21 @@
 
 <script src="/static/web/assets/js/jquery.min.js"></script>
 <script src="/static/web/libs/plugins/jquery-ui.min.js"></script>
-<script src="/static/web/assets/plugins/jquery.datetimepicker/jquery-ui-timepicker-addon.min.js"></script>
 <script src="/static/web/assets/plugins/moment/moment.js"></script>
 <script src="/static/web/assets/plugins/moment/pt-br.js"></script>
 
-<script src="/static/web/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
-<script src="/static/web/assets/plugins/bootstrap-datepicker/locales/bootstrap-datepicker.pt-BR.min.js"></script>
-
 <script src="/static/web/libs/plugins/select2/select2.js"></script>
-
-<script src="/static/web/libs/plugins/jquery.maskedinput/jquery.maskedinput.min.js"></script>
 <script src="/static/web/assets/plugins/jquery.scrollbox/jquery.scrollbox.min.js"></script>
-
 <script src="/static/web/assets/js/popper.js"></script>
 <script src="/static/web/assets/js/bootstrap.min.js"></script>
-<script src="/static/web/libs/plugins/mask/jquery.mask.min.js"></script>
-
-<script src="/static/web/assets/js/angular/angular.js"></script>
+<script src="/static/web/assets/js/angular/angular.min.js"></script>
 <script src="/static/web/assets/js/angular/angular-ui-router.min.js"></script>
 <script src="/static/web/assets/js/angular/angular-route.min.js"></script>
 <script src="/static/web/assets/js/angular/angular-sanitize.min.js"></script>
 <script src="/static/web/assets/js/angular/angular-cookies.min.js"></script>
-<script src="/static/web/assets/js/angular/i18n/angular-locale_pt-br.js"></script>
 <script src="/static/web/libs/plugins/hotkeys/hotkeys.min.js"></script>
+
+<script src="/static/web/assets/js/angular/i18n/angular-locale_pt-br.js"></script>
 
 <!-- app scripts -->
 <script src="/web/client/i18n/catalog.js"></script>
@@ -73,7 +65,8 @@
 <script src="/static/web/assets/plugins/c3/d3.v3.min.js"></script>
 <script src="/static/web/assets/plugins/c3/c3.min.js"></script>
 
-<script src="/static/web/api/1.6/katrid.full.min.js"></script>
+<script src="/static/web/api/1.7/katrid.full.min.js"></script>
+<script src="/static/web/api/1.7/templates.js"></script>
 
 <!-- additional scripts -->
 
@@ -84,11 +77,19 @@
 
 <!-- end additional scripts -->
 
+<script>
+  var app = new Katrid.Core.Application({});
+</script>
+
 {% block page_loaded %}{% endblock %}
 
 <div id="loading-msg">
   <span>{{ gettext('Loading...') }}</span>
 </div>
 
+
+<script>
+  $('#test-number').number(true, 2, ',', '.');
+</script>
 </body>
 </html>

@@ -1,6 +1,0 @@
-<templates>
-  <script id="view.dashboard" type="text/ng-template">
-    <dashboard class="dashboard" data-dashboard-id="{{ action.info.id }}">
-    </dashboard>
-  </script>
-</templates>
