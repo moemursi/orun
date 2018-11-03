@@ -60,6 +60,10 @@ class ChromeEngine:
         else:
             pass
 
+    def select(self, cmd, *params):
+        rows = app.connection.engine.execute(cmd, *params)
+        return rows
+
     def _from_xml(self, xml, **kwargs):
         imports = ['from orun.reports.engines.chrome.filters import localize, linebreaks']
         default_filters = ['localize']
@@ -74,7 +78,7 @@ class ChromeEngine:
             default_filters=default_filters,
             imports=imports,
         )
-        return templ.render(models=app, **kwargs).encode('utf-8')
+        return templ.render(models=app, select=self.select, **kwargs).encode('utf-8')
 
     def from_xml(self, xml, **kwargs):
         xml = self._from_xml(xml, **kwargs)
