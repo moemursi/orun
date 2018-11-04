@@ -33,7 +33,9 @@
     % endif
     <span class="float-right">${date}</span>
     <br/>
-    <h3 class="float-right">Recomendação Técnica</h3>
+    <h2 class="float-right">
+      <%block name="report_title">Report</%block>
+    </h2>
   </div>
   </column>
 </row>
