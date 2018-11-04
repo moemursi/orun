@@ -32,6 +32,9 @@
     <field name="email">mycompany@example.com</field>
     <field name="website">www.example.com</field>
   </object>
+  <object id="auth.user.root" model="auth.user">
+    <field name="user_company" ref="sys.main.company"/>
+  </object>
   <object id="auth.user.anonymous" model="auth.user">
     <field name="name">Anonymous</field>
     <field name="username">anonymous</field>
