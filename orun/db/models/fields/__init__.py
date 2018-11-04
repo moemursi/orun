@@ -1,22 +1,16 @@
-import os
-import base64
-import collections
-import datetime
-import decimal
-import itertools
 import warnings
-from functools import partial, partialmethod
-
+import decimal
+import datetime
+from functools import partialmethod
 import sqlalchemy as sa
-from sqlalchemy.schema import FetchedValue
+from sqlalchemy import Column
+from sqlalchemy.engine import Engine
+from sqlalchemy import FetchedValue
 
 from orun.conf import settings
-from orun.core import exceptions
-from orun.core import validators
-from orun.utils.encoding import force_text, force_str
-from orun.utils.functional import cached_property
 from orun.utils.text import capfirst
-from orun.utils.translation import gettext, gettext_lazy as _
+from orun.utils.functional import cached_property
+
 
 # The values to use for "blank" in SelectFields. Will be appended to the start
 # of most "choices" lists.
@@ -60,213 +54,143 @@ class Fields(list):
             return item in self._dict
         return super().__contains__(item)
 
+    def __getattr__(self, item):
+        return self[item]
 
-class Field:
-    _db_type = sa.String(1024)
 
-    empty_values = list(validators.EMPTY_VALUES)
+class BaseField:
+    _args = None
+    _kwargs = None
+    base_field = None
 
-    default_validators = []  # Default set of validators
-    creation_counter = 0
-    auto_creation_counter = -1
-    max_length = None
-    is_relation = None
+    def __new__(cls, *args, **kwargs):
+        field = super().__new__(cls)
+        if kwargs or args:
+            field._args = args
+            field._kwargs = kwargs
+        return field
+
+    def assign(self, other=None):
+        args = ()
+        attrs = {}
+        if other:
+            if other._args:
+                args = other._args
+            if other._kwargs:
+                attrs.update(other._kwargs)
+        if self._args:
+            args = self._args
+        if self._kwargs:
+            attrs.update(self._kwargs)
+        new_field = self.__class__(*args, **attrs)
+        new_field.base_field = self
+        return new_field
+
+
+class Field(BaseField):
+    db_type = sa.String
+    name: str = None
+    column = None
+    model = None
+    inherited = False
+    set = None
+
+    bind: Engine = None
+
     many_to_many = False
     many_to_one = False
     one_to_many = False
     one_to_one = False
-    rel_field = None
-    set = None
 
-    default_error_messages = {
-        'invalid_choice': _('Value %(value)r is not a valid choice.'),
-        'null': _('This field cannot be null.'),
-        'required': _('This field cannot be blank.'),
-        'unique': _('%(model_name)s with this %(field_label)s '
-                    'already exists.'),
-        # Translators: The 'lookup_type' is one of 'date', 'year' or 'month'.
-        # Eg: "Title must be unique for pub_date year"
-        'unique_for_date': _("%(field_label)s must be unique for "
-                             "%(date_field_label)s %(lookup_type)s."),
-    }
-
+    widget_attrs = None
     related = None
-    base_model = None
-    local = None
-    inherited = False
-    child_field = False
 
-    def __init__(self, label=None, db_column=None, db_index=False, primary_key=False,
-                 concrete=None, readonly=None, null=True, required=None, widget_attrs=None,
-                 auto_created=False, default=NOT_PROVIDED, choices=None, rel=None,
-                 deferred=False, copy=None, serializable=True, editable=True, help_text=None, validators=[],
-                 error_messages=None, compute=None,
-                 unique=False, db_tablespace=None, getter=None, setter=None, proxy=None, onchange=None, *args, **kwargs):
-        self.column = None
-        self.unique = unique
-        self.name = None
+
+    def __init__(self, label=None, max_length=None, null=None, primary_key=False, column=None, concrete=None,
+                 help_text=None, required=None, readonly=None, widget_attrs=None, choices=None, rel=None,
+                 copy=None, editable=True, serializable=True, default=NOT_PROVIDED, getter=None, setter=None,
+                 db_column=None, db_tablespace=None, db_index=False, db_default=NOT_PROVIDED, db_compute=None,
+                 unique=False, validators=None, deferred=None, proxy=None, auto_created=False, descriptor=None,
+                 description=None, *args, **kwargs):
+        self.local = True
         self.label = label or kwargs.get('verbose_name')
+        self.max_length = max_length
+        self.readonly = readonly
+        self.editable = editable
+        self.serializable = serializable
+        self.default = default
+        self.primary_key = primary_key
+        self.column = column
         self.db_column = db_column
+        self.db_tablespace = db_tablespace or settings.DEFAULT_TABLESPACE
         self.db_index = db_index
+        self.db_default = db_default
+        self.db_compute = db_compute
+        self.unique = unique
+        self.null = null
+        self.help_text = help_text
+        self.description = description
+        self.rel = rel
+        self.choices = choices
+        self.deferred = deferred
         if isinstance(proxy, str):
             proxy = proxy.split('.')
             if getter is None:
                 getter = lambda instance: self.get_proxy_field_value(instance)
         self.proxy_field = proxy
-        if concrete is None and getter:
+
+        if getter is not None:
+            pargs = [getter]
+            if setter is not None:
+                pargs.append(setter)
+            descriptor = pargs
+        self.descriptor = descriptor
+        if concrete is None and descriptor is not None:
             concrete = False
-            if readonly is None:
-                readonly = True
-        if readonly is None:
-            readonly = False
-        elif concrete is None:
+        else:
             concrete = True
         self.concrete = concrete
+
+        if readonly is None:
+            if concrete:
+                readonly = False
+            else:
+                readonly = True
         self.readonly = readonly
-        self.primary_key = primary_key
+
+        self.required = required
+        self.concrete = concrete
+        self.attname = None
+        self._validators = validators or []
+
         if copy is None:
             self.copy = not self.primary_key and self.concrete and not auto_created
-        self.default = default
-        self.required = required
-        self.null = null
-        self.choices = choices
-        self.attname = None
-        self.deferred = deferred
-        self.serializable = serializable
-        self.editable = editable and serializable
-        self.help_text = help_text
-        self.db_tablespace = db_tablespace or settings.DEFAULT_INDEX_TABLESPACE
-        self._onchange = onchange
-        self.getter = getter
-        self.setter = setter
-        self.compute = compute
-        self.remote_field = rel
-
-        if null is None:
-            self.null = True
-        self.required = required
-        if required is None:
-            self.required = not self.null
-        self.auto_created = auto_created
-        self.widget_attrs = widget_attrs
-
-        # Adjust the appropriate creation counter, and save our local copy.
-        if auto_created:
-            self.creation_counter = Field.auto_creation_counter
-            Field.auto_creation_counter -= 1
-        else:
-            self.creation_counter = Field.creation_counter
-            Field.creation_counter += 1
-
-        self._validators = validators
-
-        messages = {}
-        for c in reversed(self.__class__.__mro__):
-            messages.update(getattr(c, 'default_error_messages', {}))
-        messages.update(error_messages or {})
-        self.error_messages = messages
-
-    def __str__(self):
-        """ Return "app_label.model_label.field_name". """
-        return '%s.%s' % (str(self.model._meta), self.name)
-
-    def __repr__(self):
-        """
-        Displays the module, class and name of the field.
-        """
-        path = '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
-        name = getattr(self, 'name', None)
-        if name is not None:
-            return '<%s: %s>' % (path, name)
-        return '<%s>' % path
 
     def contribute_to_class(self, cls, name):
         self.column = None
-        self.set_attributes_from_name(name)
         self.model = cls
-        if self.local is None:
-            self.local = True
-            self.inherited = False
-        cls._meta.add_field(self)
-
-        #if self.db_column:
-        #    if not getattr(cls, self.attname, None):
-        #        setattr(cls, self.attname, self)
+        self.set_attributes_from_name(name)
+        self.model._meta.add_field(self)
+        if self.concrete:
+            self.column = self.create_column()
+        if self.label is None:
+            self.label = self.name
 
         if self.choices:
-           setattr(cls, 'get_%s_display' % self.name, partialmethod(cls._get_FIELD_display, field=self))
+            setattr(cls, 'get_%s_display' % self.name, partialmethod(cls._get_FIELD_display, field=self))
 
-        # Initialize the primary key sqlalchemy column
-        if self.primary_key and self.model._meta.app:
-            self._prepare()
-
-        if self.proxy_field and self.model._meta.app:
-            self.model._meta.field_change_event[self.proxy_field[0]].append(
-                partial(self.model._proxy_field_change, field=self)
-            )
-
-    def onchange(self, instance):
-        pass
-
-    def create_column(self, bind=None, *args, **kwargs):
-        if self.db_index:
-            kwargs['index'] = True
+    def create_column(self, *args, **kwargs):
+        args = (self.db_type,) + args
         if self.primary_key:
             kwargs['primary_key'] = self.primary_key
         if self.null is False:
             kwargs['nullable'] = False
         if self.default is not NOT_PROVIDED:
             kwargs['default'] = self.default
-        if self.compute:
-            kwargs['info'] = {'compute': self.compute}
-            args += (FetchedValue(),)
-        else:
-            tp = self.db_type(bind=bind)
-            if not isinstance(tp, tuple):
-                tp = (tp,)
-            args += tp
+        if self.db_compute:
+            kwargs['info'] = {'compute': self.db_compute}
+            args += (sa.FetchedValue(),)
         return sa.Column(self.db_column, *args, **kwargs)
-
-    def get_internal_type(self):
-        return self.__class__.__name__
-
-    def db_type(self, bind=None):
-        return self._db_type
-
-    def get_attname(self):
-        return self.name
-
-    def get_attname_column(self):
-        attname = self.get_attname()
-        column = self.db_column or attname
-        return attname, column
-
-    def get_proxy_field_value(self, instance):
-        obj = instance
-        for f in self.proxy_field:
-            obj = getattr(obj, f)
-        return obj
-
-    @cached_property
-    def info(self):
-        return self._get_info()
-
-    def _get_info(self):
-        info = {
-            'name': self.name,
-            'help_text': self.help_text,
-            'required': self.required,
-            'readonly': self.readonly,
-            'editable': self.editable,
-            'type': self.get_internal_type(),
-            'caption': capfirst(self.label),
-            'choices': self.choices,
-            'onchange': self.name in self.model._meta.field_change_event,
-            'attrs': self.widget_attrs,
-        }
-        if hasattr(self, 'max_length'):
-            info['max_length'] = self.max_length
-        return info
 
     def set_attributes_from_name(self, name):
         if not self.name:
@@ -277,208 +201,60 @@ class Field:
         if self.label is None and self.name:
             self.label = self.name.replace('_', ' ')
 
+    def get_attname(self):
+        return self.name
+
+    def get_attname_column(self):
+        attname = self.get_attname()
+        column = self.db_column or attname
+        return attname, column
+
+    def __str__(self):
+        """ Return "app_label.model_label.field_name". """
+        return '%s.%s' % (str(self.model._meta), self.name)
+
+    def __repr__(self):
+        """Display the module, class, and name of the field."""
+        path = '%s.%s' % (self.__class__.__module__, self.__class__.__qualname__)
+        name = getattr(self, 'name', None)
+        if name is not None:
+            return '<%s: %s>' % (path, name)
+        return '<%s>' % path
+
     def _prepare(self):
         if self.column is None and self.db_column:
             self.column = self.create_column()
 
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-        getter = self.getter
-        if isinstance(getter, str):
-            v = getattr(instance, getter, None)
-            if callable(v):
-                return v()
-            return v
-        elif callable(getter):
-            try:
-                return getter(instance)
-            except (TypeError, decimal.InvalidOperation, ZeroDivisionError) as e:
-                warnings.warn(str(e), stacklevel=2)
-                return 0
+    def _formfield(self):
+        info = {
+            'name': self.name,
+            'help_text': self.help_text,
+            'required': self.required,
+            'readonly': self.readonly,
+            'editable': self.editable,
+            'type': self.get_type(),
+            'caption': capfirst(self.label),
+            'choices': self.choices,
+            'onchange': self.name in self.model._meta.field_change_event if self.model else None,
+            'attrs': self.widget_attrs,
+        }
+        if self.max_length:
+            info['max_length'] = self.max_length
+        return info
 
-    def __set__(self, instance, value):
-        setter = self.setter
-        if isinstance(setter, str):
-            setter = getattr(instance, setter, None)
-        if callable(setter):
-            setter(value)
-        #instance._state.record[self] = value
 
     @cached_property
-    def validators(self):
-        """
-        Some validators can't be created at field initialization time.
-        This method provides a way to delay their creation until required.
-        """
-        return list(itertools.chain(self.default_validators, self._validators))
+    def formfield(self):
+        """Return a dict with the form field information to be evaluated by the client side."""
+        return self._formfield()
 
-    def run_validators(self, value):
-        if value in self.empty_values:
-            return
-
-        errors = []
-        for v in self.validators:
-            try:
-                v(value)
-            except exceptions.ValidationError as e:
-                if hasattr(e, 'code') and e.code in self.error_messages:
-                    e.message = self.error_messages[e.code]
-                errors.extend(e.error_list)
-
-        if errors:
-            raise exceptions.ValidationError(errors)
-
-    def validate(self, value, instance):
-        """
-        Validates value and throws ValidationError. Subclasses should override
-        this to provide validation logic.
-        """
-        if not self.editable:
-            # Skip validation for non-editable fields.
-            return
-
-        if self.choices and value not in self.empty_values:
-            for option_key, option_value in self.choices:
-                if isinstance(option_value, (list, tuple)):
-                    # This is an optgroup, so look inside the group for
-                    # options.
-                    for optgroup_key, optgroup_value in option_value:
-                        if value == optgroup_key:
-                            return
-                elif value == option_key:
-                    return
-            raise exceptions.ValidationError(
-                self.error_messages['invalid_choice'],
-                code='invalid_choice',
-                params={'value': value},
-            )
-
-        # if value is None and not self.null:
-        #     raise exceptions.ValidationError(self.error_messages['null'], code='null')
-
-        if self.required and self.default is NOT_PROVIDED and value in self.empty_values:
-            raise exceptions.ValidationError(self.error_messages['required'], code='required')
-
-    def clean(self, value, instance):
-        """
-        Convert the value's type and run validation. Validation errors
-        from to_python and validate are propagated. The correct value is
-        returned if no error is raised.
-        """
-        self.validate(value, instance)
-        self.run_validators(value)
-        return value
-
-    def clone(self):
-        """
-        Uses deconstruct() to clone a new copy of this Field.
-        Will not preserve any class attachments/attribute names.
-        """
-        name, path, args, kwargs = self.deconstruct()
-        return self.__class__(*args, **kwargs)
-
-    def has_default(self):
-        return False
-
-    def deconstruct(self):
-        """
-        Returns enough information to recreate the field as a 4-tuple:
-
-         * The name of the field on the model, if contribute_to_class has been run
-         * The import path of the field, including the class: django.db.models.IntegerField
-           This should be the most portable version, so less specific may be better.
-         * A list of positional arguments
-         * A dict of keyword arguments
-
-        Note that the positional or keyword arguments must contain values of the
-        following types (including inner values of collection types):
-
-         * None, bool, str, unicode, int, long, float, complex, set, frozenset, list, tuple, dict
-         * UUID
-         * datetime.datetime (naive), datetime.date
-         * top-level classes, top-level functions - will be referenced by their full import path
-         * Storage instances - these have their own deconstruct() method
-
-        This is because the values here must be serialized into a text format
-        (possibly new Python code, possibly JSON) and these are the only types
-        with encoding handlers defined.
-
-        There's no need to return the exact way the field was instantiated this time,
-        just ensure that the resulting field is the same - prefer keyword arguments
-        over positional ones, and omit parameters with their default values.
-        """
-        # Short-form way of fetching all the default parameters
-        keywords = {}
-        possibles = {
-            "primary_key": False,
-            "max_length": None,
-            "unique": False,
-            "null": True,
-            "db_index": False,
-            #"default": NOT_PROVIDED,
-            #"editable": True,
-            #"serialize": True,
-            #"unique_for_date": None,
-            #"unique_for_month": None,
-            #"unique_for_year": None,
-            #"choices": [],
-            #"help_text": '',
-            "db_column": self.attname,
-            "db_tablespace": settings.DEFAULT_INDEX_TABLESPACE,
-        }
-        attr_overrides = {
-            #"unique": "_unique",
-            #"error_messages": "_error_messages",
-            #"validators": "_validators",
-            #"verbose_name": "_verbose_name",
-        }
-        equals_comparison = {"db_tablespace"}
-        for name, default in possibles.items():
-            value = getattr(self, attr_overrides.get(name, name))
-            # Unroll anything iterable for choices into a concrete list
-            if name == "choices" and isinstance(value, collections.Iterable):
-                value = list(value)
-            # Do correct kind of comparison
-            if name in equals_comparison:
-                if value != default:
-                    keywords[name] = value
-            else:
-                if value is not default:
-                    keywords[name] = value
-
-        if self.compute:
-            keywords['compute'] = self.compute
-        # Work out path - we shorten it for known Orun core fields
-        path = "%s.%s" % (self.__class__.__module__, self.__class__.__name__)
-        if path.startswith("orun.db.models.fields.related"):
-            path = path.replace("orun.db.models.fields.related", "orun.db.models")
-        if path.startswith("orun.db.models.fields.files"):
-            path = path.replace("orun.db.models.fields.files", "orun.db.models")
-        if path.startswith("orun.db.models.fields.proxy"):
-            path = path.replace("orun.db.models.fields.proxy", "orun.db.models")
-        if path.startswith("orun.db.models.fields.base"):
-            path = path.replace("orun.db.models.fields.base", "orun.db.models")
-        # Return basic info - other fields should override this.
-        return (
-            force_text(self.name, strings_only=True),
-            path,
-            [],
-            keywords,
-        )
+    def get_type(self):
+        return self.__class__.__name__
 
     def to_python(self, value):
-        """
-        Converts a serialized value to a python compatible value.
-        """
-        if value == '':
-            value = None
         return value
 
-    def deserialize(self, value, instance):
-        pass
-
-    def serialize(self, value, instance):
+    def to_json(self, value):
         """
         Converts a python value to a serializable value.
         """
@@ -495,117 +271,52 @@ class Field:
         return flat
     flatchoices = property(_get_flatchoices)
 
-    def db_parameters(self, connection):
-        """
-        Extension of db_type(), providing a range of different return
-        values (type, checks).
-        This will look at db_type(), allowing custom model fields to override it.
-        """
-        self._prepare()
-        db_type = self.db_type()
-        if isinstance(db_type, tuple):
-            db_type = db_type[0]
-            if self.many_to_one and hasattr(db_type, 'fk_type'):
-                db_type = db_type.fk_type()
-        type_string = db_type.compile(connection.engine.dialect)
-        check_string = self.db_check(connection)
-        return {
-            "type": type_string,
-            "check": check_string,
-        }
-
-    def db_check(self, connection):
-        """
-        Return the database column check constraint for this field, for the
-        provided connection. Works the same way as db_type() for the case that
-        get_internal_type() does not map to a preexisting model field.
-        """
-        #data = DictWrapper(self.__dict__, connection.ops.quote_name, "qn_")
-        try:
-            #return connection.data_type_check_constraints[self.get_internal_type()] % data
-            return None
-        except KeyError:
-            return None
-
 
 class CharField(Field):
-
-    def __init__(self, *args, **kwargs):
-        self.translate = kwargs.pop('translate', False)
+    def __init__(self, label_or_max_length=None, label=None, *args, **kwargs):
         max_length = kwargs.pop('max_length', 512)
-        args = list(args)
-        if args:
-            arg = args.pop(0)
-            if isinstance(arg, str):
-                kwargs.setdefault('label', arg)
-            elif isinstance(arg, int):
-                max_length = arg
-        super(CharField, self).__init__(*args, **kwargs)
-        self.max_length = max_length
+        if isinstance(label_or_max_length, int):
+            max_length = label_or_max_length
+        elif isinstance(label_or_max_length, str):
+            label = label_or_max_length
 
-    def db_type(self, bind=None):
-        return sa.String(self.max_length)
+        super().__init__(label=label, max_length=max_length, *args, **kwargs)
 
     def to_python(self, value):
-        # Force serialized value to string
         if value is not None:
             value = str(value)
-        return super(CharField, self).to_python(value)
-
-    def serialize(self, value, instance):
-        if value is None:
-            value = ''
-        if self.translate:
-            value = gettext(value)
-        else:
-            value = str(value)
-        return super(CharField, self).serialize(value, instance)
+        return super().to_python(value)
 
 
 class IntegerField(Field):
-    _db_type = sa.Integer()
+    db_type = sa.Integer()
 
-    def get_internal_type(self):
+    def get_type(self):
         return 'IntegerField'
 
 
-class BigIntegerField(Field):
-    _db_type = sa.BigInteger()
+class BigIntegerField(IntegerField):
+    db_type = sa.BigInteger()
 
 
-class FloatField(Field):
-    _db_type = sa.Float()
-
-
-class AutoField(Field):
-    _db_type = sa.Integer()
-
+class AutoField(IntegerField):
     def __init__(self, *args, **kwargs):
         kwargs['required'] = False
         kwargs.setdefault('editable', False)
         kwargs.setdefault('readonly', True)
-        super(AutoField, self).__init__(*args, **kwargs)
-
-    def create_column(self, bind=None, *args, **kwargs):
-        if bind and bind.name == 'oracle':
-            if self.primary_key:
-                import orun.db.backends.oracle.fields
-                self._db_type = orun.db.backends.oracle.fields.Identity()
-            else:
-                self._db_type = sa.Numeric()
-        return super(AutoField, self).create_column(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class BigAutoField(AutoField):
-    _db_type = sa.BigInteger().with_variant(sa.Integer, 'sqlite')
+    db_type = sa.BigInteger().with_variant(sa.Integer, 'sqlite')
 
 
 class TextField(Field):
-    _db_type = sa.Text
+    db_type = sa.Text
 
 
 class BooleanField(Field):
-    _db_type = sa.Boolean(create_constraint=False)
+    db_type = sa.Boolean(create_constraint=False)
 
     _bool_values = {
         'True': True,
@@ -614,17 +325,12 @@ class BooleanField(Field):
         '0': False,
     }
 
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault('default', False)
-        super(BooleanField, self).__init__(*args, **kwargs)
-
     def to_python(self, value):
-        return super(BooleanField, self).to_python(self._bool_values.get(value, value))
+        return super().to_python(self._bool_values.get(value, value))
 
 
 class DateTimeField(Field):
-    _db_type = sa.DateTime()
-
+    db_type = sa.DateTime()
     def __init__(self, *args, **kwargs):
         auto_now_add = kwargs.pop('auto_now_add', None)
         if auto_now_add:
@@ -633,8 +339,7 @@ class DateTimeField(Field):
 
 
 class DateField(DateTimeField):
-    _db_type = sa.Date()
-
+    db_type = sa.Date()
     def to_python(self, value):
         # Try the ISO format and then settings.DATE_INPUT_FORMATS
         for format in settings.DATE_INPUT_FORMATS:
@@ -646,11 +351,11 @@ class DateField(DateTimeField):
 
 
 class TimeField(DateTimeField):
-    _db_type = sa.Time()
+    db_type = sa.Time()
 
 
 class SmallIntegerField(IntegerField):
-    _db_type = sa.SmallInteger()
+    db_type = sa.SmallInteger()
 
 
 class PositiveIntegerField(IntegerField):
@@ -661,14 +366,16 @@ class PositiveSmallIntegerField(SmallIntegerField):
     pass
 
 
+class FloatField(Field):
+    db_type = sa.Float()
+
+
 class DecimalField(Field):
     def __init__(self, digits=29, decimal_places=6, *args, **kwargs):
         self.digits = digits
         self.decimal_places = decimal_places
         super(DecimalField, self).__init__(*args, **kwargs)
-
-    def db_type(self, bind=None):
-        return sa.Numeric(self.digits, self.decimal_places)
+        self.db_type = sa.Numeric(self.digits, self.decimal_places)
 
     def to_python(self, value):
         if isinstance(value, str):
@@ -717,7 +424,7 @@ class SlugField(CharField):
 
 
 class BinaryField(Field):
-    _db_type = sa.LargeBinary()
+    db_type = sa.LargeBinary()
 
     def __init__(self, attachment=None, storage='db', *args, **kwargs):
         kwargs.setdefault('deferred', not attachment)
@@ -783,3 +490,6 @@ class field_property(object):
 
     def __set__(self, instance, value):
         self.fset(instance, value)
+
+
+from .related import OneToOneField

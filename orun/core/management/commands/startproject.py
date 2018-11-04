@@ -6,7 +6,6 @@ import jinja2
 
 from orun.core.management.utils import get_random_secret_key
 from orun.core.management.base import CommandError
-from orun.core.management.templates import validate_name
 from orun import conf
 
 

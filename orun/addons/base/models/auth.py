@@ -90,6 +90,7 @@ class User(Partner):
 
     @classmethod
     def authenticate(cls, username, password):
+        print(cls._meta.fields['active'])
         usr = cls.objects.filter(cls.c.username == username, cls.c.active == True, cls.c.is_staff == True).first()
         if usr and check_password(password, usr.password):
             return usr

@@ -77,6 +77,8 @@ class Registry(object):
                             self.modules[name] = mod
                             self.app_configs[name] = app_config
                         except (ImportError, AttributeError) as e:
+                            print(mod)
+                            raise
                             pass
 
     def check_models_ready(self):
@@ -119,6 +121,9 @@ class Registry(object):
         key = model._meta.app_label, model._meta.model_name
         for function in self._pending_operations.pop(key, []):
             function(model)
+
+    def __getitem__(self, item):
+        return self.app_configs[item]
 
     def clear_cache(self):
         ...

@@ -1,4 +1,5 @@
 import os
+import glob
 from importlib import import_module
 
 import flask
@@ -22,8 +23,9 @@ class AppConfig(flask.Blueprint):
     create_schema = None
     models_module = None
     js_templates = None
+    locale_path = None
 
-    def __init__(self, schema=None, app_module=None, *args, **kwargs):
+    def __init__(self, schema=None, app_module=None, registry=None, *args, **kwargs):
         self.models = {}
         kwargs.setdefault('template_folder', 'templates')
         kwargs.setdefault('static_folder', 'static')
@@ -36,14 +38,17 @@ class AppConfig(flask.Blueprint):
         self.module = app_module
         if not args:
             args = [self.name, mod_name]
-        registry = kwargs.pop('registry', apps)
+        self.registry = registry or apps
 
         super(AppConfig, self).__init__(*args, **kwargs)
 
+        if self.locale_path is None:
+            self.locale_path = os.path.join(self.root_path, 'template')
+
         if self.import_name == 'base':
             self.dependencies = []
-        if registry:
-            registry.app_configs[self.schema] = self
+        if self.registry:
+            self.registry.app_configs[self.label] = self
 
     @property
     def app_label(self):
@@ -95,5 +100,16 @@ class AppConfig(flask.Blueprint):
 
     def get_js_templates(self):
         for templ in self.js_templates:
+            if '*' in templ:
+                for fname in glob.glob(templ):
+                    with open(os.path.join(self.root_path, fname), 'rb') as f:
+                        yield f.read()
             with open(os.path.join(self.root_path, templ), 'rb') as f:
                 yield f.read()
+
+    def __getitem__(self, item):
+        return self.models[item]
+
+    def __setitem__(self, key, value):
+        self.models[key] = value
+

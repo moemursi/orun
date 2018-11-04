@@ -1,8 +1,9 @@
-from collections import defaultdict
 from sqlalchemy.orm import foreign, remote
 from sqlalchemy.sql import and_
+
 from orun import app
 from orun.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
+from orun.db.models.fields import BaseField
 from orun.db import DEFAULT_DB_ALIAS, models #, router, transaction
 from orun.db.models import DO_NOTHING
 from orun.db.models.base import ModelBase #, make_foreign_order_accessors
@@ -11,7 +12,7 @@ from orun.db.models import OneToManyField, ForeignKey
 from .models import Model
 
 
-class GenericForeignKey(object):
+class GenericForeignKey(BaseField):
     """
     Provide a generic many-to-one relation through the ``content_type`` and
     ``object_id`` fields.
@@ -33,6 +34,10 @@ class GenericForeignKey(object):
     one_to_one = False
     related_model = None
     remote_field = None
+    db_column = None
+    primary_key = False
+    related = None
+    descriptor = None
 
     def __init__(self, ct_field='model', fk_field='object_id', for_concrete_model=True):
         self.ct_field = ct_field
@@ -46,7 +51,7 @@ class GenericForeignKey(object):
         self.name = name
         self.model = cls
         self.cache_attr = "_%s_cache" % name
-        cls._meta.add_field(self, private=True)
+        # cls._meta.add_field(self, private=True)
         if cls._meta.app:
             setattr(cls, name, self)
 
@@ -140,4 +145,4 @@ class GenericOneToManyField(OneToManyField):
                 model._meta.pk.column == foreign(fk_model._meta.fields_dict[to_field].column),
                 fk_model._meta.fields_dict[ct_field].column == model._meta.name
             )
-        super(GenericOneToManyField, self).__init__(to, to_field, lazy, primary_join, *args, **kwargs)
+        super(GenericOneToManyField, self).__init__(to, to_field, lazy=lazy, primary_join=primary_join, *args, **kwargs)

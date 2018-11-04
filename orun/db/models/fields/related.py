@@ -1,18 +1,11 @@
+from functools import partial
 import sqlalchemy as sa
-from sqlalchemy.orm import relationship, load_only
 
-from orun import app
-from orun.apps import apps
-from orun.utils.functional import cached_property
-from . import Field
-from .mixins import FieldCacheMixin
-from .reverse_related import (
-    ManyToManyRel, )
-
-__all__ = [
-    'ForeignKey', 'OneToManyField', 'ManyToManyField', 'OneToOneField', 'CASCADE', 'SET_NULL',
-    'RECURSIVE_RELATIONSHIP_CONSTANT'
-]
+# from orun.utils.translation import gettext_lazy as _
+from orun.db.models.fields.mixins import FieldCacheMixin
+from orun.db.models.fields import Field
+from orun.db.models.utils import make_model_tuple
+from orun.db.models.fields.reverse_related import ManyToOneRel, ManyToManyRel, OneToManyRel
 
 
 CASCADE = 'CASCADE'
@@ -20,33 +13,124 @@ SET_NULL = 'SET NULL'
 RECURSIVE_RELATIONSHIP_CONSTANT = 'self'
 
 
-class RelatedField(FieldCacheMixin, Field):
-    one_to_many = False
-    one_to_one = False
-    many_to_many = False
-    many_to_one = False
+def lazy_related_operation(function, model, *args, **kwargs):    model._meta.app._pending_operations.append(partial(function, model, *args, **kwargs))
 
-    def __init__(self, related_name=None, lazy=None, to_fields=None, domain=None, *args, **kwargs):
-        self.related_name = related_name
+
+def resolve_relation(scope_model, relation):
+    """
+    Transform relation into a model or fully-qualified model string of the form
+    "app_label.ModelName", relative to scope_model.
+
+    The relation argument can be:
+      * RECURSIVE_RELATIONSHIP_CONSTANT, i.e. the string "self", in which case
+        the model argument will be returned.
+      * A bare model name without an app_label, in which case scope_model's
+        app_label will be prepended.
+      * An "app_label.ModelName" string.
+      * A model class, which will be returned unchanged.
+    """
+    # Check for recursive relations
+    if relation == RECURSIVE_RELATIONSHIP_CONSTANT:
+        relation = scope_model
+
+    # Look for an "app.Model" relation
+    if isinstance(relation, str):
+        if "." not in relation:
+            relation = "%s.%s" % (scope_model.Meta.app_label, relation)
+    else:
+        return relation.Meta.name
+
+    return relation
+
+
+def create_many_to_many_intermediary_model(field, klass):
+    from orun.db import models
+
+    def set_managed(model, related, through):
+        through = model._meta.app.get_model(through)
+        through._meta.managed = model._meta.managed or related._meta.managed
+
+
+    model_name = field.model._meta.name + '.' + field.name + '.rel'
+    to_model = resolve_relation(klass, field.rel.model)
+    lazy_related_operation(set_managed, klass, to_model, model_name)
+
+    to = 'to_%s' % make_model_tuple(to_model).replace('.', '_')
+    from_ = 'from_%s' % klass._meta.name.replace('.', '_')
+
+    meta = type('Meta', (), {
+        # 'db_table': field._get_m2m_db_table(klass._meta),
+        'auto_created': klass,
+        'app_label': klass._meta.app_label,
+        # 'db_tablespace': klass._meta.db_tablespace,
+        'unique_together': (from_, to),
+        # 'verbose_name': _('%(from)s-%(to)s relationship') % {'from': from_, 'to': to},
+        # 'verbose_name_plural': _('%(from)s-%(to)s relationships') % {'from': from_, 'to': to},
+        'name': field.model._meta.name + '.' + field.name + '.rel',
+    })
+    # Construct and return the new class.
+    from_field = ForeignKey(
+            klass,
+            # db_tablespace=field.db_tablespace,
+            # db_constraint=field.remote_field.db_constraint,
+            on_delete=CASCADE,
+        )
+    to_field = ForeignKey(
+            to_model,
+            # db_tablespace=field.db_tablespace,
+            # db_constraint=field.remote_field.db_constraint,
+            on_delete=CASCADE,
+        )
+    new_class = type(model_name, (models.Model,), {
+        'Meta': meta,
+        '__module__': klass.__module__,
+        from_: from_field,
+        to: to_field,
+    })
+
+    model = new_class.__build__(klass._meta.app)
+    def join(model, field):
+        field = model._meta.fields[field]
+        return field.column == field.rel.model._meta.pk.column
+    # field.rel.primaryjoin = partial(lambda field: field.column == field.rel.model._meta.pk.column, from_field)
+    # field.rel.secondaryjoin = partial(lambda field: field.column == field.rel.model.pk.column, to_field)
+    field.rel.primaryjoin = partial(join, model, from_)
+    field.rel.secondaryjoin = partial(join, model, to)
+    return model
+
+
+class RelatedField(FieldCacheMixin, Field):
+    rel_class = None
+    db_type = None
+
+    def __init__(self, on_delete=None, lazy=None, related_name=None, domain=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.lazy = lazy
         self.domain = domain
-        self.to_fields = to_fields
-        super(RelatedField, self).__init__(*args, **kwargs)
+        self.on_delete = on_delete
+        self.related_name = related_name
 
-    #@cached_property
-    @property
-    def related_model(self):
-        # Can't cache this property until all the models are loaded.
-        #apps.check_models_ready()
-        return self.rel_field.model
+    def contribute_to_class(self, cls, name):
+        super().contribute_to_class(cls, name)
 
-    def related(self):
-        raise NotImplementedError
+        if not cls._meta.abstract:
+            def resolve_related_class(model, related, field):
+                rel_model = related.model
+                if rel_model == 'self':
+                    rel_model = model.Meta.name
+                field.rel.model = self.model._meta.app.get_model(rel_model)
+                if field.one_to_many:
+                    return lazy_related_operation(lambda model, field: field.rel.set_field_name(), model, field)
+                else:
+                    field.rel.set_field_name()
+                if field.column is None:
+                    field.column = self.create_column()
 
-    def _get_info(self):
-        info = super(RelatedField, self)._get_info()
-        info['domain'] = self.domain
-        return info
+            lazy_related_operation(resolve_related_class, cls, self.rel, field=self)
+
+    def create_column(self, *args, **kwargs):
+        if self.db_type is not None:
+            return super().create_column(sa.ForeignKey(self.rel.model._meta.pk.column))
 
     def get_cache_name(self):
         return self.name
@@ -54,105 +138,17 @@ class RelatedField(FieldCacheMixin, Field):
 
 class ForeignKey(RelatedField):
     many_to_one = True
+    rel_class = ManyToOneRel
 
-    def __init__(self, to, related_name=None, to_field=None, db_constraint=True, parent_link=False,
-                 on_delete=None, on_update=None, label_from_instance=None, name_fields=None,
-                 *args, **kwargs):
+    def __init__(self, to, to_fields=None, on_delete=CASCADE, on_update=CASCADE, db_constraint=True, *args, **kwargs):
+        self.db_constraint = db_constraint
         self.on_delete = on_delete
         self.on_update = on_update
-        self.to = to
-        self.db_constraint = db_constraint
-        self.parent_link = parent_link
-        self.label_from_instance = label_from_instance
-        self.name_fields = name_fields
-        kwargs.setdefault('db_index', False)
-        super(ForeignKey, self).__init__(to_fields=[to_field], related_name=related_name, *args, **kwargs)
-
-    @property
-    def related_model(self):
-        model = self.to
-        if model == 'self':
-            model = self.model
-        if self.model._meta.app:
-            if self.model.__module__ == '__fake__':
-                if not isinstance(model, str):
-                    print('model name', model, model._meta.name)
-                    model = model._meta.name
-                model = self.model._meta.apps.all_models.get(model, apps.all_models.get(model))
-            if model is None or isinstance(model, str):
-                model = self.model._meta.app.get_model(self.to)
-        # is a migration
-        if model and self.model.__module__ == '__fake__' and model._meta.extension:
-            model = model._meta.base_model or model
-        return model
-
-    @property
-    def rel_field(self):
-        if self.to_fields and self.to_fields[0]:
-            to_field = self.to_fields[0]
-            if isinstance(to_field, str):
-                return self.related_model._meta.fields_dict[to_field]
-            return to_field
-        model = self.related_model
-        if not isinstance(model, str):
-            return self.related_model._meta.pk
-
-    def db_type(self, bind=None):
-        rel_model = self.related_model
-
-        if rel_model._meta.pk.column is None:
-            rel_model._meta.pk._prepare()
-
-        fk_name = rel_model._meta.table_name.replace('"', '') + '.' + rel_model._meta.pk.db_column
-        if bind:
-            if hasattr(rel_model._meta.pk.column.type, 'fk_type'):
-                return rel_model._meta.pk.column.type.fk_type
-            return rel_model._meta.pk.column.type
-        else:
-            return rel_model._meta.pk.column.type, sa.ForeignKey(fk_name)
+        kwargs['rel'] = self.rel_class(self, to, to_fields)
+        super().__init__(*args, **kwargs)
 
     def get_attname(self):
         return self.db_column or '%s_id' % self.name
-
-    def _get_info(self):
-        info = super(ForeignKey, self)._get_info()
-        info['model'] = self.related_model._meta.name
-        return info
-
-    def deconstruct(self):
-        name, path, args, kwargs = super(ForeignKey, self).deconstruct()
-        #kwargs['on_delete'] = self.remote_field.on_delete
-        #kwargs['from_fields'] = self.from_fields
-        #kwargs['to_fields'] = self.to_fields
-
-        #if self.remote_field.related_name is not None:
-        #    kwargs['related_name'] = self.remote_field.related_name
-        #if self.remote_field.related_query_name is not None:
-        #    kwargs['related_query_name'] = self.remote_field.related_query_name
-        #if self.remote_field.parent_link:
-        #    kwargs['parent_link'] = self.remote_field.parent_link
-        # Work out string form of "to"
-        if isinstance(self.to, str):
-            kwargs['to'] = self.to
-        else:
-            kwargs['to'] = self.to._meta.name
-
-        # Handle the simpler arguments
-        if self.db_constraint is not True:
-           kwargs['db_constraint'] = self.db_constraint
-        if self.on_delete is not None:
-           kwargs['on_delete'] = self.on_delete
-        # Rel needs more work.
-        #to_meta = getattr(self.remote_field.model, "_meta", None)
-        #if self.remote_field.field_name and (
-        #            not to_meta or (to_meta.pk and self.remote_field.field_name != to_meta.pk.name)):
-        #    kwargs['to_field'] = self.remote_field.field_name
-        return name, path, args, kwargs
-
-    def to_python(self, value):
-        if isinstance(value, (list, tuple)):
-            value = value[0]
-        return super(ForeignKey, self).to_python(value)
 
     def set(self, value, instance):
         if isinstance(value, models.Model):
@@ -160,263 +156,68 @@ class ForeignKey(RelatedField):
         else:
             getattr(instance.__class__, self.attname).__set__(instance, value)
 
-    def serialize(self, value, instance=None):
-        if value:
-            return value._get_instance_label()
+    def _formfield(self):
+        info = super()._formfield()
+        info['domain'] = self.domain
+        return info
 
 
-class OneToOneField(ForeignKey):
-    many_to_many = False
+class ManyToManyField(RelatedField):
+    # Field flags
+    many_to_many = True
     many_to_one = False
     one_to_many = False
-    one_to_one = True
+    one_to_one = False
 
-    def __init__(self, to, on_delete=None, *args, **kwargs):
-        kwargs['unique'] = True
-        if on_delete is None:
-            on_delete = CASCADE
-        super(OneToOneField, self).__init__(to, on_delete=on_delete, *args, **kwargs)
+    rel_class = ManyToManyRel
 
-    def create_column(self, bind=None, *args, **kwargs):
-        kwargs['autoincrement'] = False
-        return super().create_column(bind=bind, *args, **kwargs)
+    def __init__(self, to, through=None, through_fields=None, db_table=None, *args, **kwargs):
+        kwargs['rel'] = self.rel_class(self, to, through=through, through_fields=through_fields)
+        super().__init__(*args, **kwargs)
+        self.db_table = db_table
 
+    def get_attname(self):
+        return None
 
-CREATE_CHILD = 'CREATE'
-UPDATE_CHILD = 'UPDATE'
-DESTROY_CHILD = 'DESTROY'
+    def contribute_to_class(self, cls, name):
+        super().contribute_to_class(cls, name)
+
+        if not cls._meta.abstract:
+            if self.rel.through:
+                def resolve_through_model(_, model, field):
+                    field.rel.through = model
+                lazy_related_operation(resolve_through_model, cls, self.rel, field=self)
+            else:
+                self.rel.through = create_many_to_many_intermediary_model(self, cls)
+
+    def _formfield(self):
+        info = super()._formfield()
+        info['model'] = self.rel.model._meta.name
+        return info
 
 
 class OneToManyField(RelatedField):
     one_to_many = True
-    child_field = True
 
-    def __init__(self, to, to_field=None, lazy='dynamic', primary_join=None, cascade=None, *args, **kwargs):
-        self.cascade = cascade
-        self.to = to
-        self.to_field = to_field
+    rel_class = OneToManyRel
+
+    def __init__(self, to, to_fields=None, primary_join=None, lazy='dynamic', *args, **kwargs):
+        kwargs['rel'] = self.rel_class(self, to, to_fields)
         self.primary_join = primary_join
-        if isinstance(to, Field):
-            self.to = to.model._meta.name
-            self.to_field = to.name
-        super(OneToManyField, self).__init__(lazy=lazy, *args, **kwargs)
+        super().__init__(lazy=lazy, *args, **kwargs)
 
-    def get_attname(self):
-        return None
+    def contribute_to_class(self, cls, name):
+        super().contribute_to_class(cls, name)
 
-    def _get_info(self):
-        r = super(OneToManyField, self)._get_info()
-        r['field'] = self.rel_field.name
-        r['model'] = self.rel_field.model._meta.name
+    def _formfield(self):
+        r = super()._formfield()
+        r['field'] = self.rel.field_name
+        r['model'] = self.rel.model._meta.name
         return r
 
-    @property
-    def rel_field(self):
-        if self.to_field is None:
-            to = app.get_model(self.to)
-            f = get_first_rel_field(to, self.model)
-            assert f is not None, 'Unable to create OneToManyField "%s", no ForeignKey field found on "%s" for model "%s"' % (self.name, to._meta.name, self.model._meta.name)
-            self.to_field = f.name
-        return app.get_model(self.to)._meta.fields_dict[self.to_field]
 
-    @cached_property
-    def related(self):
-        self.to = app.get_model(self.to)
-        _app = app
-        kwargs = {}
-        if self.cascade is None:
-            kwargs['passive_deletes'] = True
-        if self.primary_join:
-            return relationship(
-                self.to,
-                lazy=self.lazy,
-                primaryjoin=self.primary_join(self.model, self.to), **kwargs
-            )
-        return relationship(app.get_model(self.to), foreign_keys=[self.rel_field.column], lazy=self.lazy, **kwargs)
-
-    def serialize(self, value, instance=None):
-        value = value.options(load_only('pk'))
-        return [v.pk for v in value]
-
-    def set(self, value, instance):
-        if value:
-            model = app[self.rel_field.model]
-            pk = instance.pk
-            for obj in value:
-                # Set to create if no action defined
-                if 'action' not in obj:
-                    obj = {'action': CREATE_CHILD, 'values': obj}
-                values = None
-                act = obj['action']
-                if act != DESTROY_CHILD:
-                    values = obj['values']
-                    values[self.rel_field.name] = pk
-                if act == CREATE_CHILD:
-                    item = model.write([values])
-                elif act == UPDATE_CHILD:
-                    item = model.write([values])
-                elif act == DESTROY_CHILD:
-                    model.destroy([obj['id']])
-
-
-class ManyToManyField(RelatedField):
-    many_to_many = True
-    child_field = True
-
-    rel_class = ManyToManyRel
-
-    def __init__(self, to, through=None, through_fields=None, related_name=None, related_query_name=None,
-                 limit_choices_to=None, symmetrical=None, db_constraint=None, db_table=None,
-                 lazy='dynamic', *args, **kwargs):
-        self.to = to
-        self.through = through
-        self.through_fields = through_fields
-        self._rel_model = None
-        self.through_model = None
-        kwargs['rel'] = self.rel_class(
-            self, to,
-            related_name=related_name,
-            related_query_name=related_query_name,
-            limit_choices_to=limit_choices_to,
-            symmetrical=symmetrical,
-            through=through,
-            through_fields=through_fields,
-            db_constraint=db_constraint,
-        )
-        super(ManyToManyField, self).__init__(lazy=lazy, *args, **kwargs)
-
-    def get_attname(self):
-        return None
-
-    @cached_property
-    def related(self):
-        from orun.db import models
-
-        if self.to == 'self':
-            rel_model = self.model
-        #elif isinstance(self.to, models.Model):
-        #    rel_model = app[self.to._meta.name]
-        else:
-            rel_model = app.get_model(self.to)
-
-        self._rel_model = rel_model
-
-        if isinstance(self.through, models.Model):
-            try:
-                new_model = app[self.through]
-            except KeyError:
-                self.through = None
-        if self.through:
-            new_model = app[self.through]
-            if self.through_fields:
-                from_field, to_field = self.through_fields
-                from_field = new_model._meta.fields_dict[from_field].db_column
-                self.rel_field = new_model._meta.fields_dict[to_field]
-                to_field = self.rel_field.db_column
-            else:
-                from_field = get_first_rel_field(new_model, self.model).db_column
-                self.rel_field = to_field = get_first_rel_field(new_model, rel_model)
-                to_field = self.rel_field.db_column
-        else:
-            new_model, from_, to_ = self._build_model(rel_model)
-            self.rel_field = new_model._meta.fields_dict[to_]
-            from_field = from_ + '_id'
-            to_field = to_ + '_id'
-            self.through_fields = (from_, to_)
-            self.through = new_model
-
-        self.through_model = new_model
-
-        return relationship(
-            lambda: rel_model._meta.mapped,
-            secondary=new_model._meta.table,
-            #lazy=None,
-            primaryjoin=self.model._meta.pk.column == new_model._meta.table.c[from_field],
-            secondaryjoin=rel_model._meta.pk.column == new_model._meta.table.c[to_field],
-        )
-
-    @property
-    def related_model(self):
-        # Can't cache this property until all the models are loaded.
-        #apps.check_models_ready()
-        return self._rel_model
-
-    @property
-    def name_fields(self):
-        return self.rel_field.name_fields
-
-
-    @property
-    def label_from_instance(self):
-        return self.rel_field.label_from_instance
-
-    def _build_model(self, rel_model):
-        from orun.db import models
-
-        from_ = 'from_%s' % self.model._meta.name.replace('.', '_')
-        to_ = 'to_%s' % rel_model._meta.name.replace('.', '_')
-
-        model_name = self.model._meta.name + '.' + self.name + '.rel'
-
-        class Meta:
-            name = model_name
-            log_changes = False
-
-        new_model = type('%s_%s' % (self.model.__name__, self.name), (models.Model,), {
-            'Meta': Meta,
-            '__module__': self.model._meta.app_label,
-            # '__app__': self.model._meta.app,
-            from_: ForeignKey(self.model, null=False),
-            to_: ForeignKey(rel_model, null=False),
-        })
-
-        new_model._meta.auto_created = True
-        new_model._meta.app = self.model._meta.app
-
-        new_model._meta._build_table(self.model._meta.app.meta)
-        new_model._meta._build_mapper()
-        if new_model._meta.app:
-            new_model._meta.app.models[model_name] = new_model
-        return new_model, from_, to_
-
-    def deconstruct(self):
-        name, path, args, kwargs = super(ManyToManyField, self).deconstruct()
-
-        if isinstance(self.to, str):
-            kwargs['to'] = self.to
-        else:
-            kwargs['to'] = "%s.%s" % (
-                self.to._meta.app_label,
-                self.to._meta.object_name,
-            )
-
-        return name, path, args, kwargs
-
-    def to_python(self, value):
-        return self.related_model.objects.only('pk').filter(self.related_model.c.pk.in_(value)).all() if value else None
-
-    def set(self, value, instance):
-        # clear the current data before apply the new value
-        v = getattr(instance, self.name)
-        v.clear()
-        if value:
-            m = self.related_model
-            value = m.objects.only('pk').filter(m.c.pk.in_([v[0] if isinstance(v, list) else v for v in value])).all()
-            getattr(instance.__class__, self.name).__set__(instance, value)
-
-    def serialize(self, value, instance=None):
-        return [obj._get_instance_label() for obj in value]
-
-    def _get_info(self):
-        info = super(ManyToManyField, self)._get_info()
-        info['model'] = self.related_model._meta.name
-        return info
-
-
-def get_first_rel_field(model, rel_model):
-    for f in model._meta.fields:
-        if isinstance(f, ForeignKey) and f.related_model._meta.name == rel_model._meta.name:
-            return f
+class OneToOneField(ForeignKey):
+    one_to_one = True
 
 
 from orun.db import models

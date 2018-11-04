@@ -1,191 +1,162 @@
 from collections import defaultdict
-
+from functools import partial
 import sqlalchemy as sa
 from sqlalchemy.orm import mapper, relationship, deferred, backref, synonym
 
 from orun import app
+from orun.apps import AppConfig
 from orun.db import connection, connections
 from orun.utils.text import camel_case_to_spaces
-from .fields import BigAutoField
+from orun.db.models.fields import Field, BigAutoField
 
 DEFAULT_NAMES = ('unique_together', 'index_together', 'fixtures')
 
 
-class Options(object):
-    app = None
-    app_config = None
+class Options:
+    abstract = False
+    db_table: str = None
+    db_schema: str = None
+    db_tablespace: str = None
+    name: str = None
     extension = None
-    name = None
-    log_changes = True
+    extending = None
+    app_config: AppConfig = None
+    app_label = None
+    model = None
+    inherited = None
+    object_name = None
+    model_name = None
+    pk: Field = None
+    apps = None
+    table: sa.Table = None
+    mapped = None
     ordering = None
-    auto_created = None
-    db_table = None
-    db_tablespace = None
-    table = None
-    db_schema = None
+    managed = True
     verbose_name = None
     verbose_name_plural = None
-    base_model = None
-    field_groups = None
-    app_label = None
-    title_field = None
-    managed = True
-    required_db_vendor = None
-    unique_together = ()
-    index_together = ()
-    proxy = None
-    fixtures = None
-    virtual = False
+    auto_created = False
+    one_to_one = False
     field_change_event = None
+    title_field = None
+    log_changes = True
 
-    def __init__(self, attrs, app_config=None, bases=None):
-        if self.field_change_event is None:
-            self.__class__.field_change_event = defaultdict(list)
-        self.meta_attrs = attrs
-        if 'abstract' not in attrs:
-            self.abstract = False
-        self.app_config = app_config
-        self.fields = Fields(self)
-        self.private_fields = []
-        self.local_fields = []
-        self.pk = None
+    def __init_subclass__(cls, **kwargs):
+        from orun.db.models.base import Model
+
+        cls.parents = {}
+
+        if not cls.abstract:
+            if cls.app_label is None:
+                cls.app_label = cls.model.__module__.split('.', 1)[0]
+            if cls.object_name is None:
+                cls.object_name = cls.model.__name__
+            if cls.model_name is None:
+                cls.model_name = cls.object_name.lower()
+            if cls.name is None and not cls.abstract:
+                cls.name = f'{cls.app_label}.{cls.model_name}'
+            elif cls.extension is None:
+                for base in cls.__bases__:
+                    if issubclass(base, Options) and base is not Options:
+                        if base.name == cls.name:
+                            cls.extending = base.model
+                            cls.extension = True
+                            break
+                        else:
+                            cls.inherited = True
+                if not cls.extension:
+                    cls.extension = False
+
+            if issubclass(cls.model, Model) and cls.db_table is None:
+                cls.db_table = cls.name.replace('.', '_')
+                if cls.db_schema is None and cls.app_config:
+                    cls.db_schema = cls.app_config.db_schema or ''
+                if cls.db_schema and cls.name.startswith(cls.db_schema + '.'):
+                    cls.db_table = cls.name.split('.', 1)[-1].replace('.', '_')
+
+            if cls.inherited is None:
+                cls.inherited = cls.extension or bool(cls.parents)
+            cls.concrete = bool(cls.db_table)
+
+    @classmethod
+    def _get_name(cls):
+        return f'{cls.app_config.label}.{cls.model.__name__.lower()}'
+
+    @classmethod
+    def from_model(cls, meta, model, parents=None, attrs=None):
+        meta_attrs = {}
+        if attrs:
+            meta_attrs.update(attrs)
+        if meta is not None:
+            meta_attrs.update(meta.__dict__)
+
+        if not parents:
+            bases = [base.Meta for base in model.__bases__ if hasattr(base, 'Meta') and base.Meta]
+        else:
+            bases = [base.Meta for base in parents if hasattr(base, 'Meta') and base.Meta]
+        if bases:
+            bases = tuple(bases)
+        else:
+            bases = (Options,)
+
+        meta_attrs.setdefault('abstract', False)
+        meta_attrs.setdefault('extension', None)
+        meta_attrs.setdefault('db_table', None)
+        meta_attrs.setdefault('bases', parents)
+        meta_attrs.setdefault('inherited', bool(parents))
+        meta_attrs['model'] = model
+
+        opts = type('Meta', bases, meta_attrs)
+        return opts
+
+    def __init__(self, base_model=None, app=None):
+        self.app = app
+        self.base_model = base_model
         self.parents = {}
-        self.mapped = None
-        self.bases = bases
-        if self.virtual:
-            self.managed = False
+        self.local_fields = []
+        self.fields = Fields(self)
+        self.pk = None
+        self.field_change_event = defaultdict(list)
+
+    @property
+    def connection(self):
+        return self.app.connection
 
     def __str__(self):
         return self.name or (self.model.app_label + '.' + self.object_name)
 
     def contribute_to_class(self, cls, name):
-        opts = self.__class__
         cls._meta = self
         self.model = cls
-        self.object_name = cls.__name__
 
-        if opts.verbose_name is None:
-            opts.verbose_name = camel_case_to_spaces(self.object_name)
-        if opts.verbose_name_plural is None:
-            opts.verbose_name_plural = camel_case_to_spaces(self.object_name + 's')
+    def add_field(self, field):
+        if self.title_field is None and field.name == 'name':
+            self.__class__.title_field = field.name
 
-        # Get the app_label
-        self.app_label = self.meta_attrs.get(
-            'app_label', cls.__module__ and cls.__module__.split('.')[0]
-        ) or self.app_label
-
-        # Load main meta settings
-        name = self.meta_attrs.get('name', None)
-        db_table = self.meta_attrs.get('db_table', None)
-        extension = self.meta_attrs.get('extension', None)
-
-        # Calculate if model is an extension
-        if not self.app:
-            if extension is None:
-                if name is None and self.bases:
-                    for b in self.bases:
-                        if not b._meta.abstract:
-                            opts.base_model = b
-                            opts.extension = True
-                            break
-                elif name:
-                    opts.extension = False
-
-            if name is None:
-                if self.extension:
-                    opts.name = self.bases[0]._meta.name
-                else:
-                    opts.name = self.app_label + '.' + self.object_name.lower()
-
-            if db_table is None:
-                if self.extension:
-                    opts.db_table = self.bases[0]._meta.db_table
-                elif not self.abstract and self.app_config:
-                    opts.db_schema = opts.db_schema or self.app_config.db_schema
-                    opts.db_table = self.name.replace('.', '_')
-                    if opts.db_schema and opts.db_table.startswith(opts.db_schema + '_'):
-                        opts.db_table = opts.db_table[len(opts.db_schema) + 1:]
-
-    @property
-    def table_name(self):
-        if app and connection.backend.schema_allowed:
-            if self.db_schema:
-                return '"%s"."%s"' % (self.db_schema, self.db_table)
-        if self.db_schema:
-            return '%s_%s' % (self.db_schema, self.db_table)
-        return self.db_table
-
-    def add_field(self, field, private=False):
-        if private:
-            self.private_fields.append(field)
-        else:
-            #self.fields.insert(bisect(self.fields, field), field)
-            # if field.creation_counter < 0 and field.local:
-            #     self.fields.insert(0, field)
-            # else:
-            #     self.fields.append(field)
-            self.fields.append(field)
-            if field.local:
-                if field.creation_counter < 0:
-                    self.local_fields.insert(0, field)
-                else:
-                    self.local_fields.append(field)
-            self.setup_pk(field)
-            self._expire_cache()
-
-    def setup_pk(self, field):
-        if self.pk is None and field.primary_key:
+        self.fields.append(field)
+        if self.pk is None and field.primary_key and field in self.local_fields:
             self.pk = field
-            self.fields['pk'] = field
-
-    @property
-    def model_name(self):
-        return self.object_name.lower()
-
-    @property
-    def schema(self):
-        return self.app_config.schema
-
-    @property
-    def label_lower(self):
-        return '%s.%s' % (self.schema, self.model_name)
 
     def _expire_cache(self):
         pass
 
-    def _prepare(self, model):
-        if self.app:
-            if self.__class__.title_field is None and 'name' in self.fields_dict:
-                self.__class__.title_field = 'name'
-        else:
-            if self.pk is None and not self.abstract:
-                if self.parents:
-                    pass
-                else:
-                    auto = BigAutoField('ID', primary_key=True, auto_created=True)
-                    model.add_to_class('id', auto)
-
-    def _build_table(self, meta):
-        if self.pk:
-            self.pk._prepare()
-
-        if self.virtual or self.abstract or self.table is not None:
+    def build_table(self, meta):
+        if self.abstract or self.table is not None:
             return
 
         # Build the table
         args = []
+        kwargs = {}
         for f in self.concrete_fields:
-            f._prepare()
-            args.append(f.column)
-        if self.app and connection.backend.schema_allowed:
-            self.table = sa.Table(self.db_table.split('.')[-1], meta, *args, schema=self.db_schema)
-        else:
-            self.table = sa.Table(self.table_name, meta, *args)
+            if f.column is not None:
+                args.append(f.column)
+        if self.db_schema and self.app is not None and self.connection.features.supports_schema:
+            kwargs['schema'] = self.db_schema
+        self.table = sa.Table(self.db_table, meta, *args, **kwargs)
         self.table.__model__ = self.model
         return self.table
 
     def _build_mapper(self):
-        if self.virtual or self.abstract or self.mapped is not None:
+        if self.abstract or self.mapped is not None:
             return
 
         # Build the orm mapper
@@ -194,7 +165,25 @@ class Options(object):
             if f.name != f.db_column and f.column is not None and not f.column.foreign_keys:
                 props[f.name] = f.column
             if not f.primary_key:
-                if f.column is not None:
+                if f.many_to_many:
+                    props[f.name] = relationship(
+                        lambda f=f: f.rel.model,
+                        secondary=f.rel.through._meta.table,
+                        secondaryjoin=f.rel.secondaryjoin(),
+                        primaryjoin=f.rel.primaryjoin()
+                    )
+                elif f.one_to_many:
+                    if callable(f.primary_join):
+                        primary_join = f.primary_join
+                        if callable(primary_join):
+                            primary_join = primary_join(f.model, f.rel.model)
+                        kwargs = {'primaryjoin': primary_join}
+                    else:
+                        kwargs = {'foreign_keys': [f.rel.remote_field.column]}
+                    if f.lazy:
+                        kwargs['lazy'] = f.lazy
+                    props[f.name] = relationship(lambda f=f: f.rel.model, **kwargs)
+                elif f.column is not None:
                     for fk in f.column.foreign_keys:
                         kwargs = {}
                         if f.lazy:
@@ -202,9 +191,11 @@ class Options(object):
                         if f.related_name and f.related_name != '+':
                             kwargs['backref'] = backref(f.related_name, lazy='dynamic')
                         kwargs['remote_side'] = fk.column
+                        def resolve_relationship(model, f, fk):
+                            return fk.column.table.__model__._meta.mapped
                         prop_name = f"_{f.name}__fk"
                         prop = props[prop_name] = relationship(
-                            lambda fk=fk: fk.column.table.__model__._meta.mapped,
+                            partial(resolve_relationship, f.model, f, fk),
                             foreign_keys=[f.column],
                             **kwargs
                         )
@@ -213,6 +204,13 @@ class Options(object):
                         props[f.name] = deferred(f.column)
                 elif f.related:
                     props[f.name] = f.related
+                elif f.descriptor:
+                    descriptor = f.descriptor
+                    if isinstance(descriptor, list):
+                        descriptor = property(
+                            *(getattr(f.model, attr) if isinstance(attr, str) else attr for attr in descriptor)
+                        )
+                    props[f.name] = synonym(f.name, descriptor=descriptor)
 
         props['pk'] = synonym(self.pk.attname)
 
@@ -221,13 +219,6 @@ class Options(object):
 
         additional_args = {}
 
-        if self.parents:
-            for parent, field in self.parents.items():
-                parent = self.app.models[parent._meta.name]
-                for f in self.fields:
-                    if f.inherited:
-                        f._prepare()
-
         if self.ordering:
             additional_args['order_by'] = normalize_ordering(self, self.ordering)
         elif not self.parents:
@@ -235,13 +226,14 @@ class Options(object):
 
         if self.parents:
             for parent, field in self.parents.items():
-                parent = self.app.models[parent._meta.name]
+                parent = self.app.models[parent.Meta.name]
                 if parent._meta.mapped is None:
                     parent._meta._build_mapper()
-                col = self.fields_dict[field.name].column
+                col = self.fields[field.name].column
                 mapped.c = mapper(
                     mapped, table, inherits=parent, properties=props,
-                    inherit_condition=col == list(col.foreign_keys)[0].column, **additional_args).c
+                    inherit_condition=col == list(col.foreign_keys)[0].column, **additional_args
+                ).c
         else:
             mapped.c = mapper(mapped, table, properties=props, **additional_args).c
             mapped.c.pk = self.pk.column
@@ -267,7 +259,10 @@ class Options(object):
 
     @property
     def concrete_fields(self):
-        return [f for f in self.local_fields if f.concrete]
+        fields = self.local_fields
+        for f in fields:
+            if f.concrete:
+                yield f
 
     @property
     def deferred_fields(self):

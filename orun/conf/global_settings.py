@@ -15,7 +15,7 @@ settings = {
     'USE_THOUSAND_SEPARATOR': False,
 
     'USE_TZ': False,
-    'DATABASES': {},
+    'DATABASES': {'default': {'ENGINE': 'sqlite:///'}},
     'DATABASE_ROUTERS': [],
     'MIGRATION_MODULES': {},
     'MEDIA_ROOT': None,

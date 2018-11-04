@@ -16,7 +16,7 @@ def command(name, directory=None, **options):
     if directory is None:
         directory = path.join(os.getcwd(), name)
     else:
-        directory = os.path.abspath(path.expanduser(directory))
+        directory = os.path.join(os.path.abspath(path.expanduser(directory)), name)
 
     shutil.copytree(template_dir, directory)
     env = jinja2.Environment()

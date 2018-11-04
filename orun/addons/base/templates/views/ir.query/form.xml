@@ -1,0 +1,7 @@
+<form>
+  <field name="name"/>
+  <field name="category"/>
+  <field name="params"/>
+  <field name="public"/>
+  <field name="sql" code-editor-options="{mode: 'sql'}"/>
+</form>

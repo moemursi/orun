@@ -22,4 +22,3 @@ class Comments(models.Model):
 
     class Meta:
         abstract = True
-        name = 'mail.comments'

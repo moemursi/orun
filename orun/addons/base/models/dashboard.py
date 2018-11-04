@@ -16,7 +16,7 @@ class Category(models.Model):
 class Query(models.Model):
     name = models.CharField(label=_('Name'), translate=True)
     category = models.ForeignKey(Category, null=False)
-    sql = models.TextField()
+    sql = models.TextField(template={'form': 'view.form.code-editor.pug'})
     params = models.TextField()
     public = models.BooleanField(default=False)
 
@@ -59,7 +59,7 @@ class DashboardSettings(models.Model):
     Dashboard settings.
     """
     dashboard = models.ForeignKey('ir.action.client')
-    content = models.TextField(label='Content')
+    content = models.TextField(label='Content', template={'form': 'view.form.code-editor.pug'})
 
     class Meta:
         title_field = 'dashboard'

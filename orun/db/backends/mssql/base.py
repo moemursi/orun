@@ -1,7 +1,14 @@
-from orun.db.backends.base.base import BaseBackend
+from orun.db.backends.base.base import BaseDatabaseWrapper
 from .schema import DatabaseSchemaEditor
+from .creation import DatabaseCreation
+from .features import DatabaseFeatures
+from orun.db.backends.mssql.operations import DatabaseOperations
 
 
-class Backend(BaseBackend):
-    schema_allowed = True
+class DatabaseWrapper(BaseDatabaseWrapper):
     SchemaEditorClass = DatabaseSchemaEditor
+    creation_class = DatabaseCreation
+    features_class = DatabaseFeatures
+    ops_class = DatabaseOperations
+
+

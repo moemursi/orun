@@ -15,8 +15,8 @@ from orun.conf import global_settings
 from orun.db import (connection, DEFAULT_DB_ALIAS)
 from orun.utils import translation
 from orun.utils.functional import SimpleLazyObject
-from .registry import registry
-from .utils import adjust_dependencies
+from orun.apps.registry import registry
+from orun.apps.utils import adjust_dependencies
 
 
 class SilentUndefined(Undefined):
@@ -29,83 +29,81 @@ class Application(Flask):
     jinja_options['undefined'] = SilentUndefined
     jinja_options['extensions'] = ['jinja2.ext.autoescape', 'jinja2.ext.with_', 'jinja2.ext.i18n']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, import_name, addons=None, registry=registry, *args, **kwargs):
+        registry.setup()
         settings = {}
         settings.update(global_settings.settings)
-        self.base_settings = kwargs.pop('settings', {})
-        settings.update(self.base_settings)
+        settings.update(kwargs.pop('settings', {}))
+        self.settings = settings
 
-        super(Application, self).__init__(*args, **kwargs)
+        super(Application, self).__init__(import_name, *args, **kwargs)
         self.models = {}
+        self.ready = False
+        self.addons = addons
+        self.registry = registry
+        self._pending_operations = []
 
         # Site user definition request handler
         self.before_request(auth_before_request)
 
         # Load connections
         from orun.db import ConnectionHandler
-        self.connections = ConnectionHandler()
+        self.connections = ConnectionHandler(self, self.settings['DATABASES'])
 
-        self.config.update(settings)
+        self.config.update(self.settings)
 
-        # Start mail server
-        if 'MAIL_SERVER' in self.config:
-            mail = Mail()
-            mail.init_app(self)
-            self.mail = mail
+        # register basic commands
+        for cmd in registry.basic_commands:
+            self.cli.add_command(cmd)
 
         # Init sqlalchemy metadata
         self.meta = sa.MetaData()
 
-        # Find addons
-        if not registry.ready:
-            registry.setup()
+        addons = adjust_dependencies(addons, registry)
+        self.addons = {addon: registry[addon] for addon in addons}
 
-        # Register basic commands
-        for cmd in registry.basic_commands:
-            self.cli.add_command(cmd)
+        # always load web module
+        self.addons['web'] = registry['web']
 
-        # Load addons
-        mods = settings.get('ADDONS', [])
-        if 'web' not in mods:
-            mods.insert(1, 'web')
-        mods = adjust_dependencies(mods)
-        self.app_configs = {}
-        self.addons = []
+    @property
+    def connection(self):
+        return self.connections[DEFAULT_DB_ALIAS]
 
-        with self.app_context():
-            for mod_name in mods:
-                addon = registry.app_configs[mod_name]
-                addon.init_addon()
-                self.app_configs[mod_name] = addon
-                self.addons.append(addon)
+    def setup(self):
+        self.ready = True
 
-                # Build models
-                for model_class in registry.module_models[addon.name].values():
-                    if not model_class._meta.abstract and not getattr(model_class._meta, 'auto_created', None):
-                        model_class._meta._build_model(self)
+        for app in self.addons.values():
+            app.init_addon()
 
-                # Register blueprints
-                self.register_blueprint(addon)
+            # Build models
+            for model_class in list(app.models.values()):
+                if not model_class.Meta.abstract and not model_class.Meta.auto_created:
+                    model_class.__build__(self)
 
-                # Register addon commands
-                for cmd in registry.module_commands[addon.app_label]:
-                    self.cli.add_command(cmd)
+            # Register blueprints
+            self.register_blueprint(app)
 
-                # Register addon views on app
-                self._register_views(addon)
+            # Register addon commands
+            for cmd in self.registry.module_commands[app.label]:
+                self.cli.add_command(cmd)
 
-            # Initialize app context models
-            self.build_models()
+            # Register addon views on app
+            self._register_views(app)
 
-            for addon in self.addons:
-                # Initialize addon on current instance
-                if hasattr(addon, 'init_app'):
-                    addon.init_app(self)
+        self.do_pending_operations()
+
+        # Initialize app context models
+        self.build_models()
+
+        for addon in self.addons:
+            # Initialize addon on current instance
+            if hasattr(addon, 'init_app'):
+                addon.init_app(self)
 
     def build_models(self):
         print('Building models')
         for model in self.models.values():
-            model._meta._build_table(self.meta)
+            model._meta.build_table(self.meta)
 
         try:
             for model in list(self.models.values()):
@@ -113,6 +111,10 @@ class Application(Flask):
         except:
             print('Error building model', model._meta.name)
             raise
+
+    def do_pending_operations(self):
+        while self._pending_operations:
+            self._pending_operations.pop(0)()
 
     def create_all(self):
         self._create_schemas()
@@ -147,11 +149,14 @@ class Application(Flask):
 
     def get_model(self, item):
         if inspect.isclass(item):
-            item = item._meta.name
+            item = item.Meta.name
         return self.models[item]
 
     def __getitem__(self, item):
         return g.env[item]
+        if not isinstance(item, str):
+            item = item.Meta.name
+        return self.models[item]
 
     def __setitem__(self, key, value):
         self.models[key] = value
@@ -179,6 +184,7 @@ class Application(Flask):
         for view in registry.module_views[addon.schema]:
             view.register(self)
 
+
     def app_context(self, user_id=SUPERUSER, **kwargs):
         old_state = {}
         ctx = AppContext(self)
@@ -202,6 +208,12 @@ class Application(Flask):
         }
         ctx.g.env = Environment(user_id, context)
         ctx.g.context = context
+
+        # Auto initialize application
+        if not self.ready:
+            with ctx:
+                self.setup()
+
         return ctx
 
     def create_jinja_environment(self):

@@ -3616,6 +3616,7 @@ Katrid.Data = {};
     async loadViews(scope, element, views) {
 
       let res = await scope.model.loadViews();
+      console.log(res);
         // detects the relational field
         let fld = res.views.list.fields[scope.field.field];
         // hides the relational field
@@ -3922,10 +3923,6 @@ Katrid.Data = {};
 
 
       scope.$on('masterChanged', async function(evt, key) {
-        await masterChanged(key);
-      });
-
-      let masterChanged = async (key) => {
         // Ajax load nested data
         scope.dataSet = [];
         scope._changeCount = 0;
@@ -3937,12 +3934,8 @@ Katrid.Data = {};
             return await scope.dataSource.search(data)
             .finally(() => scope.dataSource.state = Katrid.Data.DataSourceState.browsing);
         }
-      };
+      });
 
-      if (!scope.$parent.isList) {
-        dataSource.invalidate = masterChanged;
-        // scope.$parent.$watch('recordId', masterChanged);
-      }
     }
     renderDialog(scope) {
       let el;

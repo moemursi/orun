@@ -170,7 +170,7 @@ class OrunTranslation(gettext_module.GNUTranslations):
                 "apps registry is ready. Check that you don't make non-lazy "
                 "gettext calls at import time.")
         for app_config in app_configs:
-            localedir = os.path.join(app_config.path, 'locale')
+            localedir = app_config.locale_path
             translation = self._new_gnu_trans(localedir)
             self.merge(translation)
 

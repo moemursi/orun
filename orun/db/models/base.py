@@ -2,6 +2,7 @@ import copy
 import datetime
 import inspect
 import os
+from functools import partial
 from itertools import chain
 
 import sqlalchemy as sa
@@ -10,7 +11,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from orun import api, render_template
 from orun import app, g
-from orun.apps import apps
+from orun.apps import apps, Application
 from orun.core.exceptions import ObjectDoesNotExist, ValidationError, PermissionDenied
 from orun.db import session
 from orun.db.models import signals
@@ -18,10 +19,9 @@ from orun.utils.encoding import force_text
 from orun.utils.translation import gettext, gettext_lazy
 from orun.utils.xml import etree
 from orun.utils.xml import get_xml_fields
-from .fields import Field, BooleanField, NOT_PROVIDED
-from .fields.related import OneToOneField, CASCADE
-from .options import Options
-from .query import QuerySet, Insert, Update, Delete
+from orun.db.models.fields.related import OneToOneField, CASCADE
+from orun.db.models.options import Options
+from orun.db.models.query import QuerySet, Insert, Update, Delete
 
 CHOICES_PAGE_LIMIT = 10
 
@@ -76,170 +76,116 @@ class ModelBase(type):
     # def __prepare__(cls, name, bases):
     #     return collections.OrderedDict()
 
+    Meta: Options = None
+    _meta: Options = None
+    __model__ = None
+
     def __new__(cls, name, bases, attrs):
-        super_new = super(ModelBase, cls).__new__
+        super_new = super().__new__
+        registry = attrs.get('__registry__', apps)
+        app = attrs.get('__app__')
+        app_config = attrs.get('__app_config__')
+        meta = attrs.pop('Meta', None)
+        parents = [b for b in bases if isinstance(b, ModelBase) and b.Meta]
 
-        # Also ensure initialization is only performed for subclasses of Model
-        # (excluding Model class itself).
-        parents = [b for b in bases if isinstance(b, ModelBase)]
-        if not parents or attrs.get('__module__', None) == 'orun.db.models.base':
-            return super_new(cls, name, bases, attrs)
+        if app is None:
+            if not bases:
+                return super_new(cls, name, bases, attrs)
 
-        module = attrs.pop('__module__', None)
-        app_label = module and module.split('.', 1)[0]
-        model = attrs.pop('__model__', None)
-        _app = attrs.pop('__app__', None)
+            module = attrs.get('__module__')
+            if app_config:
+                app_label = app_config.label
+            else:
+                app_label = module.split('.', 1)[0]
+                app_config = registry[app_label]
 
-        new_class = super_new(cls, name, bases, {'__module__': module})
+            new_class = super_new(cls, name, bases, {k: v for k, v in attrs.items() if not isinstance(v, Field)})
+            opts = Options.from_model(meta, new_class, parents, {
+                'app_config': app_config,
+            })
+            new_class.Meta = opts
 
-        is_service = not issubclass(new_class, Model)
+            attr_items = attrs.items()
+            if not opts.extension and not opts.abstract and issubclass(new_class, Model):
+                pk = None
+                for attr in attrs.values():
+                    if isinstance(attr, Field) and attr.primary_key:
+                        opts.pk = pk = attr
+                if pk is None:
+                    if parents:
+                        for b in parents:
+                            if not b.Meta.abstract:
+                                if b.Meta.pk is not None:
+                                    pk = OneToOneField(b, primary_key=True)
+                                    pk.name = '%s_ptr' % b.Meta.model_name
+                                    attr_items = chain(((pk.name, pk),), attr_items)
+                                    new_class.Meta.parents[b] = pk
+                                    opts.pk = pk
+                                    break
+                    if pk is None:
+                        pk = BigAutoField(primary_key=True)
+                        attr_items = chain((('id', pk),), attr_items)
+                        opts.pk = pk
 
-        attr_meta = attrs.pop('Meta', None)
-        meta_attrs = {}
-        if attr_meta:
-            meta_attrs = {k: v for k, v in attr_meta.__dict__.items() if not k.startswith('_')}
+            fields = {k: v for k, v in attr_items if isinstance(v, BaseField)}
+            opts.local_fields = fields
 
-        if is_service:
-            meta_attrs['virtual'] = is_service
+            if not opts.inherited and not opts.extension and not opts.abstract:
+                fields['display_name'] = CharField(label=opts.verbose_name, auto_created=True, getter='__str__', editable=False)
+                # if opts.log_changes:
+                #     fields['created_by'] = ForeignKey('auth.user', label=gettext_lazy('Created by'), auto_created=True, editable=False, deferred=True, db_index=False)
+                #     fields['created_on'] = DateTimeField(default=datetime.datetime.now, label=gettext_lazy('Created on'), auto_created=True, editable=False, deferred=True)
+                #     fields['updated_by'] = ForeignKey('auth.user', auto_created=True, label=gettext_lazy('Updated by'), editable=False, deferred=True, db_index=False)
+                #     fields['updated_on'] = DateTimeField(on_update=datetime.datetime.now, label=gettext_lazy('Updated on'), auto_created=True, editable=False, deferred=True)
 
-        _apps = meta_attrs.get('apps', apps)
+            app_config[opts.name] = new_class
+            return new_class
 
-        app_config = None
-        if 'app_label' in meta_attrs:
-            app_label = meta_attrs['app_label']
-        if app_label:
-            m = module.split('.')[0]
-            if m == '__fake__':
-                m = app_label
-            app_config = _apps.app_configs.get(m, apps.get_app_config(m))
-
-        parents = [b for b in parents if hasattr(b, '_meta')]
-        meta_parents = [b._meta.__class__ for b in parents]
-        if not meta_parents:
-            meta_parents = (Options,)
-
-        if model:
-            # Has original model
-            opts = model._meta.__class__({}, app_config, parents)
-            opts.app_label = model._meta.app_label
-        else:
-            # Create a new options _meta object
-            opts = create_meta(meta_parents, meta_attrs)(meta_attrs, app_config, parents)
-
-        if _app:
-            opts.app = app
-
+        new_class = super_new(cls, name, bases, attrs)
+        base_model = attrs.get('__model__')
+        opts = new_class.Meta(base_model=base_model, app=app)
         new_class.add_to_class('_meta', opts)
+        app[new_class._meta.name] = new_class
+        bases = tuple(base for base in new_class.mro() if isinstance(base, ModelBase) and base.Meta and not base._meta)
 
-        # Apply model inheritance
-        extension = new_class._meta.extension
+        fields = {}
+        for b in reversed(bases):
+            for k, v in b.Meta.local_fields.items():
+                f = fields.get(k)
+                if f is None:
+                    field = v.assign()
+                else:
+                    field = v.assign(f)
 
-        if not new_class._meta.abstract and not extension and model is None:
-            new_class.add_to_class(
-                'DoesNotExist',
-                subclass_exception(
-                    str('DoesNotExist'),
-                    tuple(
-                        x.DoesNotExist for x in parents if hasattr(x, '_meta') and not x._meta.abstract
-                    ) or (ObjectDoesNotExist,),
-                    module,
-                    attached_to=new_class))
+                if b is base_model or b is base_model.Meta.extending or b.Meta.abstract or (b.__model__ is not None and b.__model__ is base_model.Meta.extending):
+                    new_class._meta.local_fields.append(field)
+                if b.Meta.abstract or (b.__model__ is not None and b.__model__ is base_model.Meta.extending) or k in fields:
+                    field.inherited = True
 
-        if is_service:
-            for obj_name, obj in attrs.items():
-                new_class.add_to_class(obj_name, obj)
-        else:
+                fields[k] = field
+                new_class._meta.parents.update({app.models[parent.Meta.name]: field for parent, field in b.Meta.parents.items()})
 
-            if model:
-                new_class._meta.parents = copy.copy(model._meta.parents)
+        for k, v in fields.items():
+            new_class.add_to_class(k, v)
 
-                for field in model._meta.fields:
-                    new_field = copy.copy(field)
-                    new_class.add_to_class(new_field.name, new_field)
-                    if not field.concrete and field.getter:
-                        setattr(new_class, field.name, new_field)
-
-                for field in model._meta.private_fields:
-                    new_field = copy.copy(field)
-                    new_class._meta.add_field(field, private=True)
-                    new_field.model = new_class
-                    setattr(new_class, field.name, new_field)
-
-                new_class.insert = Insert(new_class)
-                new_class.update = Update(new_class)
-                new_class.delete = Delete(new_class)
-
-            else:
-                if module != '__fake__':
-                    if opts.log_changes and not opts.extension and not parents:
-                        _add_auto_field(opts, 'created_by', ForeignKey('auth.user', label=gettext_lazy('Created by'), auto_created=True, editable=False, deferred=True, db_index=False))
-                        _add_auto_field(opts, 'created_on', DateTimeField(default=datetime.datetime.now, label=gettext_lazy('Created on'), auto_created=True, editable=False, deferred=True))
-                        _add_auto_field(opts, 'updated_by', ForeignKey('auth.user', auto_created=True, label=gettext_lazy('Updated by'), editable=False, deferred=True, db_index=False))
-                        _add_auto_field(opts, 'updated_on', DateTimeField(on_update=datetime.datetime.now, label=gettext_lazy('Updated on'), auto_created=True, editable=False, deferred=True))
-
-                    if not opts.extension and not parents:
-                        from orun.db.models import CharField
-                        disp_name = CharField(label=opts.verbose_name, auto_created=True, getter='__str__', editable=False)
-                        new_class.add_to_class('display_name', disp_name)
-                        setattr(new_class, 'display_name', disp_name)
-
-                for base in parents:
-                    base = apps.all_models[base._meta.name]
-                    if not extension and not base._meta.abstract and module != '__fake__':
-                        attr_name = '%s_ptr' % base._meta.model_name
-                        new_field = OneToOneField(
-                            base,
-                            on_delete=CASCADE,
-                            name=attr_name,
-                            auto_created=True,
-                            parent_link=True,
-                            primary_key=True,
-                            editable=False,
-                            serializable=False,
-                        )
-                        new_class.add_to_class(attr_name, new_field)
-
-                        new_class._meta.parents[base] = new_field
-
-                    # Clone base local fields to new class local fields
-                    for f in base._meta.fields:
-                        if f.name not in opts.fields:
-                            new_field = copy.copy(f)
-                            new_field.inherited = not base._meta.abstract
-                            new_field.local = (extension and f in base._meta.local_fields) or base._meta.abstract
-                            new_field.base_model = base
-                            new_class.add_to_class(new_field.name, new_field)
-
-                    if extension and base._meta.parents:
-                        for base_parent, f in base._meta.parents.items():
-                            new_class._meta.parents[base_parent] = new_class._meta.fields_dict[f.name]
-
-                # Add all attributes to the class (replace inherited fields attributes)
-                for obj_name, obj in attrs.items():
-                    new_class.add_to_class(obj_name, obj)
-                    if isinstance(obj, Field) and obj.primary_key:
-                        new_class._meta.pk = obj
-
-            new_class._prepare()
-
-        if attrs.get('__register__', True):
-            if _app:
-                _app[new_class._meta.name] = new_class
-            else:
-                _apps.register_model(app_label, new_class)
+        new_class.insert = Insert(new_class)
+        new_class.update = Update(new_class)
+        new_class.delete = Delete(new_class)
         return new_class
+
+    def __build__(cls, app):
+        bases = [cls] + [
+            app.models.get(base.Meta.name, base)
+            for base in cls.Meta.bases
+            if issubclass(base, Model) and base.Meta and base is not cls
+        ]
+        return type(cls.__name__, tuple(bases), {'__module__': cls.__module__, '__app__': app, '__model__': cls})
 
     def add_to_class(cls, name, value):
         if not inspect.isclass(value) and hasattr(value, 'contribute_to_class'):
             value.contribute_to_class(cls, name)
         else:
             setattr(cls, name, value)
-
-    def _prepare(cls):
-        opts = cls._meta
-        opts._prepare(cls)
-
-        signals.class_prepared.send()
 
     def __subclasscheck__(cls, sub):
         if cls is Model:
@@ -261,19 +207,6 @@ class ModelBase(type):
             return session.query(app[cls._meta.name].__class__)
 
 
-Model = declarative_base(metaclass=ModelBase)
-
-class Service(metaclass=ModelBase):
-    def __init__(self, *args, **kwargs):
-        self._state = ModelState()
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
-    @property
-    def env(self):
-        return g.env
-
-
 class ModelStateFieldsCacheDescriptor:
     def __get__(self, instance, cls=None):
         if instance is None:
@@ -293,10 +226,19 @@ class ModelState:
     fields_cache = ModelStateFieldsCacheDescriptor()
 
 
-class Model(Service):
+class Model(metaclass=ModelBase):
     #    self._state = ModelState(_record)
     #    if self._state.adding:
     #        self._state.record = self._meta.mapped(**kwargs)
+
+    def __init__(self, *args, **kwargs):
+        self._state = ModelState()
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+    @property
+    def env(self):
+        return g.env
 
     @orm.reconstructor
     def _init_from_db(self):
@@ -368,7 +310,7 @@ class Model(Service):
 
     @classmethod
     def get_field_info(cls, field, view_type=None):
-        return field.info
+        return field.formfield
 
     @api.method
     def get_fields_info(self, view_id=None, view_type='form', toolbar=False, context=None, xml=None):
@@ -519,7 +461,7 @@ class Model(Service):
                 continue
             if exclude and f.name in exclude:
                 continue
-            data[f.name] = f.serialize(getattr(self, f.name, None), instance=self)
+            data[f.name] = f.to_json(getattr(self, f.name, None))
         if 'id' not in data:
             data['id'] = self.pk
         return data
@@ -811,7 +753,7 @@ class Model(Service):
     def __str__(self):
         if self._meta.title_field:
             f = self._meta.fields_dict[self._meta.title_field]
-            v = f.serialize(self[self._meta.title_field], self)
+            v = f.to_json(self[self._meta.title_field])
             if not isinstance(v, str):
                 v = str(v)
             return v
@@ -821,18 +763,13 @@ class Model(Service):
         for f in self._meta.fields:
             # Check for serializable fields
             if f.serializable:
-                yield f.name, f.serialize(self[f.name], self)
+                yield f.name, f.to_json(self[f.name], self)
 
     def __getitem__(self, item):
         return getattr(self, item)
 
     def __call__(self, *args, **kwargs):
         return self.__class__(*args, **kwargs)
-
-    # def _get_pk_val(self, meta=None):
-    #    if not meta:
-    #        meta = self._meta
-    #    return getattr(self, meta.pk.attname)
 
     def __setattr__(self, key, value):
         f = self._meta.fields_dict.get(key)
@@ -867,5 +804,6 @@ def _resolve_fk_search(field, join_list):
     return [field]
 
 
+from orun.db.models.fields import BaseField, CharField, Field, BigAutoField, BooleanField, NOT_PROVIDED
 from orun.db.models.fields import DateTimeField
 from orun.db.models.fields.related import ForeignKey

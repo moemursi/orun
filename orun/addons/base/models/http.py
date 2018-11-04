@@ -2,7 +2,7 @@ from orun import app
 from orun.db import models
 
 
-class Http(models.Service):
+class Http(models.Model):
     def get_attachment(self, attachment_id):
         obj = self.env['ir.attachment'].get(attachment_id)
         headers = None

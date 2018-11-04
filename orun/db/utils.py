@@ -50,7 +50,7 @@ class ConnectionDoesNotExist(Exception):
 
 
 def get_backend(engine):
-    backend = 'orun.db.backends.' + engine + '.base.Backend'
+    backend = 'orun.db.backends.' + engine + '.base.DatabaseWrapper'
     return import_string(backend)
 
 
@@ -74,11 +74,12 @@ class ConnectionInfo(object):
 
 
 class ConnectionHandler(object):
-    def __init__(self, databases=None):
+    def __init__(self, app, databases=None):
         """
         databases is an optional dictionary of database definitions (structured
         like settings.DATABASES).
         """
+        self.app = app
         self._databases = databases
         self._connections = local()
 
@@ -134,8 +135,6 @@ class ConnectionHandler(object):
 
     def __getitem__(self, alias):
         # Get the current database
-        if alias == DEFAULT_DB_ALIAS:
-            alias = g.DEFAULT_DB_ALIAS
         from orun.db.models.query import Session
         if hasattr(self._connections, alias):
             return getattr(self._connections, alias)
@@ -147,8 +146,8 @@ class ConnectionHandler(object):
             db['url'] = make_url(db['ENGINE'])
         url = db['url']
         backend = get_backend(url.drivername.split('+')[0])
-        conn = backend.create_engine(alias, url)
-        conn.session = Session(bind=conn)
+        conn = backend(url, alias, db)
+        conn.session = Session(bind=conn.engine)
         conn.conn_info = ConnectionInfo(conn)
         conn.alias = alias
         setattr(self._connections, alias, conn)

@@ -27,8 +27,8 @@ def upgrade(app_labels, **options):
     for app_label in app_labels:
         addon = apps.app_configs[app_label]
         for model in addon.models.values():
-            if not Model.objects.filter(name=model._meta.name).first():
-                m = Model.create(name=model._meta.name, object_name=model._meta.object_name)
+            if not Model.objects.filter(name=model.Meta.name).first():
+                m = Model.create(name=model.Meta.name, object_name=model.Meta.object_name)
         cmd = Command()
         cmd.handle_app_config(addon, **options)
         all_models.extend(addon.models.keys())

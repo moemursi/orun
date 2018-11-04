@@ -103,7 +103,7 @@ def render_javascript_catalog(catalog=None, plural=None):
 def get_javascript_catalog(locale, domain, packages):
     default_locale = to_locale(settings.LANGUAGE_CODE)
     addons = app.addons
-    allowable_packages = set(addon.name for addon in addons)
+    allowable_packages = set(addons.keys())
     allowable_packages.update(DEFAULT_PACKAGES)
     packages = [p for p in packages if p in allowable_packages]
     t = {}

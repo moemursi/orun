@@ -45,7 +45,7 @@ class WebClient(BaseView):
     @route('/client/i18n/catalog.js')
     def i18n_js_catalog(self):
         from .i18n import javascript_catalog
-        return javascript_catalog(request, packages=[addon.name for addon in app.addons])
+        return javascript_catalog(request, packages=app.addons.values())
 
     @route('/company/logo/')
     def company_logo(self):
@@ -97,7 +97,7 @@ class WebClient(BaseView):
 
     @route('/content/<int:content_id>/')
     def content(self, content_id=None):
-        http = app['ir.http']
+        http = g.env['ir.http']
         return http.get_attachment(content_id)
 
     @route('/content/upload/', methods=['POST'])

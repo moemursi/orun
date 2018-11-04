@@ -56,10 +56,10 @@ class Property(models.Model):
 class Association(models.Model):
     source_content = models.ForeignKey('ir.model')
     source_id = models.BigIntegerField()
-    source_object = GenericForeignKey('source_content', 'source_id')
+    # source_object = GenericForeignKey('source_content', 'source_id')
     target_content = models.ForeignKey('ir.model')
     target_id = models.BigIntegerField()
-    target_object = GenericForeignKey('target_content', 'target_id')
+    # target_object = GenericForeignKey('target_content', 'target_id')
     comment = models.TextField()
 
     class Meta:

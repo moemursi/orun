@@ -40,7 +40,7 @@ class Environment(Mapping):
 
     def __getitem__(self, item):
         if inspect.isclass(item):
-            item = item._meta.name
+            item = item.Meta.name
         model = app.models[item]
         return model.__new__(model)
 
