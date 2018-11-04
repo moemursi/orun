@@ -66,9 +66,10 @@ class ChromeEngine:
 
     def _from_xml(self, xml, **kwargs):
         imports = [
-            'from orun.reports.engines.chrome.filters import localize, linebreaks',
-            'from orun.reports.engines.chrome.utils import avg, total',
+            'import json',
             'import statistics',
+            'from orun.reports.engines.chrome.filters import localize, linebreaks',
+            'from orun.reports.engines.chrome.utils import avg, total, to_list',
         ]
         default_filters = ['localize']
         lookup = mako.lookup.TemplateLookup(

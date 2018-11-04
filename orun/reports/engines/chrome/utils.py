@@ -1,18 +1,19 @@
 from statistics import mean
 
 
-def to_values(iterable, member):
+def to_list(iterable):
     for obj in iterable:
-        yield getattr(obj, member)
+        yield obj[0]
 
 
-def avg(iterable, member):
-    vals = list(to_values(iterable, member))
+def avg(iterable, member=None):
+    vals = iterable
+    if member:
+        vals = list([getattr(obj, member) for obj in iterable])
     if vals:
         return mean(vals)
 
 
 def total(iterable, member):
-    vals = to_values(iterable, member)
-    return sum(vals)
+    return sum([getattr(obj, member) for obj in iterable])
 
