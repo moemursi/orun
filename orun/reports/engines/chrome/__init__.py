@@ -65,7 +65,10 @@ class ChromeEngine:
         return rows
 
     def _from_xml(self, xml, **kwargs):
-        imports = ['from orun.reports.engines.chrome.filters import localize, linebreaks']
+        imports = [
+            'from orun.reports.engines.chrome.filters import localize, linebreaks',
+            'from statistics import mean',
+        ]
         default_filters = ['localize']
         lookup = mako.lookup.TemplateLookup(
             default_filters=default_filters,
