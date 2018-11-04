@@ -1,0 +1,10 @@
+extends view.form.field.pug
+
+append vars
+    -var cssClass = 'DateField'
+
+block readonly
+    | {{ (record.#{ name }|date:'#{_.gettext('yyyy-mm-dd').replace(/[m]/g, 'M')}') || '#{ field.emptyText }' }}
+
+block field
+    input.form-field.form-control(date-input)&attributes(attrs)
