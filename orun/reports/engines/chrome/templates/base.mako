@@ -21,7 +21,8 @@
   </%block>
 <body>
 <%block name="header">
-<div class="report-title">
+<row class="report-title">
+  <column>
   <img id="logo" src="${company.base64_logo}"/>
   <div class="float-right">
     % if company.report_header:
@@ -34,7 +35,8 @@
     <br/>
     <h3 class="float-right">Recomendação Técnica</h3>
   </div>
-</div>
+  </column>
+</row>
 </%block>
 
 ${next.body()}

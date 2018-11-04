@@ -12,7 +12,7 @@ h3 {
   max-width: 128px;
 }
 
-header, div.report-title {
+header, .report-title {
   margin-bottom: 20px;
 }
 
