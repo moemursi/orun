@@ -38,6 +38,7 @@ class Options:
     one_to_one = False
     field_change_event = None
     title_field = None
+    field_groups = None
     log_changes = True
 
     def __init_subclass__(cls, **kwargs):
