@@ -35,6 +35,12 @@ class ManyToManyRel(ForeignObjectRel):
         self.through = through
         self.through_fields = through_fields
 
+    def set_field_names(self):
+        if not self.through_fields:
+            self.from_field = get_first_rel_field(self.model, self.field.model)
+            self.to_field = get_first_rel_field(self.through, self.model)
+
+
 
 class OneToManyRel(ManyToOneRel):
     def set_field_name(self):

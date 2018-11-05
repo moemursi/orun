@@ -91,14 +91,16 @@ def create_many_to_many_intermediary_model(field, klass):
     })
 
     model = new_class.__build__(klass._meta.app)
-    def join(model, field):
-        field = model._meta.fields[field]
-        return field.column == field.rel.model._meta.pk.column
     # field.rel.primaryjoin = partial(lambda field: field.column == field.rel.model._meta.pk.column, from_field)
     # field.rel.secondaryjoin = partial(lambda field: field.column == field.rel.model.pk.column, to_field)
     field.rel.primaryjoin = partial(join, model, from_)
     field.rel.secondaryjoin = partial(join, model, to)
     return model
+
+
+def join(model, field):
+    field = model._meta.fields[field]
+    return field.column == field.rel.model._meta.pk.column
 
 
 class RelatedField(FieldCacheMixin, Field):
@@ -194,6 +196,7 @@ class ManyToManyField(RelatedField):
                 def resolve_through_model(_, rel, field):
                     model = field.model._meta.app.get_model(rel.through)
                     field.rel.through = model
+                    # rel.set_field_names()
                 lazy_related_operation(resolve_through_model, cls, self.rel, field=self)
             else:
                 self.rel.through = create_many_to_many_intermediary_model(self, cls)
