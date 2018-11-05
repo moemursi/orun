@@ -9,7 +9,6 @@
     async loadViews(scope, element, views) {
 
       let res = await scope.model.loadViews();
-      console.log(res);
         // detects the relational field
         let fld = res.views.list.fields[scope.field.field];
         // hides the relational field
@@ -388,6 +387,7 @@
         let templ = $(template);
         let tr = templ.find('tbody>tr').first();
         let thead = templ.find('thead>tr').first();
+        let tfoot = templ.find('tfoot>tr').first();
 
         let formView;
         if (attrs.inlineEditor) {
@@ -401,11 +401,26 @@
 
         // compile fields
         let fields = $('<div>').append(content);
+        let totals = [];
+        let hasTotal = false;
         for (let fld of fields.children('field')) {
           fld = $(fld);
           let fieldName = fld.attr('name');
           let field = scope.view.fields[fieldName];
           field.assign(fld);
+
+          let total = fld.attr('total');
+          if (total) {
+            hasTotal = true;
+            totals.push({
+              field: field,
+              name: fieldName,
+              total: total,
+            });
+          }
+          else
+            totals.push(false);
+
           if (!field.visible)
             continue;
 
@@ -422,6 +437,13 @@
           tr.append(td);
           thead.append(th);
         }
+
+        if (hasTotal)
+          for (total of totals)
+            tfoot.append(Katrid.app.getTemplate('view.list.table.total.pug', {field: total.field}));
+        else
+          tfoot.remove();
+
         if (options.deleteRow) {
           let delRow = $(Katrid.app.getTemplate('view.list.table.delete.pug'));
           tr.append(delRow[1]);

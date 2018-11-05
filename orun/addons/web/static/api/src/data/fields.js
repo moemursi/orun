@@ -7,6 +7,7 @@
       this._info = info;
       this.caption = this._info.caption;
       this.helpText = this._info.help_text;
+      this.onChange = this._info.onchange;
 
       if (this._info.visible === false)
         this.visible = false;
@@ -71,11 +72,11 @@
       if (this.readonly)
         res['ng-readonly'] = this.readonly;
       res['ng-model'] = 'record.' + this.name;
+      if (attrs.ngFieldChange) {
+        res['ng-change'] = attrs.ngFieldChange;
+        console.log('change', attrs.ngFieldChange);
+      }
       return res;
-    }
-
-    get onChange() {
-      return this._info.onchange;
     }
 
     get hasChoices() {

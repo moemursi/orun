@@ -110,11 +110,11 @@ def records(*args, **kwargs):
 record = partial(records, each=True)
 
 
-def onchange(fields):
+def onchange(*fields):
     def decorator(fn):
 
         def contribute_to_class(flds, cls, name):
-            if not isinstance(flds, (list, dict)):
+            if not isinstance(flds, (tuple, list, dict)):
                 flds = [flds]
             for field in flds:
                 if not isinstance(field, str):

@@ -140,10 +140,15 @@ class ForeignKey(RelatedField):
     many_to_one = True
     rel_class = ManyToOneRel
 
-    def __init__(self, to, to_fields=None, on_delete=CASCADE, on_update=CASCADE, db_constraint=True, *args, **kwargs):
+    def __init__(
+            self, to, to_fields=None, on_delete=CASCADE, on_update=CASCADE, db_constraint=True, name_fields=None,
+            label_from_instance=None, *args, **kwargs
+    ):
         self.db_constraint = db_constraint
         self.on_delete = on_delete
         self.on_update = on_update
+        self.label_from_instance = label_from_instance
+        self.name_fields = name_fields
         kwargs['rel'] = self.rel_class(self, to, to_fields)
         super().__init__(*args, **kwargs)
 

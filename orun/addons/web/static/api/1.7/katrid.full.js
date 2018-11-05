@@ -858,6 +858,7 @@ Katrid.Data = {};
   Katrid.Data.SubRecords = SubRecords;
 
 })();
+
 (function () {
 
   class DataSourceState {
@@ -1605,9 +1606,9 @@ Katrid.Data = {};
       this.scope.$apply();
     }
 
-    dispatchEvent(name, ...args) {
-      this.model.rpc(name, ...args)
-      .then(res => this._applyResponse(res));
+    async dispatchEvent(name, ...args) {
+      let res = await this.model.rpc(name, ...args);
+      this._applyResponse(res);
     }
 
     get model() {
@@ -1638,6 +1639,7 @@ Katrid.Data = {};
       this._info = info;
       this.caption = this._info.caption;
       this.helpText = this._info.help_text;
+      this.onChange = this._info.onchange;
 
       if (this._info.visible === false)
         this.visible = false;
@@ -1702,11 +1704,11 @@ Katrid.Data = {};
       if (this.readonly)
         res['ng-readonly'] = this.readonly;
       res['ng-model'] = 'record.' + this.name;
+      if (attrs.ngFieldChange) {
+        res['ng-change'] = attrs.ngFieldChange;
+        console.log('change', attrs.ngFieldChange);
+      }
       return res;
-    }
-
-    get onChange() {
-      return this._info.onchange;
     }
 
     get hasChoices() {
@@ -3657,7 +3659,6 @@ Katrid.Data = {};
     async loadViews(scope, element, views) {
 
       let res = await scope.model.loadViews();
-      console.log(res);
         // detects the relational field
         let fld = res.views.list.fields[scope.field.field];
         // hides the relational field
@@ -4036,6 +4037,7 @@ Katrid.Data = {};
         let templ = $(template);
         let tr = templ.find('tbody>tr').first();
         let thead = templ.find('thead>tr').first();
+        let tfoot = templ.find('tfoot>tr').first();
 
         let formView;
         if (attrs.inlineEditor) {
@@ -4049,11 +4051,26 @@ Katrid.Data = {};
 
         // compile fields
         let fields = $('<div>').append(content);
+        let totals = [];
+        let hasTotal = false;
         for (let fld of fields.children('field')) {
           fld = $(fld);
           let fieldName = fld.attr('name');
           let field = scope.view.fields[fieldName];
           field.assign(fld);
+
+          let total = fld.attr('total');
+          if (total) {
+            hasTotal = true;
+            totals.push({
+              field: field,
+              name: fieldName,
+              total: total,
+            });
+          }
+          else
+            totals.push(false);
+
           if (!field.visible)
             continue;
 
@@ -4070,6 +4087,13 @@ Katrid.Data = {};
           tr.append(td);
           thead.append(th);
         }
+
+        if (hasTotal)
+          for (total of totals)
+            tfoot.append(Katrid.app.getTemplate('view.list.table.total.pug', {field: total.field}));
+        else
+          tfoot.remove();
+
         if (options.deleteRow) {
           let delRow = $(Katrid.app.getTemplate('view.list.table.delete.pug'));
           tr.append(delRow[1]);
@@ -5067,34 +5091,6 @@ Katrid.Data = {};
   //     }
   //   })
   // );
-
-  class Total {
-    constructor($filter) {
-      this.restrict = 'E';
-      this.scope = false;
-      this.replace = true;
-      this.$filter = $filter;
-    }
-
-    template(el, attrs) {
-      if (attrs.type[0] === "'")
-        return `<span>${ attrs.type.substring(1, attrs.type.length - 1) }</span>`;
-      else
-        return `<span ng-bind="total$${attrs.field}|number:2"></span>`;
-    }
-
-    link(scope, element, attrs, controller) {
-      if (attrs.type[0] !== "'")
-        scope.$watch(`records`, (newValue) => {
-          let total = 0;
-          newValue.map((r) => total += parseFloat(r[attrs.field]));
-          console.log('RECORDS CHANGED', total);
-          scope['total$' + attrs.field] = total;
-        });
-    }
-  }
-
-  uiKatrid.directive('ngTotal', Total);
 
   uiKatrid.directive('ngSum', () =>
     ({
@@ -8317,6 +8313,38 @@ Katrid.Data = {};
 	}
 
 })(jQuery);
+
+(function() {
+
+  class Total {
+    constructor($filter) {
+      this.restrict = 'E';
+      this.scope = false;
+      this.replace = true;
+      this.$filter = $filter;
+    }
+
+    template(el, attrs) {
+      if (attrs.expr[0] === "'")
+        return `<span>${ attrs.type.substring(1, attrs.type.length - 1) }</span>`;
+      else
+        return `<span ng-bind="total$${attrs.field}|number:2"></span>`;
+    }
+
+    link(scope, element, attrs, controller) {
+      if (attrs.expr[0] !== "'")
+        scope.$watch(`records`, (newValue) => {
+          let total = 0;
+          newValue.map((r) => total += parseFloat(r[attrs.field]));
+          scope['total$' + attrs.field] = total;
+          scope.parent['total$' + scope.fieldName + '$' + attrs.field] = total;
+        });
+    }
+  }
+
+  Katrid.ui.uiKatrid.directive('ngTotal', ['$filter', Total]);
+
+})();
 
 (function() {
 

@@ -75,34 +75,6 @@
   //   })
   // );
 
-  class Total {
-    constructor($filter) {
-      this.restrict = 'E';
-      this.scope = false;
-      this.replace = true;
-      this.$filter = $filter;
-    }
-
-    template(el, attrs) {
-      if (attrs.type[0] === "'")
-        return `<span>${ attrs.type.substring(1, attrs.type.length - 1) }</span>`;
-      else
-        return `<span ng-bind="total$${attrs.field}|number:2"></span>`;
-    }
-
-    link(scope, element, attrs, controller) {
-      if (attrs.type[0] !== "'")
-        scope.$watch(`records`, (newValue) => {
-          let total = 0;
-          newValue.map((r) => total += parseFloat(r[attrs.field]));
-          console.log('RECORDS CHANGED', total);
-          scope['total$' + attrs.field] = total;
-        });
-    }
-  }
-
-  uiKatrid.directive('ngTotal', Total);
-
   uiKatrid.directive('ngSum', () =>
     ({
       restrict: 'A',

@@ -127,7 +127,7 @@ class ModelBase(type):
                         attr_items = chain((('id', pk),), attr_items)
                         opts.pk = pk
 
-            fields = {k: v for k, v in attr_items if isinstance(v, BaseField)}
+            fields = {k: v for k, v in attr_items if isinstance(v, BaseField) or hasattr(v, 'contribute_to_class')}
             opts.local_fields = fields
 
             if not opts.inherited and not opts.extension and not opts.abstract:
@@ -151,19 +151,22 @@ class ModelBase(type):
         fields = {}
         for b in reversed(bases):
             for k, v in b.Meta.local_fields.items():
-                f = fields.get(k)
-                if f is None:
-                    field = v.assign()
+                if isinstance(v, BaseField):
+                    f = fields.get(k)
+                    if f is None:
+                        field = v.assign()
+                    else:
+                        field = v.assign(f)
+
+                    if b is base_model or b is base_model.Meta.extending or b.Meta.abstract or (b.__model__ is not None and b.__model__ is base_model.Meta.extending):
+                        new_class._meta.local_fields.append(field)
+                    if b.Meta.abstract or (b.__model__ is not None and b.__model__ is base_model.Meta.extending) or k in fields:
+                        field.inherited = True
+
+                    fields[k] = field
+                    new_class._meta.parents.update({app.models[parent.Meta.name]: field for parent, field in b.Meta.parents.items()})
                 else:
-                    field = v.assign(f)
-
-                if b is base_model or b is base_model.Meta.extending or b.Meta.abstract or (b.__model__ is not None and b.__model__ is base_model.Meta.extending):
-                    new_class._meta.local_fields.append(field)
-                if b.Meta.abstract or (b.__model__ is not None and b.__model__ is base_model.Meta.extending) or k in fields:
-                    field.inherited = True
-
-                fields[k] = field
-                new_class._meta.parents.update({app.models[parent.Meta.name]: field for parent, field in b.Meta.parents.items()})
+                    fields[k] = v
 
         for k, v in fields.items():
             new_class.add_to_class(k, v)
@@ -533,7 +536,7 @@ class Model(metaclass=ModelBase):
     def get_field_choices(self, field, q=None, count=False, ids=None, page=None, exact=False, **kwargs):
         field_name = field
         field = self._meta.fields_dict[field_name]
-        related_model = self.env[field.related_model]
+        related_model = self.env[field.rel.model]
         search_params = {}
         if ids is None:
             search_params['name_fields'] = kwargs.get('name_fields', (field.name_fields is not None and [related_model._meta.fields_dict[f] for f in field.name_fields]) or None)

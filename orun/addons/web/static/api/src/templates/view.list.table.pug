@@ -9,3 +9,6 @@ table.table.table-hover.dataTable
                 td.list-record-selector(onclick="event.stopPropagation();")
                     input(type="checkbox", ng-click="action.selectToggle($event.currentTarget)", onclick="if (!$(this).prop('checked')) $(this).closest('table').find('th.list-record-selector input').prop('checked', false)")
 
+    tfoot
+        tr
+

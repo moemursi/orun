@@ -745,9 +745,9 @@
       this.scope.$apply();
     }
 
-    dispatchEvent(name, ...args) {
-      this.model.rpc(name, ...args)
-      .then(res => this._applyResponse(res));
+    async dispatchEvent(name, ...args) {
+      let res = await this.model.rpc(name, ...args);
+      this._applyResponse(res);
     }
 
     get model() {

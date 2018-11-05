@@ -1002,6 +1002,28 @@ pug_html = pug_html + "\u003Ctd class=\"list-record-selector\" onclick=\"event.s
 ;pug_debug_line = 10;pug_debug_filename = "src\u002Ftemplates\u002Fview.list.table.pug";
 pug_html = pug_html + "\u003Cinput type=\"checkbox\" ng-click=\"action.selectToggle($event.currentTarget)\" onclick=\"if (!$(this).prop('checked')) $(this).closest('table').find('th.list-record-selector input').prop('checked', false)\"\u002F\u003E\u003C\u002Ftd\u003E";
 }
-pug_html = pug_html + "\u003C\u002Ftr\u003E\u003C\u002Ftbody\u003E\u003C\u002Ftable\u003E";}.call(this,"options" in locals_for_with?locals_for_with.options:typeof options!=="undefined"?options:undefined,"rowClick" in locals_for_with?locals_for_with.rowClick:typeof rowClick!=="undefined"?rowClick:undefined));} catch (err) {pug_rethrow(err, pug_debug_filename, pug_debug_line);};return pug_html;}
+pug_html = pug_html + "\u003C\u002Ftr\u003E\u003C\u002Ftbody\u003E";
+;pug_debug_line = 12;pug_debug_filename = "src\u002Ftemplates\u002Fview.list.table.pug";
+pug_html = pug_html + "\u003Ctfoot\u003E";
+;pug_debug_line = 13;pug_debug_filename = "src\u002Ftemplates\u002Fview.list.table.pug";
+pug_html = pug_html + "\u003Ctr\u003E\u003C\u002Ftr\u003E\u003C\u002Ftfoot\u003E\u003C\u002Ftable\u003E";}.call(this,"options" in locals_for_with?locals_for_with.options:typeof options!=="undefined"?options:undefined,"rowClick" in locals_for_with?locals_for_with.rowClick:typeof rowClick!=="undefined"?rowClick:undefined));} catch (err) {pug_rethrow(err, pug_debug_filename, pug_debug_line);};return pug_html;}
+  return template;
+})());
+
+Katrid.ui.registerTemplate('view.list.table.total.pug', (function() {
+  function pug_attr(t,e,n,f){return!1!==e&&null!=e&&(e||"class"!==t&&"style"!==t)?!0===e?" "+(f?t:t+'="'+t+'"'):("function"==typeof e.toJSON&&(e=e.toJSON()),"string"==typeof e||(e=JSON.stringify(e),n||-1===e.indexOf('"'))?(n&&(e=pug_escape(e))," "+t+'="'+e+'"'):" "+t+"='"+e.replace(/'/g,"&#39;")+"'"):""}
+function pug_escape(e){var a=""+e,t=pug_match_html.exec(a);if(!t)return e;var r,c,n,s="";for(r=t.index,c=0;r<a.length;r++){switch(a.charCodeAt(r)){case 34:n="&quot;";break;case 38:n="&amp;";break;case 60:n="&lt;";break;case 62:n="&gt;";break;default:continue}c!==r&&(s+=a.substring(c,r)),c=r+1,s+=n}return c!==r?s+a.substring(c,r):s}
+var pug_match_html=/["&<>]/;
+function pug_rethrow(n,e,r,t){if(!(n instanceof Error))throw n;if(!("undefined"==typeof window&&e||t))throw n.message+=" on line "+r,n;try{t=t||require("fs").readFileSync(e,"utf8")}catch(e){pug_rethrow(n,null,r)}var i=3,a=t.split("\n"),o=Math.max(r-i,0),h=Math.min(a.length,r+i),i=a.slice(o,h).map(function(n,e){var t=e+o+1;return(t==r?"  > ":"    ")+t+"| "+n}).join("\n");throw n.path=e,n.message=(e||"Pug")+":"+r+"\n"+i+"\n\n"+n.message,n}function template(locals) {var pug_html = "", pug_mixins = {}, pug_interp;var pug_debug_filename, pug_debug_line;try {;var locals_for_with = (locals || {});(function (field, total) {;pug_debug_line = 1;pug_debug_filename = "src\u002Ftemplates\u002Fview.list.table.total.pug";
+if (field) {
+;pug_debug_line = 2;pug_debug_filename = "src\u002Ftemplates\u002Fview.list.table.total.pug";
+pug_html = pug_html + "\u003Ctd class=\"text-right font-weight-bold\"\u003E";
+;pug_debug_line = 3;pug_debug_filename = "src\u002Ftemplates\u002Fview.list.table.total.pug";
+pug_html = pug_html + "\u003Cng-total" + (pug_attr("field", field.name, true, false)+pug_attr("expr", total.total, true, false)) + "\u003E\u003C\u002Fng-total\u003E\u003C\u002Ftd\u003E";
+}
+else {
+;pug_debug_line = 5;pug_debug_filename = "src\u002Ftemplates\u002Fview.list.table.total.pug";
+pug_html = pug_html + "\u003Ctd class=\"borderless\"\u003E\u003C\u002Ftd\u003E";
+}}.call(this,"field" in locals_for_with?locals_for_with.field:typeof field!=="undefined"?field:undefined,"total" in locals_for_with?locals_for_with.total:typeof total!=="undefined"?total:undefined));} catch (err) {pug_rethrow(err, pug_debug_filename, pug_debug_line);};return pug_html;}
   return template;
 })());
