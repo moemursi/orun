@@ -198,7 +198,7 @@ class ManyToManyField(RelatedField):
 
 class OneToManyField(RelatedField):
     one_to_many = True
-
+    nested_data = True
     rel_class = OneToManyRel
 
     def __init__(self, to, to_fields=None, primary_join=None, lazy='dynamic', *args, **kwargs):

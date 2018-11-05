@@ -132,11 +132,11 @@ class ModelBase(type):
 
             if not opts.inherited and not opts.extension and not opts.abstract:
                 fields['display_name'] = CharField(label=opts.verbose_name, auto_created=True, getter='__str__', editable=False)
-                # if opts.log_changes:
-                #     fields['created_by'] = ForeignKey('auth.user', label=gettext_lazy('Created by'), auto_created=True, editable=False, deferred=True, db_index=False)
-                #     fields['created_on'] = DateTimeField(default=datetime.datetime.now, label=gettext_lazy('Created on'), auto_created=True, editable=False, deferred=True)
-                #     fields['updated_by'] = ForeignKey('auth.user', auto_created=True, label=gettext_lazy('Updated by'), editable=False, deferred=True, db_index=False)
-                #     fields['updated_on'] = DateTimeField(on_update=datetime.datetime.now, label=gettext_lazy('Updated on'), auto_created=True, editable=False, deferred=True)
+                if opts.log_changes:
+                    fields['created_by'] = ForeignKey('auth.user', label=gettext_lazy('Created by'), auto_created=True, editable=False, deferred=True, db_index=False)
+                    fields['created_on'] = DateTimeField(default=datetime.datetime.now, label=gettext_lazy('Created on'), auto_created=True, editable=False, deferred=True)
+                    fields['updated_by'] = ForeignKey('auth.user', auto_created=True, label=gettext_lazy('Updated by'), editable=False, deferred=True, db_index=False)
+                    fields['updated_on'] = DateTimeField(on_update=datetime.datetime.now, label=gettext_lazy('Updated on'), auto_created=True, editable=False, deferred=True)
 
             app_config[opts.name] = new_class
             return new_class
@@ -414,7 +414,7 @@ class Model(metaclass=ModelBase):
         children = {}
         for k, v in data.items():
             field = instance.__class__._meta.fields_dict[k]
-            if field.child_field:
+            if field.nested_data:
                 children[field] = v
             else:
                 setattr(instance, k, v)

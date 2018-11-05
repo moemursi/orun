@@ -1,12 +1,15 @@
-import warnings
+import itertools
 import decimal
 import datetime
 from functools import partialmethod
+import base64
 import sqlalchemy as sa
 from sqlalchemy import Column
 from sqlalchemy.engine import Engine
 from sqlalchemy import FetchedValue
 
+from orun.core import validators
+from orun.core import exceptions
 from orun.conf import settings
 from orun.utils.text import capfirst
 from orun.utils.functional import cached_property
@@ -94,17 +97,16 @@ class Field(BaseField):
     model = None
     inherited = False
     set = None
-
+    nested_data = False
+    empty_values = list(validators.EMPTY_VALUES)
     bind: Engine = None
-
+    default_validators = []  # Default set of validators
     many_to_many = False
     many_to_one = False
     one_to_many = False
     one_to_one = False
-
     widget_attrs = None
     related = None
-
 
     def __init__(self, label=None, max_length=None, null=None, primary_key=False, column=None, concrete=None,
                  help_text=None, required=None, readonly=None, widget_attrs=None, choices=None, rel=None,
@@ -270,6 +272,73 @@ class Field(BaseField):
                 flat.append((choice, value))
         return flat
     flatchoices = property(_get_flatchoices)
+
+    @cached_property
+    def validators(self):
+        """
+        Some validators can't be created at field initialization time.
+        This method provides a way to delay their creation until required.
+        """
+        return list(itertools.chain(self.default_validators, self._validators))
+
+    def run_validators(self, value):
+        if value in self.empty_values:
+            return
+
+        errors = []
+        for v in self.validators:
+            try:
+                v(value)
+            except exceptions.ValidationError as e:
+                if hasattr(e, 'code') and e.code in self.error_messages:
+                    e.message = self.error_messages[e.code]
+                errors.extend(e.error_list)
+
+        if errors:
+            raise exceptions.ValidationError(errors)
+
+
+    def validate(self, value, instance):
+        """
+        Validates value and throws ValidationError. Subclasses should override
+        this to provide validation logic.
+        """
+        if not self.editable:
+            # Skip validation for non-editable fields.
+            return
+
+        if self.choices and value not in self.empty_values:
+            for option_key, option_value in self.choices:
+                if isinstance(option_value, (list, tuple)):
+                    # This is an optgroup, so look inside the group for
+                    # options.
+                    for optgroup_key, optgroup_value in option_value:
+                        if value == optgroup_key:
+                            return
+                elif value == option_key:
+                    return
+            raise exceptions.ValidationError(
+                self.error_messages['invalid_choice'],
+                code='invalid_choice',
+                params={'value': value},
+            )
+
+        # if value is None and not self.null:
+        #     raise exceptions.ValidationError(self.error_messages['null'], code='null')
+
+        if self.required and self.default is NOT_PROVIDED and value in self.empty_values:
+            raise exceptions.ValidationError(self.error_messages['required'], code='required')
+
+    def clean(self, value, instance):
+        """
+        Convert the value's type and run validation. Validation errors
+        from to_python and validate are propagated. The correct value is
+        returned if no error is raised.
+        """
+        self.validate(value, instance)
+        self.run_validators(value)
+        return value
+
 
 
 class CharField(Field):
@@ -447,7 +516,7 @@ class BinaryField(Field):
                 return str(value).encode('utf-8')
         return value
 
-    def serialize(self, value, instance):
+    def to_json(self, value):
         # TODO adjust image download url f'/web/image/{self.model._meta.name}/{self.name}/{instance.pk}/'
         if self.attachment:
             if value:

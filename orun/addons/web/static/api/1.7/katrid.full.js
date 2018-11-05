@@ -1932,6 +1932,24 @@ Katrid.Data = {};
     }
   }
 
+  class ImageField extends Field {
+    constructor(info) {
+      if (!info.template)
+        info.template = {};
+      if (!info.template.form)
+        info.template.form = 'view.form.image-field.pug';
+      super(...arguments);
+      this.noImageUrl = '/static/web/assets/img/no-image.png';
+    }
+
+    getAttributes(attrs) {
+      let res = super.getAttributes(attrs);
+      res.ngSrc = attrs.ngEmptyImage || (attrs.emptyImage && (`'${attrs.emptyImage}`)) || `'${this.noImageUrl}'`;
+      res.ngSrc = `{{ ${res['ng-model']} || ${res.ngSrc} }}`;
+      return res;
+    }
+  }
+
   Katrid.Data.Fields = {
     Field,
     StringField,
@@ -1945,6 +1963,7 @@ Katrid.Data = {};
     TextField,
     DateField,
     BooleanField,
+    ImageField,
   }
 
 
