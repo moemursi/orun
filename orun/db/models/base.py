@@ -138,7 +138,9 @@ class ModelBase(type):
                     fields['updated_by'] = ForeignKey('auth.user', auto_created=True, label=gettext_lazy('Updated by'), editable=False, deferred=True, db_index=False)
                     fields['updated_on'] = DateTimeField(on_update=datetime.datetime.now, label=gettext_lazy('Updated on'), auto_created=True, editable=False, deferred=True)
 
-            app_config[opts.name] = new_class
+            if not opts.abstract:
+                app_config[opts.name] = new_class
+
             return new_class
 
         new_class = super_new(cls, name, bases, attrs)
