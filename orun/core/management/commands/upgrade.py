@@ -21,11 +21,11 @@ def command(app_labels, **options):
 
 def upgrade(app_labels, **options):
     if not app_labels:
-        app_labels = app.app_configs.keys()
+        app_labels = app.addons.keys()
     all_models = []
     Model = app['ir.model']
     for app_label in app_labels:
-        addon = apps.app_configs[app_label]
+        addon = apps.addons[app_label]
         for model in addon.models.values():
             if not Model.objects.filter(name=model.Meta.name).first():
                 m = Model.create(name=model.Meta.name, object_name=model.Meta.object_name)

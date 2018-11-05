@@ -75,6 +75,7 @@ class Migrate(object):
         if self.sync:
             return self.sync_apps(connection, None)
 
+        return
         # Hook for backends needing any database preparation
         #connection.prepare_database()
         # Work out which apps have migrations and which do not
