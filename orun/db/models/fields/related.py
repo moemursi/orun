@@ -47,6 +47,8 @@ def create_many_to_many_intermediary_model(field, klass):
     from orun.db import models
 
     def set_managed(model, related, through):
+        if isinstance(related, str):
+            related = model._meta.app.get_model(related)
         through = model._meta.app.get_model(through)
         through._meta.managed = model._meta.managed or related._meta.managed
 
