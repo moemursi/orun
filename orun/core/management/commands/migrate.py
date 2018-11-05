@@ -253,7 +253,7 @@ class Migrate(object):
     def sync_apps(self, connection, app_labels):
         "Runs the old syncdb-style operation on a list of app_labels."
         insp = reflection.Inspector.from_engine(connection.engine)
-        for app in main_app.addons:
+        for app in main_app.addons.values():
             if app.db_schema:
                 try:
                     connection.execute(CreateSchema(app.db_schema))
