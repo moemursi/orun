@@ -43,7 +43,7 @@ class AppConfig(flask.Blueprint):
         super(AppConfig, self).__init__(*args, **kwargs)
 
         if self.locale_path is None:
-            self.locale_path = os.path.join(self.root_path, 'template')
+            self.locale_path = os.path.join(self.root_path, 'locale')
 
         if self.import_name == 'base':
             self.dependencies = []

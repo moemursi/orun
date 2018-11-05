@@ -8,9 +8,9 @@ from sqlalchemy import Column
 from sqlalchemy.engine import Engine
 from sqlalchemy import FetchedValue
 
-from orun.core import validators
-from orun.core import exceptions
+from orun.core import validators, exceptions
 from orun.conf import settings
+from orun.utils.translation import gettext
 from orun.utils.text import capfirst
 from orun.utils.functional import cached_property
 
@@ -113,7 +113,7 @@ class Field(BaseField):
                  copy=None, editable=True, serializable=True, default=NOT_PROVIDED, getter=None, setter=None,
                  db_column=None, db_tablespace=None, db_index=False, db_default=NOT_PROVIDED, db_compute=None,
                  unique=False, validators=None, deferred=None, proxy=None, auto_created=False, descriptor=None,
-                 description=None, *args, **kwargs):
+                 description=None, translate=None, *args, **kwargs):
         self.local = True
         self.label = label or kwargs.get('verbose_name')
         self.max_length = max_length
@@ -135,6 +135,7 @@ class Field(BaseField):
         self.rel = rel
         self.choices = choices
         self.deferred = deferred
+        self.translate = translate
         if isinstance(proxy, str):
             proxy = proxy.split('.')
             if getter is None:
@@ -355,6 +356,15 @@ class CharField(Field):
         if value is not None:
             value = str(value)
         return super().to_python(value)
+
+    def to_json(self, value):
+        if value is None:
+            value = ''
+        if self.translate:
+            value = gettext(value)
+        else:
+            value = str(value)
+        return value
 
 
 class IntegerField(Field):

@@ -1,6 +1,7 @@
 block vars
     -var cssClass = 'StringField'
     -var spanClass = 'form-field-readonly'
+    -var labelClass = 'form-label'
     if fieldAttributes.inlineEditor
         -var spanClass = 'grid-field-readonly'
     else
@@ -9,7 +10,7 @@ block vars
 section(class=[formGroup, cols, cssClass])&attributes(sectionAttrs)
     block label
         if !attrs.nolabel && !fieldAttributes.inlineEditor
-            label.form-label #{field.caption}
+            label(class=labelClass) #{field.caption}
 
     block span
         span(class=spanClass)

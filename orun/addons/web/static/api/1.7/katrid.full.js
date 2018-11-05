@@ -1636,6 +1636,7 @@ Katrid.Data = {};
       this.visible = true;
       this._info = info;
       this.caption = this._info.caption;
+      this.helpText = this._info.help_text;
 
       if (this._info.visible === false)
         this.visible = false;
@@ -1778,6 +1779,14 @@ Katrid.Data = {};
   }
 
   class BooleanField extends Field {
+    constructor(info) {
+      if (!info.template)
+        info.template = {};
+      if (!info.template.form)
+        info.template.form = 'view.form.boolean-field.pug';
+      super(...arguments);
+    }
+
     get paramTemplate() {
       return 'view.param.Boolean';
     }

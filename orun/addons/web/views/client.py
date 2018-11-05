@@ -45,7 +45,7 @@ class WebClient(BaseView):
     @route('/client/i18n/catalog.js')
     def i18n_js_catalog(self):
         from .i18n import javascript_catalog
-        return javascript_catalog(request, packages=app.addons.values())
+        return javascript_catalog(request, packages=app.addons.keys())
 
     @route('/company/logo/')
     def company_logo(self):
