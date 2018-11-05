@@ -2,6 +2,7 @@
 
   class Field {
     constructor(info) {
+      this.cols = info.cols || 6;
       this.visible = true;
       this._info = info;
       this.caption = this._info.caption;
@@ -44,11 +45,10 @@
       let readonly = el.attr('ng-readonly');
       if (!_.isUndefined(readonly))
         this.readonly = readonly;
+      let cols = el.attr('cols');
+      if (!_.isUndefined(cols))
+        this.cols = cols;
 
-    }
-
-    get cols() {
-      return '6';
     }
 
     fromJSON(value, dataSource) {
@@ -145,10 +145,17 @@
   }
 
   class StringField extends Field {
+    constructor(info) {
+      if (!info.cols)
+        info.cols = 3;
+      super(...arguments);
+    }
   }
 
   class BooleanField extends Field {
     constructor(info) {
+      if (!info.cols)
+        info.cols = 3;
       if (!info.template)
         info.template = {};
       if (!info.template.form)
@@ -159,20 +166,19 @@
     get paramTemplate() {
       return 'view.param.Boolean';
     }
+
   }
 
   class DateField extends Field {
-    constructor() {
+    constructor(info) {
+      if (!info.cols)
+        info.cols = 3;
       super(...arguments);
       this.template.form = 'view.form.date-field.pug';
       this.template.list = 'view.list.date-field.pug';
     }
     toJSON(val) {
       return val;
-    }
-
-    get cols() {
-      return 3;
     }
 
     get paramTemplate() {
@@ -205,7 +211,9 @@
   }
 
   class NumericField extends Field {
-    constructor() {
+    constructor(info) {
+      if (!info.cols)
+        info.cols = 3;
       super(...arguments);
       if (Katrid.ui.isMobile)
         this.template.form = 'view.form.numpad-field.pug';
@@ -219,9 +227,16 @@
         return parseFloat(val);
       return val;
     }
+
   }
 
   class IntegerField extends Field {
+    constructor(info) {
+      if (!info.cols)
+        info.cols = 3;
+      super(...arguments);
+    }
+
     toJSON(val) {
       if (val && _.isString(val))
         return parseInt(val);
@@ -264,16 +279,14 @@
   }
 
   class OneToManyField extends Field {
-    constructor() {
+    constructor(info) {
+      if (!info.cols)
+        info.cols = 12;
       super(...arguments);
       this.template.form = 'view.form.grid.pug';
     }
     get field() {
       return this._info.field;
-    }
-
-    get cols() {
-      return 12;
     }
 
     get validAttributes() {

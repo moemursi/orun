@@ -13,6 +13,8 @@
       compile(el, attrs) {
         return function(scope, element, attrs, ctrl) {
           let field = scope.view.fields[attrs.name];
+          if (_.isUndefined(field))
+            throw Error('Invalid field name "' + attrs.name + '"');
           let templ = field.template.form;
           field.assign(element);
           let fieldAttributes = field.getAttributes(attrs);
