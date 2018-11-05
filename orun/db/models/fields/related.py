@@ -191,7 +191,8 @@ class ManyToManyField(RelatedField):
 
         if not cls._meta.abstract:
             if self.rel.through:
-                def resolve_through_model(_, model, field):
+                def resolve_through_model(_, rel, field):
+                    model = field.model._meta.app.get_model(rel.through)
                     field.rel.through = model
                 lazy_related_operation(resolve_through_model, cls, self.rel, field=self)
             else:
