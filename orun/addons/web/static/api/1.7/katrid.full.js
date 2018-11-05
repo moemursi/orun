@@ -6933,6 +6933,7 @@ Katrid.Data = {};
     link(scope, el, attrs, ngModel) {
 
       el.bind('click', () => {
+        console.log('numpad click');
         let templ = this.$compile(Katrid.app.getTemplate('ui.numpad.pug'))(scope);
         scope.val = parseFloat(ngModel.$modelValue || 0);
         scope.$apply();

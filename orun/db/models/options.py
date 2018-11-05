@@ -154,6 +154,7 @@ class Options:
             kwargs['schema'] = self.db_schema
         self.table = sa.Table(self.db_table, meta, *args, **kwargs)
         self.table.__model__ = self.model
+        self.table_name = str(self.table)
         return self.table
 
     def _build_mapper(self):

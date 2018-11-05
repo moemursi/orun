@@ -250,7 +250,7 @@ class BaseDatabaseSchemaEditor(object):
         if cols:
             if model._meta.extension:
                 sql = self.sql_alter_table % {
-                    "table": self.quote_name(model._meta.table_name),
+                    "table": model._meta.table_name,
                     "definition": ", ".join([self.sql_alter_table_add_column % {'column': CreateColumn(col).compile(bind=self.connection)} for col in cols])
                 }
                 self.connection.session.execute(sql)
@@ -458,7 +458,7 @@ class BaseDatabaseSchemaEditor(object):
         #     definition += " CHECK (%s)" % db_params['check']
         # Build the SQL and run it
         sql = self.sql_create_column % {
-            "table": self.quote_name(model._meta.table_name),
+            "table": model._meta.table_name,
             "column": self.quote_name(field.db_column),
             "definition": definition,
         }
@@ -477,7 +477,7 @@ class BaseDatabaseSchemaEditor(object):
         if field.db_index and not field.unique:
             self.deferred_sql.append(self._create_index_sql(model, [field]))
         # Add any FK constraints later
-        if field.rel_field and field.db_constraint:
+        if field.rel and field.db_constraint:
             self.deferred_sql.append(self._create_fk_sql(model, field, "_fk_%(to_table)s_%(to_column)s"))
         # Reset connection if required
         #if self.connection.features.connection_persists_old_columns:
@@ -792,7 +792,7 @@ class BaseDatabaseSchemaEditor(object):
             # Make the new one
             self.execute(
                 self.sql_create_pk % {
-                    "table": self.quote_name(model._meta.db_table),
+                    "table": model._meta.db_table,
                     "name": self.quote_name(self._create_index_name(model, [new_field.db_column], prefix="pk_")),
                     "columns": self.quote_name(new_field.db_column),
                 }
@@ -955,7 +955,7 @@ class BaseDatabaseSchemaEditor(object):
         sql_create_index = sql or self.sql_create_index
         name = self.quote_name(self._create_index_name(model, columns, suffix=suffix, prefix=prefix))
         return sql_create_index % {
-            "table": self.quote_name(model._meta.table_name),
+            "table": model._meta.table_name,
             "name": name,
             "columns": ", ".join(self.quote_name(column) for column in columns),
             "extra": tablespace_sql,
@@ -994,8 +994,8 @@ class BaseDatabaseSchemaEditor(object):
     def _create_fk_sql(self, model, field, suffix):
         from_table = model._meta.table_name
         from_column = field.db_column
-        to_table = field.rel_field.model._meta.table_name
-        to_column = field.rel_field.db_column
+        to_table = field.rel.model._meta.table_name
+        to_column = field.rel.remote_field.db_column
         #to_table = field.target_field.model._meta.db_table
         #to_column = field.target_field.column
         suffix = suffix % {
@@ -1004,10 +1004,10 @@ class BaseDatabaseSchemaEditor(object):
         }
 
         sql = self.sql_create_fk % {
-            "table": self.quote_name(from_table),
+            "table": from_table,
             "name": self.quote_name(self._create_index_name(model, [from_column], prefix='fk_')),
             "column": self.quote_name(from_column),
-            "to_table": self.quote_name(to_table),
+            "to_table": to_table,
             "to_column": self.quote_name(to_column),
             "deferrable": '', #self.connection.conn_info.ops.deferrable_sql(),
         }
@@ -1020,14 +1020,14 @@ class BaseDatabaseSchemaEditor(object):
 
     def _create_unique_sql(self, model, columns):
         return self.sql_create_unique % {
-            "table": self.quote_name(model._meta.table_name),
+            "table": model._meta.table_name,
             "name": self.quote_name(self._create_index_name(model, columns, suffix="_uniq", prefix="ix_")),
             "columns": ", ".join(self.quote_name(column) for column in columns),
         }
 
     def _delete_constraint_sql(self, template, model, name):
         return template % {
-            "table": self.quote_name(model._meta.table_name),
+            "table": model._meta.table_name,
             "name": self.quote_name(name),
         }
 

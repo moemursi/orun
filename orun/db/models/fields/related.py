@@ -145,7 +145,7 @@ class ForeignKey(RelatedField):
     rel_class = ManyToOneRel
 
     def __init__(
-            self, to, to_fields=None, on_delete=CASCADE, on_update=CASCADE, db_constraint=True, name_fields=None,
+            self, to, to_fields=None, on_delete=CASCADE, on_update=None, db_constraint=True, name_fields=None,
             label_from_instance=None, *args, **kwargs
     ):
         self.db_constraint = db_constraint

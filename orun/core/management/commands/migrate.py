@@ -263,10 +263,10 @@ class Migrate(object):
         tables = [
             table
             for table in main_app.meta.tables.values()
-            if connection.engine.dialect.has_table(connection, table.name, schema=table.schema) and table.__model__._meta.managed
+            if connection.engine.dialect.has_table(connection.engine, table.name, schema=table.schema) and table.__model__._meta.managed
         ]
 
-        main_app.meta.create_all(connection, tables=[tbl for tbl in main_app.meta.tables.values() if tbl.__model__._meta.managed])
+        main_app.meta.create_all(connection.engine, tables=[tbl for tbl in main_app.meta.tables.values() if tbl.__model__._meta.managed])
 
         meta = sa.MetaData(connection.engine)
 
@@ -276,7 +276,7 @@ class Migrate(object):
             cols = {col['name']: col for col in cols}
             tbl = sa.Table(table.name, meta, schema=table.schema, autoload=True)
             indexes = None
-            with connection.backend.schema_editor() as editor:
+            with connection.schema_editor() as editor:
                 for f in model._meta.local_fields:
                     if f.column is None:
                         continue

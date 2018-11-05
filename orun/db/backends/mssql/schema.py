@@ -20,5 +20,6 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         return sql
 
     def compare_fks(self, fk1, fk2):
-        return ','.join(fk._colspec if not fk._colspec.startswith('dbo.') else fk._colspec[4:] for fk in fk1) == ','.join(fk._colspec for fk in fk2)
+        res = ','.join(fk.target_fullname if not fk._colspec.startswith('dbo.') else fk._colspec[4:] for fk in fk1) == ','.join(fk.target_fullname for fk in fk2)
+        return res
 
