@@ -5200,7 +5200,7 @@ Katrid.Data = {};
             },
             results(res, page) {
               let data = res.items;
-              const more = (page * Katrid.Settings.Services.choicesPageLimit) < res.count;
+              const more = (page * Katrid.settings.services.choicesPageLimit) < res.count;
               return {
                 results: (Array.from(data).map((item) => ({id: item[0], text: item[1]}))),
                 more
