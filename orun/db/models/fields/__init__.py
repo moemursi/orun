@@ -12,6 +12,7 @@ from orun.core import validators, exceptions
 from orun.conf import settings
 from orun.utils.translation import gettext
 from orun.utils.text import capfirst
+from orun.utils.encoding import force_str
 from orun.utils.functional import cached_property
 
 
