@@ -40,7 +40,7 @@ class FastReports(ReportEngine):
     report_class = FastReport
 
     def make_conn_str(self):
-        url = connection.url
+        url = connection.engine.url
         if url.drivername.startswith('mssql'):
             if url.password:
                 return 'Data Source=%s;Initial Catalog=%s;Integrated Security=True;Persist Security Info=False;User ID=;Password='
