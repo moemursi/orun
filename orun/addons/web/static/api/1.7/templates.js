@@ -839,14 +839,10 @@ pug_html = pug_html + (pug_escape(null == (pug_interp = field.emptyText) ? "" : 
 pug_html = pug_html + "' }}\u003C\u002Fspan\u003E";
 ;pug_debug_line = 22;pug_debug_filename = "src\u002Ftemplates\u002Fview.form.field.pug";
 ;pug_debug_line = 6;pug_debug_filename = "src\u002Ftemplates\u002Fview.form.selection-field.pug";
-pug_html = pug_html + (pug_escape(null == (pug_interp = choicesAttr) ? "" : pug_interp));
-;pug_debug_line = 6;pug_debug_filename = "src\u002Ftemplates\u002Fview.form.selection-field.pug";
-pug_html = pug_html + " {{ view.fields.natureza.choices }}";
-;pug_debug_line = 7;pug_debug_filename = "src\u002Ftemplates\u002Fview.form.selection-field.pug";
 pug_html = pug_html + "\u003Cselect" + (pug_attrs(pug_merge([{"class": "form-field form-control"},attrs]), false)) + "\u003E";
-;pug_debug_line = 8;pug_debug_filename = "src\u002Ftemplates\u002Fview.form.selection-field.pug";
+;pug_debug_line = 7;pug_debug_filename = "src\u002Ftemplates\u002Fview.form.selection-field.pug";
 pug_html = pug_html + "\u003Coption" + (pug_attr("ng-repeat", choicesAttr, true, false)+" value=\"{{choice[0]}}\"") + "\u003E";
-;pug_debug_line = 9;pug_debug_filename = "src\u002Ftemplates\u002Fview.form.selection-field.pug";
+;pug_debug_line = 8;pug_debug_filename = "src\u002Ftemplates\u002Fview.form.selection-field.pug";
 pug_html = pug_html + "{{choice[1]}}\u003C\u002Foption\u003E\u003C\u002Fselect\u003E\u003C\u002Fsection\u003E";}.call(this,"attrs" in locals_for_with?locals_for_with.attrs:typeof attrs!=="undefined"?attrs:undefined,"field" in locals_for_with?locals_for_with.field:typeof field!=="undefined"?field:undefined,"fieldAttributes" in locals_for_with?locals_for_with.fieldAttributes:typeof fieldAttributes!=="undefined"?fieldAttributes:undefined,"name" in locals_for_with?locals_for_with.name:typeof name!=="undefined"?name:undefined,"sectionAttrs" in locals_for_with?locals_for_with.sectionAttrs:typeof sectionAttrs!=="undefined"?sectionAttrs:undefined));} catch (err) {pug_rethrow(err, pug_debug_filename, pug_debug_line);};return pug_html;}
   return template;
 })());
