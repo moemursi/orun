@@ -13,7 +13,12 @@ SET_NULL = 'SET NULL'
 RECURSIVE_RELATIONSHIP_CONSTANT = 'self'
 
 
-def lazy_related_operation(function, model, *args, **kwargs):    model._meta.app._pending_operations.append(partial(function, model, *args, **kwargs))
+def lazy_related_operation(function, model, *args, **kwargs):
+    model._meta.app._pending_operations.append(partial(function, model, *args, **kwargs))
+
+
+def insert_lazy_related_operation(function, model, *args, **kwargs):
+    model._meta.app._pending_operations.insert(0, partial(function, model, *args, **kwargs))
 
 
 def resolve_relation(scope_model, relation):
@@ -69,6 +74,7 @@ def create_many_to_many_intermediary_model(field, klass):
         # 'verbose_name': _('%(from)s-%(to)s relationship') % {'from': from_, 'to': to},
         # 'verbose_name_plural': _('%(from)s-%(to)s relationships') % {'from': from_, 'to': to},
         'name': field.model._meta.name + '.' + field.name + '.rel',
+        'log_changes': False,
     })
     # Construct and return the new class.
     from_field = ForeignKey(
@@ -130,7 +136,7 @@ class RelatedField(FieldCacheMixin, Field):
                 if field.column is None:
                     field.column = self.create_column()
 
-            lazy_related_operation(resolve_related_class, cls, self.rel, field=self)
+            insert_lazy_related_operation(resolve_related_class, cls, self.rel, field=self)
 
     def create_column(self, *args, **kwargs):
         if self.db_type is not None:
@@ -196,7 +202,9 @@ class ManyToManyField(RelatedField):
                 def resolve_through_model(_, rel, field):
                     model = field.model._meta.app.get_model(rel.through)
                     field.rel.through = model
-                    # rel.set_field_names()
+                    rel.set_field_names()
+                    rel.primaryjoin = partial(join, model, rel.from_field.name)
+                    rel.secondaryjoin = partial(join, rel.through, rel.to_field.name)
                 lazy_related_operation(resolve_through_model, cls, self.rel, field=self)
             else:
                 self.rel.through = create_many_to_many_intermediary_model(self, cls)
