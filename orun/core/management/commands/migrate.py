@@ -258,7 +258,7 @@ class Migrate(object):
                 try:
                     connection.execute(CreateSchema(app.db_schema))
                 except:
-                    pass
+                    raise
 
         tables = [
             table
