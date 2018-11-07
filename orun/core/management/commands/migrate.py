@@ -256,9 +256,9 @@ class Migrate(object):
         for app in main_app.addons.values():
             if app.db_schema:
                 try:
-                    connection.execute(CreateSchema(app.db_schema))
+                    connection.engine.execute(CreateSchema(app.db_schema))
                 except:
-                    raise
+                    pass
 
         tables = [
             table
