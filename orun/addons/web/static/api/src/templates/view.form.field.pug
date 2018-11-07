@@ -7,6 +7,8 @@ block vars
     else
         -var cols = 'col-md-' + (field.cols || '6')
         -var formGroup = 'form-group'
+    if attrs.nolabel === 'placeholder'
+        -attrs.placeholder = field.caption
 section(class=[formGroup, cols, cssClass])&attributes(sectionAttrs)
     block label
         if !attrs.nolabel && !fieldAttributes.inlineEditor
