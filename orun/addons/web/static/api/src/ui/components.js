@@ -15,6 +15,7 @@
           let field = scope.view.fields[attrs.name];
           if (_.isUndefined(field))
             throw Error('Invalid field name "' + attrs.name + '"');
+          console.log(field.name, field.choices);
           let templ = field.template.form;
           field.assign(element);
           let fieldAttributes = field.getAttributes(attrs);

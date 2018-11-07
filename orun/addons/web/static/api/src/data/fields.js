@@ -16,6 +16,8 @@
         this.readonly = false;
 
       this.displayChoices = _.object(info.choices);
+      this.choices = info.choices;
+
       if (info.choices)
         this.template = {
           list: 'view.list.selection-field.pug',
@@ -89,11 +91,7 @@
       return this._info.choices && this._info.choices.length > 0;
     }
 
-    get choices() {
-      return this._info.choices;
-    }
-
-    get name() {
+   get name() {
       return this._info.name;
     }
 

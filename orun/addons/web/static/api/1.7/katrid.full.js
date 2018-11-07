@@ -1648,6 +1648,8 @@ Katrid.Data = {};
         this.readonly = false;
 
       this.displayChoices = _.object(info.choices);
+      this.choices = info.choices;
+
       if (info.choices)
         this.template = {
           list: 'view.list.selection-field.pug',
@@ -1721,11 +1723,7 @@ Katrid.Data = {};
       return this._info.choices && this._info.choices.length > 0;
     }
 
-    get choices() {
-      return this._info.choices;
-    }
-
-    get name() {
+   get name() {
       return this._info.name;
     }
 
@@ -5038,6 +5036,7 @@ Katrid.Data = {};
           let field = scope.view.fields[attrs.name];
           if (_.isUndefined(field))
             throw Error('Invalid field name "' + attrs.name + '"');
+          console.log(field.name, field.choices);
           let templ = field.template.form;
           field.assign(element);
           let fieldAttributes = field.getAttributes(attrs);
