@@ -16,10 +16,16 @@
         this.readonly = false;
 
       this.displayChoices = _.object(info.choices);
-      this.template = {
-        list: 'view.list.field.pug',
-        form: 'view.form.field.pug',
-      };
+      if (info.choices)
+        this.template = {
+          list: 'view.list.selection-field.pug',
+          form: 'view.form.selection-field.pug',
+        };
+      else
+        this.template = {
+          list: 'view.list.field.pug',
+          form: 'view.form.field.pug',
+        };
 
       if (info._listChoices)
         console.log(info._listChoices);
