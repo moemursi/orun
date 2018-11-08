@@ -160,7 +160,7 @@ class ModelBase(type):
                     else:
                         field = v.assign(f)
 
-                    if b is base_model or b is base_model.Meta.extending or b.Meta.abstract or (b.__model__ is not None and b.__model__ is base_model.Meta.extending):
+                    if b is base_model or b.__checkeq__(base_model.Meta.extending) or b.Meta.abstract or (b.__model__ is not None and b.__model__ is base_model.Meta.extending):
                         new_class._meta.local_fields.append(field)
                     if b.Meta.abstract or (b.__model__ is not None and b.__model__ is base_model.Meta.extending) or k in fields:
                         field.inherited = True
@@ -191,6 +191,9 @@ class ModelBase(type):
             value.contribute_to_class(cls, name)
         else:
             setattr(cls, name, value)
+
+    def __checkeq__(cls, other):
+        return cls == other or (other is not None and cls.Meta.extending is other)
 
     def __subclasscheck__(cls, sub):
         if cls is Model:
