@@ -65,7 +65,7 @@
     }
 
     get validAttributes() {
-       return ['name', 'nolabel', 'ng-show'];
+       return ['name', 'nolabel'];
     }
 
     getAttributes(attrs) {

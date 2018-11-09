@@ -15,13 +15,14 @@
           let field = scope.view.fields[attrs.name];
           if (_.isUndefined(field))
             throw Error('Invalid field name "' + attrs.name + '"');
-          console.log(field.name, field.choices);
           let templ = field.template.form;
           field.assign(element);
           let fieldAttributes = field.getAttributes(attrs);
           let sectionAttrs = {};
           if (fieldAttributes['ng-readonly'])
             sectionAttrs['ng-readonly'] = fieldAttributes['ng-readonly'].toString();
+          if (attrs.ngShow)
+            sectionAttrs['ng-show'] = attrs.ngShow;
           let content = element.html();
           templ = Katrid.app.getTemplate(templ, {
             name: attrs.name, field, attrs: fieldAttributes, content, fieldAttributes: attrs, sectionAttrs,
