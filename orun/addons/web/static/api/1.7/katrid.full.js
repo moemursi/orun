@@ -1697,7 +1697,7 @@ Katrid.Data = {};
     }
 
     get validAttributes() {
-       return ['name', 'nolabel'];
+       return ['name', 'nolabel', 'ng-show'];
     }
 
     getAttributes(attrs) {
