@@ -202,7 +202,10 @@
         if (!el.attr('status-field') && !el.parents('field').length)
           el.attr('form-field', 'form-field');
       });
-      return sprintf(Katrid.app.getTemplate('view.form'), {
+      let templName = 'view.form';
+      if ($el.attr('form-dialog'))
+        templName = 'view.form.dialog';
+      return sprintf(Katrid.app.getTemplate(templName), {
         content: $el.html(), breadcrumb: this.getBreadcrumb(), actions: '',
         header: header,
       });

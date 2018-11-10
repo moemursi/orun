@@ -9,31 +9,31 @@
     async loadViews(scope, element, views) {
 
       let res = await scope.model.loadViews();
-        // detects the relational field
-        let fld = res.views.list.fields[scope.field.field];
-        // hides the relational field
-        if (fld)
-          fld.visible = false;
+      // detects the relational field
+      let fld = res.views.list.fields[scope.field.field];
+      // hides the relational field
+      if (fld)
+        fld.visible = false;
 
-        let newViews = res.views;
+      let newViews = res.views;
 
-        for (let [k, v] of Object.entries(views))
-          newViews[k].content = v;
+      for (let [k, v] of Object.entries(views))
+        newViews[k].content = v;
 
-        scope.views = newViews;
-        scope.view = newViews.list;
-        let content = $(scope.view.content);
-        if (scope.inline)
-          content.attr('ng-row-click', 'editItem($event, $index)').attr('inline-editor', scope.inline);
-        content.attr('list-options', '{"deleteRow": true}');
+      scope.views = newViews;
+      scope.view = newViews.list;
+      let content = $(scope.view.content);
+      if (scope.inline)
+        content.attr('ng-row-click', 'editItem($event, $index)').attr('inline-editor', scope.inline);
+      content.attr('list-options', '{"deleteRow": true}');
 
-        // render the list component
-        let el = (this.$compile(content)(scope));
-        element.html(el);
-        element.prepend(this.$compile(Katrid.app.getTemplate('view.form.grid.toolbar.pug'))(scope));
-        element.find('table').addClass('table-bordered grid');
+      // render the list component
+      let el = (this.$compile(content)(scope));
+      element.html(el);
+      element.prepend(this.$compile(Katrid.app.getTemplate('view.form.grid.toolbar.pug'))(scope));
+      element.find('table').addClass('table-bordered grid');
     }
-    async showDialog(scope, index) {
+    async showDialog(scope, attrs, index) {
 
       let needToLoad = false;
 
@@ -78,17 +78,18 @@
 
       };
 
-      if (scope._cachedViews.form) {
-        this.renderDialog().then(done);
-      } else {
-        scope.model.getViewInfo({view_type: 'form'})
-        .then(function (res) {
-          if (res.result) {
-            scope._cachedViews.form = res.result;
-            return renderDialog().then(done);
-          }
-        });
+      if (scope.views.form) {
+        await this.renderDialog(scope, attrs);
       }
+      // else {
+      //   scope.model.getViewInfo({view_type: 'form'})
+      //   .then(function (res) {
+      //     if (res.result) {
+      //       scope._cachedViews.form = res.result;
+      //       return renderDialog().then(done);
+      //     }
+      //   });
+      // }
 
     };
 
@@ -168,14 +169,14 @@
         //return scope.parent.record[scope.fieldName] = scope.records;
       };
 
-      scope.addItem = () => {
-        scope.dataSource.insert();
+      scope.addItem = async () => {
+        await scope.dataSource.insert();
         if (attrs.$attr.inlineEditor) {
           scope.records.splice(0, 0, scope.record);
           scope.dataSource.edit();
         }
         else
-          return this.showDialog(scope);
+          return this.showDialog(scope, attrs);
       };
 
       scope.addRecord = function (rec) {
@@ -188,7 +189,7 @@
       scope.cancelChanges = () => scope.dataSource.setState(Katrid.Data.DataSourceState.browsing);
 
       scope.openItem = index => {
-        this.showDialog(scope, index);
+        this.showDialog(scope, attrs, index);
         if (scope.parent.dataSource.changing && !scope.dataSource.readonly) {
           return scope.dataSource.edit();
         }
@@ -329,12 +330,12 @@
       });
 
     }
-    renderDialog(scope) {
+    async renderDialog(scope, attrs) {
       let el;
-      let html = scope._cachedViews.form.content;
+      let html = scope.views.form.content;
 
-      scope.view = scope._cachedViews.form;
-      let fld = scope._cachedViews.form.fields[scope.field.field];
+      scope.view = scope.views.form;
+      let fld = scope.views.form.fields[scope.field.field];
       if (fld)
         fld.visible = false;
 
@@ -342,8 +343,12 @@
         el = me.$compile(html)(scope);
         gridEl.find('.inline-input-dialog').append(el);
       } else {
-        html = $(Katrid.app.$templateCache.get('view.field.OneToManyField.Dialog').replace('<!-- view content -->', html));
-        el = me.$compile(html)(scope);
+        html = $(Katrid.app.$templateCache.get('view.field.OneToManyField.Dialog').replace(
+          '<!-- view content -->',
+          '<form-view form-dialog="dialog">state: {{ dataSource.state }}' + html + '</form-view>',
+        ));
+        console.log(html);
+        el = this.$compile(html)(scope);
         el.find('form').first().addClass('row');
       }
 

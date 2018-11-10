@@ -560,7 +560,7 @@
       );
     }
 
-    insert() {
+    async insert() {
       this._clearTimeout();
       for (let child of this.children)
         child._clearTimeout();
@@ -569,18 +569,15 @@
       let oldRecs = this.scope.records;
       this.record = rec;
       this.scope.records = oldRecs;
-      return this.model.getDefaults()
-      .then(res => {
+      let res = await this.model.getDefaults();
 
-        for (let child of this.children)
-          child.scope.records = [];
+      for (let child of this.children)
+        child.scope.records = [];
 
-        this.state = DataSourceState.inserting;
-        this.scope.record.display_name = Katrid.i18n.gettext('(New)');
-        if (res)
-          this.setValues(res);
-
-      });
+      this.state = DataSourceState.inserting;
+      this.scope.record.display_name = Katrid.i18n.gettext('(New)');
+      if (res)
+        this.setValues(res);
     }
 
     _new() {
