@@ -221,7 +221,7 @@
     >
       <toolbar>
         <div>
-          <a href="javascript:void(0)" title="Add to favorite"><i class="fa star fa-star-o pull-right"></i></a>
+          <a href="#" onclick="event.preventDefault()" title="Add to favorite"><i class="fa star fa-star-o pull-right"></i></a>
           %(breadcrumb)s
           <p class="help-block">{{ ::action.info.usage }}</p>
         </div>
@@ -274,9 +274,10 @@
                 {{ ::_.gettext('Action') }} <span class="caret"></span>
               </button>
               <div class="dropdown-menu dropdown-menu-actions">
-                <a class="dropdown-item" href="javascript:void(0)" ng-click="action.deleteSelection(true)"><i
-                    class="fa fa-fw fa-trash-o"></i> {{ ::_.gettext('Delete') }}</a>
-                <a class="dropdown-item" href='javascript:void(0)' ng-click="action.copy()">
+                <a class="dropdown-item" href="#" ng-click="action.deleteSelection(true)">
+                  <i class="fa fa-fw fa-trash-o"></i> {{ ::_.gettext('Delete') }}
+                </a>
+                <a class="dropdown-item" href="#" ng-click="action.copy()">
                   <i class="fa fa-fw fa-files-o"></i>
                   {{ ::_.gettext('Duplicate') }}</a>
                 %(actions)s

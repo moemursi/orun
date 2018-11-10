@@ -345,9 +345,8 @@
       } else {
         html = $(Katrid.app.$templateCache.get('view.field.OneToManyField.Dialog').replace(
           '<!-- view content -->',
-          '<form-view form-dialog="dialog">state: {{ dataSource.state }}' + html + '</form-view>',
+          '<form-view form-dialog="dialog">' + html + '</form-view>',
         ));
-        console.log(html);
         el = this.$compile(html)(scope);
         el.find('form').first().addClass('row');
       }

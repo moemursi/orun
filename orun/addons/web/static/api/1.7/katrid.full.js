@@ -2379,9 +2379,9 @@ Katrid.Data = {};
       }
     }
 
-    copy() {
+    async copy() {
       this.setViewType('form');
-      this.dataSource.copy(this.scope.record.id);
+      await this.dataSource.copy(this.scope.record.id);
       return false;
     }
 
@@ -2684,8 +2684,8 @@ Katrid.Data = {};
 
     get selection() {
       if (this.viewType === 'form') {
-        if (this.dataSource.id)
-          return [this.dataSource.id];
+        if (this.scope.recordId)
+          return [this.scope.recordId];
         else
           return;
       }
@@ -3999,9 +3999,8 @@ Katrid.Data = {};
       } else {
         html = $(Katrid.app.$templateCache.get('view.field.OneToManyField.Dialog').replace(
           '<!-- view content -->',
-          '<form-view form-dialog="dialog">state: {{ dataSource.state }}' + html + '</form-view>',
+          '<form-view form-dialog="dialog">' + html + '</form-view>',
         ));
-        console.log(html);
         el = this.$compile(html)(scope);
         el.find('form').first().addClass('row');
       }

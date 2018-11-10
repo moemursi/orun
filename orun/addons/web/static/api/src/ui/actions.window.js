@@ -83,9 +83,9 @@
       }
     }
 
-    copy() {
+    async copy() {
       this.setViewType('form');
-      this.dataSource.copy(this.scope.record.id);
+      await this.dataSource.copy(this.scope.record.id);
       return false;
     }
 
@@ -388,8 +388,8 @@
 
     get selection() {
       if (this.viewType === 'form') {
-        if (this.dataSource.id)
-          return [this.dataSource.id];
+        if (this.scope.recordId)
+          return [this.scope.recordId];
         else
           return;
       }
