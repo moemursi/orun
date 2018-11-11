@@ -289,6 +289,13 @@ label.prepend-icon {
   }
 }
 
+grid {
+  &[readonly] {
+    .grid-editor-control {
+      display: none;
+    }
+  }
+}
 
 table.grid.inline-editor .form-data-changing {
   td {
@@ -298,6 +305,7 @@ table.grid.inline-editor .form-data-changing {
   .grid-field-readonly {
     display: none;
   }
+
 
   section[readonly] {
     .grid-field-readonly {

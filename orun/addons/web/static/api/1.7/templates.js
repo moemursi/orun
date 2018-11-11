@@ -574,7 +574,7 @@ function pug_rethrow(n,e,r,t){if(!(n instanceof Error))throw n;if(!("undefined"=
 pug_html = pug_html + "\u003Cdiv class=\"grid-toolbar\" ng-show=\"parent.dataSource.changing\"\u003E";
 ;pug_debug_line = 2;pug_debug_filename = "src\u002Ftemplates\u002Fview.form.grid.toolbar.pug";
 ;pug_debug_line = 3;pug_debug_filename = "src\u002Ftemplates\u002Fview.form.grid.toolbar.pug";
-pug_html = pug_html + "\u003Cbutton class=\"btn btn-xs btn-default\" ng-click=\"addItem()\"\u003E";
+pug_html = pug_html + "\u003Cbutton class=\"btn btn-xs btn-default grid-editor-control\" ng-click=\"addItem()\"\u003E";
 ;pug_debug_line = 3;pug_debug_filename = "src\u002Ftemplates\u002Fview.form.grid.toolbar.pug";
 pug_html = pug_html + (pug_escape(null == (pug_interp = _.gettext('Add')) ? "" : pug_interp)) + "\u003C\u002Fbutton\u003E\u003C\u002Fdiv\u003E";}.call(this,"_" in locals_for_with?locals_for_with._:typeof _!=="undefined"?_:undefined));} catch (err) {pug_rethrow(err, pug_debug_filename, pug_debug_line);};return pug_html;}
   return template;

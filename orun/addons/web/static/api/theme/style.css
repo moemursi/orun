@@ -5135,6 +5135,9 @@ label.prepend-icon {
 .ng-form.form-data-changing .form-field-readonly {
   display: none;
 }
+grid[readonly] .grid-editor-control {
+  display: none;
+}
 table.grid.inline-editor .form-data-changing td {
   padding: 0;
 }

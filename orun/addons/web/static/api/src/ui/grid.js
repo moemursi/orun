@@ -6,7 +6,7 @@
       this.scope = {};
       this.$compile = $compile;
     }
-    async loadViews(scope, element, views) {
+    async loadViews(scope, element, views, attrs) {
 
       let res = await scope.model.loadViews();
       // detects the relational field
@@ -30,7 +30,7 @@
       // render the list component
       let el = (this.$compile(content)(scope));
       element.html(el);
-      element.prepend(this.$compile(Katrid.app.getTemplate('view.form.grid.toolbar.pug'))(scope));
+      element.prepend(this.$compile(Katrid.app.getTemplate('view.form.grid.toolbar.pug', { attrs }))(scope));
       element.find('table').addClass('table-bordered grid');
     }
     async showDialog(scope, attrs, index) {
@@ -152,7 +152,7 @@
         }
       }
 
-      await me.loadViews(scope, element, views);
+      await me.loadViews(scope, element, views, attrs);
 
       let _destroyChildren = () => {
         dataSource.children = [];

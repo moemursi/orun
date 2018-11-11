@@ -65,7 +65,7 @@
     }
 
     get validAttributes() {
-       return ['name', 'nolabel'];
+       return ['name', 'nolabel', 'readonly'];
     }
 
     getAttributes(attrs) {
