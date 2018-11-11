@@ -70,7 +70,7 @@
 
       if ((this.state === DataSourceState.inserting) && Katrid.settings.ui.goToDefaultViewAfterCancelInsert) {
         this.record = {};
-        this.scope.action.setViewType('list');
+        this.scope.action.viewType = 'list';
       } else {
         if (this.state === DataSourceState.editing) {
           if (this.scope.record) {
