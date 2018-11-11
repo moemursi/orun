@@ -5042,6 +5042,10 @@ Katrid.Data = {};
             throw Error('Invalid field name "' + attrs.name + '"');
           let templ = field.template.form;
           field.assign(element);
+          if (!field.visible) {
+            el.remove();
+            return;
+          }
           let fieldAttributes = field.getAttributes(attrs);
           let sectionAttrs = {};
           if (fieldAttributes['ng-readonly'])

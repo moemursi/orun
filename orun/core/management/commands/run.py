@@ -9,18 +9,16 @@ from orun.core.management import commands
 @commands.option('--port', '-p', default=5000,
               help='The port to bind to.')
 @commands.option('--reload/--no-reload', default=None,
-              help='Enable or disable the reloader.  By default the reloader '
-              'is active if debug is enabled.')
+              help='Enable or disable the reloader. By default the reloader is active if debug is enabled.')
 @commands.option('--debugger/--no-debugger', default=None,
               help='Enable or disable the debugger.  By default the debugger '
               'is active if debug is enabled.')
 @commands.option('--eager-loading/--lazy-loader', default=None,
-              help='Enable or disable eager loading.  By default eager '
-              'loading is enabled if the reloader is disabled.')
+              help='Enable or disable eager loading. By default eager loading is enabled if the reloader is disabled.')
 @commands.option('--with-threads/--without-threads', default=False,
               help='Enable or disable multithreading.')
 @commands.option('--websocket', is_flag=True, default=False, help='Enable websocket.')
-@commands.option('--gevent_loop', '--gevent', is_flag=True, default=False, help='Gevent loop.')
+@commands.option('--gevent-loop', '--gevent', is_flag=True, default=False, help='Gevent loop.')
 def command(host, port, reload, debugger, eager_loading, with_threads, websocket, gevent_loop, **kwargs):
     """Runs a local development server for the Flask application.
 
