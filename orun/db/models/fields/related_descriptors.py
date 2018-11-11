@@ -21,8 +21,13 @@ class ForeignKeyDescriptor:
     def __set__(self, instance, value):
         if instance is not None:
             self.field.delete_cached_value(instance)
-            setattr(instance, self.prop_name, value)
             if value is None:
                 setattr(instance, self.field.attname, None)
-            else:
+            elif isinstance(value, models.Model):
                 setattr(instance, self.field.attname, value.pk)
+                setattr(instance, self.prop_name, value)
+            else:
+                setattr(instance, self.field.attname, value)
+
+
+from orun.db import models

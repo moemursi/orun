@@ -539,16 +539,16 @@
               else if (this.state === DataSourceState.inserting)
                 return;
               this.record = res.data[0];
-              if (apply)
-                this.scope.$apply();
               if (index !== false)
                 this.scope.records[index] = this.record;
+              // if (apply)
+              //   this.scope.$apply();
               return resolve(this.record);
             })
             .finally(() => {
-              return this.scope.$apply(() => {
-                return this.loadingRecord = false;
-              });
+                this.loadingRecord = false;
+              if (apply)
+                return this.scope.$apply();
             });
           };
           if (!timeout && !this.requestInterval)
@@ -659,7 +659,7 @@
       // refresh record id
       this.scope.recordId = value;
       // refresh children
-      this.scope.$broadcast('masterChanged', value);
+      this.scope.$broadcast('masterChanged', this, value);
     }
 
     get recordId() {

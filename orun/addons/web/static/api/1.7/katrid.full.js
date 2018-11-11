@@ -1400,16 +1400,16 @@ Katrid.Data = {};
               else if (this.state === DataSourceState.inserting)
                 return;
               this.record = res.data[0];
-              if (apply)
-                this.scope.$apply();
               if (index !== false)
                 this.scope.records[index] = this.record;
+              // if (apply)
+              //   this.scope.$apply();
               return resolve(this.record);
             })
             .finally(() => {
-              return this.scope.$apply(() => {
-                return this.loadingRecord = false;
-              });
+                this.loadingRecord = false;
+              if (apply)
+                return this.scope.$apply();
             });
           };
           if (!timeout && !this.requestInterval)
@@ -1520,7 +1520,7 @@ Katrid.Data = {};
       // refresh record id
       this.scope.recordId = value;
       // refresh children
-      this.scope.$broadcast('masterChanged', value);
+      this.scope.$broadcast('masterChanged', this, value);
     }
 
     get recordId() {
@@ -3681,7 +3681,8 @@ Katrid.Data = {};
       let content = $(scope.view.content);
       if (scope.inline)
         content.attr('ng-row-click', 'editItem($event, $index)').attr('inline-editor', scope.inline);
-      content.attr('list-options', '{"deleteRow": true}');
+      else
+        content.attr('ng-row-click', 'openItem($event, $index)');
 
       // render the list component
       let el = (this.$compile(content)(scope));
@@ -3691,61 +3692,35 @@ Katrid.Data = {};
     }
     async showDialog(scope, attrs, index) {
 
-      let needToLoad = false;
+      if (scope.views.form)
+        await this.renderDialog(scope, attrs);
 
       if (index != null) {
         // Show item dialog
         scope.recordIndex = index;
+        let record = scope.records[index];
 
-        if (scope.records[index] && !scope.records[index].$loaded) {
-          scope.dataSource.get(scope.records[index].id, 0, false, index)
-          .then(res => {
-            res.$loaded = true;
-            scope.records[index] = res;
-            scope.dataSource.edit();
+        // load the target record from server
+        if (record && record.$loaded)
+          scope.record = record;
+        else if (record) {
+          let res = await scope.dataSource.get(scope.records[index].id, 0, false, index);
+          res.$loaded = true;
 
-            // load nested data
-            let currentRecord = scope.record;
-            if (res.id)
-              for (let child of dataSource.children) {
-                child.scope.masterChanged(res.id)
-                .then(res => {
-                  _cacheChildren(child.fieldName, currentRecord, res.data);
-                })
-
-              }
-          });
+          // load nested data
+          // let currentRecord = scope.record;
+          // if (res.id)
+          //   for (let child of dataSource.children) {
+          //     child.scope.masterChanged(res.id)
+          //     .then(res => {
+          //       _cacheChildren(child.fieldName, currentRecord, res.data);
+          //     })
+          //
+          //   }
 
         }
-        else {
-          needToLoad = true;
-        }
 
-      } else
-        scope.recordIndex = -1;
-
-      let done = () => {
-        if (needToLoad) {
-          scope.record = scope.records[index];
-          for (let child of dataSource.children)
-            _loadChildFromCache(child);
-          scope.$apply();
-        }
-
-      };
-
-      if (scope.views.form) {
-        await this.renderDialog(scope, attrs);
       }
-      // else {
-      //   scope.model.getViewInfo({view_type: 'form'})
-      //   .then(function (res) {
-      //     if (res.result) {
-      //       scope._cachedViews.form = res.result;
-      //       return renderDialog().then(done);
-      //     }
-      //   });
-      // }
 
     };
 
@@ -3844,11 +3819,12 @@ Katrid.Data = {};
 
       scope.cancelChanges = () => scope.dataSource.setState(Katrid.Data.DataSourceState.browsing);
 
-      scope.openItem = index => {
-        this.showDialog(scope, attrs, index);
+      scope.openItem = async (evt, index) => {
+        await this.showDialog(scope, attrs, index);
         if (scope.parent.dataSource.changing && !scope.dataSource.readonly) {
-          return scope.dataSource.edit();
+          scope.dataSource.edit();
         }
+        scope.$apply();
       };
 
       scope.editItem = (evt, index) => {
@@ -3971,17 +3947,20 @@ Katrid.Data = {};
       };
 
 
-      scope.$on('masterChanged', async function(evt, key) {
+      scope.$on('masterChanged', async function(evt, master, key) {
         // Ajax load nested data
-        scope.dataSet = [];
-        scope._changeCount = 0;
-        scope.records = [];
-        if (key != null) {
-          const data = {};
-          data[field.field] = key;
-          if (key)
-            return await scope.dataSource.search(data)
-            .finally(() => scope.dataSource.state = Katrid.Data.DataSourceState.browsing);
+        if (master === scope.dataSource.masterSource) {
+          scope.dataSet = [];
+          scope._changeCount = 0;
+          scope.records = [];
+          if (key != null) {
+            const data = {};
+            data[field.field] = key;
+            if (key) {
+              return await scope.dataSource.search(data)
+              .finally(() => scope.dataSource.state = Katrid.Data.DataSourceState.browsing);
+            }
+          }
         }
       });
 
@@ -4024,9 +4003,9 @@ Katrid.Data = {};
         });
       }
       el.find('.modal-dialog').addClass('ng-form');
-      const def = new $.Deferred();
-      el.on('shown.bs.modal', () => def.resolve());
-      return def;
+      return new Promise(function(resolve) {
+        el.on('shown.bs.modal', () => resolve(el));
+      });
     };
 
   }
@@ -4040,7 +4019,9 @@ Katrid.Data = {};
     compile(el, attrs) {
       let rowClick = attrs.ngRowClick;
       let content = el.html();
-      let options = JSON.parse(attrs.listOptions);
+      let options = {};
+      if (attrs.listOptions)
+        options = JSON.parse(attrs.listOptions);
       let template = Katrid.app.getTemplate('view.list.table.pug', { attrs, rowClick, options });
 
       return function(scope, el, attrs, controller) {

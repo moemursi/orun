@@ -161,12 +161,6 @@ class ForeignKey(RelatedField):
     def get_attname(self):
         return self.db_column or '%s_id' % self.name
 
-    def set(self, value, instance):
-        if isinstance(value, models.Model):
-            getattr(instance.__class__, self.name).__set__(instance, value)
-        else:
-            getattr(instance.__class__, self.attname).__set__(instance, value)
-
     def _formfield(self):
         info = super()._formfield()
         info['domain'] = self.domain
@@ -232,6 +226,26 @@ class OneToManyField(RelatedField):
         r['field'] = self.rel.field_name
         r['model'] = self.rel.model._meta.name
         return r
+
+    def set(self, instance, value):
+        rel_model = self.rel.model._meta.app[self.rel.model]
+        res = []
+        field = getattr(instance, self.name)
+        for v in value:
+            values = v.get('values')
+            action = v['action']
+            if action == 'CREATE':
+                obj = rel_model(**values)
+                if instance.pk is None:
+                    res.append(obj)
+                else:
+                    field.append(obj)
+            elif action == 'DESTROY':
+                rel_model.destroy([v['id']])
+            elif action == 'UPDATE':
+                rel_model.write(values)
+        if res:
+            setattr(instance, self.name, res)
 
 
 class OneToOneField(ForeignKey):

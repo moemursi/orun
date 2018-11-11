@@ -422,8 +422,9 @@ class Model(metaclass=ModelBase):
         children = {}
         for k, v in data.items():
             field = instance.__class__._meta.fields_dict[k]
-            if field.nested_data:
-                children[field] = v
+            v = field.to_python(v)
+            if field.set:
+                field.set(instance, v)
             else:
                 setattr(instance, k, v)
 
@@ -778,19 +779,6 @@ class Model(metaclass=ModelBase):
 
     def __call__(self, *args, **kwargs):
         return self.__class__(*args, **kwargs)
-
-    def __setattr__(self, key, value):
-        f = self._meta.fields_dict.get(key)
-        if f:
-            # check if the value is a valid python value
-            value = f.to_python(value)
-            # in special cases the field needs to be deserialized by itself
-            # if deserialize returns any value, use it as the current field value
-            if f.set:
-                value = f.set(value, self)
-                if value is None:
-                    return
-        super(Model, self).__setattr__(key, value)
 
     def save(self, update_fields=None, force_insert=False):
         if not self.pk or force_insert:
