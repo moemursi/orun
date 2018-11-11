@@ -53,7 +53,7 @@
       this.caption = el.attr('label') || this.caption;
       let readonly = el.attr('ng-readonly');
       if (!_.isUndefined(readonly))
-        this.readonly = readonly;
+        this.ngReadonly = readonly;
       let cols = el.attr('cols');
       if (!_.isUndefined(cols))
         this.cols = cols;
@@ -77,8 +77,10 @@
           if (res[v] === '')
             res[v] = v;
         }
-      if (this.readonly)
-        res['ng-readonly'] = this.readonly;
+      if (this.ngReadonly)
+        res['ng-readonly'] = this.ngReadonly;
+      else if (this.readonly)
+        res['readonly'] = this.readonly;
       res['ng-model'] = 'record.' + this.name;
       if (attrs.ngFieldChange) {
         res['ng-change'] = attrs.ngFieldChange;

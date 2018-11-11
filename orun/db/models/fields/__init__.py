@@ -118,7 +118,6 @@ class Field(BaseField):
         self.local = True
         self.label = label or kwargs.get('verbose_name')
         self.max_length = max_length
-        self.readonly = readonly
         self.editable = editable
         self.serializable = serializable
         self.default = default
