@@ -24,6 +24,7 @@ class AppConfig(flask.Blueprint):
     models_module = None
     js_templates = None
     locale_path = None
+    init_app = None
 
     def __init__(self, schema=None, app_module=None, registry=None, *args, **kwargs):
         self.models = {}

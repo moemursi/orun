@@ -465,7 +465,7 @@
                       aria-expanded="false">{{ ::_.gettext('Export') }} <span class="caret"></span></button>
               <div class="dropdown-menu">
                 <a class="dropdown-item" ng-click="Katrid.Reports.Reports.preview()">PDF</a>
-                <a class="dropdown-item" href="javascript:void(0)" ng-click="Katrid.Reports.Telegram.export(report)">Telegram</a>
+                <a class="dropdown-item" href="#" ng-click="$event.preventDefault();Katrid.Reports.Telegram.export(report)">Telegram</a>
                 <a class="dropdown-item" href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('docx')">Word</a>
                 <a class="dropdown-item" href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('xlsx')">Excel</a>
                 <a class="dropdown-item" href="javascript:void(0)" ng-click="Katrid.Reports.Reports.export('pptx')">PowerPoint</a>
@@ -577,6 +577,7 @@
     </div>
   </script>
 </templates>
+
 <templates>
   <script id="view.search" type="text/ng-template">
     <div search-view-area class="search-area">

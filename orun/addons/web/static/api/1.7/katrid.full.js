@@ -171,6 +171,8 @@ var Katrid = {
         action.$element = $element;
         $scope.action = action;
         $scope.model = action.model;
+        // add katrid namespace to scope
+        $scope.Katrid = Katrid;
 
         $scope._ = _;
         $scope.data = null;
@@ -3245,36 +3247,6 @@ Katrid.Data = {};
   }]);
 
 
-  class Telegram {
-    static export(report, format) {
-
-      let templ = Katrid.$templateCache.get('reportbot.dilaog.contacts');
-      let modal = $(templ);
-      $('body').append(modal);
-
-      let sel = modal.find('#id-reportbot-select-contacts');
-      let contacts = new Katrid.Services.Model('res.partner').post('get_telegram_contacts')
-      .done(res => {
-        if (res)
-          res.map(c => sel.append(`<option value="${ c[0] }">${ c[1] }</option>`));
-        sel.select2();
-      });
-      modal.find('#id-btn-ok').click(() => {
-
-        let svc = new Katrid.Services.Model('telegram.pending');
-        format = 'pdf';
-        const params = report.getUserParams();
-        svc.post('export_report', { args: [report.info.id], kwargs: { contacts: sel.val(), format, params } })
-        .done(function(res) {
-          if (res.ok) console.log('ok');
-        });
-
-      });
-      modal.modal();
-      return true;
-
-    }
-  }
 
   class ReportEngine {
     static load(el) {
@@ -3288,10 +3260,9 @@ Katrid.Data = {};
   }
 
 
-  this.Katrid.Reports = {
+  Katrid.Reports = {
     Reports,
     Report,
-    Telegram,
     Param
   };
 })();
@@ -8436,6 +8407,39 @@ Katrid.Data = {};
   Katrid.ui.uiKatrid.directive('chart', Chart);
   Katrid.ui.uiKatrid.directive('query', Query);
 
+})();
+
+(function() {
+
+  class Telegram {
+    static async export(report, format) {
+      let templ = Katrid.app.$templateCache.get('reportbot.dilaog.contacts');
+      let modal = $(templ);
+      $('body').append(modal);
+
+      let sel = modal.find('#id-reportbot-select-contacts');
+      let partners = new Katrid.Services.Model('res.partner');
+      let res = await partners.post('get_telegram_contacts');
+      if (res) {
+        if (res)
+          res.map(c => sel.append(`<option value="${ c[0] }">${ c[1] }</option>`));
+        sel.select2();
+      }
+      modal.find('#id-btn-ok').click(async () => {
+
+        let svc = new Katrid.Services.Model('telegram.pending');
+        format = 'pdf';
+        const params = report.getUserParams();
+        let res = svc.post('export_report', { args: [report.info.id], kwargs: { contacts: sel.val(), format, params } });
+        if (res.ok) console.log('ok');
+      });
+      modal.modal();
+      return true;
+
+    }
+  }
+
+  Katrid.Reports.Telegram = Telegram;
 })();
 
 //# sourceMappingURL=katrid.full.js.map

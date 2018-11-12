@@ -95,9 +95,9 @@ class Application(Flask):
         # Initialize app context models
         self.build_models()
 
-        for addon in self.addons:
+        for addon in self.addons.values():
             # Initialize addon on current instance
-            if hasattr(addon, 'init_app'):
+            if addon.init_app is not None:
                 addon.init_app(self)
 
     def build_models(self):

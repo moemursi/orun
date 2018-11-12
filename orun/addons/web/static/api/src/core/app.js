@@ -104,6 +104,8 @@
         action.$element = $element;
         $scope.action = action;
         $scope.model = action.model;
+        // add katrid namespace to scope
+        $scope.Katrid = Katrid;
 
         $scope._ = _;
         $scope.data = null;
