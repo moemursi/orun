@@ -86,6 +86,7 @@ class ModelBase(type):
         app = attrs.get('__app__')
         app_config = attrs.get('__app_config__')
         meta = attrs.pop('Meta', None)
+        app_config = app_config or getattr(meta, 'app_config', None)
         parents = [b for b in bases if isinstance(b, ModelBase) and b.Meta]
 
         if app is None:
@@ -102,6 +103,7 @@ class ModelBase(type):
             new_class = super_new(cls, name, bases, {k: v for k, v in attrs.items() if not isinstance(v, Field)})
             opts = Options.from_model(meta, new_class, parents, {
                 'app_config': app_config,
+                'app_label': app_label,
             })
             new_class.Meta = opts
 

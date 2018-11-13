@@ -36,7 +36,6 @@ class TestInheritance(TestCase):
 
         self.assertTrue(ModelB.Meta.inherited)
         self.assertTrue(ModelB.Meta.extension)
-        self.assertIn(Model, ModelB.Meta.extending)
 
     def test_abstract(self):
 
@@ -63,6 +62,7 @@ class TestInheritance(TestCase):
             class Meta:
                 app_config = self.addon
                 name = 'myaddon.new.model'
+                log_changes = False
 
         class ModelB(ModelA):
             description = models.CharField()
@@ -70,6 +70,7 @@ class TestInheritance(TestCase):
             class Meta:
                 app_config = self.addon
                 name = 'myaddon.model.b'
+                log_changes = False
 
         # check service name
         self.assertEqual(ModelA.Meta.name, 'myaddon.new.model')

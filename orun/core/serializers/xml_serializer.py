@@ -98,13 +98,13 @@ class Deserializer(base.Deserializer):
         children = {}
         for k, v in values.items():
             # Check if there's a list of objects
-            field = instance._meta.fields_dict.get(k)
+            field = instance._meta.fields.get(k)
             if isinstance(v, list) and isinstance(field, models.OneToManyField):
                 children[k] = v
             elif isinstance(v, tuple) and isinstance(field, models.CharField) and not field.translate:
                 children[k] = _(v[0])
             else:
-                setattr(instance, *get_prep_value(Model, k, v))
+                setattr(instance, *get_prep_value(Model, k, field, v))
         instance.save()
         if pk is None:
             obj_id = Object.create(
@@ -158,14 +158,14 @@ class Deserializer(base.Deserializer):
 
     def read_action(self, obj, **attrs):
         act = obj.attrib['type']
-        s = obj.attrib['name']
-        if obj.attrib.get('name'):
-            s = _(s)
+        model = obj.attrib.get('model')
+        name = obj.attrib.get('name')
+        if not name and model:
+            name = str(app[model]._meta.verbose_name_plural)
         fields = {
-            'name': s,
+            'name': name,
+            'model': model,
         }
-        if 'model' in obj.attrib:
-            fields['model'] = obj.attrib['model']
         action = {
             'model': act,
             'id': obj.attrib['id'],

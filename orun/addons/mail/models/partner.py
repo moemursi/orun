@@ -6,3 +6,4 @@ from .comment import Comments
 
 class Partner(base.models.Partner, Comments):
     pass
+

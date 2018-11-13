@@ -6,7 +6,7 @@ from sqlalchemy.orm import mapper, relationship, deferred, backref, synonym
 from orun import app
 from orun.apps import AppConfig
 from orun.db import connection, connections
-from orun.utils.text import camel_case_to_spaces
+from orun.utils.text import camel_case_to_spaces, format_lazy
 from orun.db.models.fields import Field, BigAutoField
 
 DEFAULT_NAMES = ('unique_together', 'index_together', 'fixtures')
@@ -38,6 +38,7 @@ class Options:
     one_to_one = False
     field_change_event = None
     title_field = None
+    status_field = None
     field_groups = None
     log_changes = True
 
@@ -129,9 +130,17 @@ class Options:
         cls._meta = self
         self.model = cls
 
+        if self.verbose_name is None:
+            self.verbose_name = camel_case_to_spaces(self.object_name)
+
+        if self.verbose_name_plural is None:
+            self.verbose_name_plural = format_lazy('{}s', self.verbose_name)
+
     def add_field(self, field):
         if self.title_field is None and field.name == 'name':
             self.__class__.title_field = field.name
+        elif self.status_field is None and field.name == 'status':
+            self.__class__.status_field = field.name
 
         self.fields.append(field)
         if self.pk is None and field.primary_key and field in self.local_fields:
@@ -201,6 +210,7 @@ class Options:
                             foreign_keys=[f.column],
                             **kwargs
                         )
+                        f.rel.prop_name = prop_name
                         props[f.name] = synonym(prop_name, descriptor=ForeignKeyDescriptor(prop_name, f, prop))
                     if f.deferred:
                         props[f.name] = deferred(f.column)

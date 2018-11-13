@@ -12,7 +12,7 @@ from orun.core.exceptions import AppRegistryNotReady
 
 class Registry(object):
 
-    def __init__(self, app_configs=None):
+    def __init__(self, app_configs=None, addons=None):
         self.ready = False
         self.apps_loaded = False
         self.models_ready = False
@@ -29,6 +29,7 @@ class Registry(object):
         self._pending_operations = defaultdict(list)
         base_dir = os.path.join(os.path.dirname(__file__))
         self.addon_path = [os.path.join(base_dir, '..', 'addons'), os.path.join(base_dir, '..', '..', 'addons')]  # basic addons paths
+        self.addons = addons
 
         if ADDONS_ENVIRONMENT_VARIABLE in os.environ:
             paths = os.environ[ADDONS_ENVIRONMENT_VARIABLE].split(';')
@@ -62,6 +63,16 @@ class Registry(object):
         for cmd in self.module_commands['orun']:
             self.basic_commands.append(cmd)
 
+    def load_addon(self, module):
+        try:
+            mod = import_module(module)
+            app_config = mod.addon
+            app_config.path = os.path.dirname(mod.__file__)
+            self.modules[module] = mod
+            self.app_configs[module] = app_config
+        except (ImportError, AttributeError) as e:
+            pass
+
     def find_addons(self):
         self.apps_loaded = True
         paths = self.addon_path
@@ -70,14 +81,12 @@ class Registry(object):
                 sys.path.append(path)
                 for _, name, is_pkg in pkgutil.iter_modules([path]):
                     if is_pkg and not name.startswith('_'):
-                        try:
-                            mod = import_module(name)
-                            app_config = mod.addon
-                            app_config.path = os.path.dirname(mod.__file__)
-                            self.modules[name] = mod
-                            self.app_configs[name] = app_config
-                        except (ImportError, AttributeError) as e:
-                            pass
+                        self.load_addon(name)
+
+            if self.addons:
+                for addon in self.addons:
+                    self.load_addon(addon)
+
 
     def check_models_ready(self):
         """

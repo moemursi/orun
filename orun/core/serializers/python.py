@@ -81,12 +81,14 @@ class Serializer(base.Serializer):
         return self.objects
 
 
-def get_prep_value(model, field, value):
-    if ':' in field:
-        k, f = field.split(':')
+def get_prep_value(model, field_name, field, value):
+    if ':' in field_name:
+        k, f = field_name.split(':')
         model_field = model._meta.fields_dict[k].related_model
         return k, model_field.objects.filter({f: value}).options(load_only(model_field.pk)).one().pk
-    return field, value
+    elif field:
+        value = field.to_python(value)
+    return field_name, value
 
 
 def Deserializer(object_list, **options):

@@ -242,19 +242,20 @@ class Insert(object):
         return session.execute(self.model._meta.table.insert().values(*args, **kwargs))
 
 
-def convert_params(model, params, tables=None):
+def convert_params(model, params, joins=None):
     from orun.db import models
 
+    sub_param = None
     if not isinstance(params, (tuple, list)):
         params = [params]
     for param in params:
         for k, v in param.items():
             if k == 'OR':
-                yield or_(*convert_params(model, v, tables))
+                yield or_(*convert_params(model, v, joins))
             else:
                 if isinstance(v, models.Model):
                     v = v.pk
-                args = k.split('__')
+                args = k.split('__', 1)
                 col = args[0]
                 fld = model._meta.fields_dict[col]
                 col = fld.column
@@ -264,32 +265,22 @@ def convert_params(model, params, tables=None):
                         if arg == 'icontains':
                             arg = 'ilike'
                             v = '%' + v + '%'
-                        # TODO check related/joined field
-                        # if isinstance(fld, ForeignKey):
-                        #
-                        attr = getattr(col, arg, None)
-                        if attr is None:
-                            attr = getattr(col, arg + '_', None)
+                        if isinstance(fld, models.ForeignKey) and '__' in k:
+                            joins.append([fld.rel.model, getattr(model, fld.rel.prop_name)])
+                            for sub_param in convert_params(fld.rel.model, {arg: v}, joins):
+                                yield sub_param
+                            break
+                        else:
+                            attr = getattr(col, arg, None)
+                            if attr is None:
+                                attr = getattr(col, arg + '_', None)
                 if attr and callable(attr):
                     yield attr(v)
-                else:
+                elif sub_param is None:
                     yield col == v
 
 
 class Query(orm.Query):
-    # def __init__(self, entities, session=None):
-    #     from orun.db.models import Model
-    #     if entities and isinstance(entities[0], Model):
-    #         self.env = entities[0].env
-    #         entities = list(entities)
-    #         entities[0] = entities[0].__class__
-    #     super(Query, self).__init__(entities, session=session)
-
-    # def _clone(self):
-    #     q = super(Query, self)._clone()
-    #     q.env = self.env
-    #     return q
-
     def get_or_create(self, defaults=None, **kwargs):
         try:
             obj = self.filter(**kwargs).one()
@@ -302,19 +293,24 @@ class Query(orm.Query):
     def filter(self, *criterion, **kwargs):
         # prepare django-styled params
         args = []
-        tables = []
+        joins = []
         if not criterion:
             criterion = []
+        else:
+            criterion = list(criterion)
         if kwargs:
             criterion.append(kwargs)
         for i, crit in enumerate(criterion):
             if isinstance(crit, dict):
-                args.extend(convert_params(self._entities[0].entities[0], crit, tables))
+                args.extend(convert_params(self._entities[0].entities[0], crit, joins))
             else:
                 args.append(crit)
 
         # compile where clause
-        return super(Query, self).filter(*args)
+        res = super()
+        for join in joins:
+            res = res.join(*join)
+        return res.filter(*args)
 
     def values_list(self, *fields):
         for obj in self:
@@ -324,11 +320,15 @@ class Query(orm.Query):
         return self.options(load_only(*args))
 
     def join(self, *args, **kwargs):
+        from orun.db import models
+
         args = list(args)
         for i, arg in enumerate(args):
-            if not isinstance(arg, type):
+            if isinstance(arg, models.Model):
                 args[i] = arg.__class__
         return super(Query, self).join(*args, **kwargs)
 
 
 Session = sa.orm.sessionmaker(autoflush=False, autocommit=True, query_cls=Query)
+
+

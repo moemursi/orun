@@ -117,15 +117,7 @@ class Application(Flask):
             self._pending_operations.pop(0)()
 
     def create_all(self):
-        self._create_schemas()
         self.meta.create_all(self.db_engine)
-        self._register_models()
-
-    def _create_schemas(self):
-        engine = self.db_engine
-        for app_config in self.addons:
-            if app_config.db_schema:
-                engine.execute(CreateSchema(app_config.db_schema))
 
     def load_fixtures(self):
         from orun.core.management.commands import loaddata

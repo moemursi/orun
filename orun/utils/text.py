@@ -3,7 +3,7 @@ import unicodedata
 from gzip import GzipFile
 from io import BytesIO
 
-from orun.utils.functional import SimpleLazyObject, keep_lazy, keep_lazy_text
+from orun.utils.functional import SimpleLazyObject, keep_lazy, keep_lazy_text, lazy
 import html.entities as html_entities
 from orun.utils.translation import pgettext, gettext as _, gettext_lazy
 
@@ -426,3 +426,15 @@ def camel_case_to_spaces(value):
     trailing whitespace.
     """
     return re_camel_case.sub(r' \1', value).strip().lower()
+
+
+def _format_lazy(format_string, *args, **kwargs):
+    """
+    Apply str.format() on 'format_string' where format_string, args,
+    and/or kwargs might be lazy.
+    """
+    return format_string.format(*args, **kwargs)
+
+
+format_lazy = lazy(_format_lazy, str)
+
