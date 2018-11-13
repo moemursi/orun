@@ -106,5 +106,10 @@ class ApprovalLevel(models.Model):
 
 
 class ApprovalHistory(models.Model):
-    pass
+    model = models.ForeignKey('ir.model', null=False)
+    object_id = models.BigIntegerField(null=False)
+    level = models.ForeignKey(ApprovalLevel, null=False)
+
+    class Meta:
+        name = 'mail.approval.history'
 

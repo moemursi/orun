@@ -101,6 +101,9 @@ msgstr "Visões"
 msgid "Users"
 msgstr "Usuários"
 
+msgid "Group"
+msgstr "Grupo"
+
 msgid "Groups"
 msgstr "Grupos"
 
