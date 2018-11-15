@@ -91,7 +91,6 @@ class Partner(models.Model):
     def set_password(self, password):
         from orun.auth.hashers import make_password
         self.site_password = make_password(password)
-        self._site_password = password
 
     @classmethod
     def authenticate(cls, username, password):

@@ -77,7 +77,6 @@ class User(Partner):
     def set_password(self, password):
         from orun.auth.hashers import make_password
         self.password = make_password(password)
-        self._password = password
 
     def has_perm(self, perm, obj=None):
         return True
@@ -101,7 +100,7 @@ class User(Partner):
         print(self.env.user)
         user = auth.authenticate(username=self.env.user.username, password=old_password)
         if user and new_password:
-            user.password = new_password
+            user.set_password(new_password)
             user.save()
             return self.env.user_id
         raise PermissionDenied(_('Invalid password!'))
