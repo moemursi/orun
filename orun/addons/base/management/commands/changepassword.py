@@ -13,6 +13,6 @@ def command(database, username, **options):
         password = commands.prompt('New Password', hide_input=True)
         user = app['auth.user']
         u = user.objects.filter(user.c.username == username).one()
-        u.password = password
+        u.set_password(password)
         u.save()
         commands.echo('The password has been changed.')
