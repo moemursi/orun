@@ -8,6 +8,7 @@
       this.caption = this._info.caption;
       this.helpText = this._info.help_text;
       this.onChange = this._info.onchange;
+      this.required = this._info.required;
 
       if (this._info.visible === false)
         this.visible = false;
@@ -65,7 +66,7 @@
     }
 
     get validAttributes() {
-       return ['name', 'nolabel', 'readonly'];
+       return ['name', 'nolabel', 'readonly', 'required'];
     }
 
     getAttributes(attrs) {
@@ -86,6 +87,8 @@
         res['ng-change'] = attrs.ngFieldChange;
         console.log('change', attrs.ngFieldChange);
       }
+      if (this.required)
+        res['required'] = this.required;
       return res;
     }
 

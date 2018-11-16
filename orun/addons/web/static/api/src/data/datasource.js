@@ -159,15 +159,17 @@
     }
 
     validate() {
+      console.log('validate', this.scope.form);
       if (this.scope.form.$invalid) {
         let elfield;
         let errors = [];
         let s = `<span>${Katrid.i18n.gettext('The following fields are invalid:')}</span><hr>`;
         const el = this.scope.formElement;
         elfield = this._validateForm(el, this.scope.form, errors);
-        Katrid.uiKatrid.setFocus(elfield);
+        Katrid.ui.uiKatrid.setFocus(elfield);
         s += errors.join('');
-        Katrid.Dialogs.Alerts.error(s);
+        Katrid.ui.Dialogs.Alerts.error(s);
+        console.log(s);
         return false;
       }
       return true;
@@ -457,7 +459,7 @@
                 elfield.focus();
             }
 
-            return Katrid.Dialogs.Alerts.error(s);
+            return Katrid.ui.Dialogs.Alerts.error(s);
 
           })
           .finally(() => this.scope.$apply(() => this.uploading-- ) );

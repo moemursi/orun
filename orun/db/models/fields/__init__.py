@@ -109,7 +109,7 @@ class Field(BaseField):
     widget_attrs = None
     related = None
 
-    def __init__(self, label=None, max_length=None, null=None, primary_key=False, column=None, concrete=None,
+    def __init__(self, label=None, max_length=None, null=True, primary_key=False, column=None, concrete=None,
                  help_text=None, required=None, readonly=None, widget_attrs=None, choices=None, rel=None,
                  copy=None, editable=True, serializable=True, default=NOT_PROVIDED, getter=None, setter=None,
                  db_column=None, db_tablespace=None, db_index=False, db_default=NOT_PROVIDED, db_compute=None,
@@ -161,6 +161,8 @@ class Field(BaseField):
                 readonly = True
         self.readonly = readonly
 
+        if required is None and null is False:
+            required = True
         self.required = required
         self.concrete = concrete
         self.attname = None

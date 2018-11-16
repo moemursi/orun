@@ -33,6 +33,16 @@
           });
           templ = $compile(templ)(scope);
           element.replaceWith(templ);
+
+          // Add input field for tracking on FormController
+          let fcontrol = templ.find('.form-field');
+          if (fcontrol.length) {
+            fcontrol = fcontrol[fcontrol.length - 1];
+            const form = templ.controller('form');
+            ctrl = angular.element(fcontrol).data().$ngModelController;
+            if (ctrl) 
+              form.$addControl(ctrl);
+          }
         }
       },
     };

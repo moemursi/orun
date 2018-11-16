@@ -1022,15 +1022,17 @@ Katrid.Data = {};
     }
 
     validate() {
+      console.log('validate', this.scope.form);
       if (this.scope.form.$invalid) {
         let elfield;
         let errors = [];
         let s = `<span>${Katrid.i18n.gettext('The following fields are invalid:')}</span><hr>`;
         const el = this.scope.formElement;
         elfield = this._validateForm(el, this.scope.form, errors);
-        Katrid.uiKatrid.setFocus(elfield);
+        Katrid.ui.uiKatrid.setFocus(elfield);
         s += errors.join('');
-        Katrid.Dialogs.Alerts.error(s);
+        Katrid.ui.Dialogs.Alerts.error(s);
+        console.log(s);
         return false;
       }
       return true;
@@ -1320,7 +1322,7 @@ Katrid.Data = {};
                 elfield.focus();
             }
 
-            return Katrid.Dialogs.Alerts.error(s);
+            return Katrid.ui.Dialogs.Alerts.error(s);
 
           })
           .finally(() => this.scope.$apply(() => this.uploading-- ) );
@@ -1639,6 +1641,7 @@ Katrid.Data = {};
       this.caption = this._info.caption;
       this.helpText = this._info.help_text;
       this.onChange = this._info.onchange;
+      this.required = this._info.required;
 
       if (this._info.visible === false)
         this.visible = false;
@@ -1696,7 +1699,7 @@ Katrid.Data = {};
     }
 
     get validAttributes() {
-       return ['name', 'nolabel', 'readonly'];
+       return ['name', 'nolabel', 'readonly', 'required'];
     }
 
     getAttributes(attrs) {
@@ -1717,6 +1720,8 @@ Katrid.Data = {};
         res['ng-change'] = attrs.ngFieldChange;
         console.log('change', attrs.ngFieldChange);
       }
+      if (this.required)
+        res['required'] = this.required;
       return res;
     }
 
@@ -5012,6 +5017,16 @@ Katrid.Data = {};
           });
           templ = $compile(templ)(scope);
           element.replaceWith(templ);
+
+          // Add input field for tracking on FormController
+          let fcontrol = templ.find('.form-field');
+          if (fcontrol.length) {
+            fcontrol = fcontrol[fcontrol.length - 1];
+            const form = templ.controller('form');
+            ctrl = angular.element(fcontrol).data().$ngModelController;
+            if (ctrl) 
+              form.$addControl(ctrl);
+          }
         }
       },
     };
