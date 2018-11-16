@@ -7826,7 +7826,6 @@ Katrid.Data = {};
 
 
 
-
 	    				// Stop executing if the user didn't type a number key, a decimal character, or backspace.
 	    				if( code !== 8 && chara != dec_point && !chara.match(/[0-9]/) )
 	    				{
@@ -7978,10 +7977,12 @@ Katrid.Data = {};
 	    					setPos = start;
 	    				}
 
+	    				if (setPos === false && code === 44 && chara === dec_point)
+	    					setPos = this.value.indexOf(dec_point) + 1;
+
 	    				// If we need to re-position the characters.
 	    				if( setPos !== false )
 	    				{
-	    					//console.log('Setpos keydown: ', setPos );
 	    					setSelectionRange.apply(this, [setPos, setPos]);
 	    				}
 
