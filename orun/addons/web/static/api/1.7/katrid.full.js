@@ -1426,7 +1426,6 @@ Katrid.Data = {};
     }
 
     async insert() {
-      return;
       this._clearTimeout();
       for (let child of this.children)
         child._clearTimeout();
@@ -1442,7 +1441,6 @@ Katrid.Data = {};
 
       this.state = DataSourceState.inserting;
       this.scope.record.display_name = Katrid.i18n.gettext('(New)');
-      return;
       if (res)
         this.setValues(res);
     }
