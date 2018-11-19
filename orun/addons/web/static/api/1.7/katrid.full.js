@@ -2365,12 +2365,14 @@ Katrid.Data = {};
       return super.getCurrentTitle();
     }
 
-    createNew() {
+    async createNew() {
       Katrid.ui.Dialogs.WaitDialog.show();
-      this.viewType = 'form';
-      setTimeout(() => {
-        this.dataSource.insert();
-      }, 10);
+      try {
+        this.viewType = 'form';
+        await this.dataSource.insert();
+      } finally {
+        Katrid.ui.Dialogs.WaitDialog.hide();
+      }
     }
 
     deleteSelection() {
