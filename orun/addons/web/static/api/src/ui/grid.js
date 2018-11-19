@@ -149,6 +149,7 @@
         if (attrs.$attr.inlineEditor) {
           scope.records.splice(0, 0, scope.record);
           scope.dataSource.edit();
+          scope.$apply();
         }
         else
           return this.showDialog(scope, attrs);

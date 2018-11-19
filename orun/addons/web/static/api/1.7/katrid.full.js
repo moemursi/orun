@@ -3575,7 +3575,7 @@ Katrid.Data = {};
 
     link($scope, $el) {
       $el.addClass('ng-form');
-      $el.find('form').addClass('row');
+      $el.find('form').addClass('row').attr('novalidate', 'novalidate');
       $scope.$parent.formElement = $el.find('form').first();
       $scope.$parent.form = angular.element($scope.formElement).controller('form');
     }
@@ -3781,6 +3781,7 @@ Katrid.Data = {};
         if (attrs.$attr.inlineEditor) {
           scope.records.splice(0, 0, scope.record);
           scope.dataSource.edit();
+          scope.$apply();
         }
         else
           return this.showDialog(scope, attrs);

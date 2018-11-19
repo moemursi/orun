@@ -45,6 +45,7 @@ class Message(models.Model):
     reply_to = models.CharField('Reply-To')
     mail_server = models.ForeignKey('ir.mail.server')
     attachments =  models.ManyToManyField('ir.attachment')
+    via = models.CharField()
 
     class Meta:
         name = 'mail.message'
@@ -56,15 +57,35 @@ class Message(models.Model):
             'id': self.pk,
             'content': self.content,
             'email_from': self.email_from,
-            'author': self.author,
+            'author_id': self.author_id,
             'date_time': self.date_time,
             'message_type': self.message_type,
             'object_id': self.object_id,
             'object_name': self.object_name,
-            'attachments': [{'id': f.pk, 'name': f.file_name, 'mimetype': f.mimetype}for f in self.attachments],
+            'attachments': [{'id': f.pk, 'name': f.file_name, 'mimetype': f.mimetype} for f in self.attachments],
         }
 
     @api.records
     def get_messages(self, *args, **kwargs):
         for r in self:
             yield r.get_message()
+            
+            
+class Confirmation(models.Model):
+    message = models.ForeignKey(Message, null=False)
+    confirmation_message = models.ForeignKey(Message)
+    active = models.BooleanField(default=True)
+    confirmed = models.BooleanField(default=False)
+    confirmation_type = models.CharField(db_index=True)
+    data = models.CharField()
+    expiration = models.DateTimeField()
+    
+    class Meta:
+        name = 'mail.confirmation'
+        
+    def confirm(self, message=None, data=None):
+        if self.active:
+            self.confirmation_message = message
+            self.active = False
+            self.data = data
+            self.save()

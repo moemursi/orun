@@ -113,7 +113,7 @@
     </div>
   </script>
   <script id="view.form.dialog" type="text/ng-template">
-    <form>
+    <form novalidate>
       %(content)s
     </form>
   </script>

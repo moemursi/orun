@@ -244,7 +244,8 @@ class Model(metaclass=ModelBase):
     def __init__(self, *args, **kwargs):
         self._state = ModelState()
         for k, v in kwargs.items():
-            setattr(self, k, v)
+            if v is not None:
+                setattr(self, k, v)
 
     @property
     def env(self):

@@ -1,10 +1,13 @@
 from orun import app, g
+from orun.dispatch import Signal
 from orun.utils.translation import gettext_lazy as _, gettext
 from orun.db import models
-from orun.core.exceptions import ValidationError
+from orun.core.exceptions import PermissionDenied
+
+from . import comment
 
 
-class DocumentApproval(models.Model):
+class DocumentApproval(comment.Comments):
     """
     Model for documents with approval levels.
     """
@@ -19,37 +22,54 @@ class DocumentApproval(models.Model):
         if g.user and not g.user.is_superuser:
             l = level or self.current_approval_level
             if l.permission == 'user' and l.user_id != g.user_id:
-                raise ValidationError(gettext('Permission denied'))
+                raise PermissionDenied(gettext('Permission denied'))
         if level is None or self.current_approval_level_id == level.pk:
             setattr(self, self._meta.status_field, self.current_approval_level.next_level)
         else:
             self.current_approval_level = level
             setattr(self, self._meta.status_field, level.level)
 
-    def get_document_level_field_value(self):
+        # send the document_approved signal
+        document_approved.send(self, user=g.user, level=level or self.current_approval_level)
+        # send the approval_needed signal
+        if self.current_approval_level.permission != 'allow':
+            approval_needed.send(self, user=g.user, level=self.current_approval_level)
+
+    def get_document_level_value(self):
         return getattr(self, self._meta.status_field)
 
     def evaluate_auto_approval_level(self):
         # there's no approval level
         next_level = self.next_approval_level
-        if self.current_approval_level is None:
+        if self.current_approval_level_id is None:
             next_level = self.next_approval_level
             if next_level is None:
                 return
             self.current_approval_level = next_level
             self.save()
-        elif next_level:
+            return False
+        elif next_level is None and self.current_approval_level_id is not None:
+            status = self.get_document_level_value()
+            # it's the last step
+            if status != self.current_approval_level.next_level and self.current_approval_level.permission == 'allow':
+                setattr(self, self._meta.status_field, self.current_approval_level.next_level)
+                self.save()
+                document_approved.send(self, user=g.user, level=self.current_approval_level)
+            return False
+        else:
             level = app['mail.approval.level'].objects.filter(id=next_level.pk, permission='allow').first()
             if level is not None:
                 self.current_approval_level = level
-                setattr(self, self._meta.status_field, level.next_level or level.level)
+                setattr(self, self._meta.status_field, level.level)
                 self.save()
+                document_approved.send(self, user=g.user, level=self.current_approval_level)
+                return True
 
     @property
     def next_approval_level(self):
         current_level = self.current_approval_level
         if current_level is None:
-            level = getattr(self, self._meta.status_field, None)
+            level = self.get_document_level_value()
             objs = app['mail.approval.level'].objects.filter(
                 approval_model__model__name=self._meta.name, approval_model__active=True
             )
@@ -68,8 +88,12 @@ class DocumentApproval(models.Model):
         abstract = True
 
     def save(self, *args, **kwargs):
+        original_level = self.current_approval_level_id
         super().save(*args, **kwargs)
-        self.evaluate_auto_approval_level()
+        if not self.evaluate_auto_approval_level():
+            # send approval signal if has a pending level after auto evaluation detection
+            if original_level != self.current_approval_level_id and self.current_approval_level.permission != 'allow':
+                approval_needed.send(self, user=g.user, level=self.current_approval_level)
 
 
 class ApprovalModel(models.Model):
@@ -106,10 +130,30 @@ class ApprovalLevel(models.Model):
 
 
 class ApprovalHistory(models.Model):
-    model = models.ForeignKey('ir.model', null=False)
+    model = models.CharField()
     object_id = models.BigIntegerField(null=False)
     level = models.ForeignKey(ApprovalLevel, null=False)
 
     class Meta:
         name = 'mail.approval.history'
 
+
+def _document_approved(doc, user, level):
+    history = app['mail.approval.history']
+    history.create(model=doc._meta.name, object_id=doc.pk, level_id=level.pk)
+    for msg in doc.post_message([doc.pk], gettext('Document has been approved.')):
+        send_approved_message.send(doc, msg=msg, user=user, level=level)
+
+
+def _approval_needed(doc, user, level):
+    for msg in doc.post_message([doc.pk], gettext('Do you confirm this document approval?')):
+        send_approval_message.send(doc, msg=msg, user=user, level=level)
+
+
+document_approved = Signal()
+approval_needed = Signal()
+send_approval_message = Signal()
+send_approved_message = Signal()
+
+document_approved.connect(_document_approved)
+approval_needed.connect(_approval_needed)

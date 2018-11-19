@@ -113,11 +113,13 @@ class ConnectionHandler(object):
 
         conn.setdefault('ATOMIC_REQUESTS', True)
         conn.setdefault('AUTOCOMMIT', False)
-        conn.setdefault('ENGINE', 'sqlite:///:memory:')
+        conn.setdefault('ENGINE', 'sqlite:///')
         if not conn['ENGINE']:
-            conn['ENGINE'] = 'sqlite:///:memory:'
+            conn['ENGINE'] = 'sqlite:///'
         conn.setdefault('CONN_MAX_AGE', 0)
         conn.setdefault('OPTIONS', {})
+        if conn['ENGINE'] == 'sqlite:///':
+            conn['OPTIONS']['connect_args'] = {'check_same_thread': False}
         conn.setdefault('TIME_ZONE', None)
 
     def prepare_test_settings(self, alias):
@@ -146,7 +148,8 @@ class ConnectionHandler(object):
             db['url'] = make_url(db['ENGINE'])
         url = db['url']
         backend = get_backend(url.drivername.split('+')[0])
-        conn = backend(url, alias, db)
+        options = db['OPTIONS'] or {}
+        conn = backend(url, alias, db, **options)
         conn.session = Session(bind=conn.engine)
         conn.conn_info = ConnectionInfo(conn)
         conn.alias = alias
