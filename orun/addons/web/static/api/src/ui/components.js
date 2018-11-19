@@ -40,7 +40,7 @@
             fcontrol = fcontrol[fcontrol.length - 1];
             const form = templ.controller('form');
             ctrl = angular.element(fcontrol).data().$ngModelController;
-            if (ctrl) 
+            if (ctrl)
               form.$addControl(ctrl);
           }
         }
@@ -383,6 +383,7 @@
       });
 
       controller.$parsers.push(function (value) {
+        console.log('parser', value, controller);
         if (_.isDate(value)) {
           if (attrs['type'] === 'date')
             return moment.utc(value).format('YYYY-MM-DD');

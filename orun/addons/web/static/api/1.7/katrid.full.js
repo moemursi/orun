@@ -1004,8 +1004,8 @@ Katrid.Data = {};
 
     _validateForm(elForm, form, errorMsgs) {
       let elfield;
-      console.log(form.$error);
       for (let errorType in form.$error)
+        if (errorType === 'required')
         for (let child of Array.from(form.$error[errorType])) {
           if (child.$name.startsWith('grid-row-form'))
             elfield = this._validateForm(elForm.find('#' + child.$name), child, errorMsgs);
@@ -1426,6 +1426,7 @@ Katrid.Data = {};
     }
 
     async insert() {
+      return;
       this._clearTimeout();
       for (let child of this.children)
         child._clearTimeout();
@@ -1441,6 +1442,7 @@ Katrid.Data = {};
 
       this.state = DataSourceState.inserting;
       this.scope.record.display_name = Katrid.i18n.gettext('(New)');
+      return;
       if (res)
         this.setValues(res);
     }
@@ -1451,7 +1453,7 @@ Katrid.Data = {};
 
     setValues(values) {
       Object.entries(values).forEach(([k, v]) => {
-        let fld = this.action.view.fields[k];
+        let fld = this.scope.view.fields[k];
         if (fld)
           fld.fromJSON(v, this);
         else
@@ -5025,7 +5027,7 @@ Katrid.Data = {};
             fcontrol = fcontrol[fcontrol.length - 1];
             const form = templ.controller('form');
             ctrl = angular.element(fcontrol).data().$ngModelController;
-            if (ctrl) 
+            if (ctrl)
               form.$addControl(ctrl);
           }
         }
@@ -5368,6 +5370,7 @@ Katrid.Data = {};
       });
 
       controller.$parsers.push(function (value) {
+        console.log('parser', value, controller);
         if (_.isDate(value)) {
           if (attrs['type'] === 'date')
             return moment.utc(value).format('YYYY-MM-DD');
