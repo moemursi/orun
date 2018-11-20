@@ -1168,7 +1168,7 @@ if (options.rowSelector) {
 ;pug_debug_line = 9;pug_debug_filename = "src\u002Ftemplates\u002Fview.list.table.pug";
 pug_html = pug_html + "\u003Ctd class=\"list-record-selector\" onclick=\"event.stopPropagation();\"\u003E";
 ;pug_debug_line = 10;pug_debug_filename = "src\u002Ftemplates\u002Fview.list.table.pug";
-pug_html = pug_html + "\u003Cinput type=\"checkbox\" ng-click=\"action.selectToggle($event.currentTarget)\" onclick=\"if (!$(this).prop('checked')) $(this).closest('table').find('th.list-record-selector input').prop('checked', false)\"\u002F\u003E\u003C\u002Ftd\u003E";
+pug_html = pug_html + "\u003Cinput type=\"checkbox\" ng-click=\"action.selectToggle($event.currentTarget)\" data-id=\"{{ record.id }}\" onclick=\"if (!$(this).prop('checked')) $(this).closest('table').find('th.list-record-selector input').prop('checked', false)\"\u002F\u003E\u003C\u002Ftd\u003E";
 }
 pug_html = pug_html + "\u003C\u002Ftr\u003E\u003C\u002Ftbody\u003E";
 ;pug_debug_line = 12;pug_debug_filename = "src\u002Ftemplates\u002Fview.list.table.pug";

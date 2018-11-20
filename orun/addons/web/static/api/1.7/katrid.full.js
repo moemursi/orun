@@ -2737,6 +2737,7 @@ Katrid.Data = {};
     static async dispatchBindingAction(parent, action) {
       let format = localStorage.katridReportViewer || 'pdf';
       let sel = parent.selection;
+      console.log('selection ', sel);
       if (sel)
         sel = sel.join(',');
       let params = { data: [{ name: 'id', value: sel }] };
