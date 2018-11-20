@@ -15,5 +15,5 @@ def avg(iterable, member=None):
 
 
 def total(iterable, member):
-    return sum([getattr(obj, member) for obj in iterable])
+    return sum([getattr(obj, member) or 0 for obj in iterable])
 
