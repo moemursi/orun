@@ -309,7 +309,7 @@ class Query(orm.Query):
         # compile where clause
         res = super()
         for join in joins:
-            res = res.join(*join)
+            res = res.outerjoin(*join)
         return res.filter(*args)
 
     def values_list(self, *fields):

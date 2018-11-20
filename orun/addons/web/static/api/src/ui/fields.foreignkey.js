@@ -121,17 +121,15 @@
           let service = new Katrid.Services.Model(field.model);
           try {
             let res = await service.createName(v.str);
+            controller.$setDirty();
+            sel.select2('data', { id: res[0], text: res[1] });
+            controller.$setViewValue({
+              id: res.result[0],
+              text: res.result[1]
+            });
+          }
+          catch {
 
-            if (res.ok) {
-              controller.$setDirty();
-              sel.select2('data', { id: res.result[0], text: res.result[1] });
-              controller.$setViewValue({
-                id: res.result[0],
-                text: res.result[1]
-              })
-            }
-
-          } finally {
               let res = await service.getViewInfo({
                 view_type: "form"
               });
