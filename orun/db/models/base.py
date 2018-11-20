@@ -797,7 +797,7 @@ def unpickle_inner_exception(klass, exception_name):
 
 def _resolve_fk_search(field, join_list):
     if isinstance(field, ForeignKey):
-        rel_model = app[field.related_model]
+        rel_model = app[field.rel.model]
         join_list.append(rel_model)
         return rel_model._meta.get_name_fields()
     return [field]
