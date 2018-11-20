@@ -154,12 +154,14 @@
             errorMsgs.push(`<span>${field.caption}</span><ul><li>${Katrid.i18n.gettext('This field cannot be empty.')}</li></ul>`);
           }
         }
+        else
+          console.log(form.$error[errorType]);
 
       return elfield;
     }
 
     validate() {
-      console.log('validate', this.scope.form);
+      console.log('validate', this.scope.form.$error);
       if (this.scope.form.$invalid) {
         let elfield;
         let errors = [];
@@ -588,7 +590,7 @@
 
     setValues(values) {
       Object.entries(values).forEach(([k, v]) => {
-        let fld = this.scope.view.fields[k];
+        let fld = this.action.scope.view.fields[k];
         if (fld)
           fld.fromJSON(v, this);
         else

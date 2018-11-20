@@ -97,7 +97,8 @@
       }]);
 
       this.ngApp.controller('ActionController', ['$scope', '$compile', '$state', 'action', '$element', '$location',
-        function($scope, $compile, $state, action, $element, $location) {
+        '$transitions', function($scope, $compile, $state, action, $element, $location, $transitions) {
+
         Katrid.Core.compile = $compile;
         action.$state = $state;
         action.scope = $scope;
@@ -124,6 +125,11 @@
             control.$setDirty();
           }
         };
+
+        $transitions.onBefore({ to: 'actionView' }, function(transition, state) {
+          if ($state.params.actionId !== transition.params().actionId)
+            action._unregisterHook();
+        });
 
         if (action instanceof Katrid.Actions.WindowAction)
           action.viewType = $location.$$search.view_type || action.viewModes[0];

@@ -164,7 +164,8 @@ var Katrid = {
       }]);
 
       this.ngApp.controller('ActionController', ['$scope', '$compile', '$state', 'action', '$element', '$location',
-        function($scope, $compile, $state, action, $element, $location) {
+        '$transitions', function($scope, $compile, $state, action, $element, $location, $transitions) {
+
         Katrid.Core.compile = $compile;
         action.$state = $state;
         action.scope = $scope;
@@ -191,6 +192,11 @@ var Katrid = {
             control.$setDirty();
           }
         };
+
+        $transitions.onBefore({ to: 'actionView' }, function(transition, state) {
+          if ($state.params.actionId !== transition.params().actionId)
+            action._unregisterHook();
+        });
 
         if (action instanceof Katrid.Actions.WindowAction)
           action.viewType = $location.$$search.view_type || action.viewModes[0];
@@ -1017,12 +1023,14 @@ Katrid.Data = {};
             errorMsgs.push(`<span>${field.caption}</span><ul><li>${Katrid.i18n.gettext('This field cannot be empty.')}</li></ul>`);
           }
         }
+        else
+          console.log(form.$error[errorType]);
 
       return elfield;
     }
 
     validate() {
-      console.log('validate', this.scope.form);
+      console.log('validate', this.scope.form.$error);
       if (this.scope.form.$invalid) {
         let elfield;
         let errors = [];
@@ -1451,7 +1459,7 @@ Katrid.Data = {};
 
     setValues(values) {
       Object.entries(values).forEach(([k, v]) => {
-        let fld = this.scope.view.fields[k];
+        let fld = this.action.scope.view.fields[k];
         if (fld)
           fld.fromJSON(v, this);
         else
