@@ -60,14 +60,16 @@
       return super.getCurrentTitle();
     }
 
-    async createNew() {
-      Katrid.ui.Dialogs.WaitDialog.show();
-      try {
-        this.viewType = 'form';
-        await this.dataSource.insert();
-      } finally {
-        Katrid.ui.Dialogs.WaitDialog.hide();
-      }
+    createNew() {
+      this.viewType = 'form';
+      setTimeout(async () => {
+        try {
+          Katrid.ui.Dialogs.WaitDialog.show();
+          await this.dataSource.insert();
+        } finally {
+          Katrid.ui.Dialogs.WaitDialog.hide();
+        }
+      });
     }
 
     deleteSelection() {
@@ -122,6 +124,7 @@
 
         if ((search.page == null) && (this.viewType !== 'form')) {
           this.location.search('page', 1);
+          console.log('set limit', this._viewType);
           this.location.search('limit', this.info.limit);
         }
 
@@ -235,8 +238,9 @@
       if (!this.scope.$$phase)
         this.scope.$apply();
 
-      if (this.location.$$search.view_type !== value)
-        setTimeout(() => this.$state.go('.', {view_type: value}));
+      if (this.location.$$search.view_type !== value) {
+        this.location.search({ view_type: value });
+      }
     }
 
     set view(value) {
@@ -361,6 +365,7 @@
         }
       } else {
         this.dataSource.recordIndex = index;
+        this.viewType = 'form';
         this.$state.go('.', search, { inherit: false });
       }
     }

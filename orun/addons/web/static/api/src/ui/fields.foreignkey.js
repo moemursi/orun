@@ -115,25 +115,29 @@
         config["multiple"] = true
       }
       sel = sel.select2(config);
-      sel.on("change", e => {
+      sel.on("change", async e => {
         let v = e.added;
         if (v && v.id === newItem) {
           let service = new Katrid.Services.Model(field.model);
-          return service.createName(v.str).done(res => {
+          try {
+            let res = await service.createName(v.str);
+
             if (res.ok) {
               controller.$setDirty();
+              sel.select2('data', { id: res.result[0], text: res.result[1] });
               controller.$setViewValue({
                 id: res.result[0],
                 text: res.result[1]
               })
             }
-          }).fail(res => {
-            service.getViewInfo({
-              view_type: "form"
-            }).done(res => {
-              console.log("view info", res)
-            })
-          })
+
+          } finally {
+              let res = await service.getViewInfo({
+                view_type: "form"
+              });
+              let wnd = Katrid.ui.Dialogs.Window(scope, { view: res }, $compile);
+              wnd.show();
+          }
         } else if (v && v.id === newEditItem) {
           let service = new Katrid.Services.Model(field.model);
           return service.getViewInfo({

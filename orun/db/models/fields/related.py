@@ -164,6 +164,7 @@ class ForeignKey(RelatedField):
     def _formfield(self):
         info = super()._formfield()
         info['domain'] = self.domain
+        info['model'] = self.rel.model._meta.name
         return info
 
 

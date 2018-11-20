@@ -525,8 +525,10 @@ var Katrid = {
       if (res) {
         res.fields = Katrid.Data.Fields.Field.fromArray(res.fields);
         res.fieldList = Object.values(res.fields);
-        Object.values(res.views).map(v => v.fields = Katrid.Data.Fields.Field.fromArray(v.fields));
-        Object.keys(res.views).map(k => res.views[k] = new Katrid.ui.ViewInfo(res.views[k]));
+        if (res.views) {
+          Object.values(res.views).map(v => v.fields = Katrid.Data.Fields.Field.fromArray(v.fields));
+          Object.keys(res.views).map(k => res.views[k] = new Katrid.ui.ViewInfo(res.views[k]));
+        }
       }
       return res;
     }
@@ -2373,14 +2375,16 @@ Katrid.Data = {};
       return super.getCurrentTitle();
     }
 
-    async createNew() {
-      Katrid.ui.Dialogs.WaitDialog.show();
-      try {
-        this.viewType = 'form';
-        await this.dataSource.insert();
-      } finally {
-        Katrid.ui.Dialogs.WaitDialog.hide();
-      }
+    createNew() {
+      this.viewType = 'form';
+      setTimeout(async () => {
+        try {
+          Katrid.ui.Dialogs.WaitDialog.show();
+          await this.dataSource.insert();
+        } finally {
+          Katrid.ui.Dialogs.WaitDialog.hide();
+        }
+      });
     }
 
     deleteSelection() {
@@ -2435,6 +2439,7 @@ Katrid.Data = {};
 
         if ((search.page == null) && (this.viewType !== 'form')) {
           this.location.search('page', 1);
+          console.log('set limit', this._viewType);
           this.location.search('limit', this.info.limit);
         }
 
@@ -2548,8 +2553,9 @@ Katrid.Data = {};
       if (!this.scope.$$phase)
         this.scope.$apply();
 
-      if (this.location.$$search.view_type !== value)
-        setTimeout(() => this.$state.go('.', {view_type: value}));
+      if (this.location.$$search.view_type !== value) {
+        this.location.search({ view_type: value });
+      }
     }
 
     set view(value) {
@@ -2674,6 +2680,7 @@ Katrid.Data = {};
         }
       } else {
         this.dataSource.recordIndex = index;
+        this.viewType = 'form';
         this.$state.go('.', search, { inherit: false });
       }
     }
@@ -7505,25 +7512,29 @@ Katrid.Data = {};
         config["multiple"] = true
       }
       sel = sel.select2(config);
-      sel.on("change", e => {
+      sel.on("change", async e => {
         let v = e.added;
         if (v && v.id === newItem) {
           let service = new Katrid.Services.Model(field.model);
-          return service.createName(v.str).done(res => {
+          try {
+            let res = await service.createName(v.str);
+
             if (res.ok) {
               controller.$setDirty();
+              sel.select2('data', { id: res.result[0], text: res.result[1] });
               controller.$setViewValue({
                 id: res.result[0],
                 text: res.result[1]
               })
             }
-          }).fail(res => {
-            service.getViewInfo({
-              view_type: "form"
-            }).done(res => {
-              console.log("view info", res)
-            })
-          })
+
+          } finally {
+              let res = await service.getViewInfo({
+                view_type: "form"
+              });
+              let wnd = Katrid.ui.Dialogs.Window(scope, { view: res }, $compile);
+              wnd.show();
+          }
         } else if (v && v.id === newEditItem) {
           let service = new Katrid.Services.Model(field.model);
           return service.getViewInfo({

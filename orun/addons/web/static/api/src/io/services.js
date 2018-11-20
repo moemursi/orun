@@ -173,8 +173,10 @@
       if (res) {
         res.fields = Katrid.Data.Fields.Field.fromArray(res.fields);
         res.fieldList = Object.values(res.fields);
-        Object.values(res.views).map(v => v.fields = Katrid.Data.Fields.Field.fromArray(v.fields));
-        Object.keys(res.views).map(k => res.views[k] = new Katrid.ui.ViewInfo(res.views[k]));
+        if (res.views) {
+          Object.values(res.views).map(v => v.fields = Katrid.Data.Fields.Field.fromArray(v.fields));
+          Object.keys(res.views).map(k => res.views[k] = new Katrid.ui.ViewInfo(res.views[k]));
+        }
       }
       return res;
     }
