@@ -7518,27 +7518,17 @@ Katrid.Data = {};
           let service = new Katrid.Services.Model(field.model);
           try {
             let res = await service.createName(v.str);
-            controller.$setDirty();
-            console.log(res);
+            let vals = {};
+            vals[field.name] = res;
+            scope.dataSource.setValues(vals);
             sel.select2('data', { id: res[0], text: res[1] });
-            console.log(res);
-            // controller.$setViewValue({
-            //   id: res.result[0],
-            //   text: res.result[1]
-            // })
-            return;
-
-          } finally {
-
+          } catch(err) {
+            let res = await service.getViewInfo({
+              view_type: "form"
+            });
+            let wnd = Katrid.ui.Dialogs.Window(scope, { view: res }, $compile);
+              wnd.show();
           }
-          // catch {
-          //
-          //     let res = await service.getViewInfo({
-          //       view_type: "form"
-          //     });
-          //     let wnd = Katrid.ui.Dialogs.Window(scope, { view: res }, $compile);
-          //     wnd.show();
-          // }
         } else if (v && v.id === newEditItem) {
           let service = new Katrid.Services.Model(field.model);
           return service.getViewInfo({
