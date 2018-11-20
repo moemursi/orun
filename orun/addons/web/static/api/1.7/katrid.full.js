@@ -2648,7 +2648,7 @@ Katrid.Data = {};
       .then(action => {
 
         if (action.action_type === 'ir.action.report')
-          ReportAction.dispatchBindingAction(this, action);
+          Katrid.Actions.ReportAction.dispatchBindingAction(this, action);
 
       });
     }
