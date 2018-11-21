@@ -64,6 +64,10 @@ class Partner(models.Model):
         verbose_name = _('Partner')
         verbose_name_plural = _('Partners')
 
+    def save(self, *args, **kwargs):
+        self.company_id = 1
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
