@@ -6,6 +6,7 @@
       this.scope = {};
       this.$compile = $compile;
     }
+
     async loadViews(scope, element, views, attrs) {
 
       let res = await scope.model.loadViews();
@@ -292,7 +293,7 @@
       };
 
 
-      scope.$on('masterChanged', async function(evt, master, key) {
+      let unkook = scope.$on('masterChanged', async function(evt, master, key) {
         // Ajax load nested data
         if (master === scope.dataSource.masterSource) {
           scope.dataSet = [];
@@ -308,6 +309,12 @@
           }
         }
       });
+
+      scope.$on('$destroy', function() {
+        unkook();
+        dataSource.masterSource.children.splice(dataSource.masterSource.indexOf(dataSource), 1);
+      });
+
 
     }
     async renderDialog(scope, attrs) {

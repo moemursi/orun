@@ -14,6 +14,8 @@ class RecordsProxy(object):
         self.__dict__['__instance__'] = iterable
 
     def __iter__(self):
+        if self.__instance__ is None:
+            return []
         return iter(self.__instance__)
 
     def __getitem__(self, item):

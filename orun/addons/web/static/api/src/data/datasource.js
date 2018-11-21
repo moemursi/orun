@@ -596,8 +596,6 @@
         else
           this.scope.record[k] = v
       });
-      for (let child of this.children)
-        child.scope.$apply();
       this.scope.$apply();
     }
 
