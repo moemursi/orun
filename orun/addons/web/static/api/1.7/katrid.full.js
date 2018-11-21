@@ -1907,12 +1907,12 @@ Katrid.Data = {};
   class DecimalField extends NumericField {
     constructor() {
       super(...arguments);
+      console.log(this._info.attrs);
       if (this._info.attrs) {
-        this.decimal_places = this._info.attrs.decimal_places || 2;
+        this.decimalPlaces = this._info.attrs.decimal_places || 2;
       }
     }
   }
-
 
   class ForeignKey extends Field {
     constructor() {
@@ -5278,7 +5278,9 @@ Katrid.Data = {};
     }
 
     link(scope, element, attrs, controller) {
-      let precision = 2;
+      let field = scope.view.fields[attrs.name];
+      let precision = field.decimalPlaces;
+      console.log(field);
       if (attrs.decimalPlaces)
        precision = parseInt(attrs.decimalPlaces);
 

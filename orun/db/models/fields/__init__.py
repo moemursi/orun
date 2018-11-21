@@ -106,7 +106,6 @@ class Field(BaseField):
     many_to_one = False
     one_to_many = False
     one_to_one = False
-    widget_attrs = None
     related = None
 
     def __init__(self, label=None, max_length=None, null=True, primary_key=False, column=None, concrete=None,
@@ -136,6 +135,7 @@ class Field(BaseField):
         self.choices = choices
         self.deferred = deferred
         self.translate = translate
+        self.widget_attrs = widget_attrs
         if isinstance(proxy, str):
             proxy = proxy.split('.')
             if getter is None:

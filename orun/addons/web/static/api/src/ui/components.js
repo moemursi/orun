@@ -268,7 +268,9 @@
     }
 
     link(scope, element, attrs, controller) {
-      let precision = 2;
+      let field = scope.view.fields[attrs.name];
+      let precision = field.decimalPlaces;
+      console.log(field);
       if (attrs.decimalPlaces)
        precision = parseInt(attrs.decimalPlaces);
 
