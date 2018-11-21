@@ -13,8 +13,8 @@ class ForeignKeyDescriptor:
         value = getattr(instance, self.field.attname)
         if value is None:
             self.field.set_cached_value(instance, None)
-        elif (obj and obj.pk != value) or not obj:
-            obj = self.field.related_model.objects.get(value)
+        elif (obj and obj.pk is not None and str(obj.pk) != str(value)) or not obj:
+            obj = self.field.rel.model.objects.get(value)
             self.field.set_cached_value(instance, obj)
         return obj
 

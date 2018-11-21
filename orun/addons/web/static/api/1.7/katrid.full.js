@@ -1907,7 +1907,7 @@ Katrid.Data = {};
   class DecimalField extends NumericField {
     constructor() {
       super(...arguments);
-      console.log(this._info.attrs);
+      this.decimalPlaces = 2;
       if (this._info.attrs) {
         this.decimalPlaces = this._info.attrs.decimal_places || 2;
       }
