@@ -65,7 +65,7 @@ class Partner(models.Model):
         verbose_name_plural = _('Partners')
 
     def save(self, *args, **kwargs):
-        self.company_id = 1
+        self.company_id = 2
         super().save(*args, **kwargs)
 
     def __str__(self):
