@@ -262,6 +262,12 @@
   }
 
   class DecimalField extends NumericField {
+    constructor() {
+      super(...arguments);
+      if (this._info.attrs) {
+        this.decimal_places = this._info.attrs.decimal_places || 2;
+      }
+    }
   }
 
   class ForeignKey extends Field {
