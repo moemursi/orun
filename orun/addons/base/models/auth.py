@@ -74,6 +74,11 @@ class User(Partner):
     class Meta:
         name = 'auth.user'
 
+    def save(self, *args, **kwargs):
+        if self.company_id is None:
+            self.company_id = 2
+        super().save(*args, **kwargs)
+
     def set_password(self, password):
         from orun.auth.hashers import make_password
         self.password = make_password(password)
