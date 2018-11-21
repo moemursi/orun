@@ -89,9 +89,15 @@ class Deserializer(base.Deserializer):
         #         values['content'] = f.read()
 
         Object = app['ir.object']
+        can_update = not (obj.get('noupdate', False) and True)
         try:
             obj_id = Object.objects.filter(Object.c.name == obj_name).one()
+            if can_update != obj_id.can_update:
+                obj_id.can_update = can_update
+                obj_id.save()
             instance = obj_id.object
+            if not can_update:
+                return instance
         except ObjectDoesNotExist:
             instance = Model()
         pk = instance.pk
@@ -111,7 +117,8 @@ class Deserializer(base.Deserializer):
                 app_label=self.app_config.app_label,
                 name=obj_name,
                 object_id=instance.pk,
-                model=instance._meta.name
+                model=instance._meta.name,
+                can_update=not (obj.get('noupdate', False) and True),
             )
         for child, v in children.items():
             # Delete all items
