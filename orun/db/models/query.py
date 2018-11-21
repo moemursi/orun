@@ -257,7 +257,7 @@ def convert_params(model, params, joins=None):
                     v = v.pk
                 args = k.split('__', 1)
                 col = args[0]
-                fld = model._meta.fields_dict[col]
+                fld = model._meta.fields_dict.get(col)
                 col = fld.column
                 attr = None
                 if len(args) > 1:
@@ -265,15 +265,12 @@ def convert_params(model, params, joins=None):
                         if arg == 'icontains':
                             arg = 'ilike'
                             v = '%' + v + '%'
-                        if isinstance(fld, models.ForeignKey) and '__' in k:
+                        attr = getattr(col, arg, getattr(col, arg + '_', None))
+                        if attr is None and isinstance(fld, models.ForeignKey) and '__' in k:
                             joins.append([fld.rel.model, getattr(model, fld.rel.prop_name)])
                             for sub_param in convert_params(fld.rel.model, {arg: v}, joins):
                                 yield sub_param
                             break
-                        else:
-                            attr = getattr(col, arg, None)
-                            if attr is None:
-                                attr = getattr(col, arg + '_', None)
                 if attr and callable(attr):
                     yield attr(v)
                 elif sub_param is None:
