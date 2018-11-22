@@ -17,6 +17,7 @@
           ${ns.includes()}
         % endif
       % endfor
+      <%block name="styles"></%block>
     </head>
   </%block>
 <body>
@@ -24,10 +25,10 @@
 <row class="report-title">
   <column>
   <img id="logo" src="${company.base64_logo}"/>
-  <div class="float-right">
+  <div class="float-right text-right">
     % if company.report_header:
     <small class="float-right">
-      ${company.report_header}
+      ${company.report_header | linebreaks}
     </small>
     <br/>
     % endif
@@ -45,7 +46,7 @@ ${next.body()}
 
 <%block name="footer">
 <footer>
-  ${(company.report_footer or str(company)) | linebreaks}
+##   ${(company.report_footer or str(company)) | linebreaks}
 </footer>
 </%block>
 
