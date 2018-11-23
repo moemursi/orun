@@ -8490,7 +8490,7 @@ Katrid.Data = {};
 
   class Telegram {
     static async export(report, format) {
-      let templ = Katrid.app.$templateCache.get('reportbot.dilaog.contacts');
+      let templ = Katrid.app.$templateCache.get('reportbot.dialog.contacts');
       let modal = $(templ);
       $('body').append(modal);
 
