@@ -29,6 +29,8 @@
       else
         content.attr('ng-row-click', 'openItem($event, $index)');
 
+      content.attr('list-options', '{"deleteRow": true}');
+
       // render the list component
       let el = (this.$compile(content)(scope));
       element.html(el);
@@ -441,6 +443,8 @@
           let delRow = $(Katrid.app.getTemplate('view.list.table.delete.pug'));
           tr.append(delRow[1]);
           thead.append(delRow[0]);
+          if (hasTotal)
+            tfoot.append('<td class="list-column-delete" ng-show="parent.dataSource.changing && !dataSource.readonly"></td>');
         }
         el.html('');
         el.append($compile(templ)(scope));
