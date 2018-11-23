@@ -458,6 +458,9 @@ class Model(metaclass=ModelBase):
         return force_text(dict(field.flatchoices).get(value, value), strings_only=True)
 
     def serialize(self, fields=None, exclude=None, view_type=None):
+        return self.to_json(fields=fields, exclude=exclude, view_type=view_type)
+
+    def to_json(self, fields=None, exclude=None, view_type=None):
         opts = self._meta
         data = {}
         if fields:

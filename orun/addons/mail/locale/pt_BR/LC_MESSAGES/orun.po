@@ -12,3 +12,19 @@ msgstr ""
 msgid "Allowed"
 msgstr "Permitido"
 
+msgid "Action (Optional)"
+msgstr "Ação (Opcional)"
+
+msgid "Fields Mapping"
+msgstr "Mapeamento de Campos"
+
+msgid "Source Model"
+msgstr "Modelo de Origem"
+
+msgid "Destination Model"
+msgstr "Modelo de Destino"
+
+msgid "Copying Settings"
+msgstr "Configurações de Cópia"
+
+

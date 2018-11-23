@@ -20,3 +20,6 @@ msgstr "Enviar"
 
 msgid "Log an internal note"
 msgstr "Deixar uma nota interna"
+
+msgid "Copy To"
+msgstr "Copiar Para"

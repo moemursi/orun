@@ -9,7 +9,7 @@ class AppConfig(orun.AppConfig):
     auto_install = False
     installable = True
     application = True
-    fixtures = ['mail.xml', 'views.xml', 'actions.xml']
+    fixtures = ['mail.xml', 'views.xml', 'actions.xml', 'menu.xml']
     dependencies = ['base']
 
 

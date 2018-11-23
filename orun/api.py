@@ -82,7 +82,9 @@ def records(*args, **kwargs):
         @wraps(fn)
         def wrapped(self, *args, **kwargs):
             ids = None
-            if args:
+            if self.pk:
+                return fn(self, *args, **kwargs)
+            elif args:
                 args = list(args)
                 ids = args[0]
                 args = args[1:]

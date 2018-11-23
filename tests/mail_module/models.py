@@ -15,3 +15,11 @@ class MyDocument(mail.models.DocumentApproval):
     class Meta:
         name = 'mail_module_test.my.document'
 
+
+class MyDocumentoDest(models.Model):
+    code = models.CharField()
+    name = models.CharField()
+
+    class Meta:
+        name = 'mail_module_test.my.document.dest'
+

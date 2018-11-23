@@ -266,7 +266,7 @@ def convert_params(model, params, joins=None):
                             arg = 'ilike'
                             v = '%' + v + '%'
                         attr = getattr(col, arg, getattr(col, arg + '_', None))
-                        if attr is None and isinstance(fld, models.ForeignKey) and '__' in k:
+                        if (attr is None or not callable(attr)) and isinstance(fld, models.ForeignKey) and '__' in k:
                             joins.append([fld.rel.model, getattr(model, fld.rel.prop_name)])
                             for sub_param in convert_params(fld.rel.model, {arg: v}, joins):
                                 yield sub_param

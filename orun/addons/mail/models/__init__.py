@@ -6,3 +6,4 @@ from .channels import *
 from .notification import *
 from .partner import *
 from .approval import *
+from .copying import *

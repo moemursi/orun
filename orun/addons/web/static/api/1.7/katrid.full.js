@@ -3598,9 +3598,35 @@ Katrid.Data = {};
 
     link($scope, $el) {
       $el.addClass('ng-form');
-      $el.find('form').addClass('row').attr('novalidate', 'novalidate');
+      let form = $el.find('form').addClass('row').attr('novalidate', 'novalidate');
       $scope.$parent.formElement = $el.find('form').first();
       $scope.$parent.form = angular.element($scope.formElement).controller('form');
+
+      let copySvc = new Katrid.Services.Model('ir.copy.to');
+
+      copySvc.rpc('get_copy_to_choices', [$scope.$parent.model.name])
+      .then(function(res) {
+        if (res)
+          $scope.copyToOpts = res;
+      })
+
+//       $el.on('contextmenu', function(e) {
+//   var top = e.pageY - 10;
+//   var left = e.pageX - 90;
+//   $("#context-menu").css({
+//     display: "block",
+//     top: top,
+//     left: left
+//   }).addClass("show");
+//   return false; //blocks default Webbrowser right click menu
+// }).on("click", function() {
+//   $("#context-menu").removeClass("show").hide();
+// });
+//
+// $("#context-menu a").on("click", function() {
+//   $(this).parent().removeClass("show").hide();
+// });
+
     }
   }
 

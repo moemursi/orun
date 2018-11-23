@@ -64,7 +64,23 @@
                 <a class="dropdown-item" href="#" ng-click="action.copy()">
                   <i class="fa fa-fw fa-files-o"></i>
                   {{ ::_.gettext('Duplicate') }}</a>
+                <a class="dropdown-item" href="#" onclick="event.preventDefault()">
+                  <i class="fa fa-fw fa-files-o"></i>
+                  {{ ::_.gettext('Copy To') }}
+                </a>
                 %(actions)s
+              </div>
+            </div>
+          </div>
+          <div class="btn-group">
+            <div class="dropdown">
+              <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">
+                {{ ::_.gettext('Copy To') }} <span class="caret"></span>
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="#" ng-click="action.copyTo(opt.id)" ng-repeat="opt in copyToOpts">
+                  {{ opt.name }}
+                </a>
               </div>
             </div>
           </div>
