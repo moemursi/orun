@@ -272,12 +272,20 @@
   }
 
   class ForeignKey extends Field {
-    constructor() {
+    constructor(info) {
       super(...arguments);
+      this.domain = info.domain;
       Object.assign(this.template, {
         list: 'view.list.foreignkey.pug',
         form: 'view.form.foreignkey.pug',
       });
+    }
+
+    assign(el) {
+      super.assign(el);
+      let domain = $(el).attr('domain');
+      if (domain)
+        this.domain = domain;
     }
 
     toJSON(val) {
@@ -288,10 +296,6 @@
 
     get validAttributes() {
       return super.validAttributes.concat(['domain']);
-    }
-
-    getDomain(el) {
-      return $(el).attr('domain') || this._info.domain;
     }
   }
 

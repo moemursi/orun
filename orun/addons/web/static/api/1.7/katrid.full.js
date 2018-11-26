@@ -1913,12 +1913,20 @@ Katrid.Data = {};
   }
 
   class ForeignKey extends Field {
-    constructor() {
+    constructor(info) {
       super(...arguments);
+      this.domain = info.domain;
       Object.assign(this.template, {
         list: 'view.list.foreignkey.pug',
         form: 'view.form.foreignkey.pug',
       });
+    }
+
+    assign(el) {
+      super.assign(el);
+      let domain = $(el).attr('domain');
+      if (domain)
+        this.domain = domain;
     }
 
     toJSON(val) {
@@ -1929,10 +1937,6 @@ Katrid.Data = {};
 
     get validAttributes() {
       return super.validAttributes.concat(['domain']);
-    }
-
-    getDomain(el) {
-      return $(el).attr('domain') || this._info.domain;
     }
   }
 
@@ -7459,9 +7463,9 @@ Katrid.Data = {};
         allowClear: true,
         query(query) {
           // evaluate domain attribute
-          let domain = field.getDomain(el);
-          if (domain)
-            domain = scope.$eval(field.getDomain(el));
+          let domain = field.domain;
+          if (domain && _.isString(domain))
+            domain = scope.$eval(domain);
 
           // make params
           let data = {

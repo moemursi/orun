@@ -19,9 +19,9 @@
         allowClear: true,
         query(query) {
           // evaluate domain attribute
-          let domain = field.getDomain(el);
-          if (domain)
-            domain = scope.$eval(field.getDomain(el));
+          let domain = field.domain;
+          if (domain && _.isString(domain))
+            domain = scope.$eval(domain);
 
           // make params
           let data = {
