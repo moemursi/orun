@@ -12,6 +12,7 @@ BUILTIN_SERIALIZERS = {
     "python": "orun.core.serializers.python",
     "json": "orun.core.serializers.json",
     "sql": "orun.core.serializers.sql",
+    "mako": "orun.core.serializers.mako_serializer",
     #"yaml": "orun.core.serializers.pyyaml",
 }
 
