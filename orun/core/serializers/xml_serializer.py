@@ -181,6 +181,16 @@ class Deserializer(base.Deserializer):
         }
         return self.read_object(action, **attrs)
 
+    def delete_object(self, obj, **attrs):
+        Object = app['ir.object']
+        try:
+            obj = Object.get_object(obj.attrib['id']).object
+            obj.delete()
+        except:
+            pass
+        else:
+            return True
+
     def read_template(self, obj, **attrs):
         templ = {
             'model': 'ui.view',
@@ -232,4 +242,5 @@ class Deserializer(base.Deserializer):
         'view': read_view,
         'menuitem': read_menu,
         'report': read_report,
+        'delete': delete_object,
     }
