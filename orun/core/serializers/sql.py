@@ -24,9 +24,12 @@ def Deserializer(stream_or_string, app, **options):
             additional_params = ''
             if os.name == 'nt':
                 additional_params = '-f 65001'
+                cmd = 'sqlcmd'
+            else:
+                cmd = '/opt/mssql-tools/bin/sqlcmd'
             os.system(
-                '/opt/mssql-tools/bin/sqlcmd -U %s -P %s -S %s -d %s -i "%s" %s' %
-                (user_name, pwd, host, db_name, stream_or_string.name, additional_params)
+                '%s -U %s -P %s -S %s -d %s -i "%s" %s' %
+                (cmd, user_name, pwd, host, db_name, stream_or_string.name, additional_params)
             )
         else:
             os.system(
