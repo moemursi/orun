@@ -7554,6 +7554,10 @@ Katrid.Data = {};
           }
         }
       };
+
+      let allowCreateEdit = true;
+      let buttonsCreated = false;
+
       let {
         multiple: multiple
       } = attrs;
@@ -7562,7 +7566,8 @@ Katrid.Data = {};
       }
       sel = sel.select2(config);
 
-      console.log(sel.parent());
+      sel.parent().find('div.select2-container>div.select2-drop')
+      .append(`<div style="padding: 4px;"><button class="btn btn-outline-secondary btn-sm">${Katrid.i18n.gettext('Create and Edit...')}</button></div>`);
 
       sel.on("change", async e => {
         let v = e.added;
