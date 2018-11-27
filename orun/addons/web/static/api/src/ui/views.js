@@ -131,45 +131,6 @@
 
   class Form {
     constructor() {
-      this.restrict = 'E';
-      this.scope = false;
-    }
-
-    buildHeader(form) {
-      let newHeader = form.find('form header').first();
-      form.find('form.full-width').closest('.container').removeClass('container').find('.card').first().addClass('full-width no-border');
-
-      // Add form header
-      if (newHeader.length) {
-        let headerButtons = $('<div class="header-buttons"></div>');
-        newHeader.prepend(headerButtons);
-        newHeader.find('button')
-        .each((idx, btn) => headerButtons.append(btn));
-      } else
-        newHeader = $('<header></header>');
-      newHeader.addClass('content-container-heading');
-      let header = form.find('header').first();
-      header.replaceWith(newHeader);
-      form.find('field[name=status]').prependTo(newHeader);
-    }
-
-    link(scope, element) {
-      element.find('form.full-width').closest('.container').removeClass('container').find('.card').first().addClass('full-width no-border');
-      scope.$parent.formElement = element.find('form').first();
-      scope.$parent.form = angular.element(scope.formElement).controller('form');
-    }
-
-    template(element, attrs) {
-      compileButtons(element);
-      this.buildHeader(element);
-      element.addClass('ng-form');
-      return element.html();
-    }
-  }
-
-
-  class NewForm {
-    constructor() {
       this.replace = true;
       this.scope = false;
     }
@@ -246,7 +207,7 @@
   }
 
   Katrid.ui.uiKatrid
-  .directive('formView', NewForm)
+  .directive('formView', Form)
 
   .directive('listView', () => ({
     replace: true,

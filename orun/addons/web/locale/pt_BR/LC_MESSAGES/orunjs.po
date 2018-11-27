@@ -183,8 +183,8 @@ msgstr "Este campo deve ser preenchido."
 msgid "Creating..."
 msgstr "Criando..."
 
-msgid "Create and Edit..."
-msgstr "Criar e Editar..."
+msgid "Create New..."
+msgstr "Criar Novo..."
 
 msgid "Set Default"
 msgstr "Valor Padrão"

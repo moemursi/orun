@@ -133,4 +133,34 @@
       %(content)s
     </form>
   </script>
+  <script id="view.form.dialog.modal" type="text/ng-template">
+    <div class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg form-view form-data-changing" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="myModalLabel">
+              {{dialogTitle}}
+              {{action.info.display_name}}
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          </div>
+          <div class="modal-body data-form data-panel">
+              <!-- view content -->
+            <div class="clearfix"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" type="button" ng-click="dataSource.saveAndClose()" ng-show="dataSource.changing">
+              {{::_.gettext('Save')}}
+            </button>
+            <button type="button" class="btn btn-secondary" type="button" data-dismiss="modal" ng-show="dataSource.changing">
+              {{::_.gettext('Cancel')}}
+            </button>
+            <button type="button" class="btn btn-secondary" type="button" data-dismiss="modal" ng-show="!dataSource.changing">
+              {{::_.gettext('Close')}}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </script>
 </templates>

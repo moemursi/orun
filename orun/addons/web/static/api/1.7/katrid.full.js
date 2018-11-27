@@ -3522,45 +3522,6 @@ Katrid.Data = {};
 
   class Form {
     constructor() {
-      this.restrict = 'E';
-      this.scope = false;
-    }
-
-    buildHeader(form) {
-      let newHeader = form.find('form header').first();
-      form.find('form.full-width').closest('.container').removeClass('container').find('.card').first().addClass('full-width no-border');
-
-      // Add form header
-      if (newHeader.length) {
-        let headerButtons = $('<div class="header-buttons"></div>');
-        newHeader.prepend(headerButtons);
-        newHeader.find('button')
-        .each((idx, btn) => headerButtons.append(btn));
-      } else
-        newHeader = $('<header></header>');
-      newHeader.addClass('content-container-heading');
-      let header = form.find('header').first();
-      header.replaceWith(newHeader);
-      form.find('field[name=status]').prependTo(newHeader);
-    }
-
-    link(scope, element) {
-      element.find('form.full-width').closest('.container').removeClass('container').find('.card').first().addClass('full-width no-border');
-      scope.$parent.formElement = element.find('form').first();
-      scope.$parent.form = angular.element(scope.formElement).controller('form');
-    }
-
-    template(element, attrs) {
-      compileButtons(element);
-      this.buildHeader(element);
-      element.addClass('ng-form');
-      return element.html();
-    }
-  }
-
-
-  class NewForm {
-    constructor() {
       this.replace = true;
       this.scope = false;
     }
@@ -3637,7 +3598,7 @@ Katrid.Data = {};
   }
 
   Katrid.ui.uiKatrid
-  .directive('formView', NewForm)
+  .directive('formView', Form)
 
   .directive('listView', () => ({
     replace: true,
@@ -6553,7 +6514,10 @@ Katrid.Data = {};
       replace: true,
       template: '<div class="content"><div class="comments"><mail-comments/></div></div>',
       link(scope, element, attrs) {
-        $(element).closest('.form-view[ng-form=form]').find('.content-scroll>.content').append(element);
+        if (element.closest('.modal-dialog').length)
+          element.remove();
+        else
+          $(element).closest('.form-view[ng-form=form]').find('.content-scroll>.content').append(element);
       }
     })
   );
@@ -7398,42 +7362,35 @@ Katrid.Data = {};
   class Window extends Dialog {
     constructor(scope, options, $compile) {
       super(scope.$new(), options, $compile);
-      this.templateUrl = 'dialog.window';
-      console.log(Katrid.app.getTemplate(this.templateUrl));
       this.scope.parentAction = scope.action;
-      console.log(options);
-      this.scope.views = { form: options.view };
+      this.scope.views = {form: options.view};
       this.scope.title = (options && options.title) || Katrid.i18n.gettext('Create: ');
       this.scope.view = options.view;
-      this.content = options.view.content;
     }
+
+    show(field, $controller) {
+      let view = this.scope.view;
+      let elScope = this.scope;
+      elScope.views = {form: view};
+      elScope.isDialog = true;
+      elScope.dialogTitle = Katrid.i18n.gettext('Create: ');
+      console.log(Katrid.app.$templateCache.get('view.form.dialog.modal').replace(
+        '<!-- view content -->',
+        '<form-view form-dialog="dialog">' + view.content + '</form-view>',
+      ));
+      let el = $(Katrid.app.$templateCache.get('view.form.dialog.modal').replace(
+        '<!-- view content -->',
+        '<form-view form-dialog="dialog">' + view.content + '</form-view>',
+      ));
+      elScope.root = el.find('form-view');
+
+      el = this.$compile(el)(elScope);
+      el.find('form').first().addClass('row');
+      el.modal('show').on('shown.bs.modal', () => Katrid.ui.uiKatrid.setFocus(el.find('.form-field').first()));
+
+      return el;
+    };
   }
-
-  let showWindow = (scope, field, view, $compile, $controller) => {
-    const elScope = scope.$new();
-    elScope.parentAction = scope.action;
-    elScope.views = { form: view };
-    elScope.isDialog = true;
-    elScope.dialogTitle = Katrid.i18n.gettext('Create: ');
-    let el = $(Katrid.ui.Utils.Templates.windowDialog(elScope));
-    elScope.root = el.find('.modal-dialog-body');
-    $controller('ActionController', {
-        $scope: elScope,
-        action: {
-          model: [null, field.model],
-          action_type: "ir.action.window",
-          view_mode: 'form',
-          view_type: 'form',
-          display_name: field.caption
-        }
-      }
-    );
-
-    el = $compile(el)(elScope);
-    el.modal('show').on('shown.bs.modal', () => Katrid.ui.uiKatrid.setFocus(el.find('.form-field').first()));
-
-    return el;
-  };
 
   Katrid.ui.Dialogs = {
     Alerts,
@@ -7500,13 +7457,6 @@ Katrid.Data = {};
                     text: msg
                   })
                 }
-                if ((attrs.allowCreateEdit && attrs.allowCreateEdit !== "false" || !attrs.allowCreateEdit) && v) {
-                  msg = Katrid.i18n.gettext("Create and Edit...");
-                  r.push({
-                    id: newEditItem,
-                    text: msg
-                  })
-                }
               }
               return query.callback({
                 results: r,
@@ -7555,8 +7505,8 @@ Katrid.Data = {};
         }
       };
 
-      let allowCreateEdit = true;
-      let buttonsCreated = false;
+      let allowCreateEdit = attrs.noCreateEdit;
+      allowCreateEdit = _.isUndefined(allowCreateEdit) || !Boolean(allowCreateEdit);
 
       let {
         multiple: multiple
@@ -7566,8 +7516,22 @@ Katrid.Data = {};
       }
       sel = sel.select2(config);
 
-      sel.parent().find('div.select2-container>div.select2-drop')
-      .append(`<div style="padding: 4px;"><button class="btn btn-outline-secondary btn-sm">${Katrid.i18n.gettext('Create and Edit...')}</button></div>`);
+      let createNew = () => {
+        sel.select2('close');
+        let service = new Katrid.Services.Model(field.model);
+        return service.getViewInfo({
+          view_type: "form"
+        }).then(function(res) {
+          let wnd = new Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller);
+          wnd.show(field, $controller);
+        })
+      };
+
+      if (allowCreateEdit)
+        sel.parent().find('div.select2-container>div.select2-drop')
+        .append(`<div style="padding: 4px;"><button class="btn btn-outline-secondary btn-sm">${Katrid.i18n.gettext('Create New...')}</button></div>`)
+        .find('button').click(createNew);
+
 
       sel.on("change", async e => {
         let v = e.added;
@@ -7587,15 +7551,6 @@ Katrid.Data = {};
               wnd.show();
           }
         } else if (v && v.id === newEditItem) {
-          let service = new Katrid.Services.Model(field.model);
-          return service.getViewInfo({
-            view_type: "form"
-          }).then(function(res) {
-            let wnd = new Katrid.ui.Dialogs.Window(scope, {
-              view: res
-            }, $compile);
-            wnd.show()
-          })
         } else if (multiple && e.val.length) {
           return controller.$setViewValue(e.val)
         } else {

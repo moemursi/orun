@@ -52,42 +52,35 @@
   class Window extends Dialog {
     constructor(scope, options, $compile) {
       super(scope.$new(), options, $compile);
-      this.templateUrl = 'dialog.window';
-      console.log(Katrid.app.getTemplate(this.templateUrl));
       this.scope.parentAction = scope.action;
-      console.log(options);
-      this.scope.views = { form: options.view };
+      this.scope.views = {form: options.view};
       this.scope.title = (options && options.title) || Katrid.i18n.gettext('Create: ');
       this.scope.view = options.view;
-      this.content = options.view.content;
     }
+
+    show(field, $controller) {
+      let view = this.scope.view;
+      let elScope = this.scope;
+      elScope.views = {form: view};
+      elScope.isDialog = true;
+      elScope.dialogTitle = Katrid.i18n.gettext('Create: ');
+      console.log(Katrid.app.$templateCache.get('view.form.dialog.modal').replace(
+        '<!-- view content -->',
+        '<form-view form-dialog="dialog">' + view.content + '</form-view>',
+      ));
+      let el = $(Katrid.app.$templateCache.get('view.form.dialog.modal').replace(
+        '<!-- view content -->',
+        '<form-view form-dialog="dialog">' + view.content + '</form-view>',
+      ));
+      elScope.root = el.find('form-view');
+
+      el = this.$compile(el)(elScope);
+      el.find('form').first().addClass('row');
+      el.modal('show').on('shown.bs.modal', () => Katrid.ui.uiKatrid.setFocus(el.find('.form-field').first()));
+
+      return el;
+    };
   }
-
-  let showWindow = (scope, field, view, $compile, $controller) => {
-    const elScope = scope.$new();
-    elScope.parentAction = scope.action;
-    elScope.views = { form: view };
-    elScope.isDialog = true;
-    elScope.dialogTitle = Katrid.i18n.gettext('Create: ');
-    let el = $(Katrid.ui.Utils.Templates.windowDialog(elScope));
-    elScope.root = el.find('.modal-dialog-body');
-    $controller('ActionController', {
-        $scope: elScope,
-        action: {
-          model: [null, field.model],
-          action_type: "ir.action.window",
-          view_mode: 'form',
-          view_type: 'form',
-          display_name: field.caption
-        }
-      }
-    );
-
-    el = $compile(el)(elScope);
-    el.modal('show').on('shown.bs.modal', () => Katrid.ui.uiKatrid.setFocus(el.find('.form-field').first()));
-
-    return el;
-  };
 
   Katrid.ui.Dialogs = {
     Alerts,

@@ -67,7 +67,10 @@
       replace: true,
       template: '<div class="content"><div class="comments"><mail-comments/></div></div>',
       link(scope, element, attrs) {
-        $(element).closest('.form-view[ng-form=form]').find('.content-scroll>.content').append(element);
+        if (element.closest('.modal-dialog').length)
+          element.remove();
+        else
+          $(element).closest('.form-view[ng-form=form]').find('.content-scroll>.content').append(element);
       }
     })
   );

@@ -54,13 +54,6 @@
                     text: msg
                   })
                 }
-                if ((attrs.allowCreateEdit && attrs.allowCreateEdit !== "false" || !attrs.allowCreateEdit) && v) {
-                  msg = Katrid.i18n.gettext("Create and Edit...");
-                  r.push({
-                    id: newEditItem,
-                    text: msg
-                  })
-                }
               }
               return query.callback({
                 results: r,
@@ -109,8 +102,8 @@
         }
       };
 
-      let allowCreateEdit = true;
-      let buttonsCreated = false;
+      let allowCreateEdit = attrs.noCreateEdit;
+      allowCreateEdit = _.isUndefined(allowCreateEdit) || !Boolean(allowCreateEdit);
 
       let {
         multiple: multiple
@@ -120,8 +113,22 @@
       }
       sel = sel.select2(config);
 
-      sel.parent().find('div.select2-container>div.select2-drop')
-      .append(`<div style="padding: 4px;"><button class="btn btn-outline-secondary btn-sm">${Katrid.i18n.gettext('Create and Edit...')}</button></div>`);
+      let createNew = () => {
+        sel.select2('close');
+        let service = new Katrid.Services.Model(field.model);
+        return service.getViewInfo({
+          view_type: "form"
+        }).then(function(res) {
+          let wnd = new Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller);
+          wnd.show(field, $controller);
+        })
+      };
+
+      if (allowCreateEdit)
+        sel.parent().find('div.select2-container>div.select2-drop')
+        .append(`<div style="padding: 4px;"><button class="btn btn-outline-secondary btn-sm">${Katrid.i18n.gettext('Create New...')}</button></div>`)
+        .find('button').click(createNew);
+
 
       sel.on("change", async e => {
         let v = e.added;
@@ -141,15 +148,6 @@
               wnd.show();
           }
         } else if (v && v.id === newEditItem) {
-          let service = new Katrid.Services.Model(field.model);
-          return service.getViewInfo({
-            view_type: "form"
-          }).then(function(res) {
-            let wnd = new Katrid.ui.Dialogs.Window(scope, {
-              view: res
-            }, $compile);
-            wnd.show()
-          })
         } else if (multiple && e.val.length) {
           return controller.$setViewValue(e.val)
         } else {
