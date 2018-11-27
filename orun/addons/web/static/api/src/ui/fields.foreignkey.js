@@ -115,6 +115,9 @@
         config["multiple"] = true
       }
       sel = sel.select2(config);
+
+      console.log(sel.parent());
+
       sel.on("change", async e => {
         let v = e.added;
         if (v && v.id === newItem) {
@@ -136,9 +139,9 @@
           let service = new Katrid.Services.Model(field.model);
           return service.getViewInfo({
             view_type: "form"
-          }).done(function(res) {
-            let wnd = new Katrid.Dialogs.Window(scope, {
-              view: res.result
+          }).then(function(res) {
+            let wnd = new Katrid.ui.Dialogs.Window(scope, {
+              view: res
             }, $compile);
             wnd.show()
           })
