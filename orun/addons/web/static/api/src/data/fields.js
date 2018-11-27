@@ -318,7 +318,7 @@
       if (val && val instanceof Array) {
         val.map((obj) => {
           if (obj.action === 'CLEAR')
-            child.scope.records = [];
+            dataSource.childByName(this.name).scope.records = [];
           else if (obj.action === 'CREATE') {
             let child = dataSource.childByName(this.name);
             child.scope.addRecord(obj.values);
