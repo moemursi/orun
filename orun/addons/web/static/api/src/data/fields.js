@@ -317,7 +317,9 @@
     fromJSON(val, dataSource) {
       if (val && val instanceof Array) {
         val.map((obj) => {
-          if (obj.action === 'CREATE') {
+          if (obj.action === 'CLEAR')
+            child.scope.records = [];
+          else if (obj.action === 'CREATE') {
             let child = dataSource.childByName(this.name);
             child.scope.addRecord(obj.values);
           }
