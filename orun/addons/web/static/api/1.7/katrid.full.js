@@ -7373,7 +7373,7 @@ Katrid.Data = {};
       let elScope = this.scope;
       elScope.views = {form: view};
       elScope.isDialog = true;
-      elScope.dialogTitle = Katrid.i18n.gettext('Create: ');
+      elScope.dialogTitle = _.sprintf(Katrid.i18n.gettext('Create: %(title)s'), { title: field.caption });
       console.log(Katrid.app.$templateCache.get('view.form.dialog.modal').replace(
         '<!-- view content -->',
         '<form-view form-dialog="dialog">' + view.content + '</form-view>',

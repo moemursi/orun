@@ -186,6 +186,9 @@ msgstr "Criando..."
 msgid "Create New..."
 msgstr "Criar Novo..."
 
+msgid "Create: %(title)s"
+msgstr "Criar: %(title)s"
+
 msgid "Set Default"
 msgstr "Valor Padrão"
 
