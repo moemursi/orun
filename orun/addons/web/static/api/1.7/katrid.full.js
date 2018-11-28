@@ -7812,7 +7812,7 @@ Katrid.Data = {};
 
 	    // Work out the unicode character for the decimal placeholder.
 	    var u_dec			= ('\\u'+('0000'+(dec_point.charCodeAt(0).toString(16))).slice(-4)),
-	    	regex_dec_num	= new RegExp('[^'+u_dec+'0-9]','g'),
+	    	regex_dec_num	= new RegExp('[^-'+u_dec+'0-9]','g'),
 	    	regex_dec		= new RegExp(u_dec,'g');
 
 	    // If we've specified to take the number from the target element,
@@ -7833,6 +7833,14 @@ Katrid.Data = {};
 	    			 * @return void;
 	    			 */
 	    			'keydown.format' : function(e){
+
+              if (e.key === '-') {
+              	if (this.value.includes('-'))
+              		this.value = this.value.substr(1, this.value.length-1);
+              	else
+                  this.value = '-' + this.value;
+								e.preventDefault();
+							}
 
 	    				// Define variables used in the code below.
 	    				var $this	= $(this),
