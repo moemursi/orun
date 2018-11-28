@@ -147,7 +147,6 @@ def date_format(value, format=None, use_l10n=None):
     If use_l10n is provided and is not None, that will force the value to
     be localized (or not), overriding the value of settings.USE_L10N.
     """
-    print('date_format', get_format(format or 'DATE_FORMAT', use_l10n=use_l10n))
     return dateformat.format(value, get_format(format or 'DATE_FORMAT', use_l10n=use_l10n))
 
 
