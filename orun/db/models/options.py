@@ -222,6 +222,7 @@ class Options:
                         descriptor = property(
                             *(getattr(f.model, attr) if isinstance(attr, str) else attr for attr in descriptor)
                         )
+                        descriptor.fget = ignore_error_decorator(descriptor.fget)
                     props[f.name] = synonym(f.name, descriptor=descriptor)
 
         props['pk'] = synonym(self.pk.attname)
@@ -409,6 +410,15 @@ def normalize_ordering(opts, ordering):
             o = o.desc()
         r.append(o)
     return r
+
+
+def ignore_error_decorator(fn):
+    def ignored(*args, **kwargs):
+        try:
+            fn(*args, **kwargs)
+        except:
+            pass
+    return ignored
 
 
 from orun.db.models.fields import Fields
