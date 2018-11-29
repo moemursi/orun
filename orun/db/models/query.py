@@ -272,7 +272,10 @@ def convert_params(model, params, joins=None):
                                 yield sub_param
                             break
                 if attr and callable(attr):
-                    yield attr(v)
+                    if isinstance(v, (list, tuple)):
+                        yield attr(*v)
+                    else:
+                        yield attr(v)
                 elif sub_param is None:
                     yield col == v
 
