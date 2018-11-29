@@ -28,6 +28,8 @@ class ReportAction(Action):
             data['fields'] = model.get_fields_info(xml=xml)
         params = xml.find('params')
         if params is not None:
+            if xml.tag == 'report' and 'model' in xml.attrib:
+                params.attrib['model'] = xml.attrib['model']
             xml = params
             data['content'] = etree.tostring(xml, encoding='utf-8').decode('utf-8')
         else:
@@ -67,11 +69,11 @@ class ReportAction(Action):
             None: 'orun.reports.engines.fastreports.FastReports',
         }
 
-        xml = self.view.get_xml(model)
 
         if rep_type == 'mako':
-            xml = etree.tostring(xml).decode('utf-8')
-            xml = re.sub(r'<(/?)mako-(\w+)', r'<\1%\2', xml).replace('<!--%', '<%').replace('%-->', '%>')
+            xml = self.view._get_content()
+        else:
+            xml = self.view.get_xml(model)
 
         engine = get_engine(types[rep_type])
         rep = engine.auto_report(xml, format=format, model=model, query=qs, report_title=self.name, params=where)

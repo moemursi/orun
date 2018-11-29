@@ -136,9 +136,6 @@ class View(models.Model):
     def _get_content(self):
         templ = app.jinja_env.get_or_select_template(self.template_name.split(':')[-1])
         res = open(templ.filename, encoding='utf-8').read()
-        # prepare mako tags
-        if self.template_name and self.template_name.endswith('.mako') and '<%' in res:
-            res = re.sub(r'<(/?)%(\w+)', r'<\1mako-\2', res).replace('<%', '<!--%').replace('%>', '%-->')
         return res
 
     def render(self, context):

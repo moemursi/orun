@@ -2895,7 +2895,7 @@ Katrid.Data = {};
         const total = f.attr('total');
         const param = f.attr('param');
         const required = f.attr('required');
-        const autoCreate = f.attr('autoCreate') || required;
+        const autoCreate = f.attr('autoCreate') || required || (param === 'static');
         const operation = f.attr('operation');
         let type = f.attr('type');
         const modelChoices = f.attr('model-choices');
@@ -2911,7 +2911,8 @@ Katrid.Data = {};
           operation,
           modelChoices,
           type,
-          autoCreate
+          autoCreate,
+          field: f,
         });
       }
 
@@ -3183,17 +3184,16 @@ Katrid.Data = {};
         },
 
         ForeignKey(param) {
-          const serviceName = param.params.info.model;
+          const serviceName = param.info.field.attr('model') || param.params.info.model;
           let multiple = '';
           if (param.operation === 'in') {
             multiple = 'multiple';
           }
-          return `<div><input id="rep-param-id-${param.id}" ajax-choices="/api/rpc/${serviceName}/get_field_choices/" field="${param.name}" ng-model="param.value1" ${multiple}></div>`;
+          return `<div><input id="rep-param-id-${param.id}" ajax-choices="${serviceName}" field="${param.name}" ng-model="param.value1" ${multiple}></div>`;
         },
 
         ModelChoices(param) {
-          console.log('model choices', param);
-          return `<div><input id="rep-param-id-${param.id}" ajax-choices="/api/reports/model/choices/" model-choices="${param.info.modelChoices}" ng-model="param.value1"></div>`;
+          return `<div><input id="rep-param-id-${param.id}" ajax-choices="ir.action.report" model-choices="${param.info.modelChoices}" ng-model="param.value1"></div>`;
         }
       };
     }
@@ -3257,6 +3257,7 @@ Katrid.Data = {};
     render(container) {
       this.el = this.params.scope.compile(this.template())(this.params.scope);
       this.el.data('param', this);
+      console.log('render param');
       this.createControls(this.el.scope());
       return container.append(this.el);
     }
@@ -5192,31 +5193,58 @@ Katrid.Data = {};
       link(scope, element, attrs, controller) {
         const {multiple} = attrs;
         const serviceName = attrs.ajaxChoices;
+        let field = attrs.field;
+        let _timeout = null;
+        let domain;
+
         const cfg = {
-          ajax: {
-            type: 'POST',
-            url: serviceName,
-            dataType: 'json',
-            quietMillis: 500,
-            params: { contentType: "application/json; charset=utf-8" },
-            data(term, page) {
-              return JSON.stringify({
-                q: term,
+          query(query) {
+
+            // make params
+            let data = {
+              args: [query.term],
+              kwargs: {
                 count: 1,
-                page: page - 1,
-                //file: attrs.reportFile
-                field: attrs.field,
-                model: attrs.modelChoices
+                page: query.page,
+                name_fields: attrs.nameFields && attrs.nameFields.split(",") || null
+              }
+            };
+
+            if (domain)
+              data.domain = domain;
+
+            const f = () => {
+              let svc = new Katrid.Services.Model(serviceName);
+              if (field) svc = svc.getFieldChoices(field, query.term, data.kwargs);
+              else svc = new Katrid.Services.Model(attrs.modelChoices).searchName(data);
+              svc.then(res => {
+                let data = res.items;
+                const r = data.map(item => ({
+                  id: item[0],
+                  text: item[1]
+                }));
+                const more = query.page * Katrid.settings.services.choicesPageLimit < res.count;
+                if (!multiple && !more) {
+                  let msg;
+                  const v = sel.data("select2").search.val();
+                  if ((attrs.allowCreate && attrs.allowCreate !== "false" || attrs.allowCreate == null) && v) {
+                    msg = Katrid.i18n.gettext('Create <i>"%s"</i>...');
+                    r.push({
+                      id: newItem,
+                      text: msg
+                    })
+                  }
+                }
+                console.log(r);
+                return query.callback({
+                  results: r,
+                  more: more
+                })
               });
-            },
-            results(res, page) {
-              let data = res.items;
-              const more = (page * Katrid.settings.services.choicesPageLimit) < res.count;
-              return {
-                results: (Array.from(data).map((item) => ({id: item[0], text: item[1]}))),
-                more
-              };
-            }
+            };
+            if (_timeout) clearTimeout(_timeout);
+            _timeout = setTimeout(f, 400)
+
           },
           escapeMarkup(m) {
             return m;
@@ -5240,6 +5268,7 @@ Katrid.Data = {};
           cfg['multiple'] = true;
 
         const el = element.select2(cfg);
+        let sel = el;
         element.on('$destroy', function () {
           $('.select2-hidden-accessible').remove();
           $('.select2-drop').remove();
@@ -7529,7 +7558,7 @@ Katrid.Data = {};
 
       if (allowCreateEdit)
         sel.parent().find('div.select2-container>div.select2-drop')
-        .append(`<div style="padding: 4px;"><button class="btn btn-outline-secondary btn-sm">${Katrid.i18n.gettext('Create New...')}</button></div>`)
+        .append(`<div style="padding: 4px;"><button class="btn btn-link btn-sm">${Katrid.i18n.gettext('Create New...')}</button></div>`)
         .find('button').click(createNew);
 
 
@@ -7834,13 +7863,6 @@ Katrid.Data = {};
 	    			 */
 	    			'keydown.format' : function(e){
 
-              if (e.key === '-') {
-              	if (this.value.includes('-'))
-              		this.value = this.value.substr(1, this.value.length-1);
-              	else
-                  this.value = '-' + this.value;
-								e.preventDefault();
-							}
 
 	    				// Define variables used in the code below.
 	    				var $this	= $(this),
@@ -7851,6 +7873,21 @@ Katrid.Data = {};
 	    					end		= getSelection.apply(this,['end']),
 	    					val		= '',
 	    					setPos	= false;
+
+              if (e.key === '-') {
+              	if ($this.val() === 0)
+              		data.negative = true;
+              	else {
+              	  data.negative = false;
+                  if (this.value.includes('-'))
+                    this.value = this.value.substr(1, this.value.length - 1);
+                  else
+                    this.value = '-' + this.value;
+                }
+                $this.val(this.value);
+                e.preventDefault();
+                return;
+              }
 
 	    				// Webkit (Chrome & Safari) on windows screws up the keyIdentifier detection
 	    				// for numpad characters. I've disabled this for now, because while keyCode munging

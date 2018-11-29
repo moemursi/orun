@@ -555,7 +555,7 @@ class Model(metaclass=ModelBase):
             search_params['name'] = q
             search_params['page'] = page
             search_params['count'] = count
-            domain = kwargs.get('domain')
+            domain = kwargs.get('domain', field.domain)
             if domain:
                 search_params['params'] = domain
         else:

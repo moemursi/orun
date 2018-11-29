@@ -1,5 +1,5 @@
 <%namespace name="common" file="common.mako"/>
-<%namespace name="report" file="report.mako"/>
+<%namespace name="report" file="report.mako" inheritable="True"/>
 <%!
   import datetime
   from orun import g
@@ -52,3 +52,7 @@ ${next.body()}
 
 </body>
 </html>
+
+<%def name="table()">
+  ${xml.render_table(caller.body())}
+</%def>

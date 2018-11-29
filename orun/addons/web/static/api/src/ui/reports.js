@@ -95,7 +95,7 @@
         const total = f.attr('total');
         const param = f.attr('param');
         const required = f.attr('required');
-        const autoCreate = f.attr('autoCreate') || required;
+        const autoCreate = f.attr('autoCreate') || required || (param === 'static');
         const operation = f.attr('operation');
         let type = f.attr('type');
         const modelChoices = f.attr('model-choices');
@@ -111,7 +111,8 @@
           operation,
           modelChoices,
           type,
-          autoCreate
+          autoCreate,
+          field: f,
         });
       }
 
@@ -383,17 +384,16 @@
         },
 
         ForeignKey(param) {
-          const serviceName = param.params.info.model;
+          const serviceName = param.info.field.attr('model') || param.params.info.model;
           let multiple = '';
           if (param.operation === 'in') {
             multiple = 'multiple';
           }
-          return `<div><input id="rep-param-id-${param.id}" ajax-choices="/api/rpc/${serviceName}/get_field_choices/" field="${param.name}" ng-model="param.value1" ${multiple}></div>`;
+          return `<div><input id="rep-param-id-${param.id}" ajax-choices="${serviceName}" field="${param.name}" ng-model="param.value1" ${multiple}></div>`;
         },
 
         ModelChoices(param) {
-          console.log('model choices', param);
-          return `<div><input id="rep-param-id-${param.id}" ajax-choices="/api/reports/model/choices/" model-choices="${param.info.modelChoices}" ng-model="param.value1"></div>`;
+          return `<div><input id="rep-param-id-${param.id}" ajax-choices="ir.action.report" model-choices="${param.info.modelChoices}" ng-model="param.value1"></div>`;
         }
       };
     }
@@ -457,6 +457,7 @@
     render(container) {
       this.el = this.params.scope.compile(this.template())(this.params.scope);
       this.el.data('param', this);
+      console.log('render param');
       this.createControls(this.el.scope());
       return container.append(this.el);
     }

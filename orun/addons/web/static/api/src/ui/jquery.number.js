@@ -164,13 +164,6 @@
 	    			 */
 	    			'keydown.format' : function(e){
 
-              if (e.key === '-') {
-              	if (this.value.includes('-'))
-              		this.value = this.value.substr(1, this.value.length-1);
-              	else
-                  this.value = '-' + this.value;
-								e.preventDefault();
-							}
 
 	    				// Define variables used in the code below.
 	    				var $this	= $(this),
@@ -181,6 +174,21 @@
 	    					end		= getSelection.apply(this,['end']),
 	    					val		= '',
 	    					setPos	= false;
+
+              if (e.key === '-') {
+              	if ($this.val() === 0)
+              		data.negative = true;
+              	else {
+              	  data.negative = false;
+                  if (this.value.includes('-'))
+                    this.value = this.value.substr(1, this.value.length - 1);
+                  else
+                    this.value = '-' + this.value;
+                }
+                $this.val(this.value);
+                e.preventDefault();
+                return;
+              }
 
 	    				// Webkit (Chrome & Safari) on windows screws up the keyIdentifier detection
 	    				// for numpad characters. I've disabled this for now, because while keyCode munging

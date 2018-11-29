@@ -180,31 +180,58 @@
       link(scope, element, attrs, controller) {
         const {multiple} = attrs;
         const serviceName = attrs.ajaxChoices;
+        let field = attrs.field;
+        let _timeout = null;
+        let domain;
+
         const cfg = {
-          ajax: {
-            type: 'POST',
-            url: serviceName,
-            dataType: 'json',
-            quietMillis: 500,
-            params: { contentType: "application/json; charset=utf-8" },
-            data(term, page) {
-              return JSON.stringify({
-                q: term,
+          query(query) {
+
+            // make params
+            let data = {
+              args: [query.term],
+              kwargs: {
                 count: 1,
-                page: page - 1,
-                //file: attrs.reportFile
-                field: attrs.field,
-                model: attrs.modelChoices
+                page: query.page,
+                name_fields: attrs.nameFields && attrs.nameFields.split(",") || null
+              }
+            };
+
+            if (domain)
+              data.domain = domain;
+
+            const f = () => {
+              let svc = new Katrid.Services.Model(serviceName);
+              if (field) svc = svc.getFieldChoices(field, query.term, data.kwargs);
+              else svc = new Katrid.Services.Model(attrs.modelChoices).searchName(data);
+              svc.then(res => {
+                let data = res.items;
+                const r = data.map(item => ({
+                  id: item[0],
+                  text: item[1]
+                }));
+                const more = query.page * Katrid.settings.services.choicesPageLimit < res.count;
+                if (!multiple && !more) {
+                  let msg;
+                  const v = sel.data("select2").search.val();
+                  if ((attrs.allowCreate && attrs.allowCreate !== "false" || attrs.allowCreate == null) && v) {
+                    msg = Katrid.i18n.gettext('Create <i>"%s"</i>...');
+                    r.push({
+                      id: newItem,
+                      text: msg
+                    })
+                  }
+                }
+                console.log(r);
+                return query.callback({
+                  results: r,
+                  more: more
+                })
               });
-            },
-            results(res, page) {
-              let data = res.items;
-              const more = (page * Katrid.settings.services.choicesPageLimit) < res.count;
-              return {
-                results: (Array.from(data).map((item) => ({id: item[0], text: item[1]}))),
-                more
-              };
-            }
+            };
+            if (_timeout) clearTimeout(_timeout);
+            _timeout = setTimeout(f, 400)
+
           },
           escapeMarkup(m) {
             return m;
@@ -228,6 +255,7 @@
           cfg['multiple'] = true;
 
         const el = element.select2(cfg);
+        let sel = el;
         element.on('$destroy', function () {
           $('.select2-hidden-accessible').remove();
           $('.select2-drop').remove();

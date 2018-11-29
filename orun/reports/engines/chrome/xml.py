@@ -1,3 +1,5 @@
+from orun.utils.xml import etree
+
 
 class Node:
     pass
@@ -16,3 +18,9 @@ class Repeater:
         ds = context[self.data_source]
         for row in ds:
             pass
+
+
+def render_list(xml):
+    xml = etree.fromstring(xml)
+    print(xml)
+    return 'rendered'

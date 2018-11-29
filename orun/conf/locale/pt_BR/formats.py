@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 # This file is distributed under the same license as the Orun package.
 #
-from __future__ import unicode_literals
 
 # The *_FORMAT strings use the Orun date format syntax,
 # see http://docs.orunproject.com/en/dev/ref/templates/builtins/#date

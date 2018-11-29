@@ -126,7 +126,7 @@
 
       if (allowCreateEdit)
         sel.parent().find('div.select2-container>div.select2-drop')
-        .append(`<div style="padding: 4px;"><button class="btn btn-outline-secondary btn-sm">${Katrid.i18n.gettext('Create New...')}</button></div>`)
+        .append(`<div style="padding: 4px;"><button class="btn btn-link btn-sm">${Katrid.i18n.gettext('Create New...')}</button></div>`)
         .find('button').click(createNew);
 
 
