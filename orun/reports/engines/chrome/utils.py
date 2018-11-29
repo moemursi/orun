@@ -9,7 +9,7 @@ def to_list(iterable):
 def avg(iterable, member=None):
     vals = iterable
     if member:
-        vals = list([getattr(obj, member) for obj in iterable])
+        vals = list([getattr(obj, member) or 0 for obj in iterable])
     if vals:
         return mean(vals)
 
