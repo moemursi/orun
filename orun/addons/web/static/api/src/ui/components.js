@@ -185,6 +185,7 @@
         let domain;
 
         const cfg = {
+          allowClear: true,
           query(query) {
 
             // make params
