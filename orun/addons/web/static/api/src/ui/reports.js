@@ -390,7 +390,6 @@
         },
 
         ForeignKey(param) {
-          console.log(param.params.model);
           const serviceName = param.info.field.attr('model') || param.params.model;
           let multiple = '';
           if (param.operation === 'in') {

@@ -3190,7 +3190,6 @@ Katrid.Data = {};
         },
 
         ForeignKey(param) {
-          console.log(param.params.model);
           const serviceName = param.info.field.attr('model') || param.params.model;
           let multiple = '';
           if (param.operation === 'in') {
@@ -8393,7 +8392,7 @@ Katrid.Data = {};
 
     template(el, attrs) {
       if (attrs.expr[0] === "'")
-        return `<span>${ attrs.type.substring(1, attrs.type.length - 1) }</span>`;
+        return `<span>${ attrs.expr.substring(1, attrs.expr.length - 1) }</span>`;
       else
         return `<span ng-bind="total$${attrs.field}|number:2"></span>`;
     }
