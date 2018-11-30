@@ -30,6 +30,14 @@ class ReportAction(Action):
         if params is not None:
             if xml.tag == 'report' and 'model' in xml.attrib:
                 params.attrib['model'] = xml.attrib['model']
+                if not model:
+                    model = app[xml.attrib['model']]
+                    data['fields'] = model.get_fields_info(params)
+
+                # model = app[model]
+                # for field in params:
+                #     if field.tag == 'field' and 'name' in field.attrib:
+                #         fld = model._meta.fields[field.attrib['name']]
             xml = params
             data['content'] = etree.tostring(xml, encoding='utf-8').decode('utf-8')
         else:

@@ -1,4 +1,5 @@
 from collections import defaultdict
+import warnings
 from functools import partial
 import sqlalchemy as sa
 from sqlalchemy.orm import mapper, relationship, deferred, backref, synonym
@@ -415,8 +416,8 @@ def ignore_error_decorator(fn):
     def ignored(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
-        except:
-            pass
+        except Exception as e:
+            warnings.warn('Error calculating field property: %s' % str(e))
     return ignored
 
 

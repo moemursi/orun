@@ -1,12 +1,12 @@
 import json
 import os
 import uuid
-
 import mako.lookup
 import mako.template
 from gevent import subprocess
 
 from orun import app
+from orun.db import session
 from orun.conf import settings
 from orun.core.serializers.json import OrunJSONEncoder
 from orun.utils.xml import etree
@@ -60,8 +60,11 @@ class ChromeEngine:
         else:
             pass
 
-    def select(self, cmd, *params):
-        rows = app.connection.engine.execute(cmd, *params)
+    def select(self, cmd, params):
+        if isinstance(params, (list, tuple)):
+            rows = app.connection.engine.execute(cmd, *params)
+        else:
+            rows = session.execute(cmd, params)
         return rows
 
     def _from_xml(self, xml, **kwargs):
@@ -78,11 +81,14 @@ class ChromeEngine:
             directories=[os.path.join(os.path.dirname(__file__), 'templates')],
             input_encoding='utf-8',
         )
+        prefix = '<%namespace name="engine" file="report.mako"/>\n'
+        report = etree.fromstring(xml)
         templ = mako.template.Template(
-            xml, lookup=lookup,
+            prefix + xml, lookup=lookup,
             default_filters=default_filters,
             imports=imports,
         )
+        kwargs['report'] = Report(report)
         return templ.render(models=app, select=self.select, **kwargs).encode('utf-8')
 
     def from_xml(self, xml, **kwargs):
@@ -97,4 +103,13 @@ class ChromeEngine:
             subprocess.call([app.config['CHROME_PATH'], '--headless', '--disable-gpu', '--print-to-pdf=' + output_path, 'file://' + file_path])
             return fname + '.pdf'
 
+
+class Report:
+    def __init__(self, xml):
+        self.xml = xml
+        self.title = xml.attrib.get('title')
+        self.model_name = xml.attrib.get('model')
+        self.model = None
+        if self.model_name:
+            self.model = app[self.model_name]
 

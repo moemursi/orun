@@ -2884,20 +2884,26 @@ Katrid.Data = {};
       }
       this.scope.customizableReport = xml.attr('customizableReport');
       this.scope.advancedOptions = xml.attr('advancedOptions');
+      this.model = xml.attr('model');
       const fields = [];
 
       for (let f of Array.from(xml.find('field'))) {
+        let tag = f.tagName;
         f = $(f);
         const name = f.attr('name');
-        const label = f.attr('label') || (this.info.fields[name] && this.info.fields[name].caption) || name;
+        console.log(this.info);
+        let fld = this.info.fields[name];
+        const label = f.attr('label') || (fld && fld.caption) || name;
         const groupable = f.attr('groupable');
         const sortable = f.attr('sortable');
         const total = f.attr('total');
-        const param = f.attr('param');
+        let param = f.attr('param');
+        if ((tag === 'FIELD') && (!param))
+          param = 'static';
         const required = f.attr('required');
         const autoCreate = f.attr('autoCreate') || required || (param === 'static');
         const operation = f.attr('operation');
-        let type = f.attr('type');
+        let type = f.attr('type') || (fld && fld.type);
         const modelChoices = f.attr('model-choices');
         if (!type && modelChoices) type = 'ModelChoices';
         fields.push({
@@ -3184,7 +3190,8 @@ Katrid.Data = {};
         },
 
         ForeignKey(param) {
-          const serviceName = param.info.field.attr('model') || param.params.info.model;
+          console.log(param.params.model);
+          const serviceName = param.info.field.attr('model') || param.params.model;
           let multiple = '';
           if (param.operation === 'in') {
             multiple = 'multiple';
@@ -3206,8 +3213,8 @@ Katrid.Data = {};
       this.info = info;
       this.params = params;
       this.name = this.info.name;
-      this.label = this.info.label;
       this.field = this.params.info.fields && this.params.info.fields[this.name];
+      this.label = this.info.label || this.params.info.caption;
       this.static = this.info.param === 'static' || this.field.param === 'static';
       this.type = this.info.type || (this.field && this.field.type) || 'CharField';
       this.defaultOperation = this.info.operation || Params.DefaultOperations[this.type];
@@ -3268,7 +3275,6 @@ Katrid.Data = {};
     const xmlReport = $scope.$parent.action.info.content;
     const report = new Report($scope.$parent.action, $scope);
     $scope.report = report;
-    console.log(report);
     report.loadFromXml(xmlReport);
     report.render($element);
     return report.loadParams();

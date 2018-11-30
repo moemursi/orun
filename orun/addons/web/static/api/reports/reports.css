@@ -53,3 +53,11 @@ footer {
 .c3-chart-line {
   opacity: 1 !important;
 }
+
+
+td.DecimalField, th.DecimalField, td.FloatField, th.FloatField, td.IntegerField, th.IntegerField,
+section.IntegerField .form-field-readonly, section.IntegerField input.form-control,
+section.DecimalField .form-field-readonly, section.DecimalField input.form-control,
+section.FloatField .form-field-readonly, section.FloatField input.form-control {
+  text-align: right;
+}

@@ -1,12 +1,12 @@
-<%namespace name="common" file="common.mako"/>
-<%namespace name="report" file="report.mako" inheritable="True"/>
 <%!
   import datetime
-  from orun import g
+  from orun import g, app
 
   date = datetime.datetime.now()
   company = g.user.user_company
 %>
+<%namespace name="common" file="common.mako"/>
+<%namespace name="engine" file="report.mako"/>
 <html>
   <%block name="head">
     <head>
@@ -35,7 +35,7 @@
     <span class="float-right">${date}</span>
     <br/>
     <h2 class="float-right">
-      <%block name="report_title">Report</%block>
+      <%block name="report_title">${report.title or 'Report'}</%block>
     </h2>
   </div>
   </column>
@@ -52,7 +52,3 @@ ${next.body()}
 
 </body>
 </html>
-
-<%def name="table()">
-  ${xml.render_table(caller.body())}
-</%def>
