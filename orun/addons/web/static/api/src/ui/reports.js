@@ -92,7 +92,9 @@
         f = $(f);
         const name = f.attr('name');
         console.log(this.info);
-        let fld = this.info.fields[name];
+        let fld;
+        if (this.info.fields)
+          fld = this.info.fields[name];
         const label = f.attr('label') || (fld && fld.caption) || name;
         const groupable = f.attr('groupable');
         const sortable = f.attr('sortable');
