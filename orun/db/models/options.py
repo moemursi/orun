@@ -221,7 +221,7 @@ class Options:
                     descriptor = f.descriptor
                     if isinstance(descriptor, list):
                         if len(descriptor) == 1:
-                            descriptor.append(lambda self, v: warnings.warn('Read-only field cannot be modified!'))
+                            descriptor.append(lambda self, v, field=f: warnings.warn('Read-only field "%s" cannot be modified!' % field.name))
                         descriptor = property(
                             *(ignore_error_decorator(getattr(f.model, attr) if isinstance(attr, str) else attr) for attr in descriptor)
                         )
