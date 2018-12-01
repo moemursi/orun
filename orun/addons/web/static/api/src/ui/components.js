@@ -173,6 +173,8 @@
   })]);
 
 
+  $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+
   uiKatrid.directive('ajaxChoices', ['$location', $location =>
     ({
       restrict: 'A',

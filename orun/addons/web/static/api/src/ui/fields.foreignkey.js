@@ -15,6 +15,7 @@
       const newItem = function() {};
       const newEditItem = function() {};
       let _timeout = null;
+
       let config = {
         allowClear: true,
         query(query) {
@@ -101,6 +102,10 @@
           }
         }
       };
+
+      if (scope.root && scope.root.attr('form-dialog'))
+        config.dropdownParent = scope.root.closest('.modal');
+      console.log('dropdownparent', config.dropdownParent);
 
       let allowCreateEdit = attrs.noCreateEdit;
       allowCreateEdit = _.isUndefined(allowCreateEdit) || !Boolean(allowCreateEdit);
