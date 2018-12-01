@@ -418,6 +418,8 @@ class Model(metaclass=ModelBase):
                         r[f.name] = f.default
                 elif isinstance(f, BooleanField):
                     r[f.name] = False
+        if 'creation_name' in kwargs and self._meta.title_field:
+            r[self._meta.title_field] = kwargs['creation_name']
         return r or None
 
     def deserialize(self, instance, data):

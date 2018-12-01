@@ -161,8 +161,8 @@
       return this.post('get', { args: [id] });
     }
 
-    getDefaults() {
-      return this.post('get_defaults', {});
+    getDefaults(kwargs) {
+      return this.post('get_defaults', { kwargs });
     }
 
     copy(id) {

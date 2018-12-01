@@ -561,7 +561,7 @@
       );
     }
 
-    async insert() {
+    async insert(loadDefaults=true, kwargs) {
       this._clearTimeout();
       for (let child of this.children)
         child._clearTimeout();
@@ -570,7 +570,11 @@
       let oldRecs = this.scope.records;
       this.record = rec;
       this.scope.records = oldRecs;
-      let res = await this.model.getDefaults();
+      let res;
+      // check if load defaults is needed
+      if (loadDefaults)
+        // load default fields values with optional kwargs
+        res = await this.model.getDefaults(kwargs);
 
       for (let child of this.children)
         child.scope.records = [];
@@ -587,7 +591,7 @@
 
     setValues(values) {
       Object.entries(values).forEach(([k, v]) => {
-        let fld = this.action.scope.view.fields[k];
+        let fld = this.scope.view.fields[k];
         if (fld)
           fld.fromJSON(v, this);
         else

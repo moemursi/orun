@@ -60,7 +60,7 @@
       this.scope.model = model;
     }
 
-    async createNew(field, sel) {
+    async createNew(field, sel, name) {
       this.scope.$setDirty = (field) => {
         const control = this.scope.form[field];
         if (control) {
@@ -89,7 +89,7 @@
       let form = el.find('form').first().addClass('row');
       el.modal('show').on('shown.bs.modal', () => Katrid.ui.uiKatrid.setFocus(el.find('.form-field').first()))
       .on('hidden.bs.modal', function() {
-        $(this).remove();
+        $(this).modal('dispose').remove();
       });
 
       this.scope.form = form.controller('form');
@@ -112,7 +112,11 @@
       };
       this.scope.dataSource = new Katrid.Data.DataSource(this.scope);
 
-      await this.scope.dataSource.insert();
+      // check if there's a creation name
+      let kwargs;
+      if (name)
+        kwargs = { creation_name: name};
+      await this.scope.dataSource.insert(true, kwargs);
       this.scope.$apply();
 
       return el;

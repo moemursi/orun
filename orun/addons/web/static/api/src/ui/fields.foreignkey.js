@@ -146,8 +146,9 @@
             let res = await service.getViewInfo({
               view_type: "form"
             });
-            let wnd = Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller, service);
-            wnd.createNew(field, sel);
+            let wnd = new Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller, service);
+            wnd.createNew(field, sel, v.str);
+            sel.select2('data', null);
           }
         } else if (v && v.id === newEditItem) {
         } else if (multiple && e.val.length) {
