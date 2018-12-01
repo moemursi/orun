@@ -85,17 +85,11 @@
       }
     }
 
-    saveAndClose() {
+    async saveAndClose() {
       // Save changes and close dialog
-      const r = this.saveChanges(false);
-      if (r && $.isFunction(r.promise)) {
-        return r.then(res => {
-          if (res.ok && res.result)
-            this.scope.result = res.result;
-
-          return $(this.scope.root).closest('.modal').modal('toggle');
-        });
-      }
+      let r = await this.save(false);
+      console.log(r);
+      return this.scope.action.$element.closest('.modal').modal('hide');
     }
 
 
@@ -160,8 +154,7 @@
       return elfield;
     }
 
-    validate() {
-      console.log('validate', this.scope.form.$error);
+    validate(raiseError=true) {
       if (this.scope.form.$invalid) {
         let elfield;
         let errors = [];
@@ -171,7 +164,8 @@
         Katrid.ui.uiKatrid.setFocus(elfield);
         s += errors.join('');
         Katrid.ui.Dialogs.Alerts.error(s);
-        console.log(s);
+        if (raiseError)
+          throw Error('Error validating form: ' + s);
         return false;
       }
       return true;
@@ -418,7 +412,8 @@
           return this.model.write([data])
           .then(res => {
             // this._clearCache();
-            this.scope.action.location.search('id', res[0]);
+            if (this.scope.action && this.scope.action.location)
+              this.scope.action.location.search('id', res[0]);
             this.scope.form.$setPristine();
             this.scope.form.$setUntouched();
             this._pendingChanges = false;

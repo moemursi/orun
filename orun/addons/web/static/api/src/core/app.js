@@ -126,19 +126,22 @@
           }
         };
 
-        $transitions.onBefore({ to: 'actionView' }, function(transition, state) {
-          if ($state.params.actionId !== transition.params().actionId)
-            action._unregisterHook();
-        });
+        // check if it's a dialog action
+        if ($transitions) {
+          $transitions.onBefore({to: 'actionView'}, function (transition, state) {
+            if ($state.params.actionId !== transition.params().actionId)
+              action._unregisterHook();
+          });
 
-        if (action instanceof Katrid.Actions.WindowAction)
-          action.viewType = $location.$$search.view_type || action.viewModes[0];
+          if (action instanceof Katrid.Actions.WindowAction)
+            action.viewType = $location.$$search.view_type || action.viewModes[0];
 
-        action._unregisterHook = $scope.$on('$locationChangeSuccess', () => {
+          action._unregisterHook = $scope.$on('$locationChangeSuccess', () => {
+            action.routeUpdate($location.$$search);
+          });
+
           action.routeUpdate($location.$$search);
-        });
-
-        action.routeUpdate($location.$$search);
+        }
 
       }]);
     }

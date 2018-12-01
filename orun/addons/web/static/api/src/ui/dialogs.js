@@ -50,18 +50,27 @@
 }
 
   class Window extends Dialog {
-    constructor(scope, options, $compile) {
-      super(scope.$new(), options, $compile);
+    constructor(scope, options, $compile, $controller, model, viewType) {
+      super(scope.$new(true), options, $compile);
+      this.scope._ = this.scope.$parent._;
       this.scope.parentAction = scope.action;
       this.scope.views = {form: options.view};
       this.scope.title = (options && options.title) || Katrid.i18n.gettext('Create: ');
       this.scope.view = options.view;
+      this.scope.model = model;
     }
 
-    show(field, $controller) {
+    async createNew(field) {
+      this.scope.$setDirty = (field) => {
+        const control = this.scope.form[field];
+        if (control) {
+          control.$setDirty();
+        }
+      };
+
       let view = this.scope.view;
       let elScope = this.scope;
-      elScope.views = {form: view};
+      elScope.views = { form: view };
       elScope.isDialog = true;
       elScope.dialogTitle = _.sprintf(Katrid.i18n.gettext('Create: %(title)s'), { title: field.caption });
       console.log(Katrid.app.$templateCache.get('view.form.dialog.modal').replace(
@@ -75,8 +84,21 @@
       elScope.root = el.find('form-view');
 
       el = this.$compile(el)(elScope);
-      el.find('form').first().addClass('row');
-      el.modal('show').on('shown.bs.modal', () => Katrid.ui.uiKatrid.setFocus(el.find('.form-field').first()));
+      let form = el.find('form').first().addClass('row');
+      el.modal('show').on('shown.bs.modal', () => Katrid.ui.uiKatrid.setFocus(el.find('.form-field').first()))
+      .on('hidden.bs.modal', function() {
+        $(this).remove();
+      });
+
+      this.scope.form = form.controller('form');
+      this.scope.formElement = form;
+
+      this.scope.action = {
+        $element: el,
+      };
+      this.scope.dataSource = new Katrid.Data.DataSource(this.scope);
+
+      await this.scope.dataSource.insert();
 
       return el;
     };

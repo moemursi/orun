@@ -8,6 +8,7 @@
       let sel = el;
       let _shown = false;
       const field = scope.view.fields[attrs.name];
+      console.log(scope, scope.action);
       el.addClass("form-field");
       if (attrs.serviceName) serviceName = attrs;
       else if (scope.action) serviceName = scope.action.model.name;
@@ -103,10 +104,6 @@
         }
       };
 
-      if (scope.root && scope.root.attr('form-dialog'))
-        config.dropdownParent = scope.root.closest('.modal');
-      console.log('dropdownparent', config.dropdownParent);
-
       let allowCreateEdit = attrs.noCreateEdit;
       allowCreateEdit = _.isUndefined(allowCreateEdit) || !Boolean(allowCreateEdit);
 
@@ -124,8 +121,8 @@
         return service.getViewInfo({
           view_type: "form"
         }).then(function(res) {
-          let wnd = new Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller);
-          wnd.show(field, $controller);
+          let wnd = new Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller, service);
+          wnd.createNew(field);
         })
       };
 

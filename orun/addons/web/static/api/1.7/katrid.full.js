@@ -193,19 +193,22 @@ var Katrid = {
           }
         };
 
-        $transitions.onBefore({ to: 'actionView' }, function(transition, state) {
-          if ($state.params.actionId !== transition.params().actionId)
-            action._unregisterHook();
-        });
+        // check if it's a dialog action
+        if ($transitions) {
+          $transitions.onBefore({to: 'actionView'}, function (transition, state) {
+            if ($state.params.actionId !== transition.params().actionId)
+              action._unregisterHook();
+          });
 
-        if (action instanceof Katrid.Actions.WindowAction)
-          action.viewType = $location.$$search.view_type || action.viewModes[0];
+          if (action instanceof Katrid.Actions.WindowAction)
+            action.viewType = $location.$$search.view_type || action.viewModes[0];
 
-        action._unregisterHook = $scope.$on('$locationChangeSuccess', () => {
+          action._unregisterHook = $scope.$on('$locationChangeSuccess', () => {
+            action.routeUpdate($location.$$search);
+          });
+
           action.routeUpdate($location.$$search);
-        });
-
-        action.routeUpdate($location.$$search);
+        }
 
       }]);
     }
@@ -956,17 +959,11 @@ Katrid.Data = {};
       }
     }
 
-    saveAndClose() {
+    async saveAndClose() {
       // Save changes and close dialog
-      const r = this.saveChanges(false);
-      if (r && $.isFunction(r.promise)) {
-        return r.then(res => {
-          if (res.ok && res.result)
-            this.scope.result = res.result;
-
-          return $(this.scope.root).closest('.modal').modal('toggle');
-        });
-      }
+      let r = await this.save(false);
+      console.log(r);
+      return this.scope.action.$element.closest('.modal').modal('hide');
     }
 
 
@@ -1031,8 +1028,7 @@ Katrid.Data = {};
       return elfield;
     }
 
-    validate() {
-      console.log('validate', this.scope.form.$error);
+    validate(raiseError=true) {
       if (this.scope.form.$invalid) {
         let elfield;
         let errors = [];
@@ -1042,7 +1038,8 @@ Katrid.Data = {};
         Katrid.ui.uiKatrid.setFocus(elfield);
         s += errors.join('');
         Katrid.ui.Dialogs.Alerts.error(s);
-        console.log(s);
+        if (raiseError)
+          throw Error('Error validating form: ' + s);
         return false;
       }
       return true;
@@ -1289,7 +1286,8 @@ Katrid.Data = {};
           return this.model.write([data])
           .then(res => {
             // this._clearCache();
-            this.scope.action.location.search('id', res[0]);
+            if (this.scope.action && this.scope.action.location)
+              this.scope.action.location.search('id', res[0]);
             this.scope.form.$setPristine();
             this.scope.form.$setUntouched();
             this._pendingChanges = false;
@@ -7399,18 +7397,27 @@ Katrid.Data = {};
 }
 
   class Window extends Dialog {
-    constructor(scope, options, $compile) {
-      super(scope.$new(), options, $compile);
+    constructor(scope, options, $compile, $controller, model, viewType) {
+      super(scope.$new(true), options, $compile);
+      this.scope._ = this.scope.$parent._;
       this.scope.parentAction = scope.action;
       this.scope.views = {form: options.view};
       this.scope.title = (options && options.title) || Katrid.i18n.gettext('Create: ');
       this.scope.view = options.view;
+      this.scope.model = model;
     }
 
-    show(field, $controller) {
+    async createNew(field) {
+      this.scope.$setDirty = (field) => {
+        const control = this.scope.form[field];
+        if (control) {
+          control.$setDirty();
+        }
+      };
+
       let view = this.scope.view;
       let elScope = this.scope;
-      elScope.views = {form: view};
+      elScope.views = { form: view };
       elScope.isDialog = true;
       elScope.dialogTitle = _.sprintf(Katrid.i18n.gettext('Create: %(title)s'), { title: field.caption });
       console.log(Katrid.app.$templateCache.get('view.form.dialog.modal').replace(
@@ -7424,8 +7431,21 @@ Katrid.Data = {};
       elScope.root = el.find('form-view');
 
       el = this.$compile(el)(elScope);
-      el.find('form').first().addClass('row');
-      el.modal('show').on('shown.bs.modal', () => Katrid.ui.uiKatrid.setFocus(el.find('.form-field').first()));
+      let form = el.find('form').first().addClass('row');
+      el.modal('show').on('shown.bs.modal', () => Katrid.ui.uiKatrid.setFocus(el.find('.form-field').first()))
+      .on('hidden.bs.modal', function() {
+        $(this).remove();
+      });
+
+      this.scope.form = form.controller('form');
+      this.scope.formElement = form;
+
+      this.scope.action = {
+        $element: el,
+      };
+      this.scope.dataSource = new Katrid.Data.DataSource(this.scope);
+
+      await this.scope.dataSource.insert();
 
       return el;
     };
@@ -7450,6 +7470,7 @@ Katrid.Data = {};
       let sel = el;
       let _shown = false;
       const field = scope.view.fields[attrs.name];
+      console.log(scope, scope.action);
       el.addClass("form-field");
       if (attrs.serviceName) serviceName = attrs;
       else if (scope.action) serviceName = scope.action.model.name;
@@ -7545,10 +7566,6 @@ Katrid.Data = {};
         }
       };
 
-      if (scope.root && scope.root.attr('form-dialog'))
-        config.dropdownParent = scope.root.closest('.modal');
-      console.log('dropdownparent', config.dropdownParent);
-
       let allowCreateEdit = attrs.noCreateEdit;
       allowCreateEdit = _.isUndefined(allowCreateEdit) || !Boolean(allowCreateEdit);
 
@@ -7566,8 +7583,8 @@ Katrid.Data = {};
         return service.getViewInfo({
           view_type: "form"
         }).then(function(res) {
-          let wnd = new Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller);
-          wnd.show(field, $controller);
+          let wnd = new Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller, service);
+          wnd.createNew(field);
         })
       };
 
