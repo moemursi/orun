@@ -88,7 +88,7 @@
     async saveAndClose() {
       // Save changes and close dialog
       let r = await this.save(false);
-      console.log(r);
+      this.scope.$emit('saveAndClose', r);
       return this.scope.action.$element.closest('.modal').modal('hide');
     }
 
@@ -420,6 +420,8 @@
             this.state = DataSourceState.browsing;
             if (autoRefresh)
               return this.refresh(res);
+            else
+              return res;
 
           })
           .catch(error => {

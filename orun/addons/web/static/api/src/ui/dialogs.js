@@ -60,13 +60,15 @@
       this.scope.model = model;
     }
 
-    async createNew(field) {
+    async createNew(field, sel) {
       this.scope.$setDirty = (field) => {
         const control = this.scope.form[field];
         if (control) {
           control.$setDirty();
         }
       };
+
+      this.scope.field = field;
 
       let view = this.scope.view;
       let elScope = this.scope;
@@ -92,6 +94,18 @@
 
       this.scope.form = form.controller('form');
       this.scope.formElement = form;
+      let evt = this.scope.$on('saveAndClose', async (event, data) => {
+        if (_.isArray(data) && data.length) {
+          data = await this.scope.$parent.model.getFieldChoices(this.scope.field.name, null, {ids: data});
+          let vals = {};
+          let res = data.items[0];
+          vals[field.name] = res;
+          this.scope.$parent.dataSource.setValues(vals);
+          sel.select2('data', { id: res[0], text: res[1] });
+        }
+        // unhook event
+        evt();
+      });
 
       this.scope.action = {
         $element: el,
@@ -99,6 +113,7 @@
       this.scope.dataSource = new Katrid.Data.DataSource(this.scope);
 
       await this.scope.dataSource.insert();
+      this.scope.$apply();
 
       return el;
     };

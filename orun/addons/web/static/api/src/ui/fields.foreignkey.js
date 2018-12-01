@@ -122,7 +122,7 @@
           view_type: "form"
         }).then(function(res) {
           let wnd = new Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller, service);
-          wnd.createNew(field);
+          wnd.createNew(field, sel);
         })
       };
 
@@ -146,8 +146,8 @@
             let res = await service.getViewInfo({
               view_type: "form"
             });
-            let wnd = Katrid.ui.Dialogs.Window(scope, { view: res }, $compile);
-              wnd.show();
+            let wnd = Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller, service);
+            wnd.createNew(field, sel);
           }
         } else if (v && v.id === newEditItem) {
         } else if (multiple && e.val.length) {

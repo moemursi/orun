@@ -559,7 +559,7 @@ class Model(metaclass=ModelBase):
             if domain:
                 search_params['params'] = domain
         else:
-            search_params['params'] = [related_model.pk.in_(ids if isinstance(ids, (list, tuple)) else [ids])]
+            search_params['params'] = [related_model.c.pk.in_(ids if isinstance(ids, (list, tuple)) else [ids])]
         label_from_instance = kwargs.get('label_from_instance', field.label_from_instance or kwargs.get('name_fields'))
         return related_model.search_name(label_from_instance=label_from_instance, exact=exact, **search_params)
 
