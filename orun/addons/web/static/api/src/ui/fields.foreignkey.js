@@ -11,7 +11,7 @@
       console.log(scope, scope.action);
       el.addClass("form-field");
       if (attrs.serviceName) serviceName = attrs;
-      else if (scope.action) serviceName = scope.action.model.name;
+      else if (scope.action && scope.action.model) serviceName = scope.action.model.name;
       else serviceName = attrs.foreignkey;
       const newItem = function() {};
       const newEditItem = function() {};
