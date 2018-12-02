@@ -4031,6 +4031,7 @@ Katrid.Data = {};
   .directive('list', ['$compile', $compile => ({
     restrict: 'E',
     compile(el, attrs) {
+      el.addClass('table-responsive');
       let rowClick = attrs.ngRowClick;
       let content = el.html();
       let options = {};
