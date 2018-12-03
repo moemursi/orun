@@ -113,7 +113,7 @@ class Field(BaseField):
                  copy=None, editable=True, serializable=True, default=NOT_PROVIDED, getter=None, setter=None,
                  db_column=None, db_tablespace=None, db_index=False, db_default=NOT_PROVIDED, db_compute=None,
                  unique=False, validators=None, deferred=None, proxy=None, auto_created=False, descriptor=None,
-                 description=None, translate=None, *args, **kwargs):
+                 description=None, translate=None, template=None, *args, **kwargs):
         self.local = True
         self.label = label or kwargs.get('verbose_name')
         self.max_length = max_length
@@ -136,6 +136,7 @@ class Field(BaseField):
         self.deferred = deferred
         self.translate = translate
         self.widget_attrs = widget_attrs
+        self.template = template
         if isinstance(proxy, str):
             proxy = proxy.split('.')
             if getter is None:
@@ -245,6 +246,8 @@ class Field(BaseField):
         }
         if self.max_length:
             info['max_length'] = self.max_length
+        if self.template:
+            info['template'] = self.template
         return info
 
 
