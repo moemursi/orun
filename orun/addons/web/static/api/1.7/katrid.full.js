@@ -962,7 +962,7 @@ Katrid.Data = {};
     async saveAndClose() {
       // Save changes and close dialog
       let r = await this.save(false);
-      this.scope.$emit('saveAndClose', r);
+      this.scope.$emit('saveAndClose', this.scope, r);
       return this.scope.action.$element.closest('.modal').modal('hide');
     }
 
@@ -972,7 +972,6 @@ Katrid.Data = {};
       this.record = {};
       this.state = DataSourceState.inserting;
       this.setValues(res);
-      this.scope.$apply();
       return res;
     }
 
@@ -1435,7 +1434,7 @@ Katrid.Data = {};
       );
     }
 
-    async insert(loadDefaults=true, kwargs) {
+    async insert(loadDefaults=true, defaultValues, kwargs) {
       this._clearTimeout();
       for (let child of this.children)
         child._clearTimeout();
@@ -1455,6 +1454,8 @@ Katrid.Data = {};
 
       this.state = DataSourceState.inserting;
       this.scope.record.display_name = Katrid.i18n.gettext('(New)');
+      if (defaultValues)
+        Object.assign(res, defaultValues);
       if (res)
         this.setValues(res);
     }
@@ -2412,7 +2413,7 @@ Katrid.Data = {};
       ) {
         this.model.destroy(sel);
         const i = this.scope.records.indexOf(this.scope.record);
-        this.setViewType('list');
+        this.viewType = 'list';
         this.dataSource.refresh();
       }
     }
@@ -2421,6 +2422,18 @@ Katrid.Data = {};
       this.viewType = 'form';
       await this.dataSource.copy(this.scope.record.id);
       return false;
+    }
+
+    async copyTo(configId) {
+      console.log('copy to', configId);
+      if (this.scope.recordId) {
+        let svc = new Katrid.Services.Model('ir.copy.to');
+        let res = await svc.rpc('copy_to', [configId, this.scope.recordId]);
+        let model = new Katrid.Services.Model(res.model);
+        let views = await model.getViewInfo({ view_type: 'form' });
+        let wnd = new Katrid.ui.Dialogs.Window(this.scope, { view: views }, Katrid.Core.compile, null, model);
+        wnd.createNew({ defaultValues: res.value });
+      }
     }
 
     async routeUpdate(search) {
@@ -7410,12 +7423,15 @@ Katrid.Data = {};
       this.scope._ = this.scope.$parent._;
       this.scope.parentAction = scope.action;
       this.scope.views = {form: options.view};
-      this.scope.title = (options && options.title) || Katrid.i18n.gettext('Create: ');
+      this.scope.dialogTitle = (options && options.title) || Katrid.i18n.gettext('Create: ');
       this.scope.view = options.view;
       this.scope.model = model;
+      this.options = options;
     }
 
-    async createNew(field, sel, name) {
+    async createNew(config) {
+      let field = this.options.field;
+
       this.scope.$setDirty = (field) => {
         const control = this.scope.form[field];
         if (control) {
@@ -7423,17 +7439,10 @@ Katrid.Data = {};
         }
       };
 
-      this.scope.field = field;
-
       let view = this.scope.view;
       let elScope = this.scope;
       elScope.views = { form: view };
       elScope.isDialog = true;
-      elScope.dialogTitle = _.sprintf(Katrid.i18n.gettext('Create: %(title)s'), { title: field.caption });
-      console.log(Katrid.app.$templateCache.get('view.form.dialog.modal').replace(
-        '<!-- view content -->',
-        '<form-view form-dialog="dialog">' + view.content + '</form-view>',
-      ));
       let el = $(Katrid.app.$templateCache.get('view.form.dialog.modal').replace(
         '<!-- view content -->',
         '<form-view form-dialog="dialog">' + view.content + '</form-view>',
@@ -7449,32 +7458,45 @@ Katrid.Data = {};
 
       this.scope.form = form.controller('form');
       this.scope.formElement = form;
-      let evt = this.scope.$on('saveAndClose', async (event, data) => {
-        if (_.isArray(data) && data.length) {
-          data = await this.scope.$parent.model.getFieldChoices(this.scope.field.name, null, {ids: data});
-          let vals = {};
-          let res = data.items[0];
-          vals[field.name] = res;
-          this.scope.$parent.dataSource.setValues(vals);
-          sel.select2('data', { id: res[0], text: res[1] });
-        }
-        // unhook event
-        evt();
-      });
-
+      if (field) {
+        let evt = this.scope.$on('saveAndClose', async (event, targetScope, data) => {
+          if (this.scope === targetScope) {
+            if (_.isArray(data) && data.length) {
+              data = await this.scope.$parent.model.getFieldChoices(field.name, null, {ids: data});
+              let vals = {};
+              let res = data.items[0];
+              vals[field.name] = res;
+              this.scope.$parent.dataSource.setValues(vals);
+              if (this.options.sel)
+                this.options.sel.select2('data', { id: res[0], text: res[1] });
+            }
+            // unhook event
+            evt();
+          }
+        });
+      }
       this.scope.action = {
         $element: el,
       };
       this.scope.dataSource = new Katrid.Data.DataSource(this.scope);
 
-      // check if there's a creation name
-      let kwargs;
-      if (name)
-        kwargs = { creation_name: name};
-      await this.scope.dataSource.insert(true, kwargs);
-      this.scope.$apply();
+      return new Promise(async (resolve, reject) => {
+        setTimeout(async () => {
+          // check if there's a creation name
+          let kwargs, defaultValues;
+          if (config) {
+            if (config.creationName)
+              kwargs = { creation_name: name };
+            if (config.defaultValues)
+              defaultValues = config.defaultValues;
+          }
+          await this.scope.dataSource.insert(true, defaultValues, kwargs);
+          this.scope.$apply();
+          resolve(el);
+        });
 
-      return el;
+      });
+
     };
   }
 
@@ -7610,8 +7632,9 @@ Katrid.Data = {};
         return service.getViewInfo({
           view_type: "form"
         }).then(function(res) {
-          let wnd = new Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller, service);
-          wnd.createNew(field, sel);
+          let title = _.sprintf(Katrid.i18n.gettext('Create: %(title)s'), { title: field.caption });
+          let wnd = new Katrid.ui.Dialogs.Window(scope, { sel: sel, field: field, title: title, view: res }, $compile, $controller, service);
+          wnd.createNew();
         })
       };
 
@@ -7635,8 +7658,9 @@ Katrid.Data = {};
             let res = await service.getViewInfo({
               view_type: "form"
             });
-            let wnd = new Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller, service);
-            wnd.createNew(field, sel, v.str);
+            let title = _.sprintf(Katrid.i18n.gettext('Create: %(title)s'), { title: field.caption });
+            let wnd = new Katrid.ui.Dialogs.Window(scope, { sel: sel, field: field, title: title, view: res }, $compile, $controller, service);
+            wnd.createNew({ creationName: v.str });
             sel.select2('data', null);
           }
         } else if (v && v.id === newEditItem) {

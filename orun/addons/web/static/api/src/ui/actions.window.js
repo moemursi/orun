@@ -82,7 +82,7 @@
       ) {
         this.model.destroy(sel);
         const i = this.scope.records.indexOf(this.scope.record);
-        this.setViewType('list');
+        this.viewType = 'list';
         this.dataSource.refresh();
       }
     }
@@ -91,6 +91,18 @@
       this.viewType = 'form';
       await this.dataSource.copy(this.scope.record.id);
       return false;
+    }
+
+    async copyTo(configId) {
+      console.log('copy to', configId);
+      if (this.scope.recordId) {
+        let svc = new Katrid.Services.Model('ir.copy.to');
+        let res = await svc.rpc('copy_to', [configId, this.scope.recordId]);
+        let model = new Katrid.Services.Model(res.model);
+        let views = await model.getViewInfo({ view_type: 'form' });
+        let wnd = new Katrid.ui.Dialogs.Window(this.scope, { view: views }, Katrid.Core.compile, null, model);
+        wnd.createNew({ defaultValues: res.value });
+      }
     }
 
     async routeUpdate(search) {

@@ -88,7 +88,7 @@
     async saveAndClose() {
       // Save changes and close dialog
       let r = await this.save(false);
-      this.scope.$emit('saveAndClose', r);
+      this.scope.$emit('saveAndClose', this.scope, r);
       return this.scope.action.$element.closest('.modal').modal('hide');
     }
 
@@ -98,7 +98,6 @@
       this.record = {};
       this.state = DataSourceState.inserting;
       this.setValues(res);
-      this.scope.$apply();
       return res;
     }
 
@@ -561,7 +560,7 @@
       );
     }
 
-    async insert(loadDefaults=true, kwargs) {
+    async insert(loadDefaults=true, defaultValues, kwargs) {
       this._clearTimeout();
       for (let child of this.children)
         child._clearTimeout();
@@ -581,6 +580,8 @@
 
       this.state = DataSourceState.inserting;
       this.scope.record.display_name = Katrid.i18n.gettext('(New)');
+      if (defaultValues)
+        Object.assign(res, defaultValues);
       if (res)
         this.setValues(res);
     }

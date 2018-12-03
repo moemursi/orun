@@ -121,8 +121,9 @@
         return service.getViewInfo({
           view_type: "form"
         }).then(function(res) {
-          let wnd = new Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller, service);
-          wnd.createNew(field, sel);
+          let title = _.sprintf(Katrid.i18n.gettext('Create: %(title)s'), { title: field.caption });
+          let wnd = new Katrid.ui.Dialogs.Window(scope, { sel: sel, field: field, title: title, view: res }, $compile, $controller, service);
+          wnd.createNew();
         })
       };
 
@@ -146,8 +147,9 @@
             let res = await service.getViewInfo({
               view_type: "form"
             });
-            let wnd = new Katrid.ui.Dialogs.Window(scope, { view: res }, $compile, $controller, service);
-            wnd.createNew(field, sel, v.str);
+            let title = _.sprintf(Katrid.i18n.gettext('Create: %(title)s'), { title: field.caption });
+            let wnd = new Katrid.ui.Dialogs.Window(scope, { sel: sel, field: field, title: title, view: res }, $compile, $controller, service);
+            wnd.createNew({ creationName: v.str });
             sel.select2('data', null);
           }
         } else if (v && v.id === newEditItem) {

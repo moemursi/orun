@@ -55,12 +55,15 @@
       this.scope._ = this.scope.$parent._;
       this.scope.parentAction = scope.action;
       this.scope.views = {form: options.view};
-      this.scope.title = (options && options.title) || Katrid.i18n.gettext('Create: ');
+      this.scope.dialogTitle = (options && options.title) || Katrid.i18n.gettext('Create: ');
       this.scope.view = options.view;
       this.scope.model = model;
+      this.options = options;
     }
 
-    async createNew(field, sel, name) {
+    async createNew(config) {
+      let field = this.options.field;
+
       this.scope.$setDirty = (field) => {
         const control = this.scope.form[field];
         if (control) {
@@ -68,17 +71,10 @@
         }
       };
 
-      this.scope.field = field;
-
       let view = this.scope.view;
       let elScope = this.scope;
       elScope.views = { form: view };
       elScope.isDialog = true;
-      elScope.dialogTitle = _.sprintf(Katrid.i18n.gettext('Create: %(title)s'), { title: field.caption });
-      console.log(Katrid.app.$templateCache.get('view.form.dialog.modal').replace(
-        '<!-- view content -->',
-        '<form-view form-dialog="dialog">' + view.content + '</form-view>',
-      ));
       let el = $(Katrid.app.$templateCache.get('view.form.dialog.modal').replace(
         '<!-- view content -->',
         '<form-view form-dialog="dialog">' + view.content + '</form-view>',
@@ -94,32 +90,45 @@
 
       this.scope.form = form.controller('form');
       this.scope.formElement = form;
-      let evt = this.scope.$on('saveAndClose', async (event, data) => {
-        if (_.isArray(data) && data.length) {
-          data = await this.scope.$parent.model.getFieldChoices(this.scope.field.name, null, {ids: data});
-          let vals = {};
-          let res = data.items[0];
-          vals[field.name] = res;
-          this.scope.$parent.dataSource.setValues(vals);
-          sel.select2('data', { id: res[0], text: res[1] });
-        }
-        // unhook event
-        evt();
-      });
-
+      if (field) {
+        let evt = this.scope.$on('saveAndClose', async (event, targetScope, data) => {
+          if (this.scope === targetScope) {
+            if (_.isArray(data) && data.length) {
+              data = await this.scope.$parent.model.getFieldChoices(field.name, null, {ids: data});
+              let vals = {};
+              let res = data.items[0];
+              vals[field.name] = res;
+              this.scope.$parent.dataSource.setValues(vals);
+              if (this.options.sel)
+                this.options.sel.select2('data', { id: res[0], text: res[1] });
+            }
+            // unhook event
+            evt();
+          }
+        });
+      }
       this.scope.action = {
         $element: el,
       };
       this.scope.dataSource = new Katrid.Data.DataSource(this.scope);
 
-      // check if there's a creation name
-      let kwargs;
-      if (name)
-        kwargs = { creation_name: name};
-      await this.scope.dataSource.insert(true, kwargs);
-      this.scope.$apply();
+      return new Promise(async (resolve, reject) => {
+        setTimeout(async () => {
+          // check if there's a creation name
+          let kwargs, defaultValues;
+          if (config) {
+            if (config.creationName)
+              kwargs = { creation_name: name };
+            if (config.defaultValues)
+              defaultValues = config.defaultValues;
+          }
+          await this.scope.dataSource.insert(true, defaultValues, kwargs);
+          this.scope.$apply();
+          resolve(el);
+        });
 
-      return el;
+      });
+
     };
   }
 

@@ -29,25 +29,19 @@ class CopyTo(models.Model):
         ]
 
     @api.method
-    def copy_to(self, source, dest):
-        source = self.env[source]
-        dest = self.env[dest]
-        ir_copy_to = app['ir.copy.to'].objects.filter(
-            source_model__name=source._meta.name,
-            dest_model__name=dest._meta.name,
-            active=True,
-        ).one()
-        mapping = ir_copy_to.fields_mapping
-        dest = source.env[dest]
-        if mapping == '*':
-            mapping = auto_mapping_fields(source, dest)
-        else:
+    def copy_to(self, id, source_id):
+        ir_copy_to = self.objects.get(id)
+        if source_id is not None and ir_copy_to.active:
+            source = self.env[ir_copy_to.source_model.name]
+            source_obj = source.objects.get(source_id)
+            dest = self.env[ir_copy_to.dest_model.name]
+            mapping = ir_copy_to.fields_mapping
             mapping = json.loads(mapping)
-        values = copy_to_dest(mapping, dest, source.to_json())
-        return {
-            'model': source._meta.name,
-            'value': values,
-        }
+            values = copy_to_dest(mapping, dest, source_obj.to_json())
+            return {
+                'model': dest._meta.name,
+                'value': values,
+            }
 
 
 def auto_mapping_fields(source, dest):
@@ -76,11 +70,15 @@ def copy_to_dest(mapping, dest, source):
     for k, v in mapping.items():
         field = dest._meta.fields[k]
         if field.one_to_many:
-            lines = source[v['field']]
-            if v and lines:
-                values[k] = []
-                for line in lines:
-                    values[k].append({'action': 'CREATE', 'values': copy_to_dest(v['values'], field.model, line)})
+            values[k] = []
+            if isinstance(v, dict):
+                lines = source[v['field']]
+                if v and lines:
+                    for line in lines:
+                        values[k].append({'action': 'CREATE', 'values': copy_to_dest(v['values'], field.rel.model, line)})
+            elif isinstance(v, list):
+                for line in v:
+                    values[k].append({'action': 'CREATE', 'values': copy_to_dest(line, field.rel.model, source)})
         else:
             values[k] = get_val(source, v)
     return values
