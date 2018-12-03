@@ -1,4 +1,4 @@
 <form>
   <field name="dashboard"/>
-  <field name="content" code-editor-options="{mode: 'html'}"/>
+  <field name="content" cols="6" code-editor-options="{mode: 'html'}"/>
 </form>

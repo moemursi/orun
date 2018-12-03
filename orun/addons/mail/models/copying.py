@@ -10,7 +10,7 @@ class CopyTo(models.Model):
     dest_model = models.ForeignKey('ir.model', null=False, label=_('Destination Model'))
     caption = models.CharField(label=_('Caption'))
     active = models.BooleanField(default=True)
-    fields_mapping = models.TextField(label=_('Fields Mapping'))
+    fields_mapping = models.TextField(label=_('Fields Mapping'), template={'form': 'view.form.code-editor.pug'})
 
     class Meta:
         name = 'ir.copy.to'

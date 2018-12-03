@@ -16,6 +16,7 @@
           if (_.isUndefined(field))
             throw Error('Invalid field name "' + attrs.name + '"');
           let templ = field.template.form;
+          console.log(attrs.name, field.template.form);
           field.assign(element);
           if (!field.visible) {
             el.remove();
