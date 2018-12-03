@@ -28,6 +28,27 @@ class CopyTo(models.Model):
             for opt in opts
         ]
 
+    @api.method
+    def copy_to(self, source, dest):
+        source = self.env[source]
+        dest = self.env[dest]
+        ir_copy_to = app['ir.copy.to'].objects.filter(
+            source_model__name=source._meta.name,
+            dest_model__name=dest._meta.name,
+            active=True,
+        ).one()
+        mapping = ir_copy_to.fields_mapping
+        dest = source.env[dest]
+        if mapping == '*':
+            mapping = auto_mapping_fields(source, dest)
+        else:
+            mapping = json.loads(mapping)
+        values = copy_to_dest(mapping, dest, source.to_json())
+        return {
+            'model': source._meta.name,
+            'value': values,
+        }
+
 
 def auto_mapping_fields(source, dest):
     res = {}
@@ -43,37 +64,24 @@ def auto_mapping_fields(source, dest):
     return res
 
 
-def copy_to_dest(mapping, obj):
+def get_val(obj, attr: str):
+    if attr.startswith('='):
+        return attr[1:]
+    else:
+        return obj.get(attr)
+
+
+def copy_to_dest(mapping, dest, source):
     values = {}
     for k, v in mapping.items():
-        v, child = v
-        name = v.name
-        value = obj.get(k.name)
-        if k.one_to_many:
-            if value:
-                for val in value:
-                    values[name] = copy_to_dest(child, val)
+        field = dest._meta.fields[k]
+        if field.one_to_many:
+            lines = source[v['field']]
+            if v and lines:
+                values[k] = []
+                for line in lines:
+                    values[k].append({'action': 'CREATE', 'values': copy_to_dest(v['values'], field.model, line)})
         else:
-            values[name]= value
+            values[k] = get_val(source, v)
     return values
-
-
-def copy_to(source, dest):
-    Model = app['ir.model']
-    ir_copy_to = app['ir.copy.to'].objects.filter(
-        source_model=Model.get_by_natural_key(source._meta.name),
-        dest_model=Model.get_by_natural_key(dest),
-        active=True,
-    ).one()
-    mapping = ir_copy_to.fields_mapping
-    dest = source.env[dest]
-    if mapping == '*':
-        mapping = auto_mapping_fields(source, dest)
-    else:
-        mapping = json.loads(mapping)
-    values = copy_to_dest(mapping, source.to_json())
-    return dest.create(**values)
-
-
-models.Model.copy_to = api.record(copy_to)
 

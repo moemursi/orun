@@ -33,7 +33,7 @@
     }
 
     render() {
-      return $(sprintf(Katrid.app.getTemplate(this.templateUrl), { content: this.content }));
+      return $(Katrid.app.getTemplate(this.templateUrl).replace('<!-- replace-content -->', this.content));
     }
 
     show() {

@@ -88,7 +88,7 @@
     }
 
     async copy() {
-      this.setViewType('form');
+      this.viewType = 'form';
       await this.dataSource.copy(this.scope.record.id);
       return false;
     }

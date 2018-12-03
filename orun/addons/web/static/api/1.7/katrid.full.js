@@ -2418,7 +2418,7 @@ Katrid.Data = {};
     }
 
     async copy() {
-      this.setViewType('form');
+      this.viewType = 'form';
       await this.dataSource.copy(this.scope.record.id);
       return false;
     }
@@ -3519,11 +3519,11 @@ Katrid.Data = {};
     }
 
     render() {
-      let el = $(sprintf(Katrid.$templateCache.get(this.templateUrl), {
-        content: this.content,
-        breadcrumb: this.getBreadcrumb(),
-        actions: ''
-      }));
+      let el = $(
+        Katrid.$templateCache.get(this.templateUrl)
+        .replace('<!-- replace-content -->', this.content)
+        .replace('<!-- replace-breadcrumbs -->', this.getBreadcrumb())
+      );
       let frm = el.find('form').first().addClass('row');
       // this.buildHeader(frm);
       return el;
@@ -3569,10 +3569,11 @@ Katrid.Data = {};
       let templName = 'view.form';
       if ($el.attr('form-dialog'))
         templName = 'view.form.dialog';
-      return sprintf(Katrid.app.getTemplate(templName), {
-        content: $el.html(), breadcrumb: this.getBreadcrumb(), actions: '',
-        header: header,
-      });
+      return Katrid.app.getTemplate(templName)
+      .replace('<!-- replace-header -->', header)
+      .replace('<!-- replace-content -->', $el.html())
+      .replace('<!-- replace-actions -->', '')
+      .replace('<!-- replace-breadcrumbs -->', this.getBreadcrumb());
     }
 
     link($scope, $el) {
@@ -5041,7 +5042,6 @@ Katrid.Data = {};
           if (_.isUndefined(field))
             throw Error('Invalid field name "' + attrs.name + '"');
           let templ = field.template.form;
-          console.log(attrs.name, field.template.form);
           field.assign(element);
           if (!field.visible) {
             el.remove();
@@ -7388,7 +7388,7 @@ Katrid.Data = {};
     }
 
     render() {
-      return $(sprintf(Katrid.app.getTemplate(this.templateUrl), { content: this.content }));
+      return $(Katrid.app.getTemplate(this.templateUrl).replace('<!-- replace-content -->', this.content));
     }
 
     show() {

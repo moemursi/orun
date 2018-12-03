@@ -222,7 +222,7 @@
       <toolbar>
         <div>
           <a href="#" onclick="event.preventDefault()" title="Add to favorite"><i class="fa star fa-star-o pull-right"></i></a>
-          %(breadcrumb)s
+          <!-- replace-breadcrumbs -->
           <p class="help-block">{{ ::action.info.usage }}</p>
         </div>
         <div class="toolbar">
@@ -249,7 +249,7 @@
               <button id="attachments-button" attachments-button="" type="button" class="btn btn-secondary dropdown-toggle"
                       data-toggle="dropdown" aria-haspopup="true">
                 <span ng-if="!attachments.length">{{ ::_.gettext('Attachments') }} </span>
-                  <span ng-if="attachments.length">{{ _.sprintf(_.gettext('%%d Attachment(s)'), attachments.length) }}</span>
+                  <span ng-if="attachments.length">{{ ::_.sprintf(_.gettext('%%d Attachment(s)'), attachments.length) }}</span>
                 <span class="caret"></span>
               </button>
               <div class="dropdown-menu attachments-menu">
@@ -274,29 +274,18 @@
                 {{ ::_.gettext('Action') }} <span class="caret"></span>
               </button>
               <div class="dropdown-menu dropdown-menu-actions">
-                <a class="dropdown-item" href="#" ng-click="action.deleteSelection(true)">
+                <a class="dropdown-item" ng-click="action.deleteSelection(true)">
                   <i class="fa fa-fw fa-trash-o"></i> {{ ::_.gettext('Delete') }}
                 </a>
-                <a class="dropdown-item" href="#" ng-click="action.copy()">
+                <a class="dropdown-item" ng-click="action.copy()">
                   <i class="fa fa-fw fa-files-o"></i>
-                  {{ ::_.gettext('Duplicate') }}</a>
-                <a class="dropdown-item" href="#" onclick="event.preventDefault()">
+                  {{ ::_.gettext('Duplicate') }}
+                </a>
+                <a class="dropdown-item" ng-if="$parent.record.id" ng-repeat="opt in ::copyToOpts" ng-click="action.copyTo(opt.id)">
                   <i class="fa fa-fw fa-files-o"></i>
-                  {{ ::_.gettext('Copy To') }}
+                  {{ ::_.sprintf(_.gettext('Copy To %s'), opt.name) }}
                 </a>
-                %(actions)s
-              </div>
-            </div>
-          </div>
-          <div class="btn-group">
-            <div class="dropdown">
-              <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">
-                {{ ::_.gettext('Copy To') }} <span class="caret"></span>
-              </button>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="#" ng-click="action.copyTo(opt.id)" ng-repeat="opt in copyToOpts">
-                  {{ opt.name }}
-                </a>
+                <!-- replace-actions -->
               </div>
             </div>
           </div>
@@ -325,7 +314,7 @@
           <div class="clearfix"></div>
           <header class="content-container-heading">
             <div class="header-buttons">
-            %(header)s
+            <!-- replace-header -->
             </div>
           </header>
           <div class="clearfix"></div>
@@ -336,7 +325,7 @@
                   <a class="maximize-button" role="button" title="Maximizar" onclick="$(this).closest('div.card.data-panel').toggleClass('box-fullscreen');$(this).find('i').toggleClass('fa-compress fa-expand')">
                     <i class=" fa fa-expand"></i>
                   </a>
-                  %(content)s
+                  <!-- replace-content -->
               </div>
             </div>
           </div>
@@ -346,7 +335,7 @@
   </script>
   <script id="view.form.dialog" type="text/ng-template">
     <form novalidate>
-      %(content)s
+      <!-- replace-content -->
     </form>
   </script>
   <script id="view.form.dialog.modal" type="text/ng-template">
