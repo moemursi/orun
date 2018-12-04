@@ -34,6 +34,10 @@ class OrunRuntimeWarning(RuntimeWarning):
     pass
 
 
+class DatabaseWarning(OrunRuntimeWarning):
+    pass
+
+
 class AppRegistryNotReady(Exception):
     """The orun.apps registry is not populated yet"""
     pass

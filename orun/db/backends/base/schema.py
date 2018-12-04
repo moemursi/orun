@@ -83,6 +83,7 @@ class BaseDatabaseSchemaEditor(object):
             self.collected_sql = []
         self.atomic_migration = bool(atomic)
         self.meta_data = sa.MetaData(bind=connection)
+        self.ddl_compiler = connection.engine.dialect.ddl_compiler(connection.engine.dialect, None)
 
     # State-managing methods
 
@@ -445,23 +446,31 @@ class BaseDatabaseSchemaEditor(object):
         # Special-case implicit M2M tables
         # if field.many_to_many and field.rel_field.through._meta.auto_created:
         #     return self.create_model(field.rel_field.through)
-        if field.many_to_many:
-            return
-        # Get the column's definition
-        definition, params = self.column_sql(model, field)
-        # It might not actually have a column behind it
-        if definition is None:
-            return
-        # Check constraints can go on the column SQL here
-        # db_params = field.db_parameters(connection=self.connection)
-        # if db_params['check']:
-        #     definition += " CHECK (%s)" % db_params['check']
-        # Build the SQL and run it
-        sql = self.sql_create_column % {
-            "table": model._meta.table_name,
-            "column": self.quote_name(field.db_column),
-            "definition": definition,
-        }
+        if field.db_compute:
+            sql = self.sql_create_column % {
+                "table": model._meta.table_name,
+                "column": '',
+                "definition": self.ddl_compiler.get_column_specification(field.column)
+            }
+            params = []
+        else:
+            if field.many_to_many:
+                return
+            # Get the column's definition
+            definition, params = self.column_sql(model, field)
+            # It might not actually have a column behind it
+            if definition is None:
+                return
+            # Check constraints can go on the column SQL here
+            # db_params = field.db_parameters(connection=self.connection)
+            # if db_params['check']:
+            #     definition += " CHECK (%s)" % db_params['check']
+            # Build the SQL and run it
+            sql = self.sql_create_column % {
+                "table": model._meta.table_name,
+                "column": self.quote_name(field.db_column),
+                "definition": definition,
+            }
         self.execute(sql, params)
 
         # if not self.skip_default(field) and field.default is not None:

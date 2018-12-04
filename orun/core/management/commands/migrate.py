@@ -72,10 +72,8 @@ class Migrate(object):
         db = self.database
         connection = connections[db]
 
-        if self.sync:
-            return self.sync_apps(connection, None)
+        return self.sync_apps(connection, None)
 
-        return
         # Hook for backends needing any database preparation
         #connection.prepare_database()
         # Work out which apps have migrations and which do not
@@ -251,7 +249,7 @@ class Migrate(object):
                 commands.echo(commands.style.MIGRATE_SUCCESS(" DONE" + elapsed))
 
     def sync_apps(self, connection, app_labels):
-        "Runs the old syncdb-style operation on a list of app_labels."
+        "Compares all database tables and synchronize ir if needed."
         insp = reflection.Inspector.from_engine(connection.engine)
         for app in main_app.addons.values():
             if app.db_schema:
@@ -267,14 +265,15 @@ class Migrate(object):
         ]
 
         main_app.meta.create_all(connection.engine, tables=[tbl for tbl in main_app.meta.tables.values() if tbl.__model__._meta.managed])
-
         meta = sa.MetaData(connection.engine)
 
         for table in tables:
             model = table.__model__
             cols = insp.get_columns(table.name, schema=table.schema)
             cols = {col['name']: col for col in cols}
-            tbl = sa.Table(table.name, meta, schema=table.schema, autoload=True)
+            tbl = sa.Table(
+                table.name, meta, schema=table.schema, autoload=True,
+            )
             indexes = None
             with connection.schema_editor() as editor:
                 for f in model._meta.local_fields:
@@ -287,6 +286,9 @@ class Migrate(object):
                             if c.name not in cols:
                                 # connection.execute(CreateColumn(c))
                                 editor.add_field(model, f)
+                        elif f.db_compute and not old_col.info.get('compute'):
+                            editor.safe_alter_column(c, old_col, indexes=indexes)
+                            editor.add_field(model, f)
                         elif old_col.foreign_keys and not editor.compare_fks(old_col.foreign_keys, c.foreign_keys):
                             if indexes is None:
                                 indexes = insp.get_indexes(tbl.name, tbl.schema)

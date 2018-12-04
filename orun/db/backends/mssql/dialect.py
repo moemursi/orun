@@ -1,4 +1,9 @@
+import warnings
+from orun.core.exceptions import DatabaseWarning
+
+from sqlalchemy.engine import reflection
 import sqlalchemy.dialects.mssql.base
+from sqlalchemy.dialects.mssql import base as mssql
 import sqlalchemy.dialects.mssql.pyodbc
 
 
@@ -24,6 +29,58 @@ class MSDDLCompiler(sqlalchemy.dialects.mssql.base.MSDDLCompiler):
 class MSSQLDialect(sqlalchemy.dialects.mssql.pyodbc.dialect):
     statement_compiler = MSSQLCompiler
     ddl_compiler = MSDDLCompiler
+
+    @reflection.cache
+    @sqlalchemy.dialects.mssql.base._db_plus_owner
+    def get_columns(self, connection, tablename, dbname, owner, schema, **kw):
+        q = ''' SELECT c.name, t.Name data_type, c.max_length max_length, c.precision, c.scale, c.is_nullable, ISNULL(i.is_primary_key, 0) primary_key,
+            object_definition(c.default_object_id) default_value, c.collation_name, c.is_identity, comp.definition
+            FROM sys.columns c
+            INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
+            LEFT OUTER JOIN sys.index_columns ic ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+            LEFT OUTER JOIN sys.indexes i ON ic.object_id = i.object_id AND ic.index_id = i.index_id
+            LEFT OUTER JOIN sys.computed_columns comp on comp.column_id = c.column_id and comp.object_id = c.object_id
+            WHERE c.object_id = OBJECT_ID(?)
+        '''
+        cursor = connection.execute(q, '%s.%s' % (owner, tablename))
+        cols = []
+        for col in cursor.fetchall():
+            type = col.data_type
+            collation = col.collation_name
+            kwargs = {}
+            coltype = self.ischema_names.get(type, None)
+            if coltype in (mssql.MSString, mssql.MSChar, mssql.MSNVarchar, mssql.MSNChar, mssql.MSText,
+                           mssql.MSNText, mssql.MSBinary, mssql.MSVarBinary,
+                           mssql.sqltypes.LargeBinary):
+                if col.max_length == -1:
+                    charlen = None
+                kwargs['length'] = col.max_length
+                if collation:
+                    kwargs['collation'] = collation
+            if coltype is None:
+                warnings.warn(
+                    "Did not recognize type '%s' of column '%s'" % (col.type, col.name),
+                    DatabaseWarning,
+                )
+                coltype = mssql.sqltypes.NULLTYPE
+            else:
+                if issubclass(coltype, mssql.sqltypes.Numeric) and coltype is not mssql.MSReal:
+                    kwargs['scale'] = col.scale
+                    kwargs['precision'] = col.precision
+                coltype = coltype(**kwargs)
+
+            col_info = {
+                'name': col.name,
+                'type': coltype,
+                'nullable': col.is_nullable,
+                'default': col.default_value,
+                'autoincrement': col.is_identity,
+            }
+            if col.definition:
+                col_info['info'] = {'compute': col.definition}
+            cols.append(col_info)
+        return cols
+
 
     @sqlalchemy.dialects.mssql.base._db_plus_owner
     def get_foreign_keys(self, connection, tablename, dbname, owner, schema, **kw):
