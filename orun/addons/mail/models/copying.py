@@ -41,6 +41,9 @@ class CopyTo(models.Model):
             return {
                 'model': dest._meta.name,
                 'value': values,
+                'context': {
+                    'copy_from': [source._meta.name, source_id],
+                }
             }
 
 

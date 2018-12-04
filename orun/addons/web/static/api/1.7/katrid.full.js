@@ -3833,7 +3833,7 @@ Katrid.Data = {};
       };
 
       scope.addRecord = function (rec) {
-        let record = Katrid.Data.createRecord({}, scope.dataSource);
+        let record = Katrid.Data.createRecord({$loaded: true}, scope.dataSource);
         for (let [k, v] of Object.entries(rec))
           record[k] = v;
         scope.records.push(record);
