@@ -13,7 +13,7 @@ def jsonify(data, cls=OrunJSONEncoder):
         separators = (', ', ': ')
 
     return app.response_class(
-        (json.dumps(data, indent=indent, separators=separators, cls=cls), '\n'),
+        (json.dumps(data, indent=indent, separators=separators, cls=cls, check_circular=False), '\n'),
         mimetype=app.config['JSONIFY_MIMETYPE']
     )
 
