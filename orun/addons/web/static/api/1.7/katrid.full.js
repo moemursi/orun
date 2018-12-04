@@ -2970,9 +2970,11 @@ Katrid.Data = {};
         params = [];
       }
       this.fields = fields;
+      this.scope.fields = {};
 
       // Create params
       for (let p of fields) {
+        this.scope.fields[p.name] = p;
         if (p.groupable)
           this.groupables.push(p);
         if (p.sortable)
@@ -2984,9 +2986,10 @@ Katrid.Data = {};
     }
 
     loadParams() {
-      for (let p of Array.from(this.fields))
+      for (let p of Array.from(this.fields)) {
         if (p.autoCreate)
           this.addParam(p.name);
+      }
     }
 
     addParam(paramName) {
@@ -3157,7 +3160,8 @@ Katrid.Data = {};
         FloatField: this.Operations.between,
         DecimalField: this.Operations.between,
         ForeignKey: this.Operations.exact,
-        ModelChoices: this.Operations.exact
+        ModelChoices: this.Operations.exact,
+        SelectionField: this.Operations.exact,
       };
 
       this.TypeOperations = {
@@ -3168,7 +3172,8 @@ Katrid.Data = {};
         DateTimeField: [this.Operations.exact, this.Operations.in, this.Operations.gt, this.Operations.lt, this.Operations.between, this.Operations.isnull],
         DateField: [this.Operations.exact, this.Operations.in, this.Operations.gt, this.Operations.lt, this.Operations.between, this.Operations.isnull],
         ForeignKey: [this.Operations.exact, this.Operations.in, this.Operations.isnull],
-        ModelChoices: [this.Operations.exact, this.Operations.in, this.Operations.isnull]
+        ModelChoices: [this.Operations.exact, this.Operations.in, this.Operations.isnull],
+        SelectionField: [this.Operations.exact, this.Operations.isnull],
       };
 
       this.Widgets = {
@@ -3219,6 +3224,14 @@ Katrid.Data = {};
 
         ModelChoices(param) {
           return `<div><input id="rep-param-id-${param.id}" ajax-choices="ir.action.report" model-choices="${param.info.modelChoices}" ng-model="param.value1"></div>`;
+        },
+
+        SelectionField(param) {
+          param.info.choices = param.info.field.data('choices');
+          let defaultValue = param.info.field.attr('default');
+          if (defaultValue)
+            defaultValue = ` ng-init="param.value1='${defaultValue}'"`;
+          return `<div${defaultValue}><select class="form-control" ng-model="param.value1"><option value="{{ key }}" ng-repeat="(key, value) in fields.${param.name}.choices">{{ value }}</option></select></div>`
         }
       };
     }
