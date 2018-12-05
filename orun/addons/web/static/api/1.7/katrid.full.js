@@ -5266,18 +5266,6 @@ Katrid.Data = {};
                   text: item[1]
                 }));
                 const more = query.page * Katrid.settings.services.choicesPageLimit < res.count;
-                if (!multiple && !more) {
-                  let msg;
-                  const v = sel.data("select2").search.val();
-                  if ((attrs.allowCreate && attrs.allowCreate !== "false" || attrs.allowCreate == null) && v) {
-                    msg = Katrid.i18n.gettext('Create <i>"%s"</i>...');
-                    r.push({
-                      id: newItem,
-                      text: msg
-                    })
-                  }
-                }
-                console.log(r);
                 return query.callback({
                   results: r,
                   more: more

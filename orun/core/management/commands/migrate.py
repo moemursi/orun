@@ -277,24 +277,23 @@ class Migrate(object):
             indexes = None
             with connection.schema_editor() as editor:
                 for f in model._meta.local_fields:
-                    with connection.engine.begin():
-                        if f.column is None:
-                            continue
-                        c = f.column
-                        old_col = tbl.c.get(c.name)
-                        if old_col is None:
-                            if c.name not in cols:
-                                # connection.execute(CreateColumn(c))
-                                editor.add_field(model, f)
-                        elif f.db_compute and not old_col.info.get('compute'):
-                            editor.safe_alter_column(c, old_col, indexes=indexes)
+                    if f.column is None:
+                        continue
+                    c = f.column
+                    old_col = tbl.c.get(c.name)
+                    if old_col is None:
+                        if c.name not in cols:
+                            # connection.execute(CreateColumn(c))
                             editor.add_field(model, f)
-                        elif old_col.foreign_keys and not editor.compare_fks(old_col.foreign_keys, c.foreign_keys):
-                            if indexes is None:
-                                indexes = insp.get_indexes(tbl.name, tbl.schema)
-                            editor.safe_alter_column(c, old_col, indexes=indexes)
-                            editor.add_field(model, f)
-                        elif c.nullable != old_col.nullable and c.nullable:
-                            editor.alter_column_null(c)
+                    elif f.db_compute and not old_col.info.get('compute'):
+                        editor.safe_alter_column(c, old_col, indexes=indexes)
+                        editor.add_field(model, f)
+                    elif old_col.foreign_keys and not editor.compare_fks(old_col.foreign_keys, c.foreign_keys):
+                        if indexes is None:
+                            indexes = insp.get_indexes(tbl.name, tbl.schema)
+                        editor.safe_alter_column(c, old_col, indexes=indexes)
+                        editor.add_field(model, f)
+                    elif c.nullable != old_col.nullable and c.nullable:
+                        editor.alter_column_null(c)
 
 

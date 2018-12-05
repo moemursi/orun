@@ -127,6 +127,7 @@ class Field(BaseField):
         self.db_index = db_index
         self.db_default = db_default
         self.db_compute = db_compute
+        self.db_persisted = kwargs.get('db_persisted')
         self.unique = unique
         self.null = null
         self.help_text = help_text
