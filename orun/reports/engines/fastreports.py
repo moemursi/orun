@@ -44,7 +44,7 @@ class FastReports(ReportEngine):
         url = connection.engine.url
         if url.drivername.startswith('mssql'):
             if url.password:
-                return 'Data Source=%s;Initial Catalog=%s;Integrated Security=False;Persist Security Info=False;User ID=%s;Password=%s' % (url.host, url.database, url.user, url.password)
+                return 'Data Source=%s;Initial Catalog=%s;Integrated Security=False;Persist Security Info=False;User ID=%s;Password=%s' % (url.host, url.database, url.username, url.password)
             else:
                 # Windows integrated security
                 return 'Data Source=%s;Initial Catalog=%s;Integrated Security=True' % (url.host, url.database)
