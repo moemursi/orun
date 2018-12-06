@@ -19,8 +19,9 @@ class FastReport(Report):
         )
 
     def export(self, format='pdf', params=None):
-        import fastreport
+        url = connection.engine.url
         conn_str = ''
+        import fastreport
         if format == 'native':
             format = 'fpx'
         try:
@@ -43,12 +44,13 @@ class FastReports(ReportEngine):
         url = connection.engine.url
         if url.drivername.startswith('mssql'):
             if url.password:
-                return 'Data Source=%s;Initial Catalog=%s;Integrated Security=True;Persist Security Info=False;User ID=;Password='
+                return 'Data Source=%s;Initial Catalog=%s;Integrated Security=False;Persist Security Info=False;User ID=%s;Password=%s' % (url.host, url.database, url.user, url.password)
             else:
                 # Windows integrated security
                 return 'Data Source=%s;Initial Catalog=%s;Integrated Security=True' % (url.host, url.database)
 
     def export(self, report, format='pdf', params=None, **kwargs):
+        conn_str = self.make_conn_str()
         import fastreport
 
         if format == 'native':
