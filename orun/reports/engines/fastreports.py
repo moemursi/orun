@@ -50,7 +50,6 @@ class FastReports(ReportEngine):
                 return 'Data Source=%s;Initial Catalog=%s;Integrated Security=True' % (url.host, url.database)
 
     def export(self, report, format='pdf', params=None, **kwargs):
-        conn_str = self.make_conn_str()
         import fastreport
 
         if format == 'native':
