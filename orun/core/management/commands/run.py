@@ -66,6 +66,7 @@ def command(host, port, reload, debugger, eager_loading, with_threads, websocket
 
         from gevent.pywsgi import WSGIServer
 
+        app.running = True
         WSGIServer((host, port), app.wsgi_app).serve_forever()
     else:
         app.config['WEBSOCKET'] = False
