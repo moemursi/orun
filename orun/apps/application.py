@@ -64,6 +64,7 @@ class Application(Flask):
 
         # always load web module
         self.addons['web'] = registry['web']
+        self.running = False
 
     @property
     def connection(self):
