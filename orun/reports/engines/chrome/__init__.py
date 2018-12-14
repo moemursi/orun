@@ -3,7 +3,7 @@ import os
 import uuid
 import mako.lookup
 import mako.template
-from gevent import subprocess
+import subprocess
 
 from orun import app
 from orun.db import session
