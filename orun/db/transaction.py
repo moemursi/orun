@@ -41,9 +41,8 @@ class Atomic(ContextDecorator):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type is not None:
-            if self.trans.session.dirty:
-                self.trans.rollback()
-        elif self.trans.session.dirty:
+            self.trans.rollback()
+        else:
             self.trans.commit()
 
 
