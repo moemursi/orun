@@ -35,7 +35,7 @@ def command(host, port, reload, debugger, eager_loading, with_threads, websocket
 
     debug = True
     if reload is None:
-        reload = bool(debug)
+        reload = False
     if debugger is None:
         debugger = bool(debug)
     if eager_loading is None:
