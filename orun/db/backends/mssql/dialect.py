@@ -3,7 +3,7 @@ import warnings
 from sqlalchemy.engine import reflection
 import sqlalchemy.dialects.mssql.base
 from sqlalchemy.dialects.mssql import base as mssql
-import sqlalchemy.dialects.mssql.pymssql
+import sqlalchemy.dialects.mssql.pyodbc
 
 from orun.core.exceptions import DatabaseWarning
 
@@ -27,7 +27,7 @@ class MSDDLCompiler(sqlalchemy.dialects.mssql.base.MSDDLCompiler):
         return super(MSDDLCompiler, self).get_column_specification(column, **kwargs)
 
 
-class MSSQLDialect(sqlalchemy.dialects.mssql.pymssql.dialect):
+class MSSQLDialect(sqlalchemy.dialects.mssql.pyodbc.dialect):
     statement_compiler = MSSQLCompiler
     ddl_compiler = MSDDLCompiler
 
