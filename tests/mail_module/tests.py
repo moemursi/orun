@@ -134,7 +134,6 @@ class ApprovalTestCase(ApplicationTestCase):
             mail.models.send_approved_message.connect(approved_message)
 
             # keep the original approval level
-            return
             obj = model.create(name='Document 2', status='level1')
             self.assertEqual(obj.current_approval_level.level, 'level1')
             self.assertEqual(obj.status, 'level1')
@@ -181,8 +180,8 @@ class TestCopying(ApplicationTestCase):
     def test_copy_to(self):
         with self.app.app_context():
             copying = self.app['ir.copy.to']
-            copying.create(source_model=self.source_model, dest_model=self.dest_model, fields_mapping='*')
+            cp = copying.create(source_model=self.source_model, dest_model=self.dest_model, fields_mapping='{"name": "name"}')
             MyDocument = self.app['mail_module_test.my.document']
             my_doc = MyDocument.create(name='Document 1')
-            dest = my_doc.copy_to('mail_module_test.my.document.dest')
-            self.assertEqual(dest.name, my_doc.name)
+            dest = copying.copy_to(cp.pk, my_doc.pk)
+            self.assertEqual(dest['value']['name'], my_doc.name)
