@@ -309,7 +309,7 @@ class Options:
         if self.field_groups and 'list_fields' in self.field_groups:
             return [self.fields[field_name] for field_name in self.field_groups['list_fields']]
         else:
-            return self.editable_fields
+            return [f for f in self.editable_fields if not f.one_to_many]
 
     @property
     def form_fields(self):

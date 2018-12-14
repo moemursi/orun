@@ -104,9 +104,6 @@ class ApprovalModel(models.Model):
 
     class Meta:
         name = 'mail.approval.model'
-        field_groups = {
-            'list_fields': ['name', 'model', 'active'],
-        }
 
 
 class ApprovalLevel(models.Model):
