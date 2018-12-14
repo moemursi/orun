@@ -1,10 +1,11 @@
+import sys
 import warnings
-from orun.core.exceptions import DatabaseWarning
-
 from sqlalchemy.engine import reflection
 import sqlalchemy.dialects.mssql.base
 from sqlalchemy.dialects.mssql import base as mssql
-import sqlalchemy.dialects.mssql.pyodbc
+import sqlalchemy.dialects.mssql.pymssql
+
+from orun.core.exceptions import DatabaseWarning
 
 
 class MSSQLCompiler(sqlalchemy.dialects.mssql.base.MSSQLCompiler):
@@ -26,7 +27,7 @@ class MSDDLCompiler(sqlalchemy.dialects.mssql.base.MSDDLCompiler):
         return super(MSDDLCompiler, self).get_column_specification(column, **kwargs)
 
 
-class MSSQLDialect(sqlalchemy.dialects.mssql.pyodbc.dialect):
+class MSSQLDialect(sqlalchemy.dialects.mssql.pymssql.dialect):
     statement_compiler = MSSQLCompiler
     ddl_compiler = MSDDLCompiler
 
@@ -103,3 +104,14 @@ where fk.parent_object_id = OBJECT_ID('%s')
                 'referred_table': fk.table_name,
                 'referred_columns': [fk.referred_name]
             }
+
+
+if 'gevent' in sys.modules:
+    import gevent.socket
+    import pymssql
+
+    def wait_callback(read_fileno):
+        gevent.socket.wait_read(read_fileno)
+
+    pymssql.set_wait_callback(wait_callback)
+

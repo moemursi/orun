@@ -82,28 +82,29 @@ def records(*args, **kwargs):
         @wraps(fn)
         def wrapped(self, *args, **kwargs):
             ids = None
-            if self.pk:
-                return fn(self, *args, **kwargs)
-            elif args:
-                args = list(args)
-                ids = args[0]
-                args = args[1:]
-            if not ids and not issubclass(self, models.Model):
-                ids = (self,)
-            elif ids:
-                # if the object is a dict
-                # create a new record instance
-                if isinstance(ids, dict):
-                    ids = [self(**ids)]
+            if hasattr(self, '_sa_instance_state'):
+                if self.pk:
+                    return fn(self, *args, **kwargs)
+                elif args:
+                    args = list(args)
+                    ids = args[0]
+                    args = args[1:]
+                if not ids and not issubclass(self, models.Model):
+                    ids = (self,)
+                elif ids:
+                    # if the object is a dict
+                    # create a new record instance
+                    if isinstance(ids, dict):
+                        ids = [self(**ids)]
+                    else:
+                        ids = self.objects.filter(self.c.pk.in_(kwargs.pop('ids', ids)))
+                if not isinstance(ids, RecordsProxy):
+                    ids = RecordsProxy(self, ids)
+                if each:
+                    for id in ids:
+                        return fn(id, *args, **kwargs)
                 else:
-                    ids = self.objects.filter(self.c.pk.in_(kwargs.pop('ids', ids)))
-            if not isinstance(ids, RecordsProxy):
-                ids = RecordsProxy(self, ids)
-            if each:
-                for id in ids:
-                    return fn(id, *args, **kwargs)
-            else:
-                return fn(ids, *args, **kwargs)
+                    return fn(ids, *args, **kwargs)
         return wrapped
 
     if args and callable(args[0]):
