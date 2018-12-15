@@ -104,9 +104,10 @@ class GenericForeignKey(BaseField):
         except AttributeError:
             rel_obj = None
         else:
-            if rel_obj and (ct_id != self.get_content_type(obj=rel_obj).id or
-                            rel_obj._meta.pk.to_python(pk_val) != rel_obj._get_pk_val()):
-                rel_obj = None
+            pass
+            # if rel_obj and (ct_id != self.get_content_type(obj=rel_obj).id or
+            #                 rel_obj._meta.pk.to_python(pk_val) != rel_obj._get_pk_val()):
+            #     rel_obj = None
 
         if rel_obj is not None:
             return rel_obj

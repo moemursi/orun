@@ -42,7 +42,6 @@ class DocumentApproval(comment.Comments):
         # there's no approval level
         next_level = self.next_approval_level
         if self.current_approval_level_id is None:
-            next_level = self.next_approval_level
             if next_level is None:
                 return
             self.current_approval_level = next_level
@@ -94,6 +93,9 @@ class DocumentApproval(comment.Comments):
             # send approval signal if has a pending level after auto evaluation detection
             if original_level != self.current_approval_level_id and self.current_approval_level.permission != 'allow':
                 approval_needed.send(self, user=g.user, level=self.current_approval_level)
+
+    def get_confirmation_message(self):
+        pass
 
 
 class ApprovalModel(models.Model):
