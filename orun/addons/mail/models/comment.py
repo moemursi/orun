@@ -4,8 +4,8 @@ from orun import g, api
 
 
 class Comments(models.Model):
-    message_followers = GenericOneToManyField('mail.followers', editable=False)
-    messages = GenericOneToManyField('mail.message', editable=False)
+    message_followers = GenericOneToManyField('mail.followers', editable=False, copy=False)
+    messages = GenericOneToManyField('mail.message', editable=False, copy=False)
 
     @api.method
     def post_message(self, ids, content=None, **kwargs):

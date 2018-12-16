@@ -11,7 +11,7 @@ class DocumentApproval(comment.Comments):
     """
     Model for documents with approval levels.
     """
-    current_approval_level = models.ForeignKey('mail.approval.level')
+    current_approval_level = models.ForeignKey('mail.approval.level', copy=False)
 
     def can_approve_document_level(self, user, level):
         return True

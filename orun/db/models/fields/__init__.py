@@ -172,6 +172,8 @@ class Field(BaseField):
 
         if copy is None:
             self.copy = not self.primary_key and self.concrete and not auto_created
+        else:
+            self.copy = copy
 
     def contribute_to_class(self, cls, name):
         self.column = None
