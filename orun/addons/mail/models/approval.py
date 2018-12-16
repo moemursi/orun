@@ -17,6 +17,7 @@ class DocumentApproval(comment.Comments):
         return True
 
     def approve_document_level(self, level=None):
+        next_approval = self.next_approval_level
         if level is None:
             level = self.next_approval_level
         if g.user and not g.user.is_superuser:
@@ -40,7 +41,6 @@ class DocumentApproval(comment.Comments):
         # send the document_approved signal
         document_approved.send(self, user=g.user, level=level or self.current_approval_level)
         # send the approval_needed signal
-        next_approval = self.next_approval_level
         if self.current_approval_level.permission != 'allow' and next_approval:
             approval_needed.send(self, user=g.user, level=self.current_approval_level)
 
