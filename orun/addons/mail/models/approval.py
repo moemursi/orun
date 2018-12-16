@@ -138,6 +138,7 @@ class ApprovalHistory(models.Model):
 
     class Meta:
         name = 'mail.approval.history'
+        log_changes = False
 
 
 def _document_approved(doc, user, level):

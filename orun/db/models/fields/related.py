@@ -129,6 +129,8 @@ class RelatedField(FieldCacheMixin, Field):
                     return lazy_related_operation(lambda model, field: field.rel.set_field_name(), model, field)
                 else:
                     field.rel.set_field_name()
+                if self.many_to_one and self.db_type is None:
+                    lazy_related_operation(resolve_related_class, model, related, field)
                 if field.column is None:
                     field.column = self.create_column()
 

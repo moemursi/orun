@@ -43,7 +43,6 @@ class ApprovalTestCase(ApplicationTestCase):
                     self.approval_count += 1
 
                 mail.models.document_approved.connect(approved)
-                return
 
                 # auto evaluate approval
                 obj = model.create(name='Document 2', status='level1')
@@ -74,7 +73,6 @@ class ApprovalTestCase(ApplicationTestCase):
 
             mail.models.document_approved.connect(approved)
 
-            return
             # keep the original approval level
             obj = model.create(name='Document 2', status='level1')
             self.assertEqual(obj.current_approval_level.level, 'level1')
