@@ -31,6 +31,7 @@ class DocumentApproval(comment.Comments):
                 for i, opt in enumerate(opts):
                     if opt[0] == cur_level:
                         next_level = opts[i+1][0]
+                        break
             setattr(self, self._meta.status_field, next_level)
         else:
             self.current_approval_level = level
