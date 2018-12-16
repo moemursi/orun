@@ -24,7 +24,14 @@ class DocumentApproval(comment.Comments):
             if l.permission == 'user' and l.user_id != g.user_id:
                 raise PermissionDenied(gettext('Permission denied'))
         if level is None or self.current_approval_level_id == level.pk:
-            setattr(self, self._meta.status_field, self.current_approval_level.next_level)
+            next_level = self.current_approval_level.next_level
+            if next_level is None:
+                cur_level = self.current_approval_level.level
+                opts = self._meta.fields[self._meta.status_field].choices
+                for i, opt in enumerate(opts):
+                    if opt[0] == cur_level:
+                        next_level = opts[i+1][0]
+            setattr(self, self._meta.status_field, next_level)
         else:
             self.current_approval_level = level
             setattr(self, self._meta.status_field, level.level)
