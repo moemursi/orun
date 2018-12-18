@@ -101,7 +101,7 @@ class DocumentApproval(comment.Comments):
         if not self.evaluate_auto_approval_level():
             # send approval signal if has a pending level after auto evaluation detection
             if original_level != self.current_approval_level_id and self.current_approval_level.permission != 'allow':
-                approval_needed.send(self, user=g.user, level=self.current_approval_level)
+                approval_needed.send(self.objects.get(self.pk), user=g.user, level=self.current_approval_level)
 
     def get_confirmation_message(self):
         pass
