@@ -34,6 +34,7 @@ class DocumentApproval(comment.Comments):
                         next_level = opts[i+1][0]
                         break
             setattr(self, self._meta.status_field, next_level)
+            self.evaluate_auto_approval_level()
         else:
             self.current_approval_level = level
             setattr(self, self._meta.status_field, level.level)
@@ -42,7 +43,6 @@ class DocumentApproval(comment.Comments):
         document_approved.send(self, user=g.user, level=level or self.current_approval_level)
         # send the approval_needed signal
         if self.current_approval_level.permission != 'allow' and next_approval:
-            self.refresh()
             approval_needed.send(self, user=g.user, level=self.current_approval_level)
 
     def get_document_level_value(self):
