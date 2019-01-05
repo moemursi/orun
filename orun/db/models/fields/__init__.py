@@ -388,6 +388,7 @@ class BigIntegerField(IntegerField):
 
 class AutoField(IntegerField):
     def __init__(self, *args, **kwargs):
+        kwargs.setdefault('primary_key', True)
         kwargs['required'] = False
         kwargs.setdefault('editable', False)
         kwargs.setdefault('readonly', True)

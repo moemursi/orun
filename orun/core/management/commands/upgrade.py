@@ -44,6 +44,7 @@ class Command(object):
 
     def _load_file(self, app_config, filename):
         activate(settings.LANGUAGE_CODE)
+        print('Loading fixture: ', filename)
         load_fixture(app_config, filename)
 
     def handle_app_config(self, app_config, **options):

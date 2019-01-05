@@ -42,7 +42,7 @@ class DocumentApproval(comment.Comments):
         document_approved.send(self, user=g.user, level=level or self.current_approval_level)
         # send the approval_needed signal
         if self.current_approval_level.permission != 'allow' and next_approval:
-            approval_needed.send(self.objects.get(self.pk), user=g.user, level=self.current_approval_level)
+            approval_needed.send(self, user=g.user, level=self.current_approval_level)
 
     def get_document_level_value(self):
         return getattr(self, self._meta.status_field)
@@ -95,14 +95,14 @@ class DocumentApproval(comment.Comments):
     class Meta:
         abstract = True
 
-    def save(self, *args, **kwargs):
-        original_level = self.current_approval_level_id
-        super().save(*args, **kwargs)
-        if not self.evaluate_auto_approval_level():
+    def deserialize(self, instance, data):
+        original_level = instance.current_approval_level_id
+        super().deserialize(instance, data)
+        if not instance.evaluate_auto_approval_level():
             # send approval signal if has a pending level after auto evaluation detection
-            if original_level != self.current_approval_level_id and self.current_approval_level.permission != 'allow':
+            if original_level != instance.current_approval_level_id and instance.current_approval_level.permission != 'allow':
                 # force refresh
-                approval_needed.send(self.objects.get(self.pk), user=g.user, level=self.current_approval_level)
+                approval_needed.send(instance, user=g.user, level=instance.current_approval_level)
 
     def get_confirmation_message(self):
         pass

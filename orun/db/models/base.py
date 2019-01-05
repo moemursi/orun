@@ -135,10 +135,10 @@ class ModelBase(type):
             if not opts.inherited and not opts.extension and not opts.abstract:
                 fields['display_name'] = CharField(label=opts.verbose_name, auto_created=True, getter='__str__', editable=False)
                 if opts.log_changes:
-                    fields['created_by'] = ForeignKey('auth.user', label=gettext_lazy('Created by'), auto_created=True, editable=False, deferred=True, db_index=False)
-                    fields['created_on'] = DateTimeField(default=datetime.datetime.now, label=gettext_lazy('Created on'), auto_created=True, editable=False, deferred=True)
-                    fields['updated_by'] = ForeignKey('auth.user', auto_created=True, label=gettext_lazy('Updated by'), editable=False, deferred=True, db_index=False)
-                    fields['updated_on'] = DateTimeField(on_update=datetime.datetime.now, label=gettext_lazy('Updated on'), auto_created=True, editable=False, deferred=True)
+                    fields['created_by'] = ForeignKey('auth.user', label=gettext_lazy('Created by'), auto_created=True, editable=False, deferred=True, db_index=False, copy=False)
+                    fields['created_on'] = DateTimeField(default=datetime.datetime.now, label=gettext_lazy('Created on'), auto_created=True, editable=False, deferred=True, copy=False)
+                    fields['updated_by'] = ForeignKey('auth.user', auto_created=True, label=gettext_lazy('Updated by'), editable=False, deferred=True, db_index=False, copy=True)
+                    fields['updated_on'] = DateTimeField(on_update=datetime.datetime.now, label=gettext_lazy('Updated on'), auto_created=True, editable=False, deferred=True, copy=False)
 
             if not opts.abstract:
                 app_config[opts.name] = new_class
@@ -426,7 +426,7 @@ class Model(metaclass=ModelBase):
         data.pop('id', None)
         children = {}
         for k, v in data.items():
-            field = instance.__class__._meta.fields_dict[k]
+            field = instance.__class__._meta.fields[k]
             v = field.to_python(v)
             if field.set:
                 field.set(instance, v)
@@ -448,6 +448,8 @@ class Model(metaclass=ModelBase):
                 for k, v in dict(e.error_dict).items():
                     e.error_dict[f"{child.name}.{k}"] = e.error_dict.pop(k)
                 raise
+
+        return instance
 
 
         #post_data = cls.post_data.pop(id(instance), None)
@@ -663,7 +665,7 @@ class Model(metaclass=ModelBase):
 
     @api.method
     def write(self, data):
-        if not isinstance(data, (list, tuple)):
+        if isinstance(data, dict):
             data = [data]
         _cache_change = _cache_create = None
         res = []

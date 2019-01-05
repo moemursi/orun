@@ -125,6 +125,9 @@ def Deserializer(object_list, **options):
                             v = get_prep_value(Model, k, v)
                     else:
                         v = val_names_cache[v]
+                elif field_name == 'pk':
+                    xml_id = True
+                    field_name = Model._meta.pk.name
                 vals[field_name] = v
 
             # Avoid to check by the xml id again
@@ -138,105 +141,8 @@ def Deserializer(object_list, **options):
 
         # Ignore if pk is present and object already exists
         if not pk or (pk and session.query(pk.column).filter(pk.column == d['pk']).scalar() is None):
-            try:
-                obj = Model(**vals)
-            except:
-                raise
-            obj.save(force_insert=True)
-            yield obj
+            yield Model.deserialize(Model(), vals)
         continue
-
-        break
-        data = {}
-        if 'pk' in d:
-            try:
-                data[Model._meta.pk.attname] = Model._meta.pk.to_python(d.get('pk'))
-            except Exception as e:
-                raise base.DeserializationError.WithData(e, Model, d.get('pk'), None)
-        m2m_data = {}
-
-        if Model not in field_names_cache:
-            field_names_cache[Model] = {f.name for f in Model._meta.get_fields()}
-        field_names = field_names_cache[Model]
-
-        # Handle each field
-        for (field_name, field_value) in d["fields"].items():
-
-            if ignore and field_name not in field_names:
-                # skip fields no longer on model
-                continue
-
-            if isinstance(field_value, str):
-                field_value = force_text(
-                    field_value, options.get("encoding", settings.DEFAULT_CHARSET), strings_only=True
-                )
-
-            field = Model._meta.get_field(field_name)
-
-            # Handle M2M relations
-            if field.remote_field and isinstance(field.remote_field, models.ManyToManyRel):
-                model = field.remote_field.model
-                if hasattr(model._default_manager, 'get_by_natural_key'):
-                    def m2m_convert(value):
-                        if hasattr(value, '__iter__') and not isinstance(value, str):
-                            return model._default_manager.db_manager(db).get_by_natural_key(*value).pk
-                        else:
-                            return force_text(model._meta.pk.to_python(value), strings_only=True)
-                else:
-                    def m2m_convert(v):
-                        return force_text(model._meta.pk.to_python(v), strings_only=True)
-
-                try:
-                    m2m_data[field.name] = []
-                    for pk in field_value:
-                        m2m_data[field.name].append(m2m_convert(pk))
-                except Exception as e:
-                    raise base.DeserializationError.WithData(e, d['model'], d.get('pk'), pk)
-
-            # Handle FK fields
-            elif field.remote_field and isinstance(field.remote_field, models.ManyToOneRel):
-                model = field.remote_field.model
-                if field_value is not None:
-                    try:
-                        default_manager = model._default_manager
-                        field_name = field.remote_field.field_name
-                        if hasattr(default_manager, 'get_by_natural_key'):
-                            if hasattr(field_value, '__iter__') and not isinstance(field_value, str):
-                                obj = default_manager.db_manager(db).get_by_natural_key(*field_value)
-                                value = getattr(obj, field.remote_field.field_name)
-                                # If this is a natural foreign key to an object that
-                                # has a FK/O2O as the foreign key, use the FK value
-                                if model._meta.pk.remote_field:
-                                    value = value.pk
-                            else:
-                                value = model._meta.get_field(field_name).to_python(field_value)
-                            data[field.attname] = value
-                        else:
-                            data[field.attname] = model._meta.get_field(field_name).to_python(field_value)
-                    except Exception as e:
-                        raise base.DeserializationError.WithData(e, d['model'], d.get('pk'), field_value)
-                else:
-                    data[field.attname] = None
-
-            # Handle all other fields
-            else:
-                try:
-                    data[field.name] = field.to_python(field_value)
-                except Exception as e:
-                    raise base.DeserializationError.WithData(e, d['model'], d.get('pk'), field_value)
-
-        obj = base.build_instance(Model, data, db)
-        obj.save()
-        sys_object = app['ir.object']
-        if 'id' in d and d['id']:
-            ref = sys_object.objects.create(
-                name=d['id'],
-                object_id=obj.pk,
-                model=d['model'],
-                app_label=options['app_label'],
-            )
-        yield obj
-        #yield base.DeserializedObject(obj, m2m_data)
 
 
 def _get_model(model_identifier):
