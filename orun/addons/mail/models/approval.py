@@ -11,7 +11,7 @@ class DocumentApproval(comment.Comments):
     """
     Model for documents with approval levels.
     """
-    current_approval_level = models.ForeignKey('mail.approval.level', copy=False)
+    current_approval_level = models.ForeignKey('mail.approval.level', on_delete=models.SET_NULL, copy=False)
 
     def can_approve_document_level(self, user, level):
         return True
@@ -42,6 +42,7 @@ class DocumentApproval(comment.Comments):
         document_approved.send(self, user=g.user, level=level or self.current_approval_level)
         # send the approval_needed signal
         if self.current_approval_level.permission != 'allow' and next_approval:
+            self.refresh()
             approval_needed.send(self, user=g.user, level=self.current_approval_level)
 
     def get_document_level_value(self):
@@ -102,6 +103,7 @@ class DocumentApproval(comment.Comments):
             # send approval signal if has a pending level after auto evaluation detection
             if original_level != instance.current_approval_level_id and instance.current_approval_level.permission != 'allow':
                 # force refresh
+                instance.refresh()
                 approval_needed.send(instance, user=g.user, level=instance.current_approval_level)
 
     def get_confirmation_message(self):
