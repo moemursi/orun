@@ -4,7 +4,6 @@ import inspect
 import os
 from functools import partial
 from itertools import chain
-
 import sqlalchemy as sa
 from sqlalchemy import orm, func
 from sqlalchemy.ext.declarative import declarative_base
@@ -680,6 +679,9 @@ class Model(metaclass=ModelBase):
             self.deserialize(obj, row)
             res.append(obj.pk)
         return res
+    
+    def refresh(self):
+        session.object_session(self).refresh(self)
 
     @api.method
     def destroy(self, ids):
