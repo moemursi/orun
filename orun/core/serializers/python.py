@@ -134,7 +134,7 @@ def Deserializer(object_list, **options):
             xml_id = bool(xml_id)
 
         if pk is None:
-            if 'pk' in vals:
+            if 'pk' in d:
                 pk = Model._meta.pk
             else:
                 pk = False
