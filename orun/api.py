@@ -72,9 +72,8 @@ def method(*args, public=False, methods=None):
     return decorator
 
 
-def records(*args, **kwargs):
+def records(*args, each=False, **kwargs):
     from orun.db import models
-    each = kwargs.get('each', False)
 
     def decorator(fn):
         fn.exposed = True
@@ -82,7 +81,7 @@ def records(*args, **kwargs):
         @wraps(fn)
         def wrapped(self, *args, **kwargs):
             ids = None
-            if self.pk:
+            if self._state is not None and self.pk:
                 return fn(self, *args, **kwargs)
             elif args:
                 args = list(args)

@@ -1,5 +1,6 @@
 from functools import partial
 import sqlalchemy as sa
+from sqlalchemy.orm import load_only
 
 # from orun.utils.translation import gettext_lazy as _
 from orun.db.models.fields.mixins import FieldCacheMixin
@@ -229,6 +230,10 @@ class OneToManyField(RelatedField):
         r['field'] = self.rel.field_name
         r['model'] = self.rel.model._meta.name
         return r
+
+    def to_json(self, value):
+        value = value.options(load_only(self.rel.model._meta.pk.column.name)).values(self.rel.model._meta.pk.column.name)
+        return [obj[0] for obj in value]
 
     def set(self, instance, value):
         rel_model = self.rel.model._meta.app[self.rel.model]

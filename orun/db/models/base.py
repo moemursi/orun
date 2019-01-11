@@ -236,9 +236,7 @@ class ModelState:
 
 
 class Model(metaclass=ModelBase):
-    #    self._state = ModelState(_record)
-    #    if self._state.adding:
-    #        self._state.record = self._meta.mapped(**kwargs)
+    _state = None
 
     def __init__(self, *args, **kwargs):
         self._state = ModelState()
@@ -679,7 +677,7 @@ class Model(metaclass=ModelBase):
             self.deserialize(obj, row)
             res.append(obj.pk)
         return res
-    
+
     def refresh(self):
         session.object_session(self).refresh(self)
 

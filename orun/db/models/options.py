@@ -186,9 +186,7 @@ class Options:
                     )
                 elif f.one_to_many:
                     if callable(f.primary_join):
-                        primary_join = f.primary_join
-                        if callable(primary_join):
-                            primary_join = primary_join(f.model, f.rel.model)
+                        primary_join = f.primary_join(f.model, f.rel.model)
                         kwargs = {'primaryjoin': primary_join}
                     else:
                         kwargs = {'foreign_keys': [f.rel.remote_field.column]}

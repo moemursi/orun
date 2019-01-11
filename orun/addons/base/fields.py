@@ -143,7 +143,7 @@ class GenericOneToManyField(OneToManyField):
     def __init__(self, to, ct_field='model', to_field='object_id', lazy='dynamic', primary_join=None, *args, **kwargs):
         if primary_join is None:
             primary_join = lambda model, fk_model: and_(
-                model._meta.pk.column == foreign(fk_model._meta.fields_dict[to_field].column),
+                model._meta.pk.column == foreign(fk_model._meta.fields[to_field].column),
                 fk_model._meta.fields_dict[ct_field].column == model._meta.name
             )
         super(GenericOneToManyField, self).__init__(to, to_field, lazy=lazy, primary_join=primary_join, *args, **kwargs)

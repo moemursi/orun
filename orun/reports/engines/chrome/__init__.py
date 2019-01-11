@@ -10,6 +10,40 @@ from orun.db import session
 from orun.conf import settings
 from orun.core.serializers.json import OrunJSONEncoder
 from orun.utils.xml import etree
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PyQt5.QtWidgets import QApplication
+
+
+qapp = QApplication(['--disable-gpu', '--disable-extension'])
+
+
+def print_to_pdf(html, pdf_file):
+    from PyQt5.QtCore import QUrl
+    from PyQt5 import QtGui, QtCore
+
+    view = QWebEngineView()
+    page = QWebEnginePage()
+    view.setPage(page)
+
+    def pdf_printed(*args, **kwargs):
+        page.pdfPrintingFinished.disconnect()
+        page.loadFinished.disconnect()
+        qapp.quit()
+
+    def page_loaded(*args, **kwargs):
+        page.pdfPrintingFinished.connect(pdf_printed)
+        page.printToPdf(
+            pdf_file,
+            QtGui.QPageLayout(
+                QtGui.QPageSize(QtGui.QPageSize.A4), QtGui.QPageLayout.Portrait, QtCore.QMarginsF(25, 25, 25, 25)
+            )
+        )
+
+    page.loadFinished.connect(page_loaded)
+
+    view.setHtml(html.decode('utf-8'), QUrl('file://'))
+    qapp.exec_()
+    return os.path.basename(pdf_file)
 
 
 class ChromeEngine:
@@ -100,8 +134,9 @@ class ChromeEngine:
             tmp.write(xml)
             tmp.close()
             # TODO run print to pdf using CEF
-            subprocess.call([app.config['CHROME_PATH'], '--headless', '--disable-gpu', '--print-to-pdf=' + output_path, 'file://' + file_path])
-            return fname + '.pdf'
+            # subprocess.call([app.config['CHROME_PATH'], '--headless', '--disable-gpu', '--print-to-pdf=' + output_path, 'file://' + file_path])
+            fname += '.pdf'
+            return print_to_pdf(xml, output_path)
 
 
 class Report:
