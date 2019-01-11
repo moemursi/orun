@@ -1,5 +1,13 @@
+html {
+  font-family: Arial, Sans-Serif;
+}
+
 body, table td, table th {
   font-size: 8pt;
+}
+
+body {
+  margin: 0;
 }
 
 h2 {
@@ -34,20 +42,10 @@ footer {
 
 @media print {
 
-  @page {
-    margin-top: 0;
-    margin-left: 0;
-    margin-right: 0;
-    margin-bottom: 0;
-  }
-
   .page-break {
     page-break-before: always;
   }
 
-  body {
-    margin: 5mm;
-  }
 }
 
 .c3-chart-line {
@@ -61,3 +59,11 @@ section.DecimalField .form-field-readonly, section.DecimalField input.form-contr
 section.FloatField .form-field-readonly, section.FloatField input.form-control {
   text-align: right;
 }
+
+.col-header {
+  color: #fff;
+  background: linear-gradient(to bottom, #88b6cd, #4681b3);
+  padding: 3px 5px;
+  font-weight: 600;
+}
+

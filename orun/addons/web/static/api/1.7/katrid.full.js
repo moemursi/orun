@@ -669,14 +669,16 @@ var Katrid = {
       let form = new FormData();
       form.append('files', file.files[0]);
       let scope = angular.element(file).scope();
+      let url = `/web/file/upload/${scope.model.name}/${service}/`;
+      if (scope.record && scope.record.id)
+        url += `?id=${scope.record.id}`;
       $.ajax({
-        url: `/web/file/upload/${scope.model.name}/${service}/?id=${scope.record.id}`,
+        url: url,
         data: form,
         processData: false,
         contentType: false,
         type: 'POST',
         success: (data) => {
-          console.log('success', data);
           scope.dataSource.refresh();
           Katrid.ui.Dialogs.Alerts.success('Operação realizada com sucesso.')
         }
@@ -3641,9 +3643,25 @@ Katrid.Data = {};
 
   .directive('listView', () => ({
     replace: true,
+    link($scope, $el) {
+      if (!$el.find('header').find('button').length)
+        $el.find('header').remove();
+    },
     template($el) {
+      compileButtons($el);
+      let headerEl = $el.find('header').first();
+      let header = '';
+      if (headerEl.find('button').length)
+        if (headerEl.length) {
+          header = headerEl.html();
+          headerEl.remove();
+        }
       $el.find('list').attr('list-options', '{"rowSelector": true}').attr('ng-row-click', 'action.listRowClick($index, record, $event)');
-      return sprintf(Katrid.app.getTemplate('view.list'), { content: $el.html() });
+      return sprintf(
+        Katrid.app.getTemplate('view.list')
+        .replace('<!-- replace-header -->', header),
+        { content: $el.html() }
+      );
     },
   }))
 

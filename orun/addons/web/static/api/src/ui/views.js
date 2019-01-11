@@ -212,9 +212,25 @@
 
   .directive('listView', () => ({
     replace: true,
+    link($scope, $el) {
+      if (!$el.find('header').find('button').length)
+        $el.find('header').remove();
+    },
     template($el) {
+      compileButtons($el);
+      let headerEl = $el.find('header').first();
+      let header = '';
+      if (headerEl.find('button').length)
+        if (headerEl.length) {
+          header = headerEl.html();
+          headerEl.remove();
+        }
       $el.find('list').attr('list-options', '{"rowSelector": true}').attr('ng-row-click', 'action.listRowClick($index, record, $event)');
-      return sprintf(Katrid.app.getTemplate('view.list'), { content: $el.html() });
+      return sprintf(
+        Katrid.app.getTemplate('view.list')
+        .replace('<!-- replace-header -->', header),
+        { content: $el.html() }
+      );
     },
   }))
 
