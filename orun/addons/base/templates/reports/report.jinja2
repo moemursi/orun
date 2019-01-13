@@ -1,1 +1,75 @@
-{% macro static(uri) %}{{ models.static_reverse(uri) }}{% endmacro %}
+{% extends "reports/base.jinja2" %}
+
+{% macro table(records, object=None, fields=None) %}
+  {% if not object %}
+    {% set object = model %}
+  {% endif %}
+  {% set flds = utils.get_fields(object, caller(), fields) %}
+  <table class="table-striped">
+    <thead>
+    <tr class="col-header">
+      {% for f in flds %}
+        {{ f.th() }}
+      {% endfor %}
+    </tr>
+    </thead>
+    <tbody>
+    {% for record in records %}
+      <tr>
+        {% for f in flds %}
+          {{ f.td(record) }}
+        {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+    {% if flds.has_totals() %}
+    <tfoot>
+    <tr>
+	  {% for f in flds %}
+		  {{ f.foot(records) }}
+	  {% endfor %}
+    </tr>
+    </tfoot>
+    {% endif %}
+  </table>
+{% endmacro %}
+
+{% block body %}
+
+  <div class="page-header">
+    {% block page_header %}
+
+    {% endblock %}
+  </div>
+
+    {% block title_band %}
+      <row class="report-title">
+        <column>
+          <img id="logo" src="{{ company.base64_logo }}"/>
+          <div class="float-right text-right">
+          {% if company.report_header %}
+            <small class="float-right">
+              {{ company.report_header | linebreaks }}
+            </small>
+            <br/>
+		      {% endif %}
+            <span class="float-right">{{ date }}</span>
+            <br/>
+            <h2 class="float-right">
+              {% block title %}Document{% endblock %}
+            </h2>
+          </div>
+        </column>
+      </row>
+    {% endblock %}
+
+  {% block report %}
+	{% endblock %}
+
+	{% block page_footer %}
+	  <footer>
+	  {{(company.report_footer or str(company)) | linebreaks}}
+	  </footer>
+	{% endblock %}
+
+{% endblock %}

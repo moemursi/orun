@@ -23,25 +23,44 @@ class ReportAction(Action):
         model = None
         if self.model:
             model = app[self.model]
-        xml = self.view.get_xml(model)
-        if model:
-            data['fields'] = model.get_fields_info(xml=xml)
-        params = xml.find('params')
-        if params is not None:
-            if xml.tag == 'report' and 'model' in xml.attrib:
-                params.attrib['model'] = xml.attrib['model']
-                if not model:
-                    model = app[xml.attrib['model']]
-                    data['fields'] = model.get_fields_info(params)
 
-                # model = app[model]
-                # for field in params:
-                #     if field.tag == 'field' and 'name' in field.attrib:
-                #         fld = model._meta.fields[field.attrib['name']]
-            xml = params
-            data['content'] = etree.tostring(xml, encoding='utf-8').decode('utf-8')
-        else:
-            data['content'] = '<params/>'
+        rep_type = None
+        if self.view and self.view.template_name:
+            rep_type = self.view.template_name.rsplit('.', 1)[1]
+            if rep_type == 'jinja2':
+                templ = app.jinja_env.get_template(self.view.template_name)
+                params = templ.blocks.get('params')
+                if params:
+                    ctx = templ.new_context({})
+                    doc = ''.join(params(ctx))
+                    if not model:
+                        xml = etree.fromstring(doc)
+                        model_name = xml.attrib['model']
+                        if model_name:
+                            model = app[model_name]
+                            data['fields'] = model.get_fields_info(xml)
+                    data['content'] = doc
+
+        if rep_type != 'jinja2':
+            xml = self.view.get_xml(model)
+            if model:
+                data['fields'] = model.get_fields_info(xml=xml)
+            params = xml.find('params')
+            if params is not None:
+                if xml.tag == 'report' and 'model' in xml.attrib:
+                    params.attrib['model'] = xml.attrib['model']
+                    if not model:
+                        model = app[xml.attrib['model']]
+                        data['fields'] = model.get_fields_info(params)
+
+                    # model = app[model]
+                    # for field in params:
+                    #     if field.tag == 'field' and 'name' in field.attrib:
+                    #         fld = model._meta.fields[field.attrib['name']]
+                xml = params
+                data['content'] = etree.tostring(xml, encoding='utf-8').decode('utf-8')
+            else:
+                data['content'] = '<params/>'
         return data
 
     def _export_report(self, format='pdf', params=None):
@@ -72,13 +91,13 @@ class ReportAction(Action):
         types = {
             'html': 'orun.reports.engines.chrome.ChromeEngine',
             'mako': 'orun.reports.engines.chrome.ChromeEngine',
+            'jinja2': 'orun.reports.engines.chrome.JinjaEngine',
             'xml': 'orun.reports.engines.fastreports.FastReports',
             'frx': 'orun.reports.engines.fastreports.FastReports',
             None: 'orun.reports.engines.fastreports.FastReports',
         }
 
-
-        if rep_type == 'mako':
+        if rep_type in ('mako', 'jinja2'):
             xml = self.view._get_content()
         else:
             xml = self.view.get_xml(model)

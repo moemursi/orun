@@ -20,7 +20,7 @@ class ReportEngines(object):
     @classmethod
     def get_engine(cls, engine=None):
         if engine is None:
-            return cls.load_engine(settings.DEFAULT_REPORT_ENGINE)
+            engine = settings.DEFAULT_REPORT_ENGINE
         if isinstance(engine, str):
             if '.' in engine:
                 engine = import_string(engine)

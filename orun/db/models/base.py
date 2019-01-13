@@ -131,7 +131,7 @@ class ModelBase(type):
             fields = {k: v for k, v in attr_items if isinstance(v, BaseField) or hasattr(v, 'contribute_to_class')}
             opts.local_fields = fields
 
-            if not opts.inherited and not opts.extension and not opts.abstract:
+            if (not opts.inherited or bases[0].Meta.abstract) and not opts.extension and not opts.abstract:
                 fields['display_name'] = CharField(label=opts.verbose_name, auto_created=True, getter='__str__', editable=False)
                 if opts.log_changes:
                     fields['created_by'] = ForeignKey('auth.user', label=gettext_lazy('Created by'), auto_created=True, editable=False, deferred=True, db_index=False, copy=False)

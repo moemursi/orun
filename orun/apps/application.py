@@ -65,6 +65,15 @@ class Application(Flask):
         # always load web module
         self.addons['web'] = registry['web']
 
+        # report env
+        from orun.views.filters import linebreaks
+        from orun.reports.engines.chrome.filters import localize, linebreaks
+        from orun.reports.engines.chrome.utils import avg, total, to_list
+        self.report_env = self.create_jinja_environment()
+        self.report_env.finalize = localize
+        self.report_env.filters['linebreaks'] = linebreaks
+        self.report_env.globals['static'] = self.static_reverse
+
     @property
     def connection(self):
         return self.connections[DEFAULT_DB_ALIAS]
@@ -175,7 +184,6 @@ class Application(Flask):
     def _register_views(self, addon):
         for view in registry.module_views[addon.schema]:
             view.register(self)
-
 
     def app_context(self, user_id=SUPERUSER, **kwargs):
         old_state = {}

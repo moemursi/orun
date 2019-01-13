@@ -175,6 +175,10 @@ class Field(BaseField):
         else:
             self.copy = copy
 
+    @property
+    def caption(self):
+        return self.label
+
     def contribute_to_class(self, cls, name):
         self.column = None
         self.model = cls
@@ -458,7 +462,7 @@ class FloatField(Field):
     db_type = sa.Float()
 
 
-class DecimalField(Field):
+class DecimalField(FloatField):
     def __init__(self, digits=29, decimal_places=6, *args, **kwargs):
         self.digits = digits
         self.decimal_places = decimal_places
@@ -473,6 +477,10 @@ class DecimalField(Field):
         if value is not None:
             value = round(value, self.decimal_places)
         return super(DecimalField, self).to_python(value)
+
+    def to_json(self, value):
+        print(value)
+        return value
 
 
 class EmailField(CharField):

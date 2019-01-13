@@ -1,14 +1,20 @@
-{% import 'reports/report.jinja2' as report %}
-{% import 'reports/common.jinja2' as common %}
-<html>
+<!DOCTYPE html>
+<html lang="pt-br">
 <head>
-  <title>{% block report_title %}Report Title{% endblock %}</title>
-
-  {{ common.includes() }}
-  {% block includes %}{% endblock %}
+  <meta charset="UTF-8">
+  <title>{{ title }}</title>
+  {% block head %}
+    <link href="{{static('/static/web/assets/css/bootstrap.min.css')}}" rel="stylesheet">
+    <link href="{{static('/static/web/assets/css/font-awesome.css')}}" rel="stylesheet">
+    <link href="{{static('/static/web/api/reports/reports.css')}}"  rel="stylesheet">
+    <script src="{{static('/static/web/assets/js/jquery.min.js')}}"></script>
+    <script src="{{static('/static/web/api/reports/reports.js')}}"></script>
+  {% endblock %}
 </head>
 <body>
-{% block report %}
-{% endblock %}
+<report>
+	{% set company = g.user.user_company %}
+  {% block body %}{% endblock %}
+</report>
 </body>
 </html>
