@@ -3,23 +3,29 @@ import os
 import uuid
 import mako.lookup
 import mako.template
-import subprocess
-
-from orun import app
-from orun.db import session
-from orun.conf import settings
-from orun.core.serializers.json import OrunJSONEncoder
-from orun.utils.xml import etree
+import datetime
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PyQt5.QtWidgets import QApplication
 
+from orun import app, render_template_string
+from orun.db import session, models
+from orun.conf import settings
+from orun.core.serializers.json import OrunJSONEncoder
+from orun.utils.xml import etree
+from . import filters
+from .utils import avg, total, to_list
 
-qapp = QApplication(['--disable-gpu', '--disable-extension'])
+
+qapp: QApplication = None
 
 
 def print_to_pdf(html, pdf_file):
     from PyQt5.QtCore import QUrl
     from PyQt5 import QtGui, QtCore
+
+    global qapp
+    if qapp is None:
+        qapp = QApplication(['--disable-gpu', '--disable-extension'])
 
     view = QWebEngineView()
     page = QWebEnginePage()
@@ -41,12 +47,18 @@ def print_to_pdf(html, pdf_file):
 
     page.loadFinished.connect(page_loaded)
 
-    view.setHtml(html.decode('utf-8'), QUrl('file://'))
+    if isinstance(html, bytes):
+        html = html.decode('utf-8')
+    view.setHtml(html, QUrl('file://'))
     qapp.exec_()
     return os.path.basename(pdf_file)
 
 
-class ChromeEngine:
+class BaseEngine:
+    pass
+
+
+class ChromeEngine(BaseEngine):
     def __init__(self):
         self.token = uuid.uuid4().hex
 
@@ -139,6 +151,38 @@ class ChromeEngine:
             return print_to_pdf(xml, output_path)
 
 
+def query(cmd, params):
+    if isinstance(params, (list, tuple)):
+        rows = app.connection.engine.execute(cmd, *params)
+    else:
+        rows = session.execute(cmd, params)
+    return rows
+
+
+class JinjaEngine:
+    def auto_report(self, xml, *args, **kwargs):
+        return self.from_xml(xml, **kwargs)
+
+    def from_xml(self, xml, **kwargs):
+        kwargs.setdefault('date', datetime.datetime.now())
+        kwargs.setdefault('utils', ReportUtils())
+        kwargs.setdefault('query', query)
+        templ = app.report_env.from_string(xml)
+        params = templ.blocks.get('params')
+        if params:
+            ctx = templ.new_context({})
+            params = ''.join(params(ctx))
+            s = etree.fromstring(params)
+            model = kwargs.get('model')
+            if model is None:
+                kwargs['model'] = app[s.attrib['model']]
+        xml = templ.render(kwargs)
+        fname = uuid.uuid4().hex + '.html'
+        file_path = os.path.join(settings.REPORT_PATH, fname)
+        output_path = file_path + '.pdf'
+        return print_to_pdf(xml, output_path)
+
+
 class Report:
     def __init__(self, xml):
         self.xml = xml
@@ -148,3 +192,57 @@ class Report:
         if self.model_name:
             self.model = app[self.model_name]
 
+
+class Field:
+    def __init__(self, model, xml):
+        self.xml = xml
+        self.model = model
+        self.name = xml.attrib['name']
+        self.field = model._meta.fields[self.name]
+        self.caption = xml.attrib.get('caption', self.field.caption)
+        self.total = xml.attrib.get('total', None)
+
+    def th(self):
+        css = ''
+        if isinstance(self.field, (models.FloatField, models.IntegerField)):
+            css = 'text-right'
+        return f'<th class="{css}">{self.caption}</th>'
+
+    def td(self, record):
+        css = ''
+        if isinstance(self.field, (models.FloatField, models.IntegerField)):
+            css = 'text-right'
+        return f'<td class="{css}">{filters.localize(getattr(record, self.name))}'
+
+    def foot(self, records):
+        if self.total:
+            css = ''
+            if isinstance(self.field, (models.FloatField, models.IntegerField)):
+                css = 'text-right'
+            v = ''
+            if self.total == 'sum':
+                v = filters.localize(total(records, self.name))
+            elif self.total == 'avg':
+                v = filters.localize(avg(records, self.name))
+            return f'<th class="{css}">{filters.localize(v)}'
+        return '<th></th>'
+
+
+class Fields(list):
+    def has_totals(self):
+        for item in self:
+            if item.total:
+                return True
+
+
+class ReportUtils:
+
+    def get_fields(self, model, block, fields):
+        r = Fields()
+        xml = block.strip()
+        if xml:
+            xml = etree.fromstring(xml)
+            for f in xml:
+                r.append(Field(model, f))
+
+        return r
