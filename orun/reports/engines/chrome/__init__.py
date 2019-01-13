@@ -145,9 +145,6 @@ class ChromeEngine(BaseEngine):
         with open(file_path, 'wb') as tmp:
             tmp.write(xml)
             tmp.close()
-            # TODO run print to pdf using CEF
-            # subprocess.call([app.config['CHROME_PATH'], '--headless', '--disable-gpu', '--print-to-pdf=' + output_path, 'file://' + file_path])
-            fname += '.pdf'
             return print_to_pdf(xml, output_path)
 
 
