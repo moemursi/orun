@@ -311,7 +311,7 @@
     }
 
     get validAttributes() {
-      return super.validAttributes.concat(['inline-editor']);
+      return super.validAttributes.concat(['inline-editor', 'ng-default-values']);
     }
 
     fromJSON(val, dataSource) {

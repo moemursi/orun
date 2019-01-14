@@ -72,6 +72,8 @@
     };
 
     async link(scope, element, attrs) {
+      if (attrs.ngDefaultValues)
+        scope.ngDefaultValues = attrs.ngDefaultValues;
       let me = this;
       // Load remote field model info
 

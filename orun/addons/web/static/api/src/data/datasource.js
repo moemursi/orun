@@ -580,7 +580,12 @@
 
       this.state = DataSourceState.inserting;
       this.scope.record.display_name = Katrid.i18n.gettext('(New)');
-      let defaults = this.scope.action.context.default_values || {};
+
+      let defaults = {};
+      if (this.scope.ngDefaultValues)
+        Object.assign(defaults, this.scope.$eval(this.scope.ngDefaultValues));
+      if (this.scope.action.context.default_values)
+        Object.assign(defaults, this.scope.action.context.default_values);
       if (defaultValues)
         Object.assign(defaults, defaultValues);
       if (res)
