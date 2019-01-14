@@ -37,14 +37,12 @@
 
     }
 
-    get context() {
-      return this.action.getContext();
-    }
   }
 
   class Action {
     static initClass() {
       this.actionType = null;
+      this._context = null;
     }
     constructor(info, scope, location) {
       Katrid.app.actionManager.addAction(this);
@@ -54,14 +52,14 @@
       this.currentUrl = this.location.$$path;
     }
 
-    getContext() {
-      let ctx;
-      if (_.isString(this.info.context))
-        ctx = JSON.parse(this.info.context);
-      if (!ctx)
-        ctx = {};
-      // ctx['params'] = this.location.$$search;
-      return ctx;
+    get context() {
+      if (!this._context) {
+        if (_.isString(this.info.context))
+          this._context = JSON.parse(this.info.context);
+        else
+          this._context = {};
+      }
+      return this._context;
     }
 
     doAction(act) {
@@ -129,8 +127,6 @@
     }
   }
   Action.initClass();
-
-
 
 
   class ViewAction extends Action {

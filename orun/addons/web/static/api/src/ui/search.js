@@ -783,6 +783,24 @@
       });
     }
 
+    load(filter) {
+      Object.entries(filter).map((item, idx) => {
+        let i = this.getByName(item[0]);
+        if (i)
+          i.selected = true;
+      })
+    }
+
+    getByName(name) {
+      for (let item of this.items)
+        if (item instanceof SearchFilterGroup) {
+          for (let subitem of item)
+            if (subitem.name === name)
+              return subitem;
+        } else if (item.name === name)
+          return item;
+    }
+
     append(item) {
       this.items.push(item);
     }
@@ -876,6 +894,9 @@
     link(scope, el, attrs) {
       let view = scope.action.views.search;
       scope.search = new SearchView(scope, el, view);
+      console.log(scope.action, scope.action.context, scope.action._context);
+      if (scope.action.context.default_search)
+        scope.search.load(scope.action.context.default_search);
     }
   }
 

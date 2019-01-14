@@ -2124,14 +2124,12 @@ Katrid.Data = {};
 
     }
 
-    get context() {
-      return this.action.getContext();
-    }
   }
 
   class Action {
     static initClass() {
       this.actionType = null;
+      this._context = null;
     }
     constructor(info, scope, location) {
       Katrid.app.actionManager.addAction(this);
@@ -2141,14 +2139,14 @@ Katrid.Data = {};
       this.currentUrl = this.location.$$path;
     }
 
-    getContext() {
-      let ctx;
-      if (_.isString(this.info.context))
-        ctx = JSON.parse(this.info.context);
-      if (!ctx)
-        ctx = {};
-      // ctx['params'] = this.location.$$search;
-      return ctx;
+    get context() {
+      if (!this._context) {
+        if (_.isString(this.info.context))
+          this._context = JSON.parse(this.info.context);
+        else
+          this._context = {};
+      }
+      return this._context;
     }
 
     doAction(act) {
@@ -2216,8 +2214,6 @@ Katrid.Data = {};
     }
   }
   Action.initClass();
-
-
 
 
   class ViewAction extends Action {
@@ -4959,6 +4955,24 @@ Katrid.Data = {};
       });
     }
 
+    load(filter) {
+      Object.entries(filter).map((item, idx) => {
+        let i = this.getByName(item[0]);
+        if (i)
+          i.selected = true;
+      })
+    }
+
+    getByName(name) {
+      for (let item of this.items)
+        if (item instanceof SearchFilterGroup) {
+          for (let subitem of item)
+            if (subitem.name === name)
+              return subitem;
+        } else if (item.name === name)
+          return item;
+    }
+
     append(item) {
       this.items.push(item);
     }
@@ -5052,6 +5066,9 @@ Katrid.Data = {};
     link(scope, el, attrs) {
       let view = scope.action.views.search;
       scope.search = new SearchView(scope, el, view);
+      console.log(scope.action, scope.action.context, scope.action._context);
+      if (scope.action.context.default_search)
+        scope.search.load(scope.action.context.default_search);
     }
   }
 
