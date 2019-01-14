@@ -1456,10 +1456,12 @@ Katrid.Data = {};
 
       this.state = DataSourceState.inserting;
       this.scope.record.display_name = Katrid.i18n.gettext('(New)');
+      let defaults = this.scope.action.context.default_values || {};
       if (defaultValues)
-        Object.assign(res, defaultValues);
+        Object.assign(defaults, defaultValues);
       if (res)
-        this.setValues(res);
+        Object.assign(defaults, res);
+      this.setValues(defaults);
     }
 
     _new() {
