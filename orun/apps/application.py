@@ -66,7 +66,6 @@ class Application(Flask):
         self.addons['web'] = registry['web']
 
         # report env
-        from orun.views.filters import linebreaks
         from orun.reports.engines.chrome.filters import localize, linebreaks, do_groupby
         from orun.reports.engines.chrome.extension import ReportExtension
         from orun.reports.engines.chrome.utils import avg, total, to_list
