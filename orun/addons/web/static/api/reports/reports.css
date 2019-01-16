@@ -71,6 +71,11 @@ section.FloatField .form-field-readonly, section.FloatField input.form-control {
   font-weight: 600;
 }
 
+.table thead tr.col-header th, .col-header th {
+  border: none;
+  padding: 0;
+}
+
 @media print {
   .table td, .table th {
     background-color: transparent!important;
@@ -79,4 +84,8 @@ section.FloatField .form-field-readonly, section.FloatField input.form-control {
 
 .table-striped tbody tr:nth-of-type(odd) {
   background-color: #dbe1f5;
+}
+
+table.auto-width {
+  width: 1%;
 }

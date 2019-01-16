@@ -1,9 +1,10 @@
 import json
 import os
 import uuid
+import datetime
 import mako.lookup
 import mako.template
-import datetime
+from sqlalchemy import text
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PyQt5.QtWidgets import QApplication
 
@@ -152,8 +153,10 @@ def query(cmd, params):
     if isinstance(params, (list, tuple)):
         rows = app.connection.engine.execute(cmd, *params)
     else:
-        rows = session.execute(cmd, params)
-    return rows
+        txt = text(cmd)
+        bind_params = txt._bindparams
+        rows = session.execute(txt, {k: params.get(k) for k in bind_params.keys()})
+    return list(rows)
 
 
 class JinjaEngine:
@@ -163,7 +166,7 @@ class JinjaEngine:
     def from_xml(self, xml, **kwargs):
         kwargs.setdefault('date', datetime.datetime.now())
         kwargs.setdefault('utils', ReportUtils())
-        kwargs.setdefault('query', query)
+        kwargs.setdefault('q', query)
         templ = app.report_env.from_string(xml)
         params = templ.blocks.get('params')
         if params:
@@ -171,12 +174,13 @@ class JinjaEngine:
             params = ''.join(params(ctx))
             s = etree.fromstring(params)
             model = kwargs.get('model')
-            if model is None:
+            if model is None and 'model' in s.attrib:
                 kwargs['model'] = app[s.attrib['model']]
         xml = templ.render(kwargs)
         fname = uuid.uuid4().hex + '.html'
         file_path = os.path.join(settings.REPORT_PATH, fname)
         output_path = file_path + '.pdf'
+        open('/mnt/data/tmp/reports/test.html', 'w').write(xml)
         return print_to_pdf(xml, output_path)
 
 

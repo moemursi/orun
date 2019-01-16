@@ -28,14 +28,14 @@ class ReportAction(Action):
         if self.view and self.view.template_name:
             rep_type = self.view.template_name.rsplit('.', 1)[1]
             if rep_type == 'jinja2':
-                templ = app.jinja_env.get_template(self.view.template_name)
+                templ = app.report_env.get_template(self.view.template_name)
                 params = templ.blocks.get('params')
                 if params:
                     ctx = templ.new_context({})
                     doc = ''.join(params(ctx))
                     if not model:
                         xml = etree.fromstring(doc)
-                        model_name = xml.attrib['model']
+                        model_name = xml.attrib.get('model')
                         if model_name:
                             model = app[model_name]
                             data['fields'] = model.get_fields_info(xml)

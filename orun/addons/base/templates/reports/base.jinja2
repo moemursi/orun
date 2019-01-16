@@ -14,6 +14,7 @@
 <body>
 <report>
 	{% set company = g.user.user_company %}
+  {% set totals = namespace() %}
   {% block body %}{% endblock %}
 </report>
 </body>

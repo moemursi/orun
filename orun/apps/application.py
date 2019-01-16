@@ -67,12 +67,17 @@ class Application(Flask):
 
         # report env
         from orun.views.filters import linebreaks
-        from orun.reports.engines.chrome.filters import localize, linebreaks
+        from orun.reports.engines.chrome.filters import localize, linebreaks, do_groupby
+        from orun.reports.engines.chrome.extension import ReportExtension
         from orun.reports.engines.chrome.utils import avg, total, to_list
         self.report_env = self.create_jinja_environment()
+        self.report_env.add_extension(ReportExtension)
         self.report_env.finalize = localize
         self.report_env.filters['linebreaks'] = linebreaks
         self.report_env.globals['static'] = self.static_reverse
+        self.report_env.globals['total'] = total
+        self.report_env.globals['avg'] = avg
+        self.report_env.filters['groupby'] = do_groupby
 
     @property
     def connection(self):
