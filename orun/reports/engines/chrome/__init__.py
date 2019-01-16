@@ -180,7 +180,6 @@ class JinjaEngine:
         fname = uuid.uuid4().hex + '.html'
         file_path = os.path.join(settings.REPORT_PATH, fname)
         output_path = file_path + '.pdf'
-        open('/mnt/data/tmp/reports/test.html', 'w').write(xml)
         return print_to_pdf(xml, output_path)
 
 
