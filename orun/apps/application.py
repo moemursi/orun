@@ -75,8 +75,8 @@ class Application(Flask):
         self.report_env.finalize = localize
         self.report_env.filters['linebreaks'] = linebreaks
         self.report_env.globals['static'] = self.static_reverse
-        self.report_env.globals['total'] = total
-        self.report_env.globals['avg'] = avg
+        self.report_env.filters['total'] = total
+        self.report_env.filters['avg'] = avg
         self.report_env.filters['groupby'] = do_groupby
 
     @property
