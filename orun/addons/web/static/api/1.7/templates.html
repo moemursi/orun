@@ -243,13 +243,12 @@
             {{ ::_.gettext('Cancel') }}
           </button>
 
-
           <div class="btn-group">
             <div class="dropdown">
               <button id="attachments-button" attachments-button="" type="button" class="btn btn-secondary dropdown-toggle"
                       data-toggle="dropdown" aria-haspopup="true">
                 <span ng-if="!attachments.length">{{ ::_.gettext('Attachments') }} </span>
-                  <span ng-if="attachments.length">{{ ::_.sprintf(_.gettext('%%d Attachment(s)'), attachments.length) }}</span>
+                  <span ng-if="attachments.length">{{ ::_.sprintf(_.gettext('%d Attachment(s)'), attachments.length) }}</span>
                 <span class="caret"></span>
               </button>
               <div class="dropdown-menu attachments-menu">
@@ -259,7 +258,7 @@
                       ng-click="$event.preventDefault();action.deleteAttachment(attachments, $index);$event.stopPropagation();"></span>
                 </a>
                 <div role="separator" class="dropdown-divider" ng-show="attachments.length"></div>
-                <a class="dropdown-item" href="javascript:void(0)" onclick="$(this).next().click()">
+                <a class="dropdown-item" onclick="$(this).next().click();">
                   {{ ::_.gettext('Add...') }}
                 </a>
                 <input type="file" class="input-file-hidden" multiple="multiple"

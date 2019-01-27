@@ -1,4 +1,4 @@
-from orun import app, g
+from orun import app, g, api
 from orun.dispatch import Signal
 from orun.utils.translation import gettext_lazy as _, gettext
 from orun.db import models
@@ -95,6 +95,7 @@ class DocumentApproval(comment.Comments):
 
     class Meta:
         abstract = True
+        auto_send_approval = True
 
     def deserialize(self, instance, data):
         original_level = instance.current_approval_level_id
@@ -104,10 +105,15 @@ class DocumentApproval(comment.Comments):
             if original_level != instance.current_approval_level_id and instance.current_approval_level.permission != 'allow':
                 # force refresh
                 instance.refresh()
-                approval_needed.send(instance, user=g.user, level=instance.current_approval_level)
+                if getattr(self._meta, 'auto_send_approval', True):
+                    approval_needed.send(instance, user=g.user, level=instance.current_approval_level)
 
     def get_confirmation_message(self):
         pass
+
+    @api.record
+    def send_approval(self):
+        approval_needed.send(self, user=g.user, level=self.current_approval_level)
 
 
 class ApprovalModel(models.Model):

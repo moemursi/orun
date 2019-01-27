@@ -81,12 +81,15 @@ def records(*args, each=False, **kwargs):
         @wraps(fn)
         def wrapped(self, *args, **kwargs):
             ids = None
+            kwargs = dict(kwargs)
             if self._state is not None and self.pk:
                 return fn(self, *args, **kwargs)
             elif args:
                 args = list(args)
                 ids = args[0]
                 args = args[1:]
+            elif 'id' in kwargs:
+                ids = [kwargs.pop('id')]
             if not ids and not issubclass(self, models.Model):
                 ids = (self,)
             elif ids:
