@@ -184,8 +184,10 @@ class Deserializer(base.Deserializer):
     def delete_object(self, obj, **attrs):
         Object = app['ir.object']
         try:
-            obj = Object.get_object(obj.attrib['id']).object
+            xml_obj = Object.get_object(obj.attrib['id'])
+            obj = xml_obj.object
             obj.delete()
+            xml_obj.delete()
         except:
             pass
         else:
