@@ -95,7 +95,11 @@ class View(models.Model):
             for child in element:
                 target.attrib[child.attrib['name']] = child.text
         elif pos == 'replace':
-            target.getparent().remove(target)
+            p = target.getparent()
+            idx = p.index(target)
+            p.remove(target)
+            for child in element:
+                p.insert(idx, etree.fromstring(etree.tostring(child)))
 
     def merge(self, source, dest):
         for child in dest:

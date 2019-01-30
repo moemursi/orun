@@ -270,7 +270,7 @@ msgid "User"
 msgstr "Usuário"
 
 msgid "Address 2"
-msgstr "Complemento"
+msgstr "Bairro"
 
 msgid "Partner Categories"
 msgstr "Categorias de Parceiros"
