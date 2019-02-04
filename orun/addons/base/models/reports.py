@@ -1,3 +1,4 @@
+import sys
 import os
 import re
 from collections import defaultdict
@@ -103,7 +104,7 @@ class ReportAction(Action):
             xml = self.view.get_xml(model)
 
         engine = get_engine(types[rep_type])
-        print('params', where)
+        print('params', where, file=sys.stderr)
         rep = engine.auto_report(xml, format=format, model=model, query=qs, report_title=self.name, params=where)
         if rep:
             if not isinstance(rep, str):
