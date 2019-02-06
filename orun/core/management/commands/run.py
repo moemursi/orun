@@ -15,7 +15,7 @@ from orun.core.management import commands
               'is active if debug is enabled.')
 @commands.option('--eager-loading/--lazy-loader', default=None,
               help='Enable or disable eager loading. By default eager loading is enabled if the reloader is disabled.')
-@commands.option('--with-threads/--without-threads', default=False,
+@commands.option('--with-threads/--without-threads', default=True,
               help='Enable or disable multithreading.')
 @commands.option('--websocket', is_flag=True, default=False, help='Enable websocket.')
 @commands.option('--gevent-loop', '--gevent', is_flag=True, default=False, help='Gevent loop.')
