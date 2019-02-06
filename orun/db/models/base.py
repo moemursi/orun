@@ -134,10 +134,22 @@ class ModelBase(type):
             if (not opts.inherited or bases[0].Meta.abstract) and not opts.extension and not opts.abstract:
                 fields['display_name'] = CharField(label=opts.verbose_name, auto_created=True, getter='__str__', editable=False)
                 if opts.log_changes:
-                    fields['created_by'] = ForeignKey('auth.user', label=gettext_lazy('Created by'), auto_created=True, editable=False, deferred=True, db_index=False, copy=False)
-                    fields['created_on'] = DateTimeField(default=datetime.datetime.now, label=gettext_lazy('Created on'), auto_created=True, editable=False, deferred=True, copy=False)
-                    fields['updated_by'] = ForeignKey('auth.user', auto_created=True, label=gettext_lazy('Updated by'), editable=False, deferred=True, db_index=False, copy=True)
-                    fields['updated_on'] = DateTimeField(on_update=datetime.datetime.now, label=gettext_lazy('Updated on'), auto_created=True, editable=False, deferred=True, copy=False)
+                    fields['created_by'] = ForeignKey(
+                        'auth.user', label=gettext_lazy('Created by'), auto_created=True, editable=False, deferred=True,
+                        db_index=False, copy=False
+                    )
+                    fields['created_on'] = DateTimeField(
+                        default=datetime.datetime.now, label=gettext_lazy('Created on'), auto_created=True,
+                        editable=False, deferred=True, copy=False
+                    )
+                    fields['updated_by'] = ForeignKey(
+                        'auth.user', auto_created=True, label=gettext_lazy('Updated by'), editable=False, deferred=True,
+                        db_index=False, copy=False
+                    )
+                    fields['updated_on'] = DateTimeField(
+                        on_update=datetime.datetime.now, label=gettext_lazy('Updated on'), auto_created=True,
+                        editable=False, deferred=True, copy=False
+                    )
 
             if not opts.abstract:
                 app_config[opts.name] = new_class
@@ -698,21 +710,30 @@ class Model(metaclass=ModelBase):
     def _destroy(self):
         session.delete(self)
 
+    def __copy__(self):
+        new_item = {}
+        for f in self._meta.copyable_fields:
+            v = getattr(self, f.name)
+            if self._meta.title_field == f.name:
+                new_item[f.name] = gettext('%s (copy)') % v
+            elif f.one_to_many:
+                new_item[f.name] = [
+                    {
+                        'action': 'CREATE',
+                        'values': copy.copy(obj),
+                    }
+                    for obj in v
+                ]
+
+            else:
+                new_item[f.name] = f.to_json(v)
+        return new_item
+
     @api.method
     def copy(self, id):
-        obj = self.get(id)
-        new_item = {}
-        fields = []
-        for f in self._meta.fields:
-            if f.copy:
-                fields.append(f.name)
-                if self._meta.title_field == f.name:
-                    new_item[f.name] = gettext('%s (copy)') % obj[f.name]
-                else:
-                    new_item[f.name] = obj[f.name]
-        fields.append('display_name')
-        new_item = self(**new_item)
-        return new_item.serialize(fields=fields)
+        # ensure permission
+        instance = self.get(id)
+        return copy.copy(instance)
 
     @api.method
     def group_by(self, grouping):
@@ -772,7 +793,7 @@ class Model(metaclass=ModelBase):
     def __str__(self):
         if self._meta.title_field:
             f = self._meta.fields_dict[self._meta.title_field]
-            v = f.to_json(self[self._meta.title_field])
+            v = f.to_json(getattr(self, self._meta.title_field))
             if not isinstance(v, str):
                 v = str(v)
             return v
@@ -782,13 +803,13 @@ class Model(metaclass=ModelBase):
         for f in self._meta.fields:
             # Check for serializable fields
             if f.serializable:
-                yield f.name, f.to_json(self[f.name], self)
-
-    def __getitem__(self, item):
-        return getattr(self, item)
+                yield f.name, f.to_json(getattr(self, f.name), self)
 
     def __call__(self, *args, **kwargs):
         return self.__class__(*args, **kwargs)
+
+    def __getitem__(self, item):
+        raise DeprecationWarning('DONT USE THIS FIELD')
 
     def save(self, update_fields=None, force_insert=False):
         if not self.pk or force_insert:

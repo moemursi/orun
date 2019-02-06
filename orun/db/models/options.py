@@ -317,6 +317,10 @@ class Options:
             return self.editable_fields
 
     @property
+    def copyable_fields(self):
+        return [f for f in self.concrete_fields if f.copy]
+
+    @property
     def auto_report_fields(self):
         if self.field_groups and 'auto_report' in self.field_groups:
             return [self.fields[field_name] for field_name in self.field_groups['auto_report']]
@@ -417,6 +421,7 @@ def ignore_error_decorator(fn):
         try:
             return fn(*args, **kwargs)
         except Exception as e:
+            raise
             warnings.warn('Error calculating field property: %s' % str(e))
     return ignored
 
