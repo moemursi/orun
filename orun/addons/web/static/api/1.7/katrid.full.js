@@ -479,12 +479,14 @@ var Katrid = {
               if (res.error)
                 reject(res.error);
               else {
-                if (res.result.message)
-                  Katrid.ui.Dialogs.Alerts.success(res.result.message);
-                else if (res.result.messages)
-                  res.result.messages.forEach(function(msg) {
-                    Katrid.ui.Dialogs.Alerts.success(msg);
-                  });
+                if (res.result) {
+                  if (res.result.message)
+                    Katrid.ui.Dialogs.Alerts.success(res.result.message);
+                  else if (res.result.messages)
+                    res.result.messages.forEach(function (msg) {
+                      Katrid.ui.Dialogs.Alerts.success(msg);
+                    });
+                }
                 resolve(res.result);
               }
             })
