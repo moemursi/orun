@@ -478,8 +478,15 @@ var Katrid = {
             .then(res => {
               if (res.error)
                 reject(res.error);
-              else
+              else {
+                if (res.result.message)
+                  Katrid.ui.Dialogs.Alerts.success(res.result.message);
+                else if (res.result.messages)
+                  res.result.messages.forEach(function(msg) {
+                    Katrid.ui.Dialogs.Alerts.success(msg);
+                  });
                 resolve(res.result);
+              }
             })
             .fail(res => reject(res));
 
@@ -2648,22 +2655,6 @@ Katrid.Data = {};
           let msg, result;
           if (res.status === 'open') {
             return window.open(res.open);
-          } else if (res.status === 'fail') {
-            return (() => {
-              result = [];
-              for (msg of Array.from(res.messages)) {
-                result.push(Katrid.Dialogs.Alerts.error(msg));
-              }
-              return result;
-            })();
-          } else if ((res.status === 'ok') && res.result.messages) {
-            return (() => {
-              const result1 = [];
-              for (msg of Array.from(res.result.messages)) {
-                result1.push(Katrid.Dialogs.Alerts.success(msg));
-              }
-              return result1;
-            })();
           }
         });
       }

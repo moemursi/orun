@@ -312,22 +312,6 @@
           let msg, result;
           if (res.status === 'open') {
             return window.open(res.open);
-          } else if (res.status === 'fail') {
-            return (() => {
-              result = [];
-              for (msg of Array.from(res.messages)) {
-                result.push(Katrid.Dialogs.Alerts.error(msg));
-              }
-              return result;
-            })();
-          } else if ((res.status === 'ok') && res.result.messages) {
-            return (() => {
-              const result1 = [];
-              for (msg of Array.from(res.result.messages)) {
-                result1.push(Katrid.Dialogs.Alerts.success(msg));
-              }
-              return result1;
-            })();
           }
         });
       }

@@ -123,8 +123,15 @@
             .then(res => {
               if (res.error)
                 reject(res.error);
-              else
+              else {
+                if (res.result.message)
+                  Katrid.ui.Dialogs.Alerts.success(res.result.message);
+                else if (res.result.messages)
+                  res.result.messages.forEach(function(msg) {
+                    Katrid.ui.Dialogs.Alerts.success(msg);
+                  });
                 resolve(res.result);
+              }
             })
             .fail(res => reject(res));
 
