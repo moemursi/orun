@@ -58,6 +58,7 @@ class Message(models.Model):
             'content': self.content,
             'email_from': self.email_from,
             'author_id': self.author_id,
+            'author_name': self.author.name,
             'date_time': self.date_time,
             'message_type': self.message_type,
             'object_id': self.object_id,
@@ -69,8 +70,8 @@ class Message(models.Model):
     def get_messages(self, *args, **kwargs):
         for r in self:
             yield r.get_message()
-            
-            
+
+
 class Confirmation(models.Model):
     message = models.ForeignKey(Message, null=False)
     confirmation_message = models.ForeignKey(Message)
@@ -79,10 +80,10 @@ class Confirmation(models.Model):
     confirmation_type = models.CharField(db_index=True)
     data = models.CharField()
     expiration = models.DateTimeField()
-    
+
     class Meta:
         name = 'mail.confirmation'
-        
+
     def confirm(self, message=None, data=None):
         if self.active:
             self.confirmation_message = message

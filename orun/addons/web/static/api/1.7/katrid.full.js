@@ -6697,7 +6697,7 @@ Katrid.Data = {};
               <img src="/static/web/assets/img/avatar.png" class="avatar rounded">
             </div>
             <div class="media-body">
-              <strong>{{ ::comment.author[1] }}</strong> - <span class="timestamp text-muted" title="{{ ::comment.date_time|moment:'LLLL'}}"> {{::comment.date_time|moment}}</span>
+              <strong>{{ ::comment.author_name }}</strong> - <span class="timestamp text-muted" title="{{ ::comment.date_time|moment:'LLLL'}}"> {{::comment.date_time|moment}}</span>
               <div class="clearfix"></div>
               <div class="form-group">
                 {{::comment.content}}
