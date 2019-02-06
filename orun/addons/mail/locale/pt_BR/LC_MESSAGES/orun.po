@@ -27,4 +27,8 @@ msgstr "Modelo de Destino"
 msgid "Copying Settings"
 msgstr "Configurações de Cópia"
 
+msgid "Document has been approved."
+msgstr "O documento foi aprovado."
 
+msgid "Do you confirm this document approval?"
+msgstr "Você confirma a aprovação do documento?"
