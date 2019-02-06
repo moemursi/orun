@@ -23,10 +23,20 @@
           }
           let fieldAttributes = field.getAttributes(attrs);
           let sectionAttrs = {};
+
+          // conditional readonly
           if (fieldAttributes['ng-readonly'])
             sectionAttrs['ng-readonly'] = fieldAttributes['ng-readonly'].toString();
+
+          // conditional display
           if (attrs.ngShow)
             sectionAttrs['ng-show'] = attrs.ngShow;
+
+          // field help text
+          if (field.helpText) {
+            sectionAttrs['title'] = field.helpText;
+          }
+
           let content = element.html();
           templ = Katrid.app.getTemplate(templ, {
             name: attrs.name, field, attrs: fieldAttributes, content, fieldAttributes: attrs, sectionAttrs,

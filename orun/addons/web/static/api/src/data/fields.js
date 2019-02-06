@@ -7,8 +7,8 @@
       this._info = info;
       this.caption = this._info.caption;
       this.helpText = this._info.help_text;
-      this.onChange = this._info.onchange;
       this.required = this._info.required;
+      this.onChange = this._info.onchange;
 
       if (this._info.visible === false)
         this.visible = false;

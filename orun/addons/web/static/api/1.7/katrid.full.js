@@ -1671,8 +1671,8 @@ Katrid.Data = {};
       this._info = info;
       this.caption = this._info.caption;
       this.helpText = this._info.help_text;
-      this.onChange = this._info.onchange;
       this.required = this._info.required;
+      this.onChange = this._info.onchange;
 
       if (this._info.visible === false)
         this.visible = false;
@@ -5112,10 +5112,20 @@ Katrid.Data = {};
           }
           let fieldAttributes = field.getAttributes(attrs);
           let sectionAttrs = {};
+
+          // conditional readonly
           if (fieldAttributes['ng-readonly'])
             sectionAttrs['ng-readonly'] = fieldAttributes['ng-readonly'].toString();
+
+          // conditional display
           if (attrs.ngShow)
             sectionAttrs['ng-show'] = attrs.ngShow;
+
+          // field help text
+          if (field.helpText) {
+            sectionAttrs['title'] = field.helpText;
+          }
+
           let content = element.html();
           templ = Katrid.app.getTemplate(templ, {
             name: attrs.name, field, attrs: fieldAttributes, content, fieldAttributes: attrs, sectionAttrs,
