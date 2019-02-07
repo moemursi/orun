@@ -391,9 +391,9 @@
         DateField(param) {
           let secondField = '';
           if (param.operation === 'between') {
-            secondField = `<div class="col-xs-6"><input id="rep-param-id-${param.id}-2" type="date" ng-model="param.value2" class="form-control"></div>`;
+            secondField = `<div class="col-xs-6"><input id="rep-param-id-${param.id}-2" type="date" date-input ng-model="param.value2" class="form-control"></div>`;
           }
-          return `<div class="col-sm-12 row"><div class="col-xs-6"><input id="rep-param-id-${param.id}" type="date" ng-model="param.value1" class="form-control"></div>${secondField}</div>`;
+          return `<div class="col-sm-12 row"><div class="col-xs-6"><input id="rep-param-id-${param.id}" type="date" date-input ng-model="param.value1" class="form-control"></div>${secondField}</div>`;
         },
 
         ForeignKey(param) {
