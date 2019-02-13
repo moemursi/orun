@@ -4102,37 +4102,44 @@ Katrid.Data = {};
         let fields = $('<div>').append(content);
         let totals = [];
         let hasTotal = false;
+        let td, th;
         for (let fld of fields.children('field')) {
           fld = $(fld);
           let fieldName = fld.attr('name');
           let field = scope.view.fields[fieldName];
-          field.assign(fld);
+          if (field) {
 
-          let total = fld.attr('total');
-          if (total) {
-            hasTotal = true;
-            totals.push({
-              field: field,
-              name: fieldName,
-              total: total,
-            });
+            field.assign(fld);
+
+            let total = fld.attr('total');
+            if (total) {
+              hasTotal = true;
+              totals.push({
+                field: field,
+                name: fieldName,
+                total: total,
+              });
+            } else
+              totals.push(false);
+
+            if (!field.visible)
+              continue;
+
+            let inplaceEditor = false;
+            if (formView) {
+              inplaceEditor = formView.find(`field[name="${fieldName}"]`);
+              inplaceEditor = $(inplaceEditor[0].outerHTML).attr('form-field', 'form-field').attr('inline-editor', attrs.inlineEditor)[0].outerHTML;
+            }
+            let fieldEl = $(Katrid.app.getTemplate(field.template.list, {
+              name: fieldName, field, inplaceEditor,
+            }));
+            th = fieldEl.first();
+            td = $(th).next();
+          } else {
+            th = '<th></th>';
+            console.log(fld.html());
+            td = `<td>${fld.html()}</td>`;
           }
-          else
-            totals.push(false);
-
-          if (!field.visible)
-            continue;
-
-          let inplaceEditor = false;
-          if (formView) {
-            inplaceEditor = formView.find(`field[name="${fieldName}"]`);
-            inplaceEditor = $(inplaceEditor[0].outerHTML).attr('form-field', 'form-field').attr('inline-editor', attrs.inlineEditor)[0].outerHTML;
-          }
-          let fieldEl = $(Katrid.app.getTemplate(field.template.list, {
-            name: fieldName, field, inplaceEditor,
-          }));
-          let th = fieldEl.first();
-          let td = $(th).next();
           tr.append(td);
           thead.append(th);
         }
